@@ -1,0 +1,88 @@
+import React, { useEffect, useId } from 'react';
+import FocusTrap from 'focus-trap-react';
+import styles from './Modal.module.css';
+
+export type ModalVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ModalSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface ModalProps {
+  isOpen:    boolean;
+  onClose:   () => void;
+  title:     string;
+  children:  React.ReactNode;
+  variant?:  ModalVariant;
+  size?:     ModalSize;
+  footer?:   React.ReactNode;
+}
+
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  variant = 'default',
+  size = 'md',
+  footer,
+}) => {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <FocusTrap>
+      <div className={styles.overlay} onClick={onClose}>
+        <div
+          className={[styles.modal, styles[`modal--${size}`]].join(' ')}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <header className={styles.header}>
+            <h2 id={titleId} className={styles.title}>{title}</h2>
+            <button
+              className={styles.closeButton}
+              onClick={onClose}
+              aria-label="Close modal"
+            >
+              &times;
+            </button>
+          </header>
+          <div className={styles.body}>
+            {children}
+          </div>
+          {footer && (
+            <footer className={styles.footer}>
+              {footer}
+            </footer>
+          )}
+        </div>
+      </div>
+    </FocusTrap>
+  );
+};
+
+Modal.displayName = 'Modal';

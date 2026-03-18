@@ -1,0 +1,73 @@
+import React, { useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Modal } from './Modal';
+import { Button } from './Button';
+
+const meta: Meta<typeof Modal> = {
+  title: 'Crucible/{{name}}',
+  component: Modal,
+  parameters: { layout: 'centered' },
+  argTypes: {
+    size: { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Modal>;
+
+export const Default: Story = {
+  render: (args) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
+        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      </>
+    );
+  },
+  args: {
+    title:    'Example Modal',
+    children: 'This is the content of the modal. You can place anything here.',
+  },
+};
+
+export const WithFooter: Story = {
+  render: (args) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setIsOpen(true)}>Open Modal with Footer</Button>
+        <Modal
+          {...args}
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
+              <Button onClick={() => setIsOpen(false)}>Confirm</Button>
+            </>
+          }
+        />
+      </>
+    );
+  },
+  args: {
+    title:    'Confirmation Required',
+    children: 'Are you sure you want to proceed with this action?',
+  },
+};
+
+export const Small: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    size: 'sm',
+  },
+};
+
+export const Large: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    size: 'lg',
+  },
+};
