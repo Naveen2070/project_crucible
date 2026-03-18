@@ -1,0 +1,46 @@
+{
+  "name": "project_crucible",
+  "version": "0.1.0",
+  "description": "Crucible — Design System Engine",
+  "main": "dist/cli/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
+    "playground": "npm run dev --workspace=playground-react",
+    "storybook": "npm run storybook --workspace=playground-react",
+    "generate:dev": "node dist/cli/index.js add Button --dev",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
+  },
+  "workspaces": [
+    "playground/*"
+  ],
+  "bin": {
+    "crucible": "./bin/crucible.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "chalk": "^4.1.2",
+    "commander": "^13.1.0",
+    "fs-extra": "^11.3.0",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.13.9",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^3.0.7",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.21.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+}
