@@ -1,0 +1,61 @@
+import React from 'react';
+import styles from './Card.module.css';
+
+export type CardVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type CardSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface CardProps {
+  variant?:   CardVariant;
+  size?:      CardSize;
+  title?:     string;
+  children:   React.ReactNode;
+  onClick?:   () => void;
+  className?: string;
+  href?:      string;
+}
+
+export const Card: React.FC<CardProps> = ({
+  variant = 'default',
+  size = 'md',
+  title,
+  children,
+  onClick,
+  className,
+  href,
+}) => {
+  const isClickable = variant === 'clickable' || !!onClick || !!href;
+  
+  const cls = [
+    styles.card,
+    styles[`card--${variant}`],
+    styles[`card--${size}`],
+    isClickable && styles['card--clickable'],
+    className,
+  ].filter(Boolean).join(' ');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick?.();
+      if (href) window.location.href = href;
+    }
+  };
+
+  const Component = href ? 'a' : isClickable ? 'button' : 'article';
+
+  return (
+    <Component
+      className={cls}
+      onClick={onClick}
+      href={href}
+      role={href ? undefined : isClickable ? 'button' : 'article'}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? handleKeyDown : undefined}
+    >
+      {title && <h3 className={styles.title}>{title}</h3>}
+      <div className={styles.content}>{children}</div>
+    </Component>
+  );
+};
+
+Card.displayName = 'Card';
