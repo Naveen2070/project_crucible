@@ -1,0 +1,162 @@
+import React, { useState, useRef, useEffect, useId } from 'react';
+import styles from './Select.module.css';
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export type SelectVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type SelectSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface SelectProps {
+  options:   SelectOption[];
+  value?:    string;
+  onChange?: (value: string) => void;
+  label:     string;
+  placeholder?: string;
+  variant?:  SelectVariant;
+  size?:     SelectSize;
+  error?:    string;
+  disabled?: boolean;
+}
+
+export const Select: React.FC<SelectProps> = ({
+  options,
+  value,
+  onChange,
+  label,
+  placeholder = 'Select an option',
+  variant = 'default',
+  size = 'md',
+  error,
+  disabled,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
+  const id = useId();
+  const labelId = `${id}-label`;
+  const listboxId = `${id}-listbox`;
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setIsOpen(true);
+        setActiveIndex(selectedOption ? options.findIndex(o => o.value === value) : 0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (activeIndex >= 0) {
+          onChange?.(options[activeIndex].value);
+          setIsOpen(false);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveIndex(options.length - 1);
+        break;
+    }
+  };
+
+  return (
+    <div className={styles.container} ref={containerRef}>
+      <label id={labelId} className={styles.label}>{label}</label>
+      <div
+        className={[
+          styles.combobox,
+          styles[`combobox--${size}`],
+          error && styles['combobox--error'],
+          disabled && styles['combobox--disabled'],
+          isOpen && styles['combobox--open'],
+        ].join(' ')}
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-labelledby={labelId}
+        aria-controls={listboxId}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={handleKeyDown}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        aria-activedescendant={activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
+      >
+        <span className={styles.value}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span className={styles.arrow} aria-hidden="true">▼</span>
+      </div>
+
+      {isOpen && (
+        <ul
+          id={listboxId}
+          className={styles.listbox}
+          role="listbox"
+          aria-labelledby={labelId}
+          ref={listboxRef}
+        >
+          {options.map((option, index) => (
+            <li
+              key={option.value}
+              id={`${id}-option-${index}`}
+              role="option"
+              aria-selected={option.value === value}
+              className={[
+                styles.option,
+                option.value === value && styles['option--selected'],
+                activeIndex === index && styles['option--active'],
+              ].join(' ')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange?.(option.value);
+                setIsOpen(false);
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+            >
+              {option.label}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <span className={styles.error} role="alert">{error}</span>}
+    </div>
+  );
+};
+
+Select.displayName = 'Select';
