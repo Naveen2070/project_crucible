@@ -1,0 +1,67 @@
+import React, { useId } from 'react';
+import styles from './Input.module.css';
+
+export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label:     string;
+  variant?:  InputVariant;
+  size?:     InputSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = `${id}-error`;
+    const hintId = `${id}-hint`;
+
+    const cls = [
+      styles.input,
+      styles[`input--${variant}`],
+      styles[`input--${size}`],
+      error && styles['input--error'],
+      props.disabled && styles['input--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    const describedBy = [
+      error ? errorId : null,
+      hint ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <div className={styles['input-container']}>
+        <label htmlFor={id} className={styles.label}>
+          {label}
+          {required && <span className={styles.required} aria-hidden="true">*</span>}
+        </label>
+        <input
+          ref={ref}
+          id={id}
+          className={cls}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          aria-required={required}
+          {...props}
+        />
+        {hint && !error && (
+          <span id={hintId} className={styles.hint}>
+            {hint}
+          </span>
+        )}
+        {error && (
+          <span id={errorId} className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Input.displayName = 'Input';

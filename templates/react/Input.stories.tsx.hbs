@@ -1,0 +1,36 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { Input } from './Input';
+
+const meta: Meta<typeof Input> = {
+  title: 'Crucible/{{name}}',
+  component: Input,
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    disabled: { control: 'boolean' },
+    required: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Input>;
+
+export const Default: Story = {
+  args: { label: 'Username', placeholder: 'Enter your username' },
+};
+
+export const Error: Story = {
+  args: { label: 'Email', error: 'Invalid email address', defaultValue: 'invalid-email' },
+};
+
+export const Hint: Story = {
+  args: { label: 'Password', hint: 'Must be at least 8 characters long', type: 'password' },
+};
+
+export const Disabled: Story = {
+  args: { label: 'Account ID', disabled: true, value: 'ACC-12345' },
+};
+
+export const Required: Story = {
+  args: { label: 'Full Name', required: true, placeholder: 'Jane Doe' },
+};
