@@ -1,0 +1,41 @@
+import React from 'react';
+import styles from './Button.module.css';
+
+export type ButtonVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ButtonSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?:  ButtonVariant;
+  size?:     ButtonSize;
+  loading?:  boolean;
+  children:  React.ReactNode;
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+    const cls = [
+      styles.btn,
+      styles[`btn--${variant}`],
+      styles[`btn--${size}`],
+      loading  && styles['btn--loading'],
+      disabled && styles['btn--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <button
+        ref={ref}
+        className={cls}
+        disabled={disabled || loading}
+        aria-disabled={disabled || loading}
+        aria-busy={loading}
+        {...props}
+      >
+        {loading && <span className={styles.spinner} aria-hidden="true" />}
+        {children}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';

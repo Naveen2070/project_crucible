@@ -1,0 +1,30 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { Button } from './Button';
+
+const meta: Meta<typeof Button> = {
+  title: 'Crucible/{{name}}',
+  component: Button,
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    loading:  { control: 'boolean' },
+    disabled: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Button>;
+
+{{#each variants}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', children: '{{capitalize this}} button' },
+};
+{{/each}}
+
+export const Loading: Story = {
+  args: { variant: 'primary', loading: true, children: 'Loading...' },
+};
+
+export const Disabled: Story = {
+  args: { variant: 'primary', disabled: true, children: 'Disabled' },
+};
