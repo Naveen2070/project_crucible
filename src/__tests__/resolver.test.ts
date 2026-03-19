@@ -3,11 +3,11 @@ import { resolveTokens } from '../tokens/resolver';
 
 const mockConfig = {
   tokens: {
-    color:      { primary: '#6C63FF', textMuted: '#6B6B8A' },
-    radius:     { sm: '4px', md: '8px' },
-    spacing:    { unit: '4px' },
+    color: { primary: '#6C63FF', textMuted: '#6B6B8A' },
+    radius: { sm: '4px', md: '8px' },
+    spacing: { unit: '4px' },
     typography: { fontFamily: 'system-ui', scaleBase: '16px' },
-  }
+  },
 } as any;
 
 describe('resolveTokens', () => {

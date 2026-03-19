@@ -18,11 +18,11 @@ program
 program
   .command('add <component>')
   .description('Scaffold a component into your project')
-  .option('--framework <fw>',  'Target framework', 'react')
-  .option('--dev',             'Output to playground/__generated__')
-  .option('--force',           'Overwrite even if file has been edited')
-  .option('--config <path>',   'Path to config file', 'crucible.config.json')
-  .action(async (componentName, opts) => {
+  .option('--framework <fw>', 'Target framework', 'react')
+  .option('--dev', 'Output to playground/__generated__')
+  .option('--force', 'Overwrite even if file has been edited')
+  .option('--config <path>', 'Path to config file', 'crucible.config.json')
+  .action(async (componentName: string, opts: any) => {
     if (!registry[componentName]) {
       console.error(chalk.red(`✗ Unknown component: ${componentName}`));
       console.log(`Available: ${Object.keys(registry).join(', ')}`);
@@ -32,8 +32,8 @@ program
     try {
       const config = await readConfig(opts.config);
       const tokens = resolveTokens(config);
-      const model  = buildComponentModel(componentName, tokens, config);
-      const files  = await renderComponent(model);
+      const model = buildComponentModel(componentName, tokens, config);
+      const files = await renderComponent(model);
 
       const outDir = opts.dev
         ? path.join(process.cwd(), 'playground/react/src/__generated__')

@@ -6,22 +6,22 @@ export interface CrucibleConfig {
   framework: string;
   theme: string;
   tokens: {
-    color:      Record<string, string>;
-    radius:     Record<string, string>;
-    spacing:    { unit: string };
+    color: Record<string, string>;
+    radius: Record<string, string>;
+    spacing: { unit: string };
     typography: { fontFamily: string; scaleBase: string };
   };
   features: {
-    hover:      boolean;
-    focusRing:  boolean;
+    hover: boolean;
+    focusRing: boolean;
     motionSafe: boolean;
   };
   a11y: {
-    focusRingStyle:  string;
-    focusRingColor:  string;
-    focusRingWidth:  string;
+    focusRingStyle: string;
+    focusRingColor: string;
+    focusRingWidth: string;
     focusRingOffset: string;
-    reduceMotion:    boolean;
+    reduceMotion: boolean;
   };
   flags?: {
     outputDir?: string;
@@ -30,7 +30,7 @@ export interface CrucibleConfig {
 
 export async function readConfig(configPath: string): Promise<CrucibleConfig> {
   const resolved = path.resolve(process.cwd(), configPath);
-  if (!await fs.pathExists(resolved)) {
+  if (!(await fs.pathExists(resolved))) {
     throw new Error(`Config not found: ${resolved}\nRun: crucible init`);
   }
   return fs.readJson(resolved);

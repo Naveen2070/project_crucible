@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+coverage/
+
+__generated__/
+.gemini/
+.gemini-cli/
+
+# Don't format Handlebars templates
+**/*.hbs

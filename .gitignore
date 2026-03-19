@@ -47,3 +47,5 @@ Thumbs.db
 __generated__/
 .crucible-hashes.json
 
+# Storybook
+*storybook.log

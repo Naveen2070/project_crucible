@@ -10,8 +10,11 @@ function hashContent(content: string): string {
 }
 
 async function loadHashes(): Promise<Record<string, string>> {
-  try { return await fs.readJson(HASH_FILE); }
-  catch { return {}; }
+  try {
+    return await fs.readJson(HASH_FILE);
+  } catch {
+    return {};
+  }
 }
 
 async function saveHashes(hashes: Record<string, string>): Promise<void> {
@@ -19,9 +22,9 @@ async function saveHashes(hashes: Record<string, string>): Promise<void> {
 }
 
 export async function writeFiles(
-  files:     Record<string, string>,
+  files: Record<string, string>,
   outputDir: string,
-  opts:      { force?: boolean } = {},
+  opts: { force?: boolean } = {},
 ): Promise<void> {
   await fs.ensureDir(outputDir);
   const hashes = await loadHashes();
@@ -30,10 +33,10 @@ export async function writeFiles(
     const outPath = path.join(outputDir, filename);
     const newHash = hashContent(content);
 
-    if (await fs.pathExists(outPath) && !opts.force) {
+    if ((await fs.pathExists(outPath)) && !opts.force) {
       const currentContent = await fs.readFile(outPath, 'utf-8');
-      const currentHash    = hashContent(currentContent);
-      const storedHash     = hashes[filename];
+      const currentHash = hashContent(currentContent);
+      const storedHash = hashes[filename];
 
       if (storedHash && currentHash !== storedHash) {
         console.log(chalk.yellow(`⚠  ${filename} has been modified. Use --force to overwrite.`));

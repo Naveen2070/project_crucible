@@ -4,10 +4,11 @@ import { buildComponentModel } from '../components/model';
 const mockTokens = { cssVars: {}, js: {} };
 const mockConfig = {
   framework: 'react',
-  features:  { hover: true, focusRing: true, motionSafe: true },
-  a11y:      {
+  features: { hover: true, focusRing: true, motionSafe: true },
+  a11y: {
     focusRingColor: 'var(--color-primary)',
-    focusRingWidth: '2px', focusRingOffset: '3px',
+    focusRingWidth: '2px',
+    focusRingOffset: '3px',
     reduceMotion: true,
   },
 } as any;
@@ -20,7 +21,7 @@ describe('buildComponentModel', () => {
   });
 
   it('sets focusTrap for Modal only', () => {
-    const modal  = buildComponentModel('Modal',  mockTokens, mockConfig);
+    const modal = buildComponentModel('Modal', mockTokens, mockConfig);
     const button = buildComponentModel('Button', mockTokens, mockConfig);
     expect(modal.a11y.focusTrap).toBe(true);
     expect(button.a11y.focusTrap).toBeUndefined();

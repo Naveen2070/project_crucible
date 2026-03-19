@@ -146,15 +146,15 @@ cd ../..
 ```json
 {
   "scripts": {
-    "build":          "tsc",
-    "build:watch":    "tsc --watch",
-    "dev":            "concurrently \"npm run build:watch\" \"npm run playground\"",
-    "playground":     "npm run dev --workspace=playground/react",
-    "storybook":      "npm run storybook --workspace=playground/react",
-    "generate:dev":   "node dist/cli/index.js add Button --dev",
-    "test":           "vitest",
-    "test:coverage":  "vitest --coverage",
-    "chromatic":      "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
+    "playground": "npm run dev --workspace=playground/react",
+    "storybook": "npm run storybook --workspace=playground/react",
+    "generate:dev": "node dist/cli/index.js add Button --dev",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
   },
   "workspaces": ["playground/react"],
   "bin": {
@@ -185,54 +185,54 @@ Minimal by design. Every key maps to a CSS variable or a feature flag. No behavi
 
   "tokens": {
     "color": {
-      "primary":    "#6C63FF",
-      "secondary":  "#F3F2FF",
-      "surface":    "#FFFFFF",
+      "primary": "#6C63FF",
+      "secondary": "#F3F2FF",
+      "surface": "#FFFFFF",
       "background": "#F8F9FA",
-      "border":     "#E2E1F0",
-      "text":       "#1A1A2E",
-      "textMuted":  "#6B6B8A",
-      "danger":     "#E24B4A",
-      "success":    "#1D9E75"
+      "border": "#E2E1F0",
+      "text": "#1A1A2E",
+      "textMuted": "#6B6B8A",
+      "danger": "#E24B4A",
+      "success": "#1D9E75"
     },
     "radius": {
-      "sm":  "4px",
-      "md":  "8px",
-      "lg":  "12px"
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px"
     },
     "spacing": {
       "unit": "4px"
     },
     "typography": {
       "fontFamily": "system-ui, sans-serif",
-      "scaleBase":  "16px"
+      "scaleBase": "16px"
     }
   },
 
   "features": {
-    "hover":      true,
-    "focusRing":  true,
+    "hover": true,
+    "focusRing": true,
     "motionSafe": true
   },
 
   "a11y": {
-    "focusRingStyle":  "outline",
-    "focusRingColor":  "var(--color-primary)",
-    "focusRingWidth":  "2px",
+    "focusRingStyle": "outline",
+    "focusRingColor": "var(--color-primary)",
+    "focusRingWidth": "2px",
     "focusRingOffset": "3px",
-    "reduceMotion":    true
+    "reduceMotion": true
   }
 }
 ```
 
 ### Token → CSS variable mapping
 
-| Config key | Resolved CSS variable |
-|---|---|
-| `tokens.color.primary` | `--color-primary: #6C63FF` |
-| `tokens.color.textMuted` | `--color-text-muted: #6B6B8A` |
-| `tokens.radius.md` | `--radius-md: 8px` |
-| `tokens.spacing.unit` | `--spacing-unit: 4px` |
+| Config key                     | Resolved CSS variable                  |
+| ------------------------------ | -------------------------------------- |
+| `tokens.color.primary`         | `--color-primary: #6C63FF`             |
+| `tokens.color.textMuted`       | `--color-text-muted: #6B6B8A`          |
+| `tokens.radius.md`             | `--radius-md: 8px`                     |
+| `tokens.spacing.unit`          | `--spacing-unit: 4px`                  |
 | `tokens.typography.fontFamily` | `--font-family: system-ui, sans-serif` |
 
 > **Rule:** Every component references `var(--...)` only. No hard-coded values anywhere in generated output.
@@ -254,22 +254,22 @@ export interface CrucibleConfig {
   framework: string;
   theme: string;
   tokens: {
-    color:      Record<string, string>;
-    radius:     Record<string, string>;
-    spacing:    { unit: string };
+    color: Record<string, string>;
+    radius: Record<string, string>;
+    spacing: { unit: string };
     typography: { fontFamily: string; scaleBase: string };
   };
   features: {
-    hover:      boolean;
-    focusRing:  boolean;
+    hover: boolean;
+    focusRing: boolean;
     motionSafe: boolean;
   };
   a11y: {
-    focusRingStyle:  string;
-    focusRingColor:  string;
-    focusRingWidth:  string;
+    focusRingStyle: string;
+    focusRingColor: string;
+    focusRingWidth: string;
     focusRingOffset: string;
-    reduceMotion:    boolean;
+    reduceMotion: boolean;
   };
   flags?: {
     outputDir?: string;
@@ -278,7 +278,7 @@ export interface CrucibleConfig {
 
 export async function readConfig(configPath: string): Promise<CrucibleConfig> {
   const resolved = path.resolve(process.cwd(), configPath);
-  if (!await fs.pathExists(resolved)) {
+  if (!(await fs.pathExists(resolved))) {
     throw new Error(`Config not found: ${resolved}\nRun: crucible init`);
   }
   return fs.readJson(resolved);
@@ -292,38 +292,38 @@ import { CrucibleConfig } from '../config/reader';
 
 export interface ResolvedTokens {
   cssVars: Record<string, string>;
-  js:      Record<string, string>;
+  js: Record<string, string>;
 }
 
 export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
   const cssVars: Record<string, string> = {};
-  const js:      Record<string, string> = {};
+  const js: Record<string, string> = {};
 
   // Colors
   for (const [key, value] of Object.entries(config.tokens.color)) {
     cssVars[`--color-${kebab(key)}`] = value;
-    js[`color${pascal(key)}`]        = value;
+    js[`color${pascal(key)}`] = value;
   }
 
   // Radius
   for (const [key, value] of Object.entries(config.tokens.radius)) {
-    cssVars[`--radius-${key}`]   = value;
-    js[`radius${pascal(key)}`]   = value;
+    cssVars[`--radius-${key}`] = value;
+    js[`radius${pascal(key)}`] = value;
   }
 
   // Spacing
   cssVars['--spacing-unit'] = config.tokens.spacing.unit;
-  js['spacingUnit']         = config.tokens.spacing.unit;
+  js['spacingUnit'] = config.tokens.spacing.unit;
 
   // Typography
-  cssVars['--font-family']    = config.tokens.typography.fontFamily;
+  cssVars['--font-family'] = config.tokens.typography.fontFamily;
   cssVars['--font-size-base'] = config.tokens.typography.scaleBase;
 
   return { cssVars, js };
 }
 
 function kebab(str: string): string {
-  return str.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
+  return str.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`);
 }
 
 function pascal(str: string): string {
@@ -338,21 +338,21 @@ import { CrucibleConfig } from '../config/reader';
 import { ResolvedTokens } from '../tokens/resolver';
 
 export interface ComponentModel {
-  name:      string;
+  name: string;
   framework: string;
-  variants:  string[];
-  sizes:     string[];
-  states:    string[];
-  tokens:    ResolvedTokens;
+  variants: string[];
+  sizes: string[];
+  states: string[];
+  tokens: ResolvedTokens;
   a11y: {
-    focusRing:       boolean;
-    focusRingColor:  string;
-    focusRingWidth:  string;
+    focusRing: boolean;
+    focusRingColor: string;
+    focusRingWidth: string;
     focusRingOffset: string;
-    reduceMotion:    boolean;
-    role?:           string;
-    focusTrap?:      boolean;
-    keyboardNav?:    boolean;
+    reduceMotion: boolean;
+    role?: string;
+    focusTrap?: boolean;
+    keyboardNav?: boolean;
   };
   features: {
     hover: boolean;
@@ -362,33 +362,33 @@ export interface ComponentModel {
 const COMPONENT_DEFAULTS: Record<string, Pick<ComponentModel, 'variants' | 'sizes' | 'states'>> = {
   Button: {
     variants: ['primary', 'secondary', 'ghost', 'danger'],
-    sizes:    ['sm', 'md', 'lg'],
-    states:   ['disabled', 'loading'],
+    sizes: ['sm', 'md', 'lg'],
+    states: ['disabled', 'loading'],
   },
   Input: {
     variants: ['default', 'error'],
-    sizes:    ['sm', 'md', 'lg'],
-    states:   ['disabled', 'error'],
+    sizes: ['sm', 'md', 'lg'],
+    states: ['disabled', 'error'],
   },
   Card: {
     variants: ['default', 'hoverable', 'clickable'],
-    sizes:    ['sm', 'md', 'lg'],
-    states:   [],
+    sizes: ['sm', 'md', 'lg'],
+    states: [],
   },
   Modal: {
     variants: ['default', 'confirm'],
-    sizes:    ['sm', 'md', 'lg'],
-    states:   ['open', 'closed'],
+    sizes: ['sm', 'md', 'lg'],
+    states: ['open', 'closed'],
   },
   Select: {
     variants: ['default', 'error'],
-    sizes:    ['sm', 'md', 'lg'],
-    states:   ['disabled', 'error', 'open'],
+    sizes: ['sm', 'md', 'lg'],
+    states: ['disabled', 'error', 'open'],
   },
 };
 
 export function buildComponentModel(
-  name:   string,
+  name: string,
   tokens: ResolvedTokens,
   config: CrucibleConfig,
 ): ComponentModel {
@@ -401,14 +401,14 @@ export function buildComponentModel(
     ...defaults,
     tokens,
     a11y: {
-      focusRing:       config.features.focusRing     ?? true,
-      focusRingColor:  config.a11y.focusRingColor     ?? 'var(--color-primary)',
-      focusRingWidth:  config.a11y.focusRingWidth     ?? '2px',
-      focusRingOffset: config.a11y.focusRingOffset    ?? '3px',
-      reduceMotion:    config.a11y.reduceMotion        ?? true,
-      role:            name === 'Modal'  ? 'dialog'   : undefined,
-      focusTrap:       name === 'Modal'  ? true        : undefined,
-      keyboardNav:     name === 'Select' ? true        : undefined,
+      focusRing: config.features.focusRing ?? true,
+      focusRingColor: config.a11y.focusRingColor ?? 'var(--color-primary)',
+      focusRingWidth: config.a11y.focusRingWidth ?? '2px',
+      focusRingOffset: config.a11y.focusRingOffset ?? '3px',
+      reduceMotion: config.a11y.reduceMotion ?? true,
+      role: name === 'Modal' ? 'dialog' : undefined,
+      focusTrap: name === 'Modal' ? true : undefined,
+      keyboardNav: name === 'Select' ? true : undefined,
     },
     features: {
       hover: config.features.hover ?? true,
@@ -460,30 +460,29 @@ import path from 'path';
 import { ComponentModel } from '../components/model';
 
 // Register helpers
-Handlebars.registerHelper('eq',        (a, b) => a === b);
-Handlebars.registerHelper('includes',  (arr, val) => arr?.includes(val));
+Handlebars.registerHelper('eq', (a, b) => a === b);
+Handlebars.registerHelper('includes', (arr, val) => arr?.includes(val));
 Handlebars.registerHelper('capitalize', (str: string) => str[0].toUpperCase() + str.slice(1));
-Handlebars.registerHelper('kebab',     (str: string) =>
-  str.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`).toLowerCase());
+Handlebars.registerHelper('kebab', (str: string) =>
+  str.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`).toLowerCase(),
+);
 
-export async function renderComponent(
-  model: ComponentModel,
-): Promise<Record<string, string>> {
+export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
   const tplDir = path.join(process.cwd(), 'templates', model.framework);
   const result: Record<string, string> = {};
 
   const targets = [
-    { tpl: `${model.name}.tsx.hbs`,          out: `${model.name}.tsx`         },
-    { tpl: `${model.name}.module.css.hbs`,   out: `${model.name}.module.css`  },
-    { tpl: `${model.name}.stories.tsx.hbs`,  out: `${model.name}.stories.tsx` },
+    { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
+    { tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` },
+    { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
   ];
 
   for (const { tpl, out } of targets) {
     const tplPath = path.join(tplDir, tpl);
-    if (!await fs.pathExists(tplPath)) continue;
-    const source   = await fs.readFile(tplPath, 'utf-8');
+    if (!(await fs.pathExists(tplPath))) continue;
+    const source = await fs.readFile(tplPath, 'utf-8');
     const compiled = Handlebars.compile(source);
-    result[out]    = compiled(model);
+    result[out] = compiled(model);
   }
 
   return result;
@@ -505,8 +504,11 @@ function hashContent(content: string): string {
 }
 
 async function loadHashes(): Promise<Record<string, string>> {
-  try { return await fs.readJson(HASH_FILE); }
-  catch { return {}; }
+  try {
+    return await fs.readJson(HASH_FILE);
+  } catch {
+    return {};
+  }
 }
 
 async function saveHashes(hashes: Record<string, string>): Promise<void> {
@@ -514,9 +516,9 @@ async function saveHashes(hashes: Record<string, string>): Promise<void> {
 }
 
 export async function writeFiles(
-  files:     Record<string, string>,
+  files: Record<string, string>,
   outputDir: string,
-  opts:      { force?: boolean } = {},
+  opts: { force?: boolean } = {},
 ): Promise<void> {
   await fs.ensureDir(outputDir);
   const hashes = await loadHashes();
@@ -525,10 +527,10 @@ export async function writeFiles(
     const outPath = path.join(outputDir, filename);
     const newHash = hashContent(content);
 
-    if (await fs.pathExists(outPath) && !opts.force) {
+    if ((await fs.pathExists(outPath)) && !opts.force) {
       const currentContent = await fs.readFile(outPath, 'utf-8');
-      const currentHash    = hashContent(currentContent);
-      const storedHash     = hashes[filename];
+      const currentHash = hashContent(currentContent);
+      const storedHash = hashes[filename];
 
       if (storedHash && currentHash !== storedHash) {
         console.log(chalk.yellow(`⚠  ${filename} has been modified. Use --force to overwrite.`));
@@ -568,10 +570,10 @@ program
 program
   .command('add <component>')
   .description('Scaffold a component into your project')
-  .option('--framework <fw>',  'Target framework', 'react')
-  .option('--dev',             'Output to playground/__generated__')
-  .option('--force',           'Overwrite even if file has been edited')
-  .option('--config <path>',   'Path to config file', 'crucible.config.json')
+  .option('--framework <fw>', 'Target framework', 'react')
+  .option('--dev', 'Output to playground/__generated__')
+  .option('--force', 'Overwrite even if file has been edited')
+  .option('--config <path>', 'Path to config file', 'crucible.config.json')
   .action(async (componentName, opts) => {
     if (!registry[componentName]) {
       console.error(chalk.red(`✗ Unknown component: ${componentName}`));
@@ -581,8 +583,8 @@ program
 
     const config = await readConfig(opts.config);
     const tokens = resolveTokens(config);
-    const model  = buildComponentModel(componentName, tokens, config);
-    const files  = await renderComponent(model);
+    const model = buildComponentModel(componentName, tokens, config);
+    const files = await renderComponent(model);
 
     const outDir = opts.dev
       ? path.join(process.cwd(), 'playground/react/src/__generated__')
@@ -769,65 +771,65 @@ These are non-negotiable. They determine what goes into each TSX template.
 
 ### 5.1 Button
 
-| Requirement | Implementation | Reason |
-|---|---|---|
-| Element | native `<button>` | Never `<div onClick>` |
-| `aria-disabled` | mirrors `disabled` prop | Keeps element in tab order for AT |
-| `aria-busy` | true when `loading` | Screen readers announce loading state |
-| Focus ring | `focus-visible` only | Not `focus` — avoids mouse-click ring |
-| Keyboard | Enter + Space activate | Native button handles this |
+| Requirement     | Implementation          | Reason                                |
+| --------------- | ----------------------- | ------------------------------------- |
+| Element         | native `<button>`       | Never `<div onClick>`                 |
+| `aria-disabled` | mirrors `disabled` prop | Keeps element in tab order for AT     |
+| `aria-busy`     | true when `loading`     | Screen readers announce loading state |
+| Focus ring      | `focus-visible` only    | Not `focus` — avoids mouse-click ring |
+| Keyboard        | Enter + Space activate  | Native button handles this            |
 
 ### 5.2 Input
 
-| Requirement | Implementation | Reason |
-|---|---|---|
-| Label | `<label htmlFor={id}>` | Always linked — never placeholder-as-label |
-| Error | `aria-invalid="true"` + `aria-describedby` | Error span needs `role="alert"` |
-| Required | `aria-required="true"` + visual `*` | Both visual and programmatic signal |
-| Hint text | `aria-describedby` on hint span | Read after label and value by AT |
-| Password | `type="password"` + show/hide toggle | Toggle needs `aria-label` for its state |
+| Requirement | Implementation                             | Reason                                     |
+| ----------- | ------------------------------------------ | ------------------------------------------ |
+| Label       | `<label htmlFor={id}>`                     | Always linked — never placeholder-as-label |
+| Error       | `aria-invalid="true"` + `aria-describedby` | Error span needs `role="alert"`            |
+| Required    | `aria-required="true"` + visual `*`        | Both visual and programmatic signal        |
+| Hint text   | `aria-describedby` on hint span            | Read after label and value by AT           |
+| Password    | `type="password"` + show/hide toggle       | Toggle needs `aria-label` for its state    |
 
 ### 5.3 Card
 
-| Requirement | Implementation | Reason |
-|---|---|---|
-| Default | `role="article"` | Semantic landmark for screen readers |
-| Clickable variant | `role="button"` or `<a>` | Never bare `div` with onClick |
-| `aria-label` | Required if no heading inside | Cards with images only need a label |
-| Keyboard | `tabIndex={0}` + Enter handler if clickable | Must be keyboard-reachable |
-| Hover | CSS only, no JS | Works without JS, respects reduce-motion |
+| Requirement       | Implementation                              | Reason                                   |
+| ----------------- | ------------------------------------------- | ---------------------------------------- |
+| Default           | `role="article"`                            | Semantic landmark for screen readers     |
+| Clickable variant | `role="button"` or `<a>`                    | Never bare `div` with onClick            |
+| `aria-label`      | Required if no heading inside               | Cards with images only need a label      |
+| Keyboard          | `tabIndex={0}` + Enter handler if clickable | Must be keyboard-reachable               |
+| Hover             | CSS only, no JS                             | Works without JS, respects reduce-motion |
 
 ### 5.4 Modal — highest complexity
 
 > **CAUTION:** Modal is the most accessibility-critical component. Missing focus trap or Escape handler = WCAG 2.4.3 failure. Use `focus-trap-react` — do not roll your own.
 
-| Requirement | Implementation | Reason |
-|---|---|---|
-| `role="dialog"` | On the modal container | Required ARIA role |
-| `aria-modal="true"` | On the modal container | Tells AT to ignore background |
-| `aria-labelledby` | Points to modal heading id | Screen reader announces title on open |
-| Focus trap | `focus-trap-react` package | Tab cycles only within modal when open |
-| Initial focus | First focusable element on open | Or close button if no form inside |
-| Escape key | Calls `onClose` | Universal modal dismiss expectation |
-| Return focus | Back to trigger element on close | WCAG 2.4.3 — focus must return |
-| Scroll lock | `overflow: hidden` on `<body>` | Prevents background scrolling |
-| Backdrop click | Calls `onClose` | Optional but expected UX |
+| Requirement         | Implementation                   | Reason                                 |
+| ------------------- | -------------------------------- | -------------------------------------- |
+| `role="dialog"`     | On the modal container           | Required ARIA role                     |
+| `aria-modal="true"` | On the modal container           | Tells AT to ignore background          |
+| `aria-labelledby`   | Points to modal heading id       | Screen reader announces title on open  |
+| Focus trap          | `focus-trap-react` package       | Tab cycles only within modal when open |
+| Initial focus       | First focusable element on open  | Or close button if no form inside      |
+| Escape key          | Calls `onClose`                  | Universal modal dismiss expectation    |
+| Return focus        | Back to trigger element on close | WCAG 2.4.3 — focus must return         |
+| Scroll lock         | `overflow: hidden` on `<body>`   | Prevents background scrolling          |
+| Backdrop click      | Calls `onClose`                  | Optional but expected UX               |
 
 ### 5.5 Select — custom combobox
 
 > **IMPORTANT:** Do not use native `<select>` — it cannot be styled consistently. Implement the ARIA combobox pattern. This is the most complex keyboard interaction in v0.1.
 
-| Requirement | Implementation | Reason |
-|---|---|---|
-| Trigger | `role="combobox"` + `aria-expanded` | Announces open/closed to AT |
-| Listbox | `role="listbox"` on dropdown | Groups options semantically |
-| Options | `role="option"` + `aria-selected` | Each item in the list |
-| `aria-activedescendant` | ID of highlighted option | AT announces focused item |
-| Arrow Down/Up | Navigate options | Standard combobox keyboard pattern |
-| Enter | Select highlighted + close | Confirms selection |
-| Escape | Close without selecting | Cancel |
-| Home/End | Jump to first/last option | Full keyboard nav requirement |
-| Type-ahead | Jump to option by typed char | Important for long lists |
+| Requirement             | Implementation                      | Reason                             |
+| ----------------------- | ----------------------------------- | ---------------------------------- |
+| Trigger                 | `role="combobox"` + `aria-expanded` | Announces open/closed to AT        |
+| Listbox                 | `role="listbox"` on dropdown        | Groups options semantically        |
+| Options                 | `role="option"` + `aria-selected`   | Each item in the list              |
+| `aria-activedescendant` | ID of highlighted option            | AT announces focused item          |
+| Arrow Down/Up           | Navigate options                    | Standard combobox keyboard pattern |
+| Enter                   | Select highlighted + close          | Confirms selection                 |
+| Escape                  | Close without selecting             | Cancel                             |
+| Home/End                | Jump to first/last option           | Full keyboard nav requirement      |
+| Type-ahead              | Jump to option by typed char        | Important for long lists           |
 
 ---
 
@@ -840,20 +842,20 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals:     true,
+    globals: true,
     environment: 'node',
-    include:     ['src/__tests__/**/*.test.ts'],
+    include: ['src/__tests__/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
-      include:  ['src/**/*.ts'],
-      exclude:  ['src/__tests__/**'],
+      include: ['src/**/*.ts'],
+      exclude: ['src/__tests__/**'],
     },
   },
 });
 ```
 
-### 6.2 src/__tests__/resolver.test.ts
+### 6.2 src/**tests**/resolver.test.ts
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -861,11 +863,11 @@ import { resolveTokens } from '../../tokens/resolver';
 
 const mockConfig = {
   tokens: {
-    color:      { primary: '#6C63FF', textMuted: '#6B6B8A' },
-    radius:     { sm: '4px', md: '8px' },
-    spacing:    { unit: '4px' },
+    color: { primary: '#6C63FF', textMuted: '#6B6B8A' },
+    radius: { sm: '4px', md: '8px' },
+    spacing: { unit: '4px' },
     typography: { fontFamily: 'system-ui', scaleBase: '16px' },
-  }
+  },
 } as any;
 
 describe('resolveTokens', () => {
@@ -891,7 +893,7 @@ describe('resolveTokens', () => {
 });
 ```
 
-### 6.3 src/__tests__/model.test.ts
+### 6.3 src/**tests**/model.test.ts
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -900,10 +902,11 @@ import { buildComponentModel } from '../../components/model';
 const mockTokens = { cssVars: {}, js: {} };
 const mockConfig = {
   framework: 'react',
-  features:  { hover: true, focusRing: true, motionSafe: true },
-  a11y:      {
+  features: { hover: true, focusRing: true, motionSafe: true },
+  a11y: {
     focusRingColor: 'var(--color-primary)',
-    focusRingWidth: '2px', focusRingOffset: '3px',
+    focusRingWidth: '2px',
+    focusRingOffset: '3px',
     reduceMotion: true,
   },
 } as any;
@@ -916,7 +919,7 @@ describe('buildComponentModel', () => {
   });
 
   it('sets focusTrap for Modal only', () => {
-    const modal  = buildComponentModel('Modal',  mockTokens, mockConfig);
+    const modal = buildComponentModel('Modal', mockTokens, mockConfig);
     const button = buildComponentModel('Button', mockTokens, mockConfig);
     expect(modal.a11y.focusTrap).toBe(true);
     expect(button.a11y.focusTrap).toBeUndefined();
@@ -933,7 +936,7 @@ describe('buildComponentModel', () => {
 });
 ```
 
-### 6.4 src/__tests__/snapshots/button.test.ts
+### 6.4 src/**tests**/snapshots/button.test.ts
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -944,25 +947,35 @@ import { renderComponent } from '../../templates/engine';
 const mockConfig = {
   framework: 'react',
   tokens: {
-    color:      { primary: '#6C63FF', secondary: '#F3F2FF', surface: '#FFFFFF',
-                  background: '#F8F9FA', border: '#E2E1F0', text: '#1A1A2E',
-                  textMuted: '#6B6B8A', danger: '#E24B4A', success: '#1D9E75' },
-    radius:     { sm: '4px', md: '8px', lg: '12px' },
-    spacing:    { unit: '4px' },
+    color: {
+      primary: '#6C63FF',
+      secondary: '#F3F2FF',
+      surface: '#FFFFFF',
+      background: '#F8F9FA',
+      border: '#E2E1F0',
+      text: '#1A1A2E',
+      textMuted: '#6B6B8A',
+      danger: '#E24B4A',
+      success: '#1D9E75',
+    },
+    radius: { sm: '4px', md: '8px', lg: '12px' },
+    spacing: { unit: '4px' },
     typography: { fontFamily: 'system-ui, sans-serif', scaleBase: '16px' },
   },
   features: { hover: true, focusRing: true, motionSafe: true },
   a11y: {
-    focusRingColor: 'var(--color-primary)', focusRingWidth: '2px',
-    focusRingOffset: '3px', reduceMotion: true,
+    focusRingColor: 'var(--color-primary)',
+    focusRingWidth: '2px',
+    focusRingOffset: '3px',
+    reduceMotion: true,
   },
 } as any;
 
 describe('Button snapshot', () => {
   it('Button.tsx matches snapshot', async () => {
     const tokens = resolveTokens(mockConfig);
-    const model  = buildComponentModel('Button', tokens, mockConfig);
-    const files  = await renderComponent(model);
+    const model = buildComponentModel('Button', tokens, mockConfig);
+    const files = await renderComponent(model);
     expect(files['Button.tsx']).toMatchSnapshot();
     expect(files['Button.module.css']).toMatchSnapshot();
   });
@@ -978,11 +991,7 @@ import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
   stories: ['../src/__generated__/**/*.stories.tsx'],
-  addons: [
-    '@storybook/addon-essentials',
-    '@storybook/addon-a11y',
-    '@storybook/addon-interactions',
-  ],
+  addons: ['@storybook/addon-essentials', '@storybook/addon-a11y', '@storybook/addon-interactions'],
   framework: { name: '@storybook/react-vite', options: {} },
 };
 
@@ -1107,36 +1116,36 @@ The entire pipeline must work end-to-end before you write a second component.
 
 ### Daily commands
 
-| Command | What it does |
-|---|---|
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm run build:watch` | Watch mode — recompiles on save |
-| `npm run dev` | `build:watch` + Vite playground simultaneously |
-| `node dist/cli/index.js add Button --dev` | Generate Button into playground |
-| `node dist/cli/index.js add Button --force` | Overwrite even if user edited the file |
-| `node dist/cli/index.js list` | Show all available components |
-| `npm run test` | Run Vitest suite |
-| `npm run test:coverage` | Tests with coverage report |
-| `vitest --update-snapshots` | Commit new snapshot baselines |
-| `npm run storybook` | Start Storybook dev server |
-| `npm run chromatic` | Push stories to Chromatic (needs token in env) |
+| Command                                     | What it does                                   |
+| ------------------------------------------- | ---------------------------------------------- |
+| `npm run build`                             | Compile TypeScript to `dist/`                  |
+| `npm run build:watch`                       | Watch mode — recompiles on save                |
+| `npm run dev`                               | `build:watch` + Vite playground simultaneously |
+| `node dist/cli/index.js add Button --dev`   | Generate Button into playground                |
+| `node dist/cli/index.js add Button --force` | Overwrite even if user edited the file         |
+| `node dist/cli/index.js list`               | Show all available components                  |
+| `npm run test`                              | Run Vitest suite                               |
+| `npm run test:coverage`                     | Tests with coverage report                     |
+| `vitest --update-snapshots`                 | Commit new snapshot baselines                  |
+| `npm run storybook`                         | Start Storybook dev server                     |
+| `npm run chromatic`                         | Push stories to Chromatic (needs token in env) |
 
 ### Key files
 
-| File | Purpose |
-|---|---|
-| `crucible.config.json` | User-facing design token config |
-| `src/config/reader.ts` | Loads + parses config |
-| `src/tokens/resolver.ts` | Token → CSS var conversion |
-| `src/components/model.ts` | IR — normalized ComponentModel |
-| `src/registry/components.ts` | Component → file output map |
-| `src/templates/engine.ts` | Handlebars template renderer |
-| `src/scaffold/writer.ts` | File writer with hash protection |
-| `src/cli/index.ts` | CLI entry — wires all layers |
-| `templates/react/*.hbs` | Per-component Handlebars templates |
-| `playground/react/src/__generated__/` | Dev output — watched by Vite |
-| `.crucible-hashes.json` | Generation hashes — do not delete |
+| File                                  | Purpose                            |
+| ------------------------------------- | ---------------------------------- |
+| `crucible.config.json`                | User-facing design token config    |
+| `src/config/reader.ts`                | Loads + parses config              |
+| `src/tokens/resolver.ts`              | Token → CSS var conversion         |
+| `src/components/model.ts`             | IR — normalized ComponentModel     |
+| `src/registry/components.ts`          | Component → file output map        |
+| `src/templates/engine.ts`             | Handlebars template renderer       |
+| `src/scaffold/writer.ts`              | File writer with hash protection   |
+| `src/cli/index.ts`                    | CLI entry — wires all layers       |
+| `templates/react/*.hbs`               | Per-component Handlebars templates |
+| `playground/react/src/__generated__/` | Dev output — watched by Vite       |
+| `.crucible-hashes.json`               | Generation hashes — do not delete  |
 
 ---
 
-*Crucible v0.1 — Design System Engine — March 2026*
+_Crucible v0.1 — Design System Engine — March 2026_
