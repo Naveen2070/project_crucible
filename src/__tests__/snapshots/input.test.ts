@@ -30,13 +30,13 @@ const mockConfig = {
   },
 } as any;
 
-describe('Button snapshots', () => {
-  it('Button files match snapshots', async () => {
+describe('Input snapshots', () => {
+  it('Input files match snapshots', async () => {
     const tokens = resolveTokens(mockConfig);
-    const model = buildComponentModel('Button', tokens, mockConfig);
+    const model = buildComponentModel('Input', tokens, mockConfig);
     const files = await renderComponent(model);
-    expect(files['Button.tsx']).toMatchSnapshot();
-    expect(files['Button.module.css']).toMatchSnapshot();
-    expect(files['Button.stories.tsx']).toMatchSnapshot();
+    expect(files['Input.tsx']).toMatchSnapshot();
+    expect(files['Input.module.css']).toMatchSnapshot();
+    expect(files['Input.stories.tsx']).toMatchSnapshot();
   });
 });

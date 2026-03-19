@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
+import { validateConfig } from './validator';
 
 export interface CrucibleConfig {
   version: string;
@@ -33,5 +34,6 @@ export async function readConfig(configPath: string): Promise<CrucibleConfig> {
   if (!(await fs.pathExists(resolved))) {
     throw new Error(`Config not found: ${resolved}\nRun: crucible init`);
   }
-  return fs.readJson(resolved);
+  const raw = await fs.readJson(resolved);
+  return validateConfig(raw);
 }

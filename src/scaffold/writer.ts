@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import crypto from 'crypto';
 import chalk from 'chalk';
+import * as prettier from 'prettier';
 
 const HASH_FILE = '.crucible-hashes.json';
 
@@ -11,14 +12,15 @@ function hashContent(content: string): string {
 
 async function loadHashes(): Promise<Record<string, string>> {
   try {
-    return await fs.readJson(HASH_FILE);
+    const content = await fs.readFile(HASH_FILE, 'utf-8');
+    return JSON.parse(content);
   } catch {
     return {};
   }
 }
 
 async function saveHashes(hashes: Record<string, string>): Promise<void> {
-  await fs.writeJson(HASH_FILE, hashes, { spaces: 2 });
+  await fs.writeFile(HASH_FILE, JSON.stringify(hashes, null, 2), 'utf-8');
 }
 
 export async function writeFiles(
@@ -28,10 +30,24 @@ export async function writeFiles(
 ): Promise<void> {
   await fs.ensureDir(outputDir);
   const hashes = await loadHashes();
+  const prettierConfig = await prettier.resolveConfig(process.cwd());
 
   for (const [filename, content] of Object.entries(files)) {
     const outPath = path.join(outputDir, filename);
-    const newHash = hashContent(content);
+
+    // Format content with Prettier if possible
+    let formattedContent = content;
+    try {
+      formattedContent = await prettier.format(content, {
+        ...prettierConfig,
+        filepath: outPath,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn(chalk.yellow(`⚠  Could not format ${filename} with Prettier: ${errorMessage}`));
+    }
+
+    const newHash = hashContent(formattedContent);
 
     if ((await fs.pathExists(outPath)) && !opts.force) {
       const currentContent = await fs.readFile(outPath, 'utf-8');
@@ -44,7 +60,7 @@ export async function writeFiles(
       }
     }
 
-    await fs.writeFile(outPath, content, 'utf-8');
+    await fs.writeFile(outPath, formattedContent, 'utf-8');
     hashes[filename] = newHash;
     console.log(chalk.green(`✓  ${filename}`));
   }

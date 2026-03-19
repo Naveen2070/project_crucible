@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "version": { "type": "string" },
+    "framework": { "type": "string", "enum": ["react", "angular"] },
+    "theme": { "type": "string" },
+    "tokens": {
+      "type": "object",
+      "properties": {
+        "color": { "type": "object", "additionalProperties": { "type": "string" } },
+        "radius": { "type": "object", "additionalProperties": { "type": "string" } },
+        "spacing": {
+          "type": "object",
+          "properties": {
+            "unit": { "type": "string" }
+          },
+          "required": ["unit"]
+        },
+        "typography": {
+          "type": "object",
+          "properties": {
+            "fontFamily": { "type": "string" },
+            "scaleBase": { "type": "string" }
+          },
+          "required": ["fontFamily", "scaleBase"]
+        }
+      },
+      "required": ["color", "radius", "spacing", "typography"]
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "hover": { "type": "boolean" },
+        "focusRing": { "type": "boolean" },
+        "motionSafe": { "type": "boolean" }
+      }
+    },
+    "a11y": {
+      "type": "object",
+      "properties": {
+        "focusRingStyle": { "type": "string" },
+        "focusRingColor": { "type": "string" },
+        "focusRingWidth": { "type": "string" },
+        "focusRingOffset": { "type": "string" },
+        "reduceMotion": { "type": "boolean" }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "properties": {
+        "outputDir": { "type": "string" }
+      }
+    }
+  },
+  "required": ["version", "framework", "tokens"]
+}

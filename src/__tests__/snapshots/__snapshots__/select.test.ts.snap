@@ -1,0 +1,357 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Select snapshots > Select files match snapshots 1`] = `
+"import React, { useState, useRef, useEffect, useId } from 'react';
+import styles from './Select.module.css';
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export type SelectVariant = 'default' | 'error';
+export type SelectSize    = 'sm' | 'md' | 'lg';
+
+export interface SelectProps {
+  options:   SelectOption[];
+  value?:    string;
+  onChange?: (value: string) => void;
+  label:     string;
+  placeholder?: string;
+  variant?:  SelectVariant;
+  size?:     SelectSize;
+  error?:    string;
+  disabled?: boolean;
+}
+
+export const Select: React.FC<SelectProps> = ({
+  options,
+  value,
+  onChange,
+  label,
+  placeholder = 'Select an option',
+  variant = 'default',
+  size = 'md',
+  error,
+  disabled,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
+  const id = useId();
+  const labelId = \`\${id}-label\`;
+  const listboxId = \`\${id}-listbox\`;
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setIsOpen(true);
+        setActiveIndex(selectedOption ? options.findIndex(o => o.value === value) : 0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (activeIndex >= 0) {
+          onChange?.(options[activeIndex].value);
+          setIsOpen(false);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveIndex(options.length - 1);
+        break;
+    }
+  };
+
+  return (
+    <div className={styles.container} ref={containerRef}>
+      <label id={labelId} className={styles.label}>{label}</label>
+      <div
+        className={[
+          styles.combobox,
+          styles[\`combobox--\${size}\`],
+          error && styles['combobox--error'],
+          disabled && styles['combobox--disabled'],
+          isOpen && styles['combobox--open'],
+        ].join(' ')}
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-labelledby={labelId}
+        aria-controls={listboxId}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={handleKeyDown}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        aria-activedescendant={activeIndex >= 0 ? \`\${id}-option-\${activeIndex}\` : undefined}
+      >
+        <span className={styles.value}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span className={styles.arrow} aria-hidden="true">▼</span>
+      </div>
+
+      {isOpen && (
+        <ul
+          id={listboxId}
+          className={styles.listbox}
+          role="listbox"
+          aria-labelledby={labelId}
+          ref={listboxRef}
+        >
+          {options.map((option, index) => (
+            <li
+              key={option.value}
+              id={\`\${id}-option-\${index}\`}
+              role="option"
+              aria-selected={option.value === value}
+              className={[
+                styles.option,
+                option.value === value && styles['option--selected'],
+                activeIndex === index && styles['option--active'],
+              ].join(' ')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange?.(option.value);
+                setIsOpen(false);
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+            >
+              {option.label}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <span className={styles.error} role="alert">{error}</span>}
+    </div>
+  );
+};
+
+Select.displayName = 'Select';
+"
+`;
+
+exports[`Select snapshots > Select files match snapshots 2`] = `
+"/* Generated by Crucible — edit freely, re-generate with --force */
+
+.container {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--spacing-unit);
+  width:          100%;
+  position:       relative;
+}
+
+.label {
+  font-family: var(--font-family);
+  font-size:   14px;
+  font-weight: 500;
+  color:       var(--color-text);
+}
+
+.combobox {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  background:      var(--color-surface);
+  border:          1.5px solid var(--color-border);
+  border-radius:   var(--radius-md);
+  cursor:          pointer;
+  font-family:     var(--font-family);
+  color:           var(--color-text);
+  transition:      border-color 0.15s ease, box-shadow 0.15s ease;
+  width:           100%;
+  box-sizing:      border-box;
+}
+
+.combobox--open {
+  border-color: var(--color-primary);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.combobox:focus-visible {
+  outline:        2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-color:   var(--color-primary);
+}
+
+.combobox--disabled {
+  background: var(--color-background);
+  cursor:     not-allowed;
+  opacity:    0.7;
+}
+
+.combobox--error {
+  border-color: var(--color-danger);
+}
+
+.value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow {
+  margin-left: calc(var(--spacing-unit) * 2);
+  font-size:   0.8em;
+  color:       var(--color-text-muted);
+}
+
+.listbox {
+  position:      absolute;
+  top:           100%;
+  left:          0;
+  right:         0;
+  background:    var(--color-surface);
+  border:        1.5px solid var(--color-primary);
+  border-top:    none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  list-style:    none;
+  margin:        0;
+  padding:       0;
+  z-index:       10;
+  max-height:    200px;
+  overflow-y:    auto;
+  box-shadow:    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.option {
+  padding:     calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+  cursor:      pointer;
+  font-family: var(--font-family);
+  font-size:   14px;
+  color:       var(--color-text);
+  transition:  background 0.15s ease;
+}
+
+.option--active {
+  background: var(--color-secondary);
+  color:      var(--color-primary);
+}
+
+.option--selected {
+  font-weight: 600;
+  background:  var(--color-secondary);
+  color:       var(--color-primary);
+}
+
+.error {
+  color:       var(--color-danger);
+  font-family: var(--font-family);
+  font-size:   12px;
+  margin-top:  2px;
+}
+
+/* Sizes */
+.combobox--sm { padding: 6px 10px;  font-size: 13px; }
+.combobox--md { padding: 10px 14px; font-size: 15px; }
+.combobox--lg { padding: 14px 18px; font-size: 17px; }
+"
+`;
+
+exports[`Select snapshots > Select files match snapshots 3`] = `
+"import React, { useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Select } from './Select';
+
+const meta: Meta<typeof Select> = {
+  title: 'Crucible/Select',
+  component: Select,
+  parameters: { layout: 'centered' },
+  argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Select>;
+
+const options = [
+  { value: 'apple',  label: 'Apple'  },
+  { value: 'banana', label: 'Banana' },
+  { value: 'cherry', label: 'Cherry' },
+  { value: 'date',   label: 'Date'   },
+];
+
+export const Default: Story = {
+  render: (args) => {
+    const [value, setValue] = useState('');
+    return (
+      <div style={{ width: '300px' }}>
+        <Select {...args} value={value} onChange={setValue} options={options} />
+      </div>
+    );
+  },
+  args: {
+    label: 'Favorite Fruit',
+  },
+};
+
+export const PreSelected: Story = {
+  ...Default,
+  render: (args) => {
+    const [value, setValue] = useState('banana');
+    return (
+      <div style={{ width: '300px' }}>
+        <Select {...args} value={value} onChange={setValue} options={options} />
+      </div>
+    );
+  },
+  args: {
+    ...Default.args,
+  },
+};
+
+export const Error: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    error: 'This field is required',
+  },
+};
+
+export const Disabled: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    disabled: true,
+  },
+};
+"
+`;
