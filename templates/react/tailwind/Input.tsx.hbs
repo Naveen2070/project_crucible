@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useId, useState } from 'react';
 
 const variantClasses: Record<string, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
@@ -22,11 +22,15 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, ...props }, ref) => {
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, type = 'text', ...props }, ref) => {
     const generatedId = useId();
     const id = providedId || generatedId;
     const errorId = `${id}-error`;
     const hintId = `${id}-hint`;
+
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = type === 'password';
+    const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
     const cls = [
       'w-full border-1.5 rounded-[var(--radius-md)] outline-none transition-all',
@@ -34,6 +38,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       'disabled:opacity-50 disabled:cursor-not-allowed',
       variantClasses[variant],
       sizeClasses[size],
+      isPassword && 'pr-12', // make room for the toggle button
       error && 'border-[var(--color-danger)]',
       className,
     ].filter(Boolean).join(' ');
@@ -49,15 +54,29 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {label}
           {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
         </label>
-        <input
-          ref={ref}
-          id={id}
-          className={cls}
-          aria-invalid={!!error}
-          aria-describedby={describedBy}
-          aria-required={required}
-          {...props}
-        />
+        <div className="relative w-full">
+          <input
+            ref={ref}
+            id={id}
+            type={inputType}
+            className={cls}
+            aria-invalid={!!error}
+            aria-describedby={describedBy}
+            aria-required={required}
+            {...props}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] rounded-sm"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          )}
+        </div>
         {hint && !error && (
           <span id={hintId} className="text-xs text-[var(--color-text-muted)]">
             {hint}

@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useId, useState } from 'react';
 import styles from './Input.module.css';
 
 export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -14,11 +14,15 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, ...props }, ref) => {
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, type = 'text', ...props }, ref) => {
     const generatedId = useId();
     const id = providedId || generatedId;
     const errorId = `${id}-error`;
     const hintId = `${id}-hint`;
+
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = type === 'password';
+    const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
     const cls = [
       styles.input,
@@ -40,15 +44,29 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {label}
           {required && <span className={styles.required} aria-hidden="true">*</span>}
         </label>
-        <input
-          ref={ref}
-          id={id}
-          className={cls}
-          aria-invalid={!!error}
-          aria-describedby={describedBy}
-          aria-required={required}
-          {...props}
-        />
+        <div className={styles['input-wrapper']}>
+          <input
+            ref={ref}
+            id={id}
+            type={inputType}
+            className={cls}
+            aria-invalid={!!error}
+            aria-describedby={describedBy}
+            aria-required={required}
+            {...props}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              className={styles['password-toggle']}
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          )}
+        </div>
         {hint && !error && (
           <span id={hintId} className={styles.hint}>
             {hint}

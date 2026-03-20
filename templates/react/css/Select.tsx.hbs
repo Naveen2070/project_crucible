@@ -36,6 +36,8 @@ export const Select: React.FC<SelectProps> = ({
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
+  const searchString = useRef('');
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const id = useId();
   const labelId = `${id}-label`;
   const listboxId = `${id}-listbox`;
@@ -55,6 +57,33 @@ export const Select: React.FC<SelectProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
 
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      searchString.current += e.key.toLowerCase();
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+      searchTimeout.current = setTimeout(() => {
+        searchString.current = '';
+      }, 500);
+
+      const matchIndex = options.findIndex((opt) =>
+        opt.label.toLowerCase().startsWith(searchString.current)
+      );
+
+      if (matchIndex >= 0) {
+        setActiveIndex(matchIndex);
+        if (!isOpen) {
+          onChange?.(options[matchIndex].value);
+        }
+        // Scroll into view if open
+        if (isOpen && listboxRef.current) {
+          const optionEl = listboxRef.current.children[matchIndex] as HTMLElement;
+          if (optionEl) {
+            optionEl.scrollIntoView({ block: 'nearest' });
+          }
+        }
+      }
+      return;
+    }
+
     if (!isOpen) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
@@ -67,11 +96,25 @@ export const Select: React.FC<SelectProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setActiveIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
+        setActiveIndex((prev) => {
+          const next = prev < options.length - 1 ? prev + 1 : prev;
+          if (listboxRef.current) {
+             const optionEl = listboxRef.current.children[next] as HTMLElement;
+             if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
+          }
+          return next;
+        });
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        setActiveIndex((prev) => {
+          const next = prev > 0 ? prev - 1 : prev;
+          if (listboxRef.current) {
+             const optionEl = listboxRef.current.children[next] as HTMLElement;
+             if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
+          }
+          return next;
+        });
         break;
       case 'Enter':
       case ' ':

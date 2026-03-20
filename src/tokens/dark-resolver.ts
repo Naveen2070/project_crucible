@@ -37,8 +37,8 @@ export function deriveDarkTokens(
 function shiftColor(hex: string, shift: { l?: number; c?: number }): string {
   try {
     const c = new Color(hex).to('oklch');
-    if (shift.l) c.l = Math.min(1, Math.max(0, c.l + shift.l / 100));
-    if (shift.c) c.c = Math.max(0, c.c + shift.c / 100);
+    if (shift.l !== undefined && c.l != null) c.l = Math.min(1, Math.max(0, c.l + shift.l / 100));
+    if (shift.c !== undefined && c.c != null) c.c = Math.max(0, c.c + shift.c / 100);
     return c.to('srgb').toString({ format: 'hex' });
   } catch {
     return hex;

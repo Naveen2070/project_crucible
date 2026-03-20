@@ -86,10 +86,10 @@ This plan touches the following areas:
 ## Proposed Solution
 
 ### Phase 1: Interactive Prompts & Component Fixes
-- [ ] 1. **Install `@inquirer/prompts`** as a standard dependency.
-- [ ] 2. **Input Password Toggle:** Add internal state and an `aria-label` toggle button to `Input.tsx.hbs` when `type="password"`.
-- [ ] 3. **Select Type-Ahead:** Implement alphanumeric key-down listeners in `Select.tsx.hbs` to focus options starting with the typed character.
-- [ ] 4. **Root README:** Create a comprehensive `README.md` outlining the CLI usage and the "No-Wrapper" philosophy.
+- [x] 1. **Install `@inquirer/prompts`** as a standard dependency.
+- [x] 2. **Input Password Toggle:** Add internal state and an `aria-label` toggle button to `Input.tsx.hbs` when `type="password"`.
+- [x] 3. **Select Type-Ahead:** Implement alphanumeric key-down listeners in `Select.tsx.hbs` to focus options starting with the typed character.
+- [x] 4. **Root README:** Create a comprehensive `README.md` outlining the CLI usage and the "No-Wrapper" philosophy.
 
 ### Phase 2: Core DX Improvements
 - [ ] 1. **`crucible init`:** Scaffold a default `crucible.config.json` pre-populated with minimal theme tokens and comments, so the user has an immediate working setup.
