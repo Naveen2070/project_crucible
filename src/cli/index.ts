@@ -1,12 +1,17 @@
 import { Command } from 'commander';
 import path from 'path';
 import chalk from 'chalk';
+import fs from 'fs-extra';
+import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../config/reader';
 import { resolveTokens } from '../tokens/resolver';
 import { buildComponentModel } from '../components/model';
 import { renderComponent } from '../templates/engine';
 import { writeFiles } from '../scaffold/writer';
 import { registry } from '../registry/components';
+import { runInit } from './init';
+import { checkAndSetupTailwind } from './tailwind';
+import { loadPreset } from '../themes';
 
 const program = new Command();
 
@@ -16,33 +21,102 @@ program
   .version('0.1.0');
 
 program
-  .command('add <component>')
+  .command('init')
+  .description('Scaffold a default crucible.config.json')
+  .action(runInit);
+
+program
+  .command('eject')
+  .description('Eject the built-in theme into your local crucible.config.json')
+  .option('--config <path>', 'Path to config file', 'crucible.config.json')
+  .action(async (opts) => {
+    try {
+      const configPath = path.join(process.cwd(), opts.config);
+      if (!await fs.pathExists(configPath)) {
+        console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
+        process.exit(1);
+      }
+      const raw = await fs.readJson(configPath);
+      const theme = raw.theme || 'minimal';
+      const presetTokens = loadPreset(theme);
+      
+      raw.tokens = { ...presetTokens, ...raw.tokens };
+      raw.theme = 'custom'; // optional, maybe keep it but tokens override
+      
+      await fs.writeJson(configPath, raw, { spaces: 2 });
+      console.log(chalk.green(`✔ Ejected ${theme} theme into ${opts.config}`));
+    } catch (e: any) {
+      console.error(chalk.red(`✗ Error: ${e.message}`));
+    }
+  });
+
+program
+  .command('add [component]')
   .description('Scaffold a component into your project')
   .option('--framework <fw>', 'Target framework', 'react')
   .option('--dev', 'Output to playground/__generated__')
   .option('--force', 'Overwrite even if file has been edited')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
-  .action(async (componentName: string, opts: any) => {
-    if (!registry[componentName]) {
-      console.error(chalk.red(`✗ Unknown component: ${componentName}`));
-      console.log(`Available: ${Object.keys(registry).join(', ')}`);
-      process.exit(1);
+  .action(async (componentName: string | undefined, opts: any) => {
+    let componentsToAdd: string[] = [];
+
+    if (componentName) {
+      if (!registry[componentName]) {
+        console.error(chalk.red(`✗ Unknown component: ${componentName}`));
+        console.log(`Available: ${Object.keys(registry).join(', ')}`);
+        process.exit(1);
+      }
+      componentsToAdd.push(componentName);
+    } else {
+      const answers = await checkbox({
+        message: 'Select components to scaffold:',
+        choices: Object.keys(registry).map(name => ({ name, value: name })),
+      });
+      if (answers.length === 0) {
+        console.log(chalk.gray('No components selected.'));
+        return;
+      }
+      componentsToAdd = answers;
     }
 
     try {
       const config = await readConfig(opts.config);
+      
+      // Pre-generation token validation (Linting pass)
       const tokens = resolveTokens(config);
-      const model = buildComponentModel(componentName, tokens, config);
-      const files = await renderComponent(model);
+      if (!tokens.cssVars['--color-primary']) {
+        console.warn(chalk.yellow('⚠ Warning: --color-primary is missing from tokens.'));
+      }
+      
+      if (config.styleSystem === 'tailwind') {
+        await checkAndSetupTailwind();
+      }
 
       const outDir = opts.dev
         ? path.join(process.cwd(), 'playground/react/src/__generated__')
         : path.join(process.cwd(), config.flags?.outputDir ?? 'src/components');
 
-      await writeFiles(files, outDir, { force: opts.force });
-      console.log(
-        chalk.cyan(`\n⚗  ${componentName} [${config.styleSystem}/${config.theme}] → ${outDir}`),
-      );
+      // Dependency resolution
+      const resolvedComponents = new Set<string>(componentsToAdd);
+      for (const comp of componentsToAdd) {
+        if (comp === 'Select' || comp === 'Modal') {
+          const btnFile = path.join(outDir, 'Button.tsx');
+          if (!resolvedComponents.has('Button') && !await fs.pathExists(btnFile)) {
+            const addDep = await confirm({ message: `${comp} usually depends on Button. Scaffold Button as well?`, default: true });
+            if (addDep) resolvedComponents.add('Button');
+          }
+        }
+      }
+
+      for (const comp of Array.from(resolvedComponents)) {
+        const model = buildComponentModel(comp, tokens, config);
+        const files = await renderComponent(model);
+
+        await writeFiles(files, outDir, { force: opts.force });
+        console.log(
+          chalk.cyan(`\n⚗  ${comp} [${config.styleSystem}/${config.theme}] → ${outDir}`),
+        );
+      }
     } catch (err: any) {
       console.error(chalk.red(`✗ Error: ${err.message}`));
       process.exit(1);

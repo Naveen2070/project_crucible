@@ -92,15 +92,15 @@ This plan touches the following areas:
 - [x] 4. **Root README:** Create a comprehensive `README.md` outlining the CLI usage and the "No-Wrapper" philosophy.
 
 ### Phase 2: Core DX Improvements
-- [ ] 1. **`crucible init`:** Scaffold a default `crucible.config.json` pre-populated with minimal theme tokens and comments, so the user has an immediate working setup.
-- [ ] 2. **Interactive Component Picker:** When running `crucible add` without arguments, display a multi-select prompt listing available components.
-- [ ] 3. **Component Dependencies:** Before scaffolding, check if the component depends on another (e.g., `Select` depends on `Button`). If the dependency is missing in the output directory, prompt the user to scaffold it.
-- [ ] 4. **Pre-Generation Validation & Config Ejection:** Add a command to eject built-in themes into the local config. Add a linting pass to catch token errors before file generation.
+- [x] 1. **`crucible init`:** Scaffold a default `crucible.config.json` pre-populated with minimal theme tokens and comments, so the user has an immediate working setup.
+- [x] 2. **Interactive Component Picker:** When running `crucible add` without arguments, display a multi-select prompt listing available components.
+- [x] 3. **Component Dependencies:** Before scaffolding, check if the component depends on another (e.g., `Select` depends on `Button`). If the dependency is missing in the output directory, prompt the user to scaffold it.
+- [x] 4. **Pre-Generation Validation & Config Ejection:** Add a command to eject built-in themes into the local config. Add a linting pass to catch token errors before file generation.
 
 ### Phase 3: Tailwind v4 Auto-Setup
-- [ ] 1. **Detection:** When running `add` with a `tailwind` config, check the user's `package.json` for `tailwindcss` and scan common CSS paths (`src/index.css`, `src/App.css`, `app/globals.css`, etc.) for `@import "tailwindcss";` or `@tailwind base;`.
-- [ ] 2. **Warning & Prompt:** If missing, halt the process with a warning and ask via `@inquirer/prompts` if they want to stop or proceed with auto-setup.
-- [ ] 3. **Framework-Aware Setup:** If the user agrees, inspect the workspace (e.g., check for Vite or Next.js), install the appropriate Tailwind v4 package (`@tailwindcss/vite` or `@tailwindcss/postcss`), inject the `@import "tailwindcss";` into their main CSS file, and update `vite.config.ts` or `next.config.mjs` if feasible, otherwise output instructions.
+- [x] 1. **Detection:** When running `add` with a `tailwind` config, check the user's `package.json` for `tailwindcss` and scan common CSS paths (`src/index.css`, `src/App.css`, `app/globals.css`, etc.) for `@import "tailwindcss";` or `@tailwind base;`.
+- [x] 2. **Warning & Prompt:** If missing, halt the process with a warning and ask via `@inquirer/prompts` if they want to stop or proceed with auto-setup.
+- [x] 3. **Framework-Aware Setup:** If the user agrees, inspect the workspace (e.g., check for Vite or Next.js), install the appropriate Tailwind v4 package (`@tailwindcss/vite` or `@tailwindcss/postcss`), inject the `@import "tailwindcss";` into their main CSS file, and update `vite.config.ts` or `next.config.mjs` if feasible, otherwise output instructions.
 
 ## Alternatives Considered
 - **Tailwind Setup:** We considered a generic setup (installing standalone CLI and outputting an `index.css`), but opted for the framework-aware approach to integrate cleanly into modern bundlers (like Vite) using Tailwind v4's new plugin architecture.
