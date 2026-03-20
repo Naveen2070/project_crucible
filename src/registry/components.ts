@@ -1,29 +1,51 @@
 export interface ComponentDef {
   frameworks: string[];
+  styleSystems: string[];
   files: {
-    react: string[];
+    css: string[];
+    tailwind: string[];
   };
 }
 
 export const registry: Record<string, ComponentDef> = {
   Button: {
     frameworks: ['react'],
-    files: { react: ['Button.tsx', 'Button.module.css', 'Button.stories.tsx'] },
+    styleSystems: ['css', 'tailwind'],
+    files: {
+      css: ['Button.tsx', 'Button.module.css', 'Button.stories.tsx'],
+      tailwind: ['Button.tsx', 'Button.stories.tsx'],
+    },
   },
   Input: {
     frameworks: ['react'],
-    files: { react: ['Input.tsx', 'Input.module.css', 'Input.stories.tsx'] },
+    styleSystems: ['css', 'tailwind'],
+    files: {
+      css: ['Input.tsx', 'Input.module.css', 'Input.stories.tsx'],
+      tailwind: ['Input.tsx', 'Input.stories.tsx'],
+    },
   },
   Card: {
     frameworks: ['react'],
-    files: { react: ['Card.tsx', 'Card.module.css', 'Card.stories.tsx'] },
+    styleSystems: ['css', 'tailwind'],
+    files: {
+      css: ['Card.tsx', 'Card.module.css', 'Card.stories.tsx'],
+      tailwind: ['Card.tsx', 'Card.stories.tsx'],
+    },
   },
   Modal: {
     frameworks: ['react'],
-    files: { react: ['Modal.tsx', 'Modal.module.css', 'Modal.stories.tsx'] },
+    styleSystems: ['css', 'tailwind'],
+    files: {
+      css: ['Modal.tsx', 'Modal.module.css', 'Modal.stories.tsx'],
+      tailwind: ['Modal.tsx', 'Modal.stories.tsx'],
+    },
   },
   Select: {
     frameworks: ['react'],
-    files: { react: ['Select.tsx', 'Select.module.css', 'Select.stories.tsx'] },
+    styleSystems: ['css', 'tailwind'],
+    files: {
+      css: ['Select.tsx', 'Select.module.css', 'Select.stories.tsx'],
+      tailwind: ['Select.tsx', 'Select.stories.tsx'],
+    },
   },
 };

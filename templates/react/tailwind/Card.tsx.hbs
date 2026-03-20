@@ -1,0 +1,70 @@
+import React from 'react';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}} };
+
+const sizeClasses: Record<string, string> = {
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+export type CardVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type CardSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface CardProps {
+  variant?:   CardVariant;
+  size?:      CardSize;
+  title?:     string;
+  children:   React.ReactNode;
+  onClick?:   () => void;
+  className?: string;
+  href?:      string;
+}
+
+export const Card: React.FC<CardProps> = ({
+  variant = 'default',
+  size = 'md',
+  title,
+  children,
+  onClick,
+  className,
+  href,
+}) => {
+  const isClickable = variant === 'clickable' || !!onClick || !!href;
+  
+  const cls = [
+    'rounded-[var(--radius-lg)] border-1.5 transition-all text-left w-full block',
+    {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-2',{{/if}}
+    variantClasses[variant],
+    sizeClasses[size],
+    className,
+  ].filter(Boolean).join(' ');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick?.();
+      if (href) window.location.href = href;
+    }
+  };
+
+  const Component = href ? 'a' : isClickable ? 'button' : 'article';
+
+  return (
+    <Component
+      className={cls}
+      onClick={onClick}
+      href={href}
+      role={href ? undefined : isClickable ? 'button' : 'article'}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? handleKeyDown : undefined}
+    >
+      {title && <h3 className="font-bold text-lg mb-2 text-[var(--color-text)]">{title}</h3>}
+      <div className="text-[var(--color-text-muted)]">{children}</div>
+    </Component>
+  );
+};
+
+Card.displayName = 'Card';

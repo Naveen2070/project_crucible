@@ -1,0 +1,169 @@
+import React, { useState, useRef, useEffect, useId } from 'react';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}} };
+
+const sizeClasses: Record<string, string> = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-5 py-3 text-lg',
+};
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export type SelectVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type SelectSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface SelectProps {
+  options:   SelectOption[];
+  value?:    string;
+  onChange?: (value: string) => void;
+  label:     string;
+  placeholder?: string;
+  variant?:  SelectVariant;
+  size?:     SelectSize;
+  error?:    string;
+  disabled?: boolean;
+}
+
+export const Select: React.FC<SelectProps> = ({
+  options,
+  value,
+  onChange,
+  label,
+  placeholder = 'Select an option',
+  variant = 'default',
+  size = 'md',
+  error,
+  disabled,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
+  const id = useId();
+  const labelId = `${id}-label`;
+  const listboxId = `${id}-listbox`;
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setIsOpen(true);
+        setActiveIndex(selectedOption ? options.findIndex(o => o.value === value) : 0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        break;
+      case 'Enter':
+      case ' ':
+        if (activeIndex >= 0) {
+          onChange?.(options[activeIndex].value);
+          setIsOpen(false);
+        }
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        break;
+      case 'Home':
+        setActiveIndex(0);
+        break;
+      case 'End':
+        setActiveIndex(options.length - 1);
+        break;
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-[var(--spacing-unit)] w-full relative" ref={containerRef}>
+      <label id={labelId} className="font-medium text-[var(--color-text)] text-sm">{label}</label>
+      <div
+        className={[
+          'flex items-center justify-between bg-[var(--color-surface)] border-1.5 rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
+          {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
+          isOpen && 'border-[var(--color-primary)] rounded-b-none',
+          disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
+          error && 'border-[var(--color-danger)]',
+          variantClasses[variant],
+          sizeClasses[size],
+        ].join(' ')}
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-labelledby={labelId}
+        aria-controls={listboxId}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={handleKeyDown}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        aria-activedescendant={activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
+      >
+        <span className="truncate flex-1 text-[var(--color-text)]">
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span className="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
+      </div>
+
+      {isOpen && (
+        <ul
+          id={listboxId}
+          className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-height-[200px] overflow-y-auto m-0 p-0 list-none"
+          role="listbox"
+          aria-labelledby={labelId}
+          ref={listboxRef}
+        >
+          {options.map((option, index) => (
+            <li
+              key={option.value}
+              id={`${id}-option-${index}`}
+              role="option"
+              aria-selected={option.value === value}
+              className={[
+                'px-4 py-2 cursor-pointer transition-colors text-sm',
+                option.value === value && 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold',
+                activeIndex === index && 'bg-[var(--color-secondary)] text-[var(--color-primary)]',
+              ].join(' ')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange?.(option.value);
+                setIsOpen(false);
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+            >
+              {option.label}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <span className="text-xs text-[var(--color-danger)] mt-1" role="alert">{error}</span>}
+    </div>
+  );
+};
+
+Select.displayName = 'Select';

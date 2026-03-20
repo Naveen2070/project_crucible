@@ -4,10 +4,12 @@ import { ResolvedTokens } from '../tokens/resolver';
 export interface ComponentModel {
   name: string;
   framework: string;
+  styleSystem: 'css' | 'tailwind';
   variants: string[];
   sizes: string[];
   states: string[];
   tokens: ResolvedTokens;
+  tailwindVariants?: Record<string, string>;
   a11y: {
     focusRing: boolean;
     focusRingColor: string;
@@ -22,6 +24,36 @@ export interface ComponentModel {
     hover: boolean;
   };
 }
+
+const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
+  Button: {
+    primary:
+      'bg-[var(--color-primary)] text-[var(--color-surface)] border-[var(--color-primary)] hover:brightness-110',
+    secondary:
+      'bg-[var(--color-secondary)] text-[var(--color-primary)] border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-[var(--color-surface)]',
+    ghost:
+      'bg-transparent text-[var(--color-text)] border-[var(--color-border)] hover:bg-[var(--color-secondary)]',
+    danger:
+      'bg-[var(--color-danger)] text-[var(--color-surface)] border-[var(--color-danger)] hover:brightness-110',
+  },
+  Input: {
+    default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
+    error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  },
+  Card: {
+    default: 'bg-[var(--color-surface)] border-[var(--color-border)]',
+    hoverable: 'bg-[var(--color-surface)] border-[var(--color-border)] hover:shadow-lg',
+    clickable: 'bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg',
+  },
+  Modal: {
+    default: 'bg-[var(--color-surface)]',
+    confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
+  },
+  Select: {
+    default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
+    error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  },
+};
 
 const COMPONENT_DEFAULTS: Record<string, Pick<ComponentModel, 'variants' | 'sizes' | 'states'>> = {
   Button: {
@@ -62,8 +94,10 @@ export function buildComponentModel(
   return {
     name,
     framework: config.framework ?? 'react',
+    styleSystem: config.styleSystem ?? 'css',
     ...defaults,
     tokens,
+    tailwindVariants: TAILWIND_VARIANT_DEFAULTS[name],
     a11y: {
       focusRing: config.features.focusRing ?? true,
       focusRingColor: config.a11y.focusRingColor ?? 'var(--color-primary)',

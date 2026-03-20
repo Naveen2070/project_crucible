@@ -40,7 +40,9 @@ program
         : path.join(process.cwd(), config.flags?.outputDir ?? 'src/components');
 
       await writeFiles(files, outDir, { force: opts.force });
-      console.log(chalk.cyan(`\n⚗  ${componentName} → ${outDir}`));
+      console.log(
+        chalk.cyan(`\n⚗  ${componentName} [${config.styleSystem}/${config.theme}] → ${outDir}`),
+      );
     } catch (err: any) {
       console.error(chalk.red(`✗ Error: ${err.message}`));
       process.exit(1);
@@ -53,7 +55,7 @@ program
   .action(() => {
     console.log(chalk.cyan('Available components:'));
     for (const [name, def] of Object.entries(registry)) {
-      console.log(`  ${name}  [${def.frameworks.join(', ')}]`);
+      console.log(`  ${name}  [${def.frameworks.join(', ')}]  [${def.styleSystems.join(', ')}]`);
     }
   });
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildComponentModel } from '../components/model';
 
-const mockTokens = { cssVars: {}, js: {} };
+const mockTokens = { cssVars: {}, darkCssVars: null, js: {} };
 const mockConfig = {
   framework: 'react',
   features: { hover: true, focusRing: true, motionSafe: true },

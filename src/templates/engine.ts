@@ -12,17 +12,24 @@ Handlebars.registerHelper('kebab', (str: string) =>
 );
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
-  const tplDir = path.join(process.cwd(), 'templates', model.framework);
+  const tplDir = path.join(process.cwd(), 'templates', model.framework, model.styleSystem);
   const result: Record<string, string> = {};
 
-  const targets = [
-    { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
-    { tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` },
-    { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
-  ];
+  const targets =
+    model.styleSystem === 'tailwind'
+      ? [
+          { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
+          { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
+        ]
+      : [
+          { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
+          { tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` },
+          { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
+        ];
 
   for (const { tpl, out } of targets) {
     const tplPath = path.join(tplDir, tpl);
+    console.log(`DEBUG: Reading template from ${tplPath}`);
     if (!(await fs.pathExists(tplPath))) continue;
     const source = await fs.readFile(tplPath, 'utf-8');
     const compiled = Handlebars.compile(source);

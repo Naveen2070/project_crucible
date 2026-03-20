@@ -4,7 +4,21 @@
   "properties": {
     "version": { "type": "string" },
     "framework": { "type": "string", "enum": ["react", "angular"] },
-    "theme": { "type": "string" },
+    "theme": { "type": "string", "enum": ["minimal", "soft"] },
+    "styleSystem": { "type": "string", "enum": ["css", "tailwind"] },
+    "darkMode": {
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "object",
+          "properties": {
+            "strategy": { "type": "string", "enum": ["auto", "manual"] },
+            "tokens": { "type": "object", "additionalProperties": { "type": "string" } }
+          },
+          "required": ["strategy"]
+        }
+      ]
+    },
     "tokens": {
       "type": "object",
       "properties": {
@@ -53,5 +67,5 @@
       }
     }
   },
-  "required": ["version", "framework", "tokens"]
+  "required": ["version", "framework"]
 }

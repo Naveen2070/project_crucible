@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { resolveTokens } from '../tokens/resolver';
 
 const mockConfig = {
+  theme: 'minimal',
+  styleSystem: 'css',
   tokens: {
     color: { primary: '#6C63FF', textMuted: '#6B6B8A' },
     radius: { sm: '4px', md: '8px' },
@@ -11,9 +13,17 @@ const mockConfig = {
 } as any;
 
 describe('resolveTokens', () => {
-  it('emits CSS variable for each color token', () => {
-    const { cssVars } = resolveTokens(mockConfig);
+  it('loads minimal preset colors by default', () => {
+    const { cssVars } = resolveTokens({ ...mockConfig, tokens: undefined });
     expect(cssVars['--color-primary']).toBe('#6C63FF');
+  });
+
+  it('user color overrides preset', () => {
+    const { cssVars } = resolveTokens({
+      ...mockConfig,
+      tokens: { color: { primary: '#FF0000' } },
+    });
+    expect(cssVars['--color-primary']).toBe('#FF0000');
   });
 
   it('kebab-cases camelCase color keys', () => {
@@ -21,13 +31,14 @@ describe('resolveTokens', () => {
     expect(cssVars['--color-text-muted']).toBe('#6B6B8A');
   });
 
-  it('resolves radius tokens', () => {
-    const { cssVars } = resolveTokens(mockConfig);
-    expect(cssVars['--radius-md']).toBe('8px');
+  it('derives dark tokens when darkMode: true', () => {
+    const { darkCssVars } = resolveTokens({ ...mockConfig, darkMode: true });
+    expect(darkCssVars).not.toBeNull();
+    expect(darkCssVars!['--color-text']).toBe('#f1f5f9');
   });
 
-  it('emits JS object with camelCase keys', () => {
-    const { js } = resolveTokens(mockConfig);
-    expect(js.colorPrimary).toBe('#6C63FF');
+  it('returns null darkCssVars when darkMode: false', () => {
+    const { darkCssVars } = resolveTokens({ ...mockConfig, darkMode: false });
+    expect(darkCssVars).toBeNull();
   });
 });

@@ -1,0 +1,76 @@
+import React, { useId } from 'react';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}} };
+const sizeClasses: Record<string, string> = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-5 py-3 text-lg',
+};
+
+export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label:     string;
+  variant?:  InputVariant;
+  size?:     InputSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = `${id}-error`;
+    const hintId = `${id}-hint`;
+
+    const cls = [
+      'w-full border-1.5 rounded-[var(--radius-md)] outline-none transition-all',
+      {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
+      'disabled:opacity-50 disabled:cursor-not-allowed',
+      variantClasses[variant],
+      sizeClasses[size],
+      error && 'border-[var(--color-danger)]',
+      className,
+    ].filter(Boolean).join(' ');
+
+    const describedBy = [
+      error ? errorId : null,
+      hint ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <div className="flex flex-col gap-[var(--spacing-unit)] w-full">
+        <label htmlFor={id} className="font-medium text-[var(--color-text)] text-sm">
+          {label}
+          {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
+        </label>
+        <input
+          ref={ref}
+          id={id}
+          className={cls}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          aria-required={required}
+          {...props}
+        />
+        {hint && !error && (
+          <span id={hintId} className="text-xs text-[var(--color-text-muted)]">
+            {hint}
+          </span>
+        )}
+        {error && (
+          <span id={errorId} className="text-xs text-[var(--color-danger)]" role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Input.displayName = 'Input';

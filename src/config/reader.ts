@@ -2,16 +2,23 @@ import fs from 'fs-extra';
 import path from 'path';
 import { validateConfig } from './validator';
 
+export interface DarkModeConfig {
+  strategy: 'auto' | 'manual';
+  tokens?: Record<string, string>;
+}
+
 export interface CrucibleConfig {
   version: string;
   framework: string;
   theme: string;
-  tokens: {
-    color: Record<string, string>;
-    radius: Record<string, string>;
-    spacing: { unit: string };
-    typography: { fontFamily: string; scaleBase: string };
+  styleSystem: 'css' | 'tailwind';
+  tokens?: {
+    color?: Record<string, string>;
+    radius?: Record<string, string>;
+    spacing?: { unit: string };
+    typography?: { fontFamily: string; scaleBase: string };
   };
+  darkMode?: boolean | DarkModeConfig;
   features: {
     hover: boolean;
     focusRing: boolean;
@@ -35,5 +42,9 @@ export async function readConfig(configPath: string): Promise<CrucibleConfig> {
     throw new Error(`Config not found: ${resolved}\nRun: crucible init`);
   }
   const raw = await fs.readJson(resolved);
-  return validateConfig(raw);
+  return validateConfig({
+    styleSystem: 'css', // default
+    theme: 'minimal', // default
+    ...raw,
+  });
 }

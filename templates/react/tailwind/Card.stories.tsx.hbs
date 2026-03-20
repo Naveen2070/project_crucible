@@ -1,0 +1,47 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { Card } from './Card';
+
+const meta: Meta<typeof Card> = {
+  title: 'Crucible/{{name}}',
+  component: Card,
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Card>;
+
+export const Default: Story = {
+  args: {
+    title:    'Card Title',
+    children: 'This is a default card with some content inside it.',
+  },
+};
+
+export const Hoverable: Story = {
+  args: {
+    variant:  'hoverable',
+    title:    'Hoverable Card',
+    children: 'This card changes its border color and shadow on hover.',
+  },
+};
+
+export const Clickable: Story = {
+  args: {
+    variant:  'clickable',
+    title:    'Clickable Card',
+    children: 'This card acts like a button and has an active state.',
+    onClick:  () => alert('Card clicked!'),
+  },
+};
+
+export const Link: Story = {
+  args: {
+    variant:  'clickable',
+    title:    'Link Card',
+    children: 'This card acts like an anchor tag.',
+    href:     'https://example.com',
+  },
+};

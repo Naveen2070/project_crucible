@@ -5,6 +5,8 @@ import { renderComponent } from '../../templates/engine';
 
 const mockConfig = {
   framework: 'react',
+  theme: 'minimal',
+  styleSystem: 'css',
   tokens: {
     color: {
       primary: '#6C63FF',
@@ -31,12 +33,22 @@ const mockConfig = {
 } as any;
 
 describe('Select snapshots', () => {
-  it('Select files match snapshots', async () => {
+  it('css mode snapshot', async () => {
     const tokens = resolveTokens(mockConfig);
     const model = buildComponentModel('Select', tokens, mockConfig);
     const files = await renderComponent(model);
     expect(files['Select.tsx']).toMatchSnapshot();
     expect(files['Select.module.css']).toMatchSnapshot();
+    expect(files['Select.stories.tsx']).toMatchSnapshot();
+  });
+
+  it('tailwind mode snapshot', async () => {
+    const config = { ...mockConfig, styleSystem: 'tailwind' };
+    const tokens = resolveTokens(config);
+    const model = buildComponentModel('Select', tokens, config);
+    const files = await renderComponent(model);
+    expect(files['Select.tsx']).toMatchSnapshot();
+    expect(files['Select.module.css']).toBeUndefined();
     expect(files['Select.stories.tsx']).toMatchSnapshot();
   });
 });

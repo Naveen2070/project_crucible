@@ -5,6 +5,14 @@
 {{/each}}
 }
 
+{{#if tokens.darkCssVars}}
+@media (prefers-color-scheme: dark) {
+  :root {
+{{#each tokens.darkCssVars}}    {{@key}}: {{this}};
+{{/each}}  }
+}
+{{/if}}
+
 .btn {
   display:         inline-flex;
   align-items:     center;
