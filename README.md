@@ -1,53 +1,60 @@
 # ⚗ Crucible — Design System Engine
 
-Crucible is a CLI code-generation engine that scaffolds native, fully-editable React components directly into your project. 
+> **Generated once. Yours forever.**
+>
+> A code-generation engine that scaffolds native, fully-editable React components directly into your
+> project — driven by a JSON config file. No wrappers, no black-box libraries. You own every file
+> generated.
 
-**No wrappers. No runtime dependency.**
+## 🌟 The "No-Wrapper" Philosophy
 
-Crucible's core philosophy is that you should own the code. It is not an npm component library — it's a code generator that writes source files into your project, styling them according to a `crucible.config.json` file. You get highly accessible, perfectly styled components that you can completely modify without dealing with a black box.
+Most design systems install as npm packages — you import their components and are locked into their API and bundle size forever. **Crucible is different.**
 
-## Current Status
+It generates pure source code (React + TypeScript + CSS Modules or Tailwind) that lives in your project. Once generated, Crucible has **zero footprint** in your runtime. You read, edit, and extend every line of code.
 
-**v0.1** — React only, 5 components (Button, Input, Card, Modal, Select), full accessibility, token-driven.
-Supports both **Vanilla CSS Modules** and **Tailwind CSS**.
+## 🚀 Quick Start
 
-## Installation & Usage
-
-You can use Crucible via `npx` without installing it globally:
-
+### 1. Initialize your project
 ```bash
-# Scaffold a new configuration file
 npx crucible init
-
-# Add a component to your project
-npx crucible add Button
-npx crucible add Input
-npx crucible add Card
-npx crucible add Modal
-npx crucible add Select
-
-# List all available components
-npx crucible list
 ```
+This creates a `crucible.config.json` where you can define your theme, tokens (colors, radius, spacing), and preferred style system.
 
-## How It Works
+### 2. Scaffold a component
+```bash
+npx crucible add Button
+```
+This reads your config and writes `Button/Button.tsx` and `Button/Button.module.css` (or Tailwind classes) directly into your components folder.
 
-Crucible operates in four sequence layers:
-1. **Configuration (`crucible.config.json`)**: You define your tokens (colors, typography, spacing) and options (like CSS Modules vs Tailwind).
-2. **Token Resolver**: Crucible resolves these tokens into CSS Variables and a JavaScript theme object.
-3. **Template Engine**: It runs through Handlebars templates to generate the component files.
-4. **CLI Scaffold**: It writes the final `.tsx`, `.module.css` (or Tailwind classes), and `.stories.tsx` files directly into your project directory.
+### 3. Customize anything
+Need to change the primary color? Update your config and run `add` again. Need a special one-off behavior for a specific button? Just edit the generated `.tsx` file — it's yours.
 
-Since it writes actual source code into your repository, you are free to customize and extend the components to your heart's content!
+## 🛠 Features
 
-## Accessibility
+- **Framework:** React (TypeScript)
+- **Style Systems:** CSS Modules or Tailwind CSS v4 (auto-setup included!)
+- **Themes:** Built-in `minimal` and `soft` presets with easy customization.
+- **Dark Mode:** Automatic OKLCH-based dark mode derivation.
+- **Accessibility:** WCAG-compliant components (Button, Input, Card, Modal, Select).
+- **Tooling:** Interactive CLI, Storybook support, and hash-based file protection.
 
-All generated components adhere to strict accessibility requirements:
-- Semantic HTML tags (`<button>`, `<dialog>`, etc.)
-- Full keyboard navigation (focus traps for Modals, type-ahead for Selects)
-- WAI-ARIA roles, states, and properties
-- Visible focus rings that are customizable via configuration
+## 📖 Commands
 
-## License
+| Command | Description |
+| :--- | :--- |
+| `init` | Create a default `crucible.config.json` interactively. |
+| `add <name>` | Scaffold a component (e.g., `Button`, `Select`). |
+| `list` | Show all available components. |
+| `eject` | Eject built-in theme tokens into your local config. |
 
-MIT
+## 🏗 Architecture
+
+Crucible operates in four layers:
+1. **Config Layer:** User intentions in `crucible.config.json`.
+2. **Token Resolver:** Maps tokens to CSS variables and JS objects (includes dark mode).
+3. **Template Engine:** Handlebars-driven generation per style system.
+4. **CLI Scaffold:** Writes files with SHA-256 hash protection to prevent accidental overwrites.
+
+---
+
+MIT License • © 2026 Crucible Team

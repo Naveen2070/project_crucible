@@ -12,10 +12,10 @@ the implementation.
 
 ### 1. Accessibility & Component Logic
 
-- [ ] **Input Component: Password Toggle**
+- [x] **Input Component: Password Toggle**
   - Implement internal state in `Input.tsx.hbs` to toggle visibility when `type="password"`.
   - Add a toggle button with `aria-label` for screen reader state (Show/Hide).
-- [ ] **Select Component: Type-Ahead Navigation**
+- [x] **Select Component: Type-Ahead Navigation**
   - Update `Select.tsx.hbs` to listen for alphanumeric keys.
   - Implement logic to jump focus to options starting with the typed character.
 
@@ -24,7 +24,7 @@ the implementation.
 - [x] **CI/CD: Chromatic Integration** (omitted for now)
   - Create `.github/workflows/chromatic.yml` as defined in Step 11.8 of the guide.
   - Ensure it triggers on push to verify visual regressions.
-- [ ] **Root README.md**
+- [x] **Root README.md**
   - Create a comprehensive `README.md` explaining the CLI, the "No-Wrapper" philosophy, and getting
     started instructions.
 

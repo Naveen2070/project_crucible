@@ -474,7 +474,10 @@ graph LR
         B[role: dialog\nfocusTrap: true]
     end
     subgraph SELECT ["Select only"]
-        C[keyboardNav: true]
+        C[keyboardNav: true\ntypeAhead: true]
+    end
+    subgraph INPUT ["Input only"]
+        E[passwordToggle: true]
     end
     subgraph CARD ["Card clickable variant"]
         D[role: button\ntabIndex: 0\nEnter handler]
