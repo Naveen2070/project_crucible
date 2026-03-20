@@ -43,9 +43,9 @@ graph LR
         D --> E[writer]
     end
     subgraph Output ["User's Project"]
-        F[Button.tsx]
-        G[Button.module.css]
-        H[Button.stories.tsx]
+        F[Button/Button.tsx]
+        G[Button/Button.module.css]
+        H[Button/Button.stories.tsx]
     end
     E --> F
     E --> G
@@ -89,20 +89,20 @@ flowchart TD
 
     subgraph TEMPLATE ["Layer 4 — Template Engine"]
         H --> J{styleSystem?}
-        J -->|css| K[templates/react/css/]
-        J -->|tailwind| L[templates/react/tailwind/]
+        J -->|css| K[templates/react/css/Component/]
+        J -->|tailwind| L[templates/react/tailwind/Component/]
         K --> M[engine.ts\nHandlebars render]
         L --> M
     end
 
     subgraph WRITER ["Layer 5 — File Writer"]
         M --> N[writer.ts\nhash check]
-        N -->|hash matches| O[write files]
+        N -->|hash matches| O[write files to subfolder]
         N -->|user edited| P[warn + skip]
         O --> Q[.crucible-hashes.json]
     end
 
-    O --> R([Button.tsx\nButton.module.css\nButton.stories.tsx])
+    O --> R([Button/Button.tsx\nButton/Button.module.css\nButton/Button.stories.tsx])
 ```
 
 ### 2.2 Layer Responsibilities
@@ -169,7 +169,7 @@ flowchart LR
     B --> C{file exists?}
     C -->|no| D[throw — run crucible init]
     C -->|yes| E[apply defaults\nstyleSystem: css\ntheme: minimal]
-    E --> F[ajv schema validation]
+    E --> F[ajv validate against\nsrc/config/schema.json]
     F -->|invalid| G[throw — schema error with path]
     F -->|valid| H[CrucibleConfig object]
 ```
@@ -183,7 +183,7 @@ graph TD
     ROOT --> DM[darkMode\nbool · object]
     ROOT --> FEAT[features\nhover · focusRing · motionSafe]
     ROOT --> A11Y[a11y\nfocusRing values · reduceMotion]
-    ROOT --> FLAGS[flags\noutputDir optional]
+    ROOT --> FLAGS[flags\noutputDir optional\nstories bool]
 
     META[meta\nversion · framework\ntheme · styleSystem]
 
@@ -203,6 +203,7 @@ graph TD
 | `features.hover` | `true` | Better default UX |
 | `features.focusRing` | `true` | Accessibility non-negotiable default |
 | `a11y.reduceMotion` | `true` | Safe default for accessibility |
+| `flags.stories` | `false` | Opt-in Storybook generation |
 
 ---
 
@@ -488,6 +489,7 @@ flowchart TD
     B -->|no| C[throw: Unknown component]
     B -->|yes| D[load defaults\nvariants, sizes, states]
     E[ResolvedTokens] --> F[build a11y object\nfrom config.a11y + features]
+    J[CLI: resolve stories flag] --> G
     D --> G[ComponentModel]
     F --> G
     H[config.framework] --> G
@@ -611,8 +613,8 @@ graph TD
 ```mermaid
 graph TD
     subgraph FOLDERS ["Template Folders"]
-        A[templates/react/css/\nButton.tsx.hbs\nButton.module.css.hbs\nButton.stories.tsx.hbs\nInput... Card... Modal... Select...]
-        B[templates/react/tailwind/\nButton.tsx.hbs\nButton.stories.tsx.hbs\nInput... Card... Modal... Select...]
+        A[templates/react/css/Component/\nButton.tsx.hbs\nButton.module.css.hbs\nButton.stories.tsx.hbs]
+        B[templates/react/tailwind/Component/\nButton.tsx.hbs\nButton.stories.tsx.hbs]
     end
     subgraph ENGINE ["engine.ts"]
         C[resolve tplDir\nfrom framework + styleSystem]
@@ -722,9 +724,9 @@ graph TD
 
 ```json
 {
-  "Button.tsx":         "a3f2c8e1b994",
-  "Button.module.css":  "d7e1a2b3c4f5",
-  "Button.stories.tsx": "f1e2d3c4b5a6"
+  "Button/Button.tsx":         "a3f2c8e1b994",
+  "Button/Button.module.css":  "d7e1a2b3c4f5",
+  "Button/Button.stories.tsx": "f1e2d3c4b5a6"
 }
 ```
 
@@ -741,8 +743,8 @@ graph TD
     subgraph CLI ["src/cli/index.ts"]
         A[crucible add Button]
         B[crucible list]
-        C[crucible init — future]
-        D[crucible tokens — future]
+        C[crucible init]
+        D[crucible eject]
     end
     subgraph ADD ["add command flow"]
         E[validate component in registry]
@@ -756,7 +758,21 @@ graph TD
     B --> K[print registry entries]
 ```
 
-### 12.2 CLI Flags
+### 12.2 Interactive Features & Dependency Resolution
+
+The CLI supports advanced interactive features to streamline scaffolding:
+- **Interactive Init:** `crucible init` prompts the user to select their preferred style system and component output directory, creating a tailored `crucible.config.json`.
+- **Eject Command:** `crucible eject` allows users to pull the built-in theme tokens (from presets like `minimal` or `soft`) directly into their `crucible.config.json`. This provides full manual control over every token without having to look up preset values.
+- **Multiselect Component Addition:** Running `crucible add` without arguments opens an interactive multiselect prompt to pick multiple components at once.
+- **Dependency Resolution:** Complex components prompt for missing dependencies. For instance, `Select` and `Modal` both prompt the user to automatically scaffold `Button` if it's missing in the destination folder.
+
+### 12.3 Tailwind Setup Integration
+
+When `styleSystem: 'tailwind'` is selected, the CLI's `add` command triggers a setup check (`checkAndSetupTailwind`). It scans the project to verify Tailwind CSS is installed and correctly imported.
+- If missing, it prompts the user to automatically install **Tailwind CSS v4** (and `@tailwindcss/vite` or `@tailwindcss/postcss` depending on the bundler).
+- It injects `@import "tailwindcss";` into the user's global CSS file seamlessly.
+
+### 12.4 CLI Flags
 
 ```mermaid
 graph LR
@@ -765,10 +781,13 @@ graph LR
         B[--dev\noutput to playground/__generated__]
         C[--force\noverwrite user-edited files]
         D[--config path\ndefault: crucible.config.json]
+        E[-y, --yes\nskip interactive prompts]
+        F[--stories\nopt-in stories]
+        G[--no-stories\nopt-out stories]
     end
 ```
 
-### 12.3 Output Directory Resolution
+### 12.5 Output Directory Resolution
 
 ```mermaid
 flowchart LR
@@ -778,7 +797,7 @@ flowchart LR
     C -->|not set| E[src/components/ default]
 ```
 
-### 12.4 CLI Output on Completion
+### 12.6 CLI Output on Completion
 
 ```
 ✓  Button.tsx
@@ -998,6 +1017,7 @@ interface ComponentModel {
   features: {
     hover: boolean;
   };
+  generateStories: boolean;
 }
 ```
 

@@ -46,7 +46,7 @@ npx crucible add Button --framework react
 ```
 
 This command reads `crucible.config.json`, resolves your design tokens, picks the right template for
-Button, and writes `Button.tsx` + `Button.module.css` (or a Tailwind TSX file) into your components
+Button, and writes `Button/Button.tsx` + `Button/Button.module.css` (or a Tailwind TSX file) into your components
 folder. You own these files from that point forward.
 
 ---
@@ -91,7 +91,7 @@ flowchart TD
     H[registry/components.ts] --> F
     I[styleSystem selector\ncss/ · tailwind/] --> G
     G --> J[scaffold/writer.ts\nwrite files + hash check]
-    J --> K[Button.tsx\nButton.module.css\nButton.stories.tsx]
+    J --> K[Button/Button.tsx\nButton/Button.module.css\nButton/Button.stories.tsx]
 ```
 
 ### 3.2 The Three-Tier Token System
@@ -125,9 +125,12 @@ crucible/
   src/
     cli/
       index.ts              ← commander entry, wires all layers
+      init.ts               ← interactive crucible init command
+      tailwind.ts           ← automatic tailwind v4 setup integration
     config/
       reader.ts             ← load + parse crucible.config.json
       validator.ts          ← ajv schema validation
+      schema.json           ← JSON schema definition
     tokens/
       resolver.ts           ← tokens → CSS vars + JS object
       dark-resolver.ts      ← derive dark palette from light tokens
@@ -153,32 +156,42 @@ crucible/
   templates/
     react/
       css/                  ← CSS module templates
-        Button.tsx.hbs
-        Button.module.css.hbs
-        Button.stories.tsx.hbs
-        Input.tsx.hbs
-        Input.module.css.hbs
-        Input.stories.tsx.hbs
-        Card.tsx.hbs
-        Card.module.css.hbs
-        Card.stories.tsx.hbs
-        Modal.tsx.hbs
-        Modal.module.css.hbs
-        Modal.stories.tsx.hbs
-        Select.tsx.hbs
-        Select.module.css.hbs
-        Select.stories.tsx.hbs
+        Button/
+          Button.tsx.hbs
+          Button.module.css.hbs
+          Button.stories.tsx.hbs
+        Input/
+          Input.tsx.hbs
+          Input.module.css.hbs
+          Input.stories.tsx.hbs
+        Card/
+          Card.tsx.hbs
+          Card.module.css.hbs
+          Card.stories.tsx.hbs
+        Modal/
+          Modal.tsx.hbs
+          Modal.module.css.hbs
+          Modal.stories.tsx.hbs
+        Select/
+          Select.tsx.hbs
+          Select.module.css.hbs
+          Select.stories.tsx.hbs
       tailwind/             ← Tailwind utility class templates
-        Button.tsx.hbs
-        Button.stories.tsx.hbs
-        Input.tsx.hbs
-        Input.stories.tsx.hbs
-        Card.tsx.hbs
-        Card.stories.tsx.hbs
-        Modal.tsx.hbs
-        Modal.stories.tsx.hbs
-        Select.tsx.hbs
-        Select.stories.tsx.hbs
+        Button/
+          Button.tsx.hbs
+          Button.stories.tsx.hbs
+        Input/
+          Input.tsx.hbs
+          Input.stories.tsx.hbs
+        Card/
+          Card.tsx.hbs
+          Card.stories.tsx.hbs
+        Modal/
+          Modal.tsx.hbs
+          Modal.stories.tsx.hbs
+        Select/
+          Select.tsx.hbs
+          Select.stories.tsx.hbs
 
   playground/
     react/
@@ -204,10 +217,10 @@ crucible/
 ```mermaid
 flowchart TD
     A[crucible add Button] --> B{styleSystem?}
-    B -->|css| C[templates/react/css/Button.tsx.hbs]
-    B -->|tailwind| D[templates/react/tailwind/Button.tsx.hbs]
-    C --> E[Button.tsx\nButton.module.css\nButton.stories.tsx]
-    D --> F[Button.tsx\nButton.stories.tsx\nno CSS file]
+    B -->|css| C[templates/react/css/Button/Button.tsx.hbs]
+    B -->|tailwind| D[templates/react/tailwind/Button/Button.tsx.hbs]
+    C --> E[Button/Button.tsx\nButton/Button.module.css\nButton/Button.stories.tsx]
+    D --> F[Button/Button.tsx\nButton/Button.stories.tsx\nno CSS file]
     E --> G[playground/__generated__]
     F --> G
 ```
@@ -553,10 +566,10 @@ changes to their own code.
 
 ```mermaid
 flowchart LR
-    A[styleSystem: css] --> B[templates/react/css/]
-    C[styleSystem: tailwind] --> D[templates/react/tailwind/]
-    B --> E[Button.tsx\nButton.module.css\nButton.stories.tsx]
-    D --> F[Button.tsx\nButton.stories.tsx\nno CSS file]
+    A[styleSystem: css] --> B[templates/react/css/Component/]
+    C[styleSystem: tailwind] --> D[templates/react/tailwind/Component/]
+    B --> E[Button/Button.tsx\nButton/Button.module.css\nButton/Button.stories.tsx]
+    D --> F[Button/Button.tsx\nButton/Button.stories.tsx\nno CSS file]
 ```
 
 The engine resolves the template directory from `model.styleSystem`:
@@ -592,6 +605,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 ```
 
 ### 7.3 Tailwind Utility Output
+
+> **Tailwind v4 Setup Integration:**
+> When generating components with `styleSystem: 'tailwind'`, the CLI automatically checks your project for a valid Tailwind setup. If missing, it will prompt to install **Tailwind CSS v4** automatically and inject `@import "tailwindcss";` into your global CSS file.
 
 No CSS module generated. Token values bridge into Tailwind via arbitrary value syntax. The `:root`
 vars are still emitted — just into the project's global CSS rather than a component CSS module.
@@ -1070,20 +1086,25 @@ Handlebars.registerHelper('kebab', (s: string) =>
 );
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
-  const tplDir = path.join(process.cwd(), 'templates', model.framework, model.styleSystem);
+  const tplDir = path.join(
+    __dirname,
+    '../../templates',
+    model.framework,
+    model.styleSystem,
+    model.name,
+  );
   const result: Record<string, string> = {};
 
-  const targets =
-    model.styleSystem === 'tailwind'
-      ? [
-          { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
-          { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
-        ]
-      : [
-          { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
-          { tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` },
-          { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
-        ];
+  const targets = [];
+  targets.push({ tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` });
+
+  if (model.styleSystem === 'css') {
+    targets.push({ tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` });
+  }
+
+  if (model.generateStories) {
+    targets.push({ tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` });
+  }
 
   for (const { tpl, out } of targets) {
     const tplPath = path.join(tplDir, tpl);
@@ -1122,27 +1143,31 @@ async function loadHashes(): Promise<Record<string, string>> {
 export async function writeFiles(
   files: Record<string, string>,
   outputDir: string,
+  componentName: string,
   opts: { force?: boolean } = {},
 ): Promise<void> {
-  await fs.ensureDir(outputDir);
+  const componentDir = path.join(outputDir, componentName);
+  await fs.ensureDir(componentDir);
   const hashes = await loadHashes();
 
   for (const [filename, content] of Object.entries(files)) {
-    const outPath = path.join(outputDir, filename);
+    const outPath = path.join(componentDir, filename);
+    const hashKey = `${componentName}/${filename}`;
+
     const newHash = hash(content);
 
     if ((await fs.pathExists(outPath)) && !opts.force) {
       const current = await fs.readFile(outPath, 'utf-8');
       const currentHash = hash(current);
-      if (hashes[filename] && currentHash !== hashes[filename]) {
-        console.log(chalk.yellow(`⚠  ${filename} has been modified. Use --force to overwrite.`));
+      if (hashes[hashKey] && currentHash !== hashes[hashKey]) {
+        console.log(chalk.yellow(`⚠  ${hashKey} has been modified. Use --force to overwrite.`));
         continue;
       }
     }
 
     await fs.writeFile(outPath, content, 'utf-8');
-    hashes[filename] = newHash;
-    console.log(chalk.green(`✓  ${filename}`));
+    hashes[hashKey] = newHash;
+    console.log(chalk.green(`✓  ${hashKey}`));
   }
 
   await fs.writeJson(HASH_FILE, hashes, { spaces: 2 });
@@ -1904,13 +1929,32 @@ framework, one style system.
 mkdir crucible && cd crucible
 git init
 npm init -y
+
+# During development of the engine:
+node dist/cli/index.js init
+
+# Once installed as a package:
+npx crucible init
 ```
 
-### 13.2 Folder structure
+*Note: The `init` command is an interactive prompt that lets you choose your style system and component destination, automatically generating a well-typed `crucible.config.json`.*
+
+### 13.2 The Eject Command
+
+If you want to customize the built-in themes beyond simple overrides, use:
+
+```bash
+npx crucible eject
+```
+
+This "ejects" the currently selected preset's tokens (like colors, spacing, and radius) into your local `crucible.config.json`. This is the recommended path for users who want to diverge significantly from the default design languages while keeping the automated scaffolding.
+
+### 13.3 Folder structure
 
 ```bash
 mkdir -p src/{cli,config,tokens,themes,components,templates/{react/{css,tailwind}},scaffold,registry,__tests__/snapshots}
-mkdir -p templates/react/{css,tailwind}
+mkdir -p templates/react/css/{Button,Input,Card,Modal,Select}
+mkdir -p templates/react/tailwind/{Button,Input,Card,Modal,Select}
 mkdir -p playground/react
 mkdir -p bin
 ```
@@ -1990,20 +2034,24 @@ require('../dist/cli/index.js');
 
 ### Daily commands
 
-| Command                                     | What it does                                         |
-| ------------------------------------------- | ---------------------------------------------------- |
-| `npm run build`                             | Compile TypeScript to `dist/`                        |
-| `npm run build:watch`                       | Watch mode — recompiles on save                      |
-| `npm run dev`                               | `build:watch` + Vite playground simultaneously       |
-| `node dist/cli/index.js add Button --dev`   | Generate Button (css mode) into playground           |
-| `node dist/cli/index.js add Button --dev`   | Change `styleSystem` in config to switch to Tailwind |
-| `node dist/cli/index.js add Button --force` | Overwrite even if file was edited                    |
-| `node dist/cli/index.js list`               | Show all available components                        |
-| `npm run test`                              | Run Vitest suite                                     |
-| `npm run test:coverage`                     | Tests with coverage report                           |
-| `vitest --update-snapshots`                 | Commit new snapshot baselines                        |
-| `npm run storybook`                         | Start Storybook dev server                           |
-| `npm run chromatic`                         | Push stories to Chromatic (needs env token)          |
+| Command                                       | What it does                                           |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `npm run build`                               | Compile TypeScript to `dist/`                          |
+| `npm run build:watch`                         | Watch mode — recompiles on save                        |
+| `npm run dev`                                 | `build:watch` + Vite playground simultaneously         |
+| `node dist/cli/index.js init`                 | Scaffold config interactively                          |
+| `node dist/cli/index.js eject`                | Eject built-in theme to config for editing             |
+| `node dist/cli/index.js add`                  | Interactive multiselect to pick components             |
+| `node dist/cli/index.js add Button --dev`     | Generate Button (css mode) into playground             |
+| `node dist/cli/index.js add Button --dev`     | Change `styleSystem` in config to switch to Tailwind   |
+| `node dist/cli/index.js add Button -y`        | Accept all prompts (like Tailwind setup/dependencies)  |
+| `node dist/cli/index.js add Button --force`   | Overwrite even if file was edited                      |
+| `node dist/cli/index.js list`                 | Show all available components                          |
+| `npm run test`                                | Run Vitest suite                                       |
+| `npm run test:coverage`                       | Tests with coverage report                             |
+| `vitest --update-snapshots`                   | Commit new snapshot baselines                          |
+| `npm run storybook`                           | Start Storybook dev server                             |
+| `npm run chromatic`                           | Push stories to Chromatic (needs env token)            |
 
 ### Key files
 
