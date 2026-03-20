@@ -7,11 +7,8 @@ const DEFAULT_CONFIG = `{
   "$schema": "https://raw.githubusercontent.com/crucible-ui/crucible/main/schema.json",
   "version": "1",
   "framework": "react",
-  // Choose "css" for Vanilla CSS Modules, or "tailwind"
   "styleSystem": "css",
-  // Base theme preset (e.g. "minimal" or "soft")
   "theme": "minimal",
-  // Override or add new tokens here
   "tokens": {
     "color": {
       "primary": "#6C63FF",
@@ -25,36 +22,54 @@ const DEFAULT_CONFIG = `{
       "md": "8px"
     }
   },
+  "features": {
+    "hover": true,
+    "focusRing": true,
+    "motionSafe": true
+  },
+  "a11y": {
+    "focusRingStyle": "outline",
+    "focusRingColor": "var(--color-primary)",
+    "focusRingWidth": "2px",
+    "focusRingOffset": "3px",
+    "reduceMotion": true
+  },
   "flags": {
-    // Directory where components will be generated
     "outputDir": "src/components"
   }
 }
 `;
 
-export async function runInit() {
+export async function runInit(opts: { yes?: boolean } = {}) {
   const configPath = path.join(process.cwd(), 'crucible.config.json');
 
   if (await fs.pathExists(configPath)) {
-    const overwrite = await confirm({ message: 'crucible.config.json already exists. Overwrite?', default: false });
-    if (!overwrite) {
-      console.log(chalk.gray('Init cancelled.'));
-      return;
+    if (!opts.yes) {
+      const overwrite = await confirm({ message: 'crucible.config.json already exists. Overwrite?', default: false });
+      if (!overwrite) {
+        console.log(chalk.gray('Init cancelled.'));
+        return;
+      }
     }
   }
 
-  const styleSystem = await select({
-    message: 'Which styling system do you want to use?',
-    choices: [
-      { name: 'CSS Modules (Vanilla)', value: 'css' },
-      { name: 'Tailwind CSS', value: 'tailwind' },
-    ],
-  });
+  let styleSystem = 'css';
+  let outputDir = 'src/components';
 
-  const outputDir = await input({
-    message: 'Where should components be generated?',
-    default: 'src/components',
-  });
+  if (!opts.yes) {
+    styleSystem = await select({
+      message: 'Which styling system do you want to use?',
+      choices: [
+        { name: 'CSS Modules (Vanilla)', value: 'css' },
+        { name: 'Tailwind CSS', value: 'tailwind' },
+      ],
+    });
+
+    outputDir = await input({
+      message: 'Where should components be generated?',
+      default: 'src/components',
+    });
+  }
 
   const configContent = DEFAULT_CONFIG
     .replace('"styleSystem": "css"', `"styleSystem": "${styleSystem}"`)

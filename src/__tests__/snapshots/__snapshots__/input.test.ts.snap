@@ -7,7 +7,7 @@ import styles from './Input.module.css';
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label:     string;
   variant?:  InputVariant;
   size?:     InputSize;
@@ -269,7 +269,7 @@ const sizeClasses: Record<string, string> = {
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label:     string;
   variant?:  InputVariant;
   size?:     InputSize;

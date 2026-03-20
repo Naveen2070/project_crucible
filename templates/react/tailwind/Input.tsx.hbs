@@ -12,7 +12,7 @@ const sizeClasses: Record<string, string> = {
 export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label:     string;
   variant?:  InputVariant;
   size?:     InputSize;

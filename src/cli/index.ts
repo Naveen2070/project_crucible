@@ -23,7 +23,8 @@ program
 program
   .command('init')
   .description('Scaffold a default crucible.config.json')
-  .action(runInit);
+  .option('-y, --yes', 'Skip prompts and use defaults')
+  .action((opts) => runInit({ yes: opts.yes }));
 
 program
   .command('eject')
@@ -51,23 +52,29 @@ program
   });
 
 program
-  .command('add [component]')
+  .command('add [component...]')
   .description('Scaffold a component into your project')
   .option('--framework <fw>', 'Target framework', 'react')
   .option('--dev', 'Output to playground/__generated__')
   .option('--force', 'Overwrite even if file has been edited')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
-  .action(async (componentName: string | undefined, opts: any) => {
-    let componentsToAdd: string[] = [];
+  .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
+  .action(async (components: string[], opts: any) => {
+    let componentsToAdd: string[] = components || [];
 
-    if (componentName) {
-      if (!registry[componentName]) {
-        console.error(chalk.red(`✗ Unknown component: ${componentName}`));
-        console.log(`Available: ${Object.keys(registry).join(', ')}`);
-        process.exit(1);
+    if (componentsToAdd.length > 0) {
+      for (const comp of componentsToAdd) {
+        if (!registry[comp]) {
+          console.error(chalk.red(`✗ Unknown component: ${comp}`));
+          console.log(`Available: ${Object.keys(registry).join(', ')}`);
+          process.exit(1);
+        }
       }
-      componentsToAdd.push(componentName);
     } else {
+      if (opts.yes) {
+         console.error(chalk.red(`✗ Cannot use --yes without specifying components to add.`));
+         process.exit(1);
+      }
       const answers = await checkbox({
         message: 'Select components to scaffold:',
         choices: Object.keys(registry).map(name => ({ name, value: name })),
@@ -89,7 +96,7 @@ program
       }
       
       if (config.styleSystem === 'tailwind') {
-        await checkAndSetupTailwind();
+        await checkAndSetupTailwind({ yes: opts.yes });
       }
 
       const outDir = opts.dev
@@ -102,7 +109,10 @@ program
         if (comp === 'Select' || comp === 'Modal') {
           const btnFile = path.join(outDir, 'Button.tsx');
           if (!resolvedComponents.has('Button') && !await fs.pathExists(btnFile)) {
-            const addDep = await confirm({ message: `${comp} usually depends on Button. Scaffold Button as well?`, default: true });
+            let addDep = true;
+            if (!opts.yes) {
+              addDep = await confirm({ message: `${comp} usually depends on Button. Scaffold Button as well?`, default: true });
+            }
             if (addDep) resolvedComponents.add('Button');
           }
         }

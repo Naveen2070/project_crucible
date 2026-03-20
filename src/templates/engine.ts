@@ -12,7 +12,8 @@ Handlebars.registerHelper('kebab', (str: string) =>
 );
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
-  const tplDir = path.join(process.cwd(), 'templates', model.framework, model.styleSystem);
+  // engine.js will be in dist/templates/, so root is ../../
+  const tplDir = path.join(__dirname, '../../templates', model.framework, model.styleSystem);
   const result: Record<string, string> = {};
 
   const targets =

@@ -11,6 +11,7 @@
     "storybook": "npm run storybook --workspace=playground-react",
     "generate:dev": "node dist/cli/index.js add Button --dev",
     "test": "vitest",
+    "test:e2e": "tsx scripts/e2e.ts",
     "test:coverage": "vitest --coverage",
     "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
   },

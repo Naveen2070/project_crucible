@@ -117,3 +117,33 @@ This plan touches the following areas:
 - Run `crucible init` in a fresh directory to verify the default config generation.
 - Test `crucible add` in a Vite project without Tailwind to trigger the auto-setup workflow and ensure the CSS injection and installation succeed.
 - Confirm all checked-off tasks in `v01-remaining-tasks.md` are marked complete.
+
+---
+
+### Phase 4: Comprehensive E2E Testing
+
+#### Objective
+To implement a "prod-like" comprehensive End-to-End (E2E) test suite for the Crucible CLI that covers the `init` command, the `tailwind` setup flow, component scaffolding, and configuration ejection without missing any edge cases.
+
+#### Proposed Solution
+
+**1. Add Automation Support (`--yes` flag)**
+To effectively test an interactive CLI in an automated environment (and to improve the tool for users in CI/CD), we need to add a `-y, --yes` flag to bypass prompts:
+- **`crucible init -y`**: Automatically accepts defaults and creates `crucible.config.json`.
+- **`crucible add <comp> -y`**: Automatically accepts missing dependencies and auto-agrees to the Tailwind setup flow.
+
+**2. Comprehensive E2E Script (`scripts/e2e.ts`)**
+We will create an E2E test script that programmatically executes the following phases in a temporary dummy project (`.e2e-test-env`):
+
+- **Phase A: Setup & Init**: Mock a clean `package.json` with React dependencies. Run `crucible init -y`.
+- **Phase B: Eject Command**: Run `crucible eject` to test theme extraction.
+- **Phase C: Tailwind Auto-Setup Flow**: Modify local config to `tailwind`. Run `crucible add Button -y` to trigger Tailwind auto-setup.
+- **Phase D: Full Component Scaffolding**: Run `crucible add Select -y` and `crucible add Input Card Modal -y`.
+- **Phase E: Compilation & Stability Check**: Run `npm install` and `tsc --noEmit`.
+- **Phase F: Mandatory Cleanup**: Utilize a `try...finally` block to ensure `.e2e-test-env` is always completely removed.
+
+#### Execution Status
+- [x] 1. Update CLI (`index.ts`, `init.ts`, `tailwind.ts`) with `-y, --yes` flags.
+- [x] 2. Create `scripts/e2e.ts` with full `try...finally` cleanup.
+- [x] 3. Update `package.json` to include `"test:e2e": "tsx scripts/e2e.ts"`.
+- [x] 4. Run `npm run test:e2e` to verify stability and commit.

@@ -4,7 +4,7 @@
   "properties": {
     "version": { "type": "string" },
     "framework": { "type": "string", "enum": ["react", "angular"] },
-    "theme": { "type": "string", "enum": ["minimal", "soft"] },
+    "theme": { "type": "string", "enum": ["minimal", "soft", "custom"] },
     "styleSystem": { "type": "string", "enum": ["css", "tailwind"] },
     "darkMode": {
       "oneOf": [

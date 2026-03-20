@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
 import { execSync } from 'child_process';
 
-export async function checkAndSetupTailwind() {
+export async function checkAndSetupTailwind(opts: { yes?: boolean } = {}) {
   const cwd = process.cwd();
   const packageJsonPath = path.join(cwd, 'package.json');
   
@@ -38,10 +38,13 @@ export async function checkAndSetupTailwind() {
 
   console.log(chalk.yellow('\n⚠ Tailwind CSS configuration is missing or incomplete.'));
   
-  const proceed = await confirm({
-    message: 'Would you like to automatically set up Tailwind v4?',
-    default: true
-  });
+  let proceed = true;
+  if (!opts.yes) {
+    proceed = await confirm({
+      message: 'Would you like to automatically set up Tailwind v4?',
+      default: true
+    });
+  }
 
   if (!proceed) {
     console.log(chalk.gray('Continuing without Tailwind setup...'));
