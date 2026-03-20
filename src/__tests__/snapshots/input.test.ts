@@ -35,7 +35,7 @@ const mockConfig = {
 describe('Input snapshots', () => {
   it('css mode snapshot', async () => {
     const tokens = resolveTokens(mockConfig);
-    const model = buildComponentModel('Input', tokens, mockConfig);
+    const model = buildComponentModel('Input', tokens, mockConfig, true);
     const files = await renderComponent(model);
     expect(files['Input.tsx']).toMatchSnapshot();
     expect(files['Input.module.css']).toMatchSnapshot();
@@ -45,7 +45,7 @@ describe('Input snapshots', () => {
   it('tailwind mode snapshot', async () => {
     const config = { ...mockConfig, styleSystem: 'tailwind' };
     const tokens = resolveTokens(config);
-    const model = buildComponentModel('Input', tokens, config);
+    const model = buildComponentModel('Input', tokens, config, true);
     const files = await renderComponent(model);
     expect(files['Input.tsx']).toMatchSnapshot();
     expect(files['Input.module.css']).toBeUndefined();

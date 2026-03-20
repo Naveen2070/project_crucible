@@ -95,26 +95,46 @@ async function runE2E() {
     // Phase D: Full Component Scaffolding
     console.log(chalk.gray('-> [Phase D] Scaffolding remaining components...'));
     // Select should also trigger Button if it wasn't there, but Button is there now.
-    execSync(`node "${CLI_PATH}" add Select Input Card Modal -y`, {
+    // Testing --stories and --no-stories flags here
+    execSync(`node "${CLI_PATH}" add Select --stories -y`, {
+      cwd: TEST_DIR,
+      stdio: 'inherit',
+    });
+    execSync(`node "${CLI_PATH}" add Input Card Modal --no-stories -y`, {
       cwd: TEST_DIR,
       stdio: 'inherit',
     });
 
     console.log(chalk.gray('-> Verifying file system output...'));
     const componentsDir = path.join(TEST_DIR, 'src/components');
-    const expectedFiles = [
-      'Button.tsx',
-      'Input.tsx',
-      'Select.tsx',
-      'Card.tsx',
-      'Modal.tsx',
-      // no css modules expected since we are in tailwind mode
+    const expectedSubfolders = [
+      'Button',
+      'Input',
+      'Select',
+      'Card',
+      'Modal',
     ];
 
-    for (const file of expectedFiles) {
-      if (!(await fs.pathExists(path.join(componentsDir, file)))) {
-        throw new Error(`Expected generated file missing: ${file}`);
+    for (const folder of expectedSubfolders) {
+      if (!(await fs.pathExists(path.join(componentsDir, folder)))) {
+        throw new Error(`Expected generated component subfolder missing: ${folder}`);
       }
+      if (!(await fs.pathExists(path.join(componentsDir, folder, `${folder}.tsx`)))) {
+        throw new Error(`Expected generated component file missing: ${folder}/${folder}.tsx`);
+      }
+    }
+
+    // Verify stories logic
+    if (!(await fs.pathExists(path.join(componentsDir, 'Select/Select.stories.tsx')))) {
+      throw new Error('Expected Select.stories.tsx to exist with --stories flag.');
+    }
+    if (await fs.pathExists(path.join(componentsDir, 'Input/Input.stories.tsx'))) {
+      throw new Error('Expected Input.stories.tsx to be missing with --no-stories flag.');
+    }
+
+    // Verify config default stories: false (implicit default)
+    if (await fs.pathExists(path.join(componentsDir, 'Button/Button.stories.tsx'))) {
+      throw new Error('Expected Button.stories.tsx to be missing by default.');
     }
 
     // Phase E: Compilation & Stability Check
