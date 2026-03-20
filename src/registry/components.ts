@@ -12,40 +12,40 @@ export const registry: Record<string, ComponentDef> = {
     frameworks: ['react'],
     styleSystems: ['css', 'tailwind'],
     files: {
-      css: ['Button.tsx', 'Button.module.css', 'Button.stories.tsx'],
-      tailwind: ['Button.tsx', 'Button.stories.tsx'],
+      css: ['Button/Button.tsx', 'Button/Button.module.css', 'Button/Button.stories.tsx'],
+      tailwind: ['Button/Button.tsx', 'Button/Button.stories.tsx'],
     },
   },
   Input: {
     frameworks: ['react'],
     styleSystems: ['css', 'tailwind'],
     files: {
-      css: ['Input.tsx', 'Input.module.css', 'Input.stories.tsx'],
-      tailwind: ['Input.tsx', 'Input.stories.tsx'],
+      css: ['Input/Input.tsx', 'Input/Input.module.css', 'Input/Input.stories.tsx'],
+      tailwind: ['Input/Input.tsx', 'Input/Input.stories.tsx'],
     },
   },
   Card: {
     frameworks: ['react'],
     styleSystems: ['css', 'tailwind'],
     files: {
-      css: ['Card.tsx', 'Card.module.css', 'Card.stories.tsx'],
-      tailwind: ['Card.tsx', 'Card.stories.tsx'],
+      css: ['Card/Card.tsx', 'Card/Card.module.css', 'Card/Card.stories.tsx'],
+      tailwind: ['Card/Card.tsx', 'Card/Card.stories.tsx'],
     },
   },
   Modal: {
     frameworks: ['react'],
     styleSystems: ['css', 'tailwind'],
     files: {
-      css: ['Modal.tsx', 'Modal.module.css', 'Modal.stories.tsx'],
-      tailwind: ['Modal.tsx', 'Modal.stories.tsx'],
+      css: ['Modal/Modal.tsx', 'Modal/Modal.module.css', 'Modal/Modal.stories.tsx'],
+      tailwind: ['Modal/Modal.tsx', 'Modal/Modal.stories.tsx'],
     },
   },
   Select: {
     frameworks: ['react'],
     styleSystems: ['css', 'tailwind'],
     files: {
-      css: ['Select.tsx', 'Select.module.css', 'Select.stories.tsx'],
-      tailwind: ['Select.tsx', 'Select.stories.tsx'],
+      css: ['Select/Select.tsx', 'Select/Select.module.css', 'Select/Select.stories.tsx'],
+      tailwind: ['Select/Select.tsx', 'Select/Select.stories.tsx'],
     },
   },
 };

@@ -33,6 +33,7 @@ export interface CrucibleConfig {
   };
   flags?: {
     outputDir?: string;
+    stories?: boolean;
   };
 }
 

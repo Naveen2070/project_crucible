@@ -23,6 +23,7 @@ export interface ComponentModel {
   features: {
     hover: boolean;
   };
+  generateStories: boolean;
 }
 
 const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
@@ -87,6 +88,7 @@ export function buildComponentModel(
   name: string,
   tokens: ResolvedTokens,
   config: CrucibleConfig,
+  generateStories: boolean,
 ): ComponentModel {
   const defaults = COMPONENT_DEFAULTS[name];
   if (!defaults) throw new Error(`Unknown component: ${name}. Run: crucible list`);
@@ -111,5 +113,6 @@ export function buildComponentModel(
     features: {
       hover: config.features.hover ?? true,
     },
+    generateStories,
   };
 }

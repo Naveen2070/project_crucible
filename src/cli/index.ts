@@ -59,6 +59,8 @@ program
   .option('--force', 'Overwrite even if file has been edited')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
   .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
+  .option('--stories', 'Generate Storybook story file')
+  .option('--no-stories', 'Skip story generation (overrides config default)')
   .action(async (components: string[], opts: any) => {
     let componentsToAdd: string[] = components || [];
 
@@ -72,12 +74,12 @@ program
       }
     } else {
       if (opts.yes) {
-         console.error(chalk.red(`✗ Cannot use --yes without specifying components to add.`));
-         process.exit(1);
+        console.error(chalk.red(`✗ Cannot use --yes without specifying components to add.`));
+        process.exit(1);
       }
       const answers = await checkbox({
         message: 'Select components to scaffold:',
-        choices: Object.keys(registry).map(name => ({ name, value: name })),
+        choices: Object.keys(registry).map((name) => ({ name, value: name })),
       });
       if (answers.length === 0) {
         console.log(chalk.gray('No components selected.'));
@@ -88,13 +90,13 @@ program
 
     try {
       const config = await readConfig(opts.config);
-      
+
       // Pre-generation token validation (Linting pass)
       const tokens = resolveTokens(config);
       if (!tokens.cssVars['--color-primary']) {
         console.warn(chalk.yellow('⚠ Warning: --color-primary is missing from tokens.'));
       }
-      
+
       if (config.styleSystem === 'tailwind') {
         await checkAndSetupTailwind({ yes: opts.yes });
       }
@@ -107,24 +109,32 @@ program
       const resolvedComponents = new Set<string>(componentsToAdd);
       for (const comp of componentsToAdd) {
         if (comp === 'Select' || comp === 'Modal') {
-          const btnFile = path.join(outDir, 'Button.tsx');
-          if (!resolvedComponents.has('Button') && !await fs.pathExists(btnFile)) {
+          const btnDir = path.join(outDir, 'Button');
+          const btnFile = path.join(btnDir, 'Button.tsx');
+          if (!resolvedComponents.has('Button') && !(await fs.pathExists(btnFile))) {
             let addDep = true;
             if (!opts.yes) {
-              addDep = await confirm({ message: `${comp} usually depends on Button. Scaffold Button as well?`, default: true });
+              addDep = await confirm({
+                message: `${comp} usually depends on Button. Scaffold Button as well?`,
+                default: true,
+              });
             }
             if (addDep) resolvedComponents.add('Button');
           }
         }
       }
 
+      const generateStories =
+        opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
+
       for (const comp of Array.from(resolvedComponents)) {
-        const model = buildComponentModel(comp, tokens, config);
+        const model = buildComponentModel(comp, tokens, config, generateStories);
         const files = await renderComponent(model);
 
-        await writeFiles(files, outDir, { force: opts.force });
+        await writeFiles(files, outDir, comp, { force: opts.force });
+        const storiesNote = generateStories ? ' + story' : '';
         console.log(
-          chalk.cyan(`\n⚗  ${comp} [${config.styleSystem}/${config.theme}] → ${outDir}`),
+          chalk.cyan(`\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`),
         );
       }
     } catch (err: any) {

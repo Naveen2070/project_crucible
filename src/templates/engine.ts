@@ -13,20 +13,25 @@ Handlebars.registerHelper('kebab', (str: string) =>
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
   // engine.js will be in dist/templates/, so root is ../../
-  const tplDir = path.join(__dirname, '../../templates', model.framework, model.styleSystem);
+  const tplDir = path.join(
+    __dirname,
+    '../../templates',
+    model.framework,
+    model.styleSystem,
+    model.name,
+  );
   const result: Record<string, string> = {};
 
-  const targets =
-    model.styleSystem === 'tailwind'
-      ? [
-          { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
-          { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
-        ]
-      : [
-          { tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` },
-          { tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` },
-          { tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` },
-        ];
+  const targets = [];
+  targets.push({ tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` });
+
+  if (model.styleSystem === 'css') {
+    targets.push({ tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` });
+  }
+
+  if (model.generateStories) {
+    targets.push({ tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` });
+  }
 
   for (const { tpl, out } of targets) {
     const tplPath = path.join(tplDir, tpl);
