@@ -46,6 +46,7 @@ Thumbs.db
 .gemini-cli/
 __generated__/
 .crucible-hashes.json
+.e2e-test-env
 
 # Storybook
 *storybook.log
