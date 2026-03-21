@@ -30,6 +30,7 @@ interface SelectContextValue {
   listboxId: string;
   id: string;
   options: SelectOption[];
+  setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
   disabled?: boolean;
   error?: string;
   variant: SelectVariant;
@@ -46,7 +47,7 @@ const useSelectContext = () => {
 };
 
 export interface SelectProps {
-  options:   SelectOption[];
+  options?:  SelectOption[];
   value?:    string;
   onChange?: (value: string) => void;
   variant?:  SelectVariant;
@@ -58,7 +59,7 @@ export interface SelectProps {
 }
 
 const SelectRoot: React.FC<SelectProps> = ({
-  options,
+  options: initialOptions = [],
   value,
   onChange,
   variant = 'default',
@@ -70,6 +71,7 @@ const SelectRoot: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [options, setOptions] = useState<SelectOption[]>(initialOptions);
   const containerRef = useRef<HTMLDivElement>(null);
   const id = useId();
   const labelId = `${id}-label`;
@@ -88,7 +90,7 @@ const SelectRoot: React.FC<SelectProps> = ({
   return (
     <SelectContext.Provider value=\{{ 
       isOpen, setIsOpen, activeIndex, setActiveIndex, value, onChange, 
-      labelId, listboxId, id, options, disabled, error, variant, size, placeholder 
+      labelId, listboxId, id, options, setOptions, disabled, error, variant, size, placeholder 
     }}>
       <div className="flex flex-col gap-[var(--spacing-unit)] w-full relative" ref={containerRef}>
         {children}
@@ -97,15 +99,15 @@ const SelectRoot: React.FC<SelectProps> = ({
   );
 };
 
-const SelectLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const SelectLabel: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const { labelId } = useSelectContext();
-  return <label id={labelId} className="font-medium text-[var(--color-text)] text-sm">{children}</label>;
+  return <label id={labelId} className={["font-medium text-[var(--color-text)] text-sm", className].filter(Boolean).join(' ')}>{children}</label>;
 };
 
-const SelectTrigger: React.FC = () => {
+const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange 
+    value, options, disabled, id, onChange, variant, size, error
   } = useSelectContext();
   
   const searchString = useRef('');
@@ -181,12 +183,13 @@ const SelectTrigger: React.FC = () => {
       <div
         className={[
           'flex items-center justify-between bg-[var(--color-surface)] border-1.5 rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
-          {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
+          {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',{{/if}}
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
           error && 'border-[var(--color-danger)]',
           variantClasses[variant],
           sizeClasses[size],
+          className,
         ].join(' ')}
         role="combobox"
         aria-expanded={isOpen}
@@ -198,66 +201,114 @@ const SelectTrigger: React.FC = () => {
         onClick={() => !disabled && setIsOpen(!isOpen)}
         aria-activedescendant={activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
       >
-        <span className="truncate flex-1 text-[var(--color-text)]">
-          {options.find(o => o.value === value)?.label || placeholder}
-        </span>
-        <span className="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
+        {children}
       </div>
-      {isOpen && <SelectContent />}
       {error && <span className="text-xs text-[var(--color-danger)] mt-1" role="alert">{error}</span>}
     </>
   );
 };
 
-const SelectContent: React.FC = () => {
-  const { listboxId, labelId, options, value, activeIndex, setActiveIndex, onChange, setIsOpen } = useSelectContext();
+const SelectValue: React.FC<{ placeholder?: string }> = ({ placeholder: propPlaceholder }) => {
+  const { value, options, placeholder: contextPlaceholder } = useSelectContext();
+  const selectedOption = options.find(opt => opt.value === value);
+  return (
+    <span className="truncate flex-1 text-[var(--color-text)]">
+      {selectedOption ? selectedOption.label : (propPlaceholder || contextPlaceholder)}
+    </span>
+  );
+};
+
+const SelectIcon: React.FC = () => (
+  <span className="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
+);
+
+const SelectContent: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { isOpen, listboxId, labelId, activeIndex } = useSelectContext();
   const listboxRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    if (activeIndex >= 0 && listboxRef.current) {
+    if (isOpen && activeIndex >= 0 && listboxRef.current) {
       const optionEl = listboxRef.current.children[activeIndex] as HTMLElement;
       if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
     }
-  }, [activeIndex]);
+  }, [isOpen, activeIndex]);
+
+  if (!isOpen) return null;
 
   return (
     <ul
       id={listboxId}
-      className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-height-[200px] overflow-y-auto m-0 p-0 list-none"
+      ref={listboxRef}
+      className={[
+        "absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none",
+        className
+      ].join(' ')}
       role="listbox"
       aria-labelledby={labelId}
-      ref={listboxRef}
     >
-      {options.map((option, index) => (
-        <li
-          key={option.value}
-          id={`${id}-option-${index}`}
-          role="option"
-          aria-selected={option.value === value}
-          className={[
-            'px-4 py-2 cursor-pointer transition-colors text-sm',
-            option.value === value && 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold',
-            activeIndex === index && 'bg-[var(--color-secondary)] text-[var(--color-primary)]',
-          ].join(' ')}
-          onClick={(e) => {
-            e.stopPropagation();
-            onChange?.(option.value);
-            setIsOpen(false);
-          }}
-          onMouseEnter={() => setActiveIndex(index)}
-        >
-          {option.label}
-        </li>
-      ))}
+      {children}
     </ul>
   );
 };
 
+const SelectItem: React.FC<{ value: string; label: string; children?: React.ReactNode; className?: string }> = ({ value: itemValue, label, children, className }) => {
+  const { value, onChange, setIsOpen, options, setOptions, activeIndex, setActiveIndex, id } = useSelectContext();
+  
+  const index = options.findIndex(opt => opt.value === itemValue);
+  
+  useEffect(() => {
+    setOptions(prev => {
+      if (prev.find(opt => opt.value === itemValue)) return prev;
+      return [...prev, { value: itemValue, label }];
+    });
+  }, [itemValue, label, setOptions]);
+
+  return (
+    <li
+      id={`${id}-option-${index}`}
+      role="option"
+      aria-selected={value === itemValue}
+      className={[
+        'px-4 py-2 cursor-pointer transition-colors text-sm',
+        value === itemValue && 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold',
+        activeIndex === index && 'bg-[var(--color-secondary)] text-[var(--color-primary)]',
+        className
+      ].join(' ')}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange?.(itemValue);
+        setIsOpen(false);
+      }}
+      onMouseEnter={() => setActiveIndex(index)}
+    >
+      {children || label}
+    </li>
+  );
+};
+
+const SelectItemText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <>{children}</>
+);
+
 export const Select = Object.assign(SelectRoot, {
-  Label: SelectLabel,
   Trigger: SelectTrigger,
+  Value: SelectValue,
+  Icon: SelectIcon,
+  Content: SelectContent,
+  Item: SelectItem,
+  ItemText: SelectItemText,
+  Label: SelectLabel,
 });
 
+Select.displayName = 'Select';
+SelectRoot.displayName = 'Select.Root';
+SelectTrigger.displayName = 'Select.Trigger';
+SelectValue.displayName = 'Select.Value';
+SelectIcon.displayName = 'Select.Icon';
+SelectContent.displayName = 'Select.Content';
+SelectItem.displayName = 'Select.Item';
+SelectItemText.displayName = 'Select.ItemText';
+SelectLabel.displayName = 'Select.Label';
 {{else}}
 export interface SelectProps {
   options:   SelectOption[];
@@ -416,7 +467,7 @@ export const Select: React.FC<SelectProps> = ({
       {isOpen && (
         <ul
           id={listboxId}
-          className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-height-[200px] overflow-y-auto m-0 p-0 list-none"
+          className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none"
           role="listbox"
           aria-labelledby={labelId}
           ref={listboxRef}
@@ -448,6 +499,6 @@ export const Select: React.FC<SelectProps> = ({
     </div>
   );
 };
-{{/if}}
 
 Select.displayName = 'Select';
+{{/if}}
