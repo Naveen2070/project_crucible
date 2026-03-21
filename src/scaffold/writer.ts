@@ -27,10 +27,12 @@ export async function writeFiles(
   files: Record<string, string>,
   outputDir: string,
   componentName: string,
-  opts: { force?: boolean } = {},
+  opts: { force?: boolean; dryRun?: boolean } = {},
 ): Promise<void> {
   const componentDir = path.join(outputDir, componentName);
-  await fs.ensureDir(componentDir);
+  if (!opts.dryRun) {
+    await fs.ensureDir(componentDir);
+  }
   const hashes = await loadHashes();
   const prettierConfig = await prettier.resolveConfig(process.cwd());
 
@@ -63,10 +65,17 @@ export async function writeFiles(
       }
     }
 
+    if (opts.dryRun) {
+      console.log(chalk.green(`~  ${hashKey} (would be written)`));
+      continue;
+    }
+
     await fs.writeFile(outPath, formattedContent, 'utf-8');
     hashes[hashKey] = newHash;
     console.log(chalk.green(`✓  ${hashKey}`));
   }
 
-  await saveHashes(hashes);
+  if (!opts.dryRun) {
+    await saveHashes(hashes);
+  }
 }

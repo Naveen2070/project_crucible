@@ -61,6 +61,7 @@ program
   .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
   .option('--stories', 'Generate Storybook story file')
   .option('--no-stories', 'Skip story generation (overrides config default)')
+  .option('--dry-run', 'Simulate generation without writing files')
   .action(async (components: string[], opts: any) => {
     let componentsToAdd: string[] = components || [];
 
@@ -147,10 +148,11 @@ program
         const model = buildComponentModel(comp, tokens, config, generateStories);
         const files = await renderComponent(model);
 
-        await writeFiles(files, outDir, comp, { force: opts.force });
+        await writeFiles(files, outDir, comp, { force: opts.force, dryRun: opts.dryRun });
         const storiesNote = generateStories ? ' + story' : '';
+        const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
         console.log(
-          chalk.cyan(`\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`),
+          chalk.cyan(`\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`) + dryRunNote,
         );
       }
     } catch (err: any) {
