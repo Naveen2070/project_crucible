@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import { select, input, confirm } from '@inquirer/prompts';
+import { checkAndSetupTailwind } from './tailwind';
 
 const DEFAULT_CONFIG = `{
   "$schema": "https://raw.githubusercontent.com/crucible-ui/crucible/main/schema.json",
@@ -25,7 +26,8 @@ const DEFAULT_CONFIG = `{
   "features": {
     "hover": true,
     "focusRing": true,
-    "motionSafe": true
+    "motionSafe": true,
+    "compoundComponents": true
   },
   "a11y": {
     "focusRingStyle": "outline",
@@ -56,6 +58,7 @@ export async function runInit(opts: { yes?: boolean } = {}) {
   let framework = 'react';
   let styleSystem = 'css';
   let outputDir = 'src/components';
+  let compoundComponents = true;
 
   if (!opts.yes) {
     framework = await select({
@@ -76,16 +79,28 @@ export async function runInit(opts: { yes?: boolean } = {}) {
       ],
     });
 
+    if (framework !== 'angular') {
+      compoundComponents = await confirm({
+        message: 'Prefer compound component pattern? (e.g. <Button.Root>)',
+        default: true,
+      });
+    }
+
     outputDir = await input({
       message: 'Where should components be generated?',
       default: 'src/components',
     });
   }
 
+  if (styleSystem === 'tailwind') {
+    await checkAndSetupTailwind({ yes: opts.yes });
+  }
+
   const configContent = DEFAULT_CONFIG
     .replace('"framework": "react"', `"framework": "${framework}"`)
     .replace('"styleSystem": "css"', `"styleSystem": "${styleSystem}"`)
-    .replace('"outputDir": "src/components"', `"outputDir": "${outputDir}"`);
+    .replace('"outputDir": "src/components"', `"outputDir": "${outputDir}"`)
+    .replace('"compoundComponents": true', `"compoundComponents": ${compoundComponents}`);
 
   await fs.writeFile(configPath, configContent, 'utf-8');
   console.log(chalk.green('✔ Created crucible.config.json with minimal setup.'));
