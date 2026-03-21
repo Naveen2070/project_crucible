@@ -28,6 +28,8 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     targets.push({ tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` });
     if (model.styleSystem === 'css') {
       targets.push({ tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` });
+    } else if (model.styleSystem === 'scss') {
+      targets.push({ tpl: `${model.name}.module.scss.hbs`, out: `${model.name}.module.scss` });
     }
     if (model.generateStories) {
       targets.push({ tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` });
@@ -38,6 +40,8 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     targets.push({ tpl: `${kebabName}.component.html.hbs`, out: `${kebabName}.component.html` });
     if (model.styleSystem === 'css') {
       targets.push({ tpl: `${kebabName}.component.css.hbs`, out: `${kebabName}.component.css` });
+    } else if (model.styleSystem === 'scss') {
+      targets.push({ tpl: `${kebabName}.component.scss.hbs`, out: `${kebabName}.component.scss` });
     }
     if (model.generateStories) {
       targets.push({ tpl: `${kebabName}.stories.ts.hbs`, out: `${kebabName}.stories.ts` });

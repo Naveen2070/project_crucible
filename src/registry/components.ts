@@ -4,13 +4,14 @@ export interface ComponentDef {
   files: {
     css: string[];
     tailwind: string[];
+    scss: string[];
   };
 }
 
 export const registry: Record<string, ComponentDef> = {
   Button: {
     frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind'],
+    styleSystems: ['css', 'tailwind', 'scss'],
     files: {
       css: [
         'Button/Button.tsx',
@@ -32,11 +33,22 @@ export const registry: Record<string, ComponentDef> = {
         'Button/Button.vue',
         'Button/Button.stories.ts',
       ],
+      scss: [
+        'Button/Button.tsx',
+        'Button/Button.module.scss',
+        'Button/Button.stories.tsx',
+        'Button/button.component.ts',
+        'Button/button.component.html',
+        'Button/button.component.scss',
+        'Button/button.stories.ts',
+        'Button/Button.vue',
+        'Button/Button.stories.ts',
+      ],
     },
   },
   Input: {
     frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind'],
+    styleSystems: ['css', 'tailwind', 'scss'],
     files: {
       css: [
         'Input/Input.tsx',
@@ -58,11 +70,22 @@ export const registry: Record<string, ComponentDef> = {
         'Input/Input.vue',
         'Input/Input.stories.ts',
       ],
+      scss: [
+        'Input/Input.tsx',
+        'Input/Input.module.scss',
+        'Input/Input.stories.tsx',
+        'Input/input.component.ts',
+        'Input/input.component.html',
+        'Input/input.component.scss',
+        'Input/input.stories.ts',
+        'Input/Input.vue',
+        'Input/Input.stories.ts',
+      ],
     },
   },
   Card: {
     frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind'],
+    styleSystems: ['css', 'tailwind', 'scss'],
     files: {
       css: [
         'Card/Card.tsx',
@@ -84,11 +107,22 @@ export const registry: Record<string, ComponentDef> = {
         'Card/Card.vue',
         'Card/Card.stories.ts',
       ],
+      scss: [
+        'Card/Card.tsx',
+        'Card/Card.module.scss',
+        'Card/Card.stories.tsx',
+        'Card/card.component.ts',
+        'Card/card.component.html',
+        'Card/card.component.scss',
+        'Card/card.stories.ts',
+        'Card/Card.vue',
+        'Card/Card.stories.ts',
+      ],
     },
   },
   Modal: {
     frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind'],
+    styleSystems: ['css', 'tailwind', 'scss'],
     files: {
       css: [
         'Modal/Modal.tsx',
@@ -110,11 +144,22 @@ export const registry: Record<string, ComponentDef> = {
         'Modal/Modal.vue',
         'Modal/Modal.stories.ts',
       ],
+      scss: [
+        'Modal/Modal.tsx',
+        'Modal/Modal.module.scss',
+        'Modal/Modal.stories.tsx',
+        'Modal/modal.component.ts',
+        'Modal/modal.component.html',
+        'Modal/modal.component.scss',
+        'Modal/modal.stories.ts',
+        'Modal/Modal.vue',
+        'Modal/Modal.stories.ts',
+      ],
     },
   },
   Select: {
     frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind'],
+    styleSystems: ['css', 'tailwind', 'scss'],
     files: {
       css: [
         'Select/Select.tsx',
@@ -132,6 +177,17 @@ export const registry: Record<string, ComponentDef> = {
         'Select/Select.stories.tsx',
         'Select/select.component.ts',
         'Select/select.component.html',
+        'Select/select.stories.ts',
+        'Select/Select.vue',
+        'Select/Select.stories.ts',
+      ],
+      scss: [
+        'Select/Select.tsx',
+        'Select/Select.module.scss',
+        'Select/Select.stories.tsx',
+        'Select/select.component.ts',
+        'Select/select.component.html',
+        'Select/select.component.scss',
         'Select/select.stories.ts',
         'Select/Select.vue',
         'Select/Select.stories.ts',

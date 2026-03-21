@@ -11,7 +11,7 @@ export interface CrucibleConfig {
   version: string;
   framework: 'react' | 'angular' | 'vue';
   theme: string;
-  styleSystem: 'css' | 'tailwind';
+  styleSystem: 'css' | 'tailwind' | 'scss';
   tokens?: {
     color?: Record<string, string>;
     radius?: Record<string, string>;

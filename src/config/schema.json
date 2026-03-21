@@ -5,7 +5,7 @@
     "version": { "type": "string" },
     "framework": { "type": "string", "enum": ["react", "angular", "vue"] },
     "theme": { "type": "string", "enum": ["minimal", "soft", "custom"] },
-    "styleSystem": { "type": "string", "enum": ["css", "tailwind"] },
+    "styleSystem": { "type": "string", "enum": ["css", "tailwind", "scss"] },
     "darkMode": {
       "oneOf": [
         { "type": "boolean" },
