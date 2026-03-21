@@ -12,6 +12,8 @@ Handlebars.registerHelper('kebab', (str: string) =>
   str.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`).toLowerCase().replace(/^-/, ''),
 );
 
+const templateCache = new Map<string, HandlebarsTemplateDelegate>();
+
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
   // engine.js will be in dist/templates/, so root is ../../
   const tplDir = path.join(
@@ -74,8 +76,14 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     }
 
     if (!(await fs.pathExists(tplPath))) continue;
-    const source = await fs.readFile(tplPath, 'utf-8');
-    const compiled = Handlebars.compile(source);
+
+    let compiled = templateCache.get(tplPath);
+    if (!compiled) {
+      const source = await fs.readFile(tplPath, 'utf-8');
+      compiled = Handlebars.compile(source);
+      templateCache.set(tplPath, compiled);
+    }
+
     result[out] = compiled(model);
   }
 

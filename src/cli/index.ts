@@ -7,7 +7,7 @@ import { readConfig } from '../config/reader';
 import { resolveTokens } from '../tokens/resolver';
 import { buildComponentModel } from '../components/model';
 import { renderComponent } from '../templates/engine';
-import { writeFiles } from '../scaffold/writer';
+import { writeFiles, loadHashes, saveHashes } from '../scaffold/writer';
 import { registry } from '../registry/components';
 import { runInit } from './init';
 import { checkAndSetupTailwind } from './tailwind';
@@ -192,11 +192,11 @@ program
       const generateStories =
         opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
 
-      for (const comp of Array.from(resolvedComponents)) {
-        if (opts.verbose) console.log(chalk.blue(`Building model for ${comp}...`));
-        const model = buildComponentModel(comp, tokens, config, generateStories);
+      const hashes = await loadHashes(path.join(cwd, '.crucible-hashes.json'));
 
-        if (opts.verbose) console.log(chalk.blue(`Rendering templates for ${comp}...`));
+      await Promise.all(Array.from(resolvedComponents).map(async (comp) => {
+        if (opts.verbose) console.log(chalk.blue(`Generating ${comp}...`));
+        const model = buildComponentModel(comp, tokens, config, generateStories);
         const files = await renderComponent(model);
 
         await writeFiles(files, outDir, comp, {
@@ -204,7 +204,9 @@ program
           dryRun: opts.dryRun,
           quiet: opts.quiet,
           cwd,
+          hashes,
         });
+
         const storiesNote = generateStories ? ' + story' : '';
         const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
 
@@ -215,6 +217,10 @@ program
             ) + dryRunNote,
           );
         }
+      }));
+
+      if (!opts.dryRun) {
+        await saveHashes(hashes, path.join(cwd, '.crucible-hashes.json'));
       }
     } catch (err: any) {
       console.error(chalk.red(`✗ Error: ${err.message}`));
