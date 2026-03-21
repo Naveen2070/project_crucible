@@ -1,4 +1,4 @@
-import React, { useEffect, useId } from 'react';
+import React, { useEffect, useId, createContext, useContext } from 'react';
 import FocusTrap from 'focus-trap-react';
 import styles from './Modal.module.css';
 
@@ -8,13 +8,156 @@ export type ModalSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unles
 export interface ModalProps {
   isOpen:    boolean;
   onClose:   () => void;
-  title:     string;
+  title?:    string;
   children:  React.ReactNode;
   variant?:  ModalVariant;
   size?:     ModalSize;
   footer?:   React.ReactNode;
 }
 
+{{#if features.compoundComponents}}
+interface ModalContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  size: ModalSize;
+  titleId: string;
+}
+
+const ModalContext = createContext<ModalContextValue | undefined>(undefined);
+
+const useModalContext = () => {
+  const context = useContext(ModalContext);
+  if (!context) throw new Error('Modal sub-components must be used within Modal');
+  return context;
+};
+
+export const ModalRoot = ({
+  isOpen,
+  onClose,
+  children,
+  size = 'md',
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  size?: ModalSize;
+}) => {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <ModalContext.Provider value=\{{ isOpen, onClose, size, titleId }}>
+      <FocusTrap>
+        {children as React.ReactElement}
+      </FocusTrap>
+    </ModalContext.Provider>
+  );
+};
+
+export const ModalOverlay = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { onClose } = useModalContext();
+  return (
+    <div className={[styles.overlay, className].filter(Boolean).join(' ')} onClick={onClose}>
+      {children}
+    </div>
+  );
+};
+
+export const ModalContent = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { size, titleId } = useModalContext();
+  return (
+    <div
+      className={[styles.modal, styles[`modal--${size}`], className].filter(Boolean).join(' ')}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const ModalHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <header className={[styles.header, className].filter(Boolean).join(' ')}>
+    {children}
+  </header>
+);
+
+export const ModalTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { titleId } = useModalContext();
+  return <h2 id={titleId} className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h2>;
+};
+
+export const ModalClose = ({ className }: { className?: string }) => {
+  const { onClose } = useModalContext();
+  return (
+    <button
+      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      onClick={onClose}
+      aria-label="Close modal"
+    >
+      &times;
+    </button>
+  );
+};
+
+export const ModalBody = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.body, className].filter(Boolean).join(' ')}>
+    {children}
+  </div>
+);
+
+export const ModalFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <footer className={[styles.footer, className].filter(Boolean).join(' ')}>
+    {children}
+  </footer>
+);
+
+export const Modal = Object.assign(ModalRoot, {
+  Overlay: ModalOverlay,
+  Content: ModalContent,
+  Header: ModalHeader,
+  Title: ModalTitle,
+  Close: ModalClose,
+  Body: ModalBody,
+  Footer: ModalFooter,
+});
+
+Modal.displayName = 'Modal';
+ModalRoot.displayName = 'Modal.Root';
+ModalOverlay.displayName = 'Modal.Overlay';
+ModalContent.displayName = 'Modal.Content';
+ModalHeader.displayName = 'Modal.Header';
+ModalTitle.displayName = 'Modal.Title';
+ModalClose.displayName = 'Modal.Close';
+ModalBody.displayName = 'Modal.Body';
+ModalFooter.displayName = 'Modal.Footer';
+{{else}}
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -86,3 +229,4 @@ export const Modal: React.FC<ModalProps> = ({
 };
 
 Modal.displayName = 'Modal';
+{{/if}}

@@ -11,6 +11,57 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   children:  React.ReactNode;
 }
 
+{{#if features.compoundComponents}}
+export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+    const cls = [
+      styles.btn,
+      styles[`btn--${variant}`],
+      styles[`btn--${size}`],
+      loading  && styles['btn--loading'],
+      disabled && styles['btn--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <button
+        ref={ref}
+        className={cls}
+        disabled={disabled || loading}
+        aria-disabled={disabled || loading}
+        aria-busy={loading}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+export const ButtonLabel = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={className} {...props}>{children}</span>
+);
+
+export const ButtonSpinner = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={[styles.spinner, className].filter(Boolean).join(' ')} aria-hidden="true" {...props} />
+);
+
+export const ButtonIcon = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={className} aria-hidden="true" {...props}>{children}</span>
+);
+
+export const Button = Object.assign(ButtonRoot, {
+  Label: ButtonLabel,
+  Spinner: ButtonSpinner,
+  Icon: ButtonIcon,
+});
+
+Button.displayName = 'Button';
+ButtonRoot.displayName = 'Button.Root';
+ButtonLabel.displayName = 'Button.Label';
+ButtonSpinner.displayName = 'Button.Spinner';
+ButtonIcon.displayName = 'Button.Icon';
+{{else}}
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
     const cls = [
@@ -39,3 +90,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+{{/if}}

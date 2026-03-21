@@ -23,6 +23,7 @@ export interface CrucibleConfig {
     hover: boolean;
     focusRing: boolean;
     motionSafe: boolean;
+    compoundComponents?: boolean;
   };
   a11y: {
     focusRingStyle: string;

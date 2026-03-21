@@ -14,6 +14,73 @@ export interface CardProps {
   href?:      string;
 }
 
+{{#if features.compoundComponents}}
+export const CardRoot = ({
+  variant = 'default',
+  size = 'md',
+  children,
+  onClick,
+  className,
+  href,
+}: CardProps) => {
+  const isClickable = variant === 'clickable' || !!onClick || !!href;
+  
+  const cls = [
+    styles.card,
+    styles[`card--${variant}`],
+    styles[`card--${size}`],
+    isClickable && styles['card--clickable'],
+    className,
+  ].filter(Boolean).join(' ');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick?.();
+      if (href) window.location.href = href;
+    }
+  };
+
+  const Component = href ? 'a' : isClickable ? 'button' : 'article';
+
+  return (
+    <Component
+      className={cls}
+      onClick={onClick}
+      href={href}
+      role={href ? undefined : isClickable ? 'button' : 'article'}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? handleKeyDown : undefined}
+    >
+      {children}
+    </Component>
+  );
+};
+
+export const CardHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.header, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.content, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.footer, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const Card = Object.assign(CardRoot, {
+  Header: CardHeader,
+  Content: CardContent,
+  Footer: CardFooter,
+});
+
+Card.displayName = 'Card';
+CardRoot.displayName = 'Card.Root';
+CardHeader.displayName = 'Card.Header';
+CardContent.displayName = 'Card.Content';
+CardFooter.displayName = 'Card.Footer';
+{{else}}
 export const Card: React.FC<CardProps> = ({
   variant = 'default',
   size = 'md',
@@ -59,3 +126,4 @@ export const Card: React.FC<CardProps> = ({
 };
 
 Card.displayName = 'Card';
+{{/if}}

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {
@@ -15,6 +16,56 @@ const meta: Meta<typeof Input> = {
 export default meta;
 type Story = StoryObj<typeof Input>;
 
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Username</Input.Label>
+      <Input.Field placeholder="Enter your username" />
+    </Input>
+  ),
+};
+
+export const Error: Story = {
+  args: { error: 'Invalid email address' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Email</Input.Label>
+      <Input.Field defaultValue="invalid-email" />
+      <Input.Error>{args.error}</Input.Error>
+    </Input>
+  ),
+};
+
+export const Password: Story = {
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Password</Input.Label>
+      <Input.Field type="password" placeholder="Enter password" />
+    </Input>
+  ),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Account ID</Input.Label>
+      <Input.Field value="ACC-12345" readOnly />
+    </Input>
+  ),
+};
+
+export const Required: Story = {
+  args: { required: true },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Full Name</Input.Label>
+      <Input.Field placeholder="Jane Doe" />
+    </Input>
+  ),
+};
+{{else}}
 export const Default: Story = {
   args: { label: 'Username', placeholder: 'Enter your username' },
 };
@@ -34,3 +85,4 @@ export const Disabled: Story = {
 export const Required: Story = {
   args: { label: 'Full Name', required: true, placeholder: 'Jane Doe' },
 };
+{{/if}}

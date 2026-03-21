@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
 import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {
@@ -7,60 +7,65 @@ const meta: Meta<typeof Select> = {
   component: Select,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    disabled: { control: 'boolean' },
   },
 };
 export default meta;
 type Story = StoryObj<typeof Select>;
 
-const options = [
-  { value: 'apple',  label: 'Apple'  },
-  { value: 'banana', label: 'Banana' },
-  { value: 'cherry', label: 'Cherry' },
-  { value: 'date',   label: 'Date'   },
-];
-
+{{#if features.compoundComponents}}
 export const Default: Story = {
   render: (args) => {
     const [value, setValue] = useState('');
     return (
-      <div style=\{{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
+      <Select {...args} value={value} onChange={setValue}>
+        <Select.Label>Country</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder="Choose a country..." />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="us" label="United States" />
+          <Select.Item value="ca" label="Canada" />
+          <Select.Item value="uk" label="United Kingdom" />
+          <Select.Item value="au" label="Australia" />
+        </Select.Content>
+      </Select>
     );
   },
-  args: {
-    label: 'Favorite Fruit',
-  },
 };
+{{else}}
+const options = [
+  { value: 'us', label: 'United States' },
+  { value: 'ca', label: 'Canada' },
+  { value: 'uk', label: 'United Kingdom' },
+  { value: 'au', label: 'Australia' },
+];
 
-export const PreSelected: Story = {
-  ...Default,
-  render: (args) => {
-    const [value, setValue] = useState('banana');
-    return (
-      <div style=\{{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
-    );
-  },
+export const Default: Story = {
   args: {
-    ...Default.args,
-  },
-};
-
-export const Error: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    error: 'This field is required',
+    label: 'Country',
+    options,
+    placeholder: 'Choose a country...',
   },
 };
 
 export const Disabled: Story = {
-  ...Default,
   args: {
-    ...Default.args,
+    label: 'Country',
+    options,
     disabled: true,
+    value: 'us',
   },
 };
+
+export const Error: Story = {
+  args: {
+    label: 'Country',
+    options,
+    error: 'Please select a valid country',
+  },
+};
+{{/if}}

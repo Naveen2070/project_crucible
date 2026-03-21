@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Card } from './Card';
 
 const meta: Meta<typeof Card> = {
@@ -13,6 +14,68 @@ const meta: Meta<typeof Card> = {
 export default meta;
 type Story = StoryObj<typeof Card>;
 
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style=\{{ margin: 0 }}>Card Title</h3>
+      </Card.Header>
+      <Card.Content>
+        This is a default card with some content inside it.
+      </Card.Content>
+    </Card>
+  ),
+};
+
+export const Hoverable: Story = {
+  args: { variant: 'hoverable' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style=\{{ margin: 0 }}>Hoverable Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card changes its border color and shadow on hover.
+      </Card.Content>
+    </Card>
+  ),
+};
+
+export const Clickable: Story = {
+  args: { 
+    variant: 'clickable',
+    onClick: () => alert('Card clicked!'),
+  },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style=\{{ margin: 0 }}>Clickable Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card acts like a button and has an active state.
+      </Card.Content>
+    </Card>
+  ),
+};
+
+export const Link: Story = {
+  args: { 
+    variant: 'clickable',
+    href: 'https://example.com',
+  },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style=\{{ margin: 0 }}>Link Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card acts like an anchor tag.
+      </Card.Content>
+    </Card>
+  ),
+};
+{{else}}
 export const Default: Story = {
   args: {
     title:    'Card Title',
@@ -45,3 +108,4 @@ export const Link: Story = {
     href:     'https://example.com',
   },
 };
+{{/if}}

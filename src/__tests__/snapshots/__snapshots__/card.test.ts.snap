@@ -17,15 +17,14 @@ export interface CardProps {
   href?:      string;
 }
 
-export const Card: React.FC<CardProps> = ({
+export const CardRoot = ({
   variant = 'default',
   size = 'md',
-  title,
   children,
   onClick,
   className,
   href,
-}) => {
+}: CardProps) => {
   const isClickable = variant === 'clickable' || !!onClick || !!href;
   
   const cls = [
@@ -55,13 +54,34 @@ export const Card: React.FC<CardProps> = ({
       tabIndex={isClickable ? 0 : undefined}
       onKeyDown={isClickable ? handleKeyDown : undefined}
     >
-      {title && <h3 className={styles.title}>{title}</h3>}
-      <div className={styles.content}>{children}</div>
+      {children}
     </Component>
   );
 };
 
+export const CardHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.header, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.content, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.footer, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const Card = Object.assign(CardRoot, {
+  Header: CardHeader,
+  Content: CardContent,
+  Footer: CardFooter,
+});
+
 Card.displayName = 'Card';
+CardRoot.displayName = 'Card.Root';
+CardHeader.displayName = 'Card.Header';
+CardContent.displayName = 'Card.Content';
+CardFooter.displayName = 'Card.Footer';
 "
 `;
 
@@ -150,6 +170,7 @@ exports[`Card snapshots > css mode snapshot 2`] = `
 
 exports[`Card snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Card } from './Card';
 
 const meta: Meta<typeof Card> = {
@@ -165,36 +186,64 @@ export default meta;
 type Story = StoryObj<typeof Card>;
 
 export const Default: Story = {
-  args: {
-    title:    'Card Title',
-    children: 'This is a default card with some content inside it.',
-  },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Card Title</h3>
+      </Card.Header>
+      <Card.Content>
+        This is a default card with some content inside it.
+      </Card.Content>
+    </Card>
+  ),
 };
 
 export const Hoverable: Story = {
-  args: {
-    variant:  'hoverable',
-    title:    'Hoverable Card',
-    children: 'This card changes its border color and shadow on hover.',
-  },
+  args: { variant: 'hoverable' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Hoverable Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card changes its border color and shadow on hover.
+      </Card.Content>
+    </Card>
+  ),
 };
 
 export const Clickable: Story = {
-  args: {
-    variant:  'clickable',
-    title:    'Clickable Card',
-    children: 'This card acts like a button and has an active state.',
-    onClick:  () => alert('Card clicked!'),
+  args: { 
+    variant: 'clickable',
+    onClick: () => alert('Card clicked!'),
   },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Clickable Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card acts like a button and has an active state.
+      </Card.Content>
+    </Card>
+  ),
 };
 
 export const Link: Story = {
-  args: {
-    variant:  'clickable',
-    title:    'Link Card',
-    children: 'This card acts like an anchor tag.',
-    href:     'https://example.com',
+  args: { 
+    variant: 'clickable',
+    href: 'https://example.com',
   },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Link Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card acts like an anchor tag.
+      </Card.Content>
+    </Card>
+  ),
 };
 "
 `;
@@ -227,15 +276,14 @@ export interface CardProps {
   href?:      string;
 }
 
-export const Card: React.FC<CardProps> = ({
+export const CardRoot = ({
   variant = 'default',
   size = 'md',
-  title,
   children,
   onClick,
   className,
   href,
-}) => {
+}: CardProps) => {
   const isClickable = variant === 'clickable' || !!onClick || !!href;
   
   const cls = [
@@ -265,18 +313,40 @@ export const Card: React.FC<CardProps> = ({
       tabIndex={isClickable ? 0 : undefined}
       onKeyDown={isClickable ? handleKeyDown : undefined}
     >
-      {title && <h3 className="font-bold text-lg mb-2 text-[var(--color-text)]">{title}</h3>}
-      <div className="text-[var(--color-text-muted)]">{children}</div>
+      {children}
     </Component>
   );
 };
 
+export const CardHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={['mb-4', className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={['text-[var(--color-text-muted)]', className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={['mt-4 flex items-center', className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const Card = Object.assign(CardRoot, {
+  Header: CardHeader,
+  Content: CardContent,
+  Footer: CardFooter,
+});
+
 Card.displayName = 'Card';
+CardRoot.displayName = 'Card.Root';
+CardHeader.displayName = 'Card.Header';
+CardContent.displayName = 'Card.Content';
+CardFooter.displayName = 'Card.Footer';
 "
 `;
 
 exports[`Card snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Card } from './Card';
 
 const meta: Meta<typeof Card> = {
@@ -292,36 +362,64 @@ export default meta;
 type Story = StoryObj<typeof Card>;
 
 export const Default: Story = {
-  args: {
-    title:    'Card Title',
-    children: 'This is a default card with some content inside it.',
-  },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 className="font-bold text-lg text-[var(--color-text)]">Card Title</h3>
+      </Card.Header>
+      <Card.Content>
+        This is a default card with some content inside it.
+      </Card.Content>
+    </Card>
+  ),
 };
 
 export const Hoverable: Story = {
-  args: {
-    variant:  'hoverable',
-    title:    'Hoverable Card',
-    children: 'This card changes its border color and shadow on hover.',
-  },
+  args: { variant: 'hoverable' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 className="font-bold text-lg text-[var(--color-text)]">Hoverable Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card changes its border color and shadow on hover.
+      </Card.Content>
+    </Card>
+  ),
 };
 
 export const Clickable: Story = {
-  args: {
-    variant:  'clickable',
-    title:    'Clickable Card',
-    children: 'This card acts like a button and has an active state.',
-    onClick:  () => alert('Card clicked!'),
+  args: { 
+    variant: 'clickable',
+    onClick: () => alert('Card clicked!'),
   },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 className="font-bold text-lg text-[var(--color-text)]">Clickable Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card acts like a button and has an active state.
+      </Card.Content>
+    </Card>
+  ),
 };
 
 export const Link: Story = {
-  args: {
-    variant:  'clickable',
-    title:    'Link Card',
-    children: 'This card acts like an anchor tag.',
-    href:     'https://example.com',
+  args: { 
+    variant: 'clickable',
+    href: 'https://example.com',
   },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 className="font-bold text-lg text-[var(--color-text)]">Link Card</h3>
+      </Card.Header>
+      <Card.Content>
+        This card acts like an anchor tag.
+      </Card.Content>
+    </Card>
+  ),
 };
 "
 `;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useId } from 'react';
+import React, { useState, useRef, useEffect, useId, createContext, useContext } from 'react';
 import styles from './Select.module.css';
 
 export interface SelectOption {
@@ -10,19 +10,200 @@ export type SelectVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/u
 export type SelectSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 
 export interface SelectProps {
-  options:   SelectOption[];
+  options?:  SelectOption[];
   value?:    string;
   onChange?: (value: string) => void;
-  label:     string;
+  label?:    string;
   placeholder?: string;
   variant?:  SelectVariant;
   size?:     SelectSize;
   error?:    string;
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
+{{#if features.compoundComponents}}
+interface SelectContextValue {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  value?: string;
+  onChange?: (value: string) => void;
+  activeIndex: number;
+  setActiveIndex: (index: number | ((prev: number) => number)) => void;
+  id: string;
+  labelId: string;
+  listboxId: string;
+  size: SelectSize;
+  disabled?: boolean;
+  options: SelectOption[];
+  setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
+}
+
+const SelectContext = createContext<SelectContextValue | undefined>(undefined);
+
+const useSelectContext = () => {
+  const context = useContext(SelectContext);
+  if (!context) throw new Error('Select sub-components must be used within Select');
+  return context;
+};
+
+export const SelectRoot = ({
+  children,
+  value,
+  onChange,
+  size = 'md',
+  disabled,
+}: SelectProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [options, setOptions] = useState<SelectOption[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const labelId = `${id}-label`;
+  const listboxId = `${id}-listbox`;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <SelectContext.Provider value=\{{
+      isOpen, setIsOpen, value, onChange, activeIndex, setActiveIndex,
+      id, labelId, listboxId, size, disabled, options, setOptions
+    }}>
+      <div className={styles.container} ref={containerRef}>
+        {children}
+      </div>
+    </SelectContext.Provider>
+  );
+};
+
+export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { isOpen, setIsOpen, labelId, listboxId, size, disabled, activeIndex, id } = useSelectContext();
+  
+  return (
+    <div
+      className={[
+        styles.combobox,
+        styles[`combobox--${size}`],
+        disabled && styles['combobox--disabled'],
+        isOpen && styles['combobox--open'],
+        className,
+      ].join(' ')}
+      role="combobox"
+      aria-expanded={isOpen}
+      aria-haspopup="listbox"
+      aria-labelledby={labelId}
+      aria-controls={listboxId}
+      tabIndex={disabled ? -1 : 0}
+      onClick={() => !disabled && setIsOpen(!isOpen)}
+      aria-activedescendant={activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const SelectValue = ({ placeholder }: { placeholder?: string }) => {
+  const { value, options } = useSelectContext();
+  const selectedOption = options.find(opt => opt.value === value);
+  return (
+    <span className={styles.value}>
+      {selectedOption ? selectedOption.label : placeholder}
+    </span>
+  );
+};
+
+export const SelectIcon = () => (
+  <span className={styles.arrow} aria-hidden="true">▼</span>
+);
+
+export const SelectContent = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { isOpen, listboxId, labelId } = useSelectContext();
+  if (!isOpen) return null;
+  return (
+    <ul
+      id={listboxId}
+      className={[styles.listbox, className].join(' ')}
+      role="listbox"
+      aria-labelledby={labelId}
+    >
+      {children}
+    </ul>
+  );
+};
+
+export const SelectItem = ({ value: itemValue, label, children }: { value: string; label: string; children?: React.ReactNode }) => {
+  const { value, onChange, setIsOpen, options, setOptions, activeIndex, setActiveIndex, id } = useSelectContext();
+  
+  const index = options.findIndex(opt => opt.value === itemValue);
+  
+  useEffect(() => {
+    setOptions(prev => {
+      if (prev.find(opt => opt.value === itemValue)) return prev;
+      return [...prev, { value: itemValue, label }];
+    });
+  }, [itemValue, label, setOptions]);
+
+  return (
+    <li
+      id={`${id}-option-${index}`}
+      role="option"
+      aria-selected={value === itemValue}
+      className={[
+        styles.option,
+        value === itemValue && styles['option--selected'],
+        activeIndex === index && styles['option--active'],
+      ].join(' ')}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange?.(itemValue);
+        setIsOpen(false);
+      }}
+      onMouseEnter={() => setActiveIndex(index)}
+    >
+      {children || label}
+    </li>
+  );
+};
+
+export const SelectItemText = ({ children }: { children: React.ReactNode }) => (
+  <>{children}</>
+);
+
+export const SelectLabel = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { labelId } = useSelectContext();
+  return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
+};
+
+export const Select = Object.assign(SelectRoot, {
+  Trigger: SelectTrigger,
+  Value: SelectValue,
+  Icon: SelectIcon,
+  Content: SelectContent,
+  Item: SelectItem,
+  ItemText: SelectItemText,
+  Label: SelectLabel,
+});
+
+Select.displayName = 'Select';
+SelectRoot.displayName = 'Select.Root';
+SelectTrigger.displayName = 'Select.Trigger';
+SelectValue.displayName = 'Select.Value';
+SelectIcon.displayName = 'Select.Icon';
+SelectContent.displayName = 'Select.Content';
+SelectItem.displayName = 'Select.Item';
+SelectItemText.displayName = 'Select.ItemText';
+SelectLabel.displayName = 'Select.Label';
+{{else}}
 export const Select: React.FC<SelectProps> = ({
-  options,
+  options = [],
   value,
   onChange,
   label,
@@ -73,7 +254,6 @@ export const Select: React.FC<SelectProps> = ({
         if (!isOpen) {
           onChange?.(options[matchIndex].value);
         }
-        // Scroll into view if open
         if (isOpen && listboxRef.current) {
           const optionEl = listboxRef.current.children[matchIndex] as HTMLElement;
           if (optionEl) {
@@ -203,3 +383,4 @@ export const Select: React.FC<SelectProps> = ({
 };
 
 Select.displayName = 'Select';
+{{/if}}

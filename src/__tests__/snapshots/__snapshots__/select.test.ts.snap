@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Select snapshots > css mode snapshot 1`] = `
-"import React, { useState, useRef, useEffect, useId } from 'react';
+"import React, { useState, useRef, useEffect, useId, createContext, useContext } from 'react';
 import styles from './Select.module.css';
 
 export interface SelectOption {
@@ -13,39 +13,56 @@ export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
 
 export interface SelectProps {
-  options:   SelectOption[];
+  options?:  SelectOption[];
   value?:    string;
   onChange?: (value: string) => void;
-  label:     string;
+  label?:    string;
   placeholder?: string;
   variant?:  SelectVariant;
   size?:     SelectSize;
   error?:    string;
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
-export const Select: React.FC<SelectProps> = ({
-  options,
+interface SelectContextValue {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  value?: string;
+  onChange?: (value: string) => void;
+  activeIndex: number;
+  setActiveIndex: (index: number | ((prev: number) => number)) => void;
+  id: string;
+  labelId: string;
+  listboxId: string;
+  size: SelectSize;
+  disabled?: boolean;
+  options: SelectOption[];
+  setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
+}
+
+const SelectContext = createContext<SelectContextValue | undefined>(undefined);
+
+const useSelectContext = () => {
+  const context = useContext(SelectContext);
+  if (!context) throw new Error('Select sub-components must be used within Select');
+  return context;
+};
+
+export const SelectRoot = ({
+  children,
   value,
   onChange,
-  label,
-  placeholder = 'Select an option',
-  variant = 'default',
   size = 'md',
-  error,
   disabled,
-}) => {
+}: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [options, setOptions] = useState<SelectOption[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const listboxRef = useRef<HTMLUListElement>(null);
-  const searchString = useRef('');
-  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const id = useId();
   const labelId = \`\${id}-label\`;
   const listboxId = \`\${id}-listbox\`;
-
-  const selectedOption = options.find((opt) => opt.value === value);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -57,155 +74,135 @@ export const Select: React.FC<SelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (disabled) return;
-
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      searchString.current += e.key.toLowerCase();
-      if (searchTimeout.current) clearTimeout(searchTimeout.current);
-      searchTimeout.current = setTimeout(() => {
-        searchString.current = '';
-      }, 500);
-
-      const matchIndex = options.findIndex((opt) =>
-        opt.label.toLowerCase().startsWith(searchString.current)
-      );
-
-      if (matchIndex >= 0) {
-        setActiveIndex(matchIndex);
-        if (!isOpen) {
-          onChange?.(options[matchIndex].value);
-        }
-        // Scroll into view if open
-        if (isOpen && listboxRef.current) {
-          const optionEl = listboxRef.current.children[matchIndex] as HTMLElement;
-          if (optionEl) {
-            optionEl.scrollIntoView({ block: 'nearest' });
-          }
-        }
-      }
-      return;
-    }
-
-    if (!isOpen) {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        setIsOpen(true);
-        setActiveIndex(selectedOption ? options.findIndex(o => o.value === value) : 0);
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setActiveIndex((prev) => {
-          const next = prev < options.length - 1 ? prev + 1 : prev;
-          if (listboxRef.current) {
-             const optionEl = listboxRef.current.children[next] as HTMLElement;
-             if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
-          }
-          return next;
-        });
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setActiveIndex((prev) => {
-          const next = prev > 0 ? prev - 1 : prev;
-          if (listboxRef.current) {
-             const optionEl = listboxRef.current.children[next] as HTMLElement;
-             if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
-          }
-          return next;
-        });
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (activeIndex >= 0) {
-          onChange?.(options[activeIndex].value);
-          setIsOpen(false);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setIsOpen(false);
-        break;
-      case 'Home':
-        e.preventDefault();
-        setActiveIndex(0);
-        break;
-      case 'End':
-        e.preventDefault();
-        setActiveIndex(options.length - 1);
-        break;
-    }
-  };
-
   return (
-    <div className={styles.container} ref={containerRef}>
-      <label id={labelId} className={styles.label}>{label}</label>
-      <div
-        className={[
-          styles.combobox,
-          styles[\`combobox--\${size}\`],
-          error && styles['combobox--error'],
-          disabled && styles['combobox--disabled'],
-          isOpen && styles['combobox--open'],
-        ].join(' ')}
-        role="combobox"
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-        aria-labelledby={labelId}
-        aria-controls={listboxId}
-        tabIndex={disabled ? -1 : 0}
-        onKeyDown={handleKeyDown}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        aria-activedescendant={activeIndex >= 0 ? \`\${id}-option-\${activeIndex}\` : undefined}
-      >
-        <span className={styles.value}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <span className={styles.arrow} aria-hidden="true">▼</span>
+    <SelectContext.Provider value={{
+      isOpen, setIsOpen, value, onChange, activeIndex, setActiveIndex,
+      id, labelId, listboxId, size, disabled, options, setOptions
+    }}>
+      <div className={styles.container} ref={containerRef}>
+        {children}
       </div>
+    </SelectContext.Provider>
+  );
+};
 
-      {isOpen && (
-        <ul
-          id={listboxId}
-          className={styles.listbox}
-          role="listbox"
-          aria-labelledby={labelId}
-          ref={listboxRef}
-        >
-          {options.map((option, index) => (
-            <li
-              key={option.value}
-              id={\`\${id}-option-\${index}\`}
-              role="option"
-              aria-selected={option.value === value}
-              className={[
-                styles.option,
-                option.value === value && styles['option--selected'],
-                activeIndex === index && styles['option--active'],
-              ].join(' ')}
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange?.(option.value);
-                setIsOpen(false);
-              }}
-              onMouseEnter={() => setActiveIndex(index)}
-            >
-              {option.label}
-            </li>
-          ))}
-        </ul>
-      )}
-      {error && <span className={styles.error} role="alert">{error}</span>}
+export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { isOpen, setIsOpen, labelId, listboxId, size, disabled, activeIndex, id } = useSelectContext();
+  
+  return (
+    <div
+      className={[
+        styles.combobox,
+        styles[\`combobox--\${size}\`],
+        disabled && styles['combobox--disabled'],
+        isOpen && styles['combobox--open'],
+        className,
+      ].join(' ')}
+      role="combobox"
+      aria-expanded={isOpen}
+      aria-haspopup="listbox"
+      aria-labelledby={labelId}
+      aria-controls={listboxId}
+      tabIndex={disabled ? -1 : 0}
+      onClick={() => !disabled && setIsOpen(!isOpen)}
+      aria-activedescendant={activeIndex >= 0 ? \`\${id}-option-\${activeIndex}\` : undefined}
+    >
+      {children}
     </div>
   );
 };
 
+export const SelectValue = ({ placeholder }: { placeholder?: string }) => {
+  const { value, options } = useSelectContext();
+  const selectedOption = options.find(opt => opt.value === value);
+  return (
+    <span className={styles.value}>
+      {selectedOption ? selectedOption.label : placeholder}
+    </span>
+  );
+};
+
+export const SelectIcon = () => (
+  <span className={styles.arrow} aria-hidden="true">▼</span>
+);
+
+export const SelectContent = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { isOpen, listboxId, labelId } = useSelectContext();
+  if (!isOpen) return null;
+  return (
+    <ul
+      id={listboxId}
+      className={[styles.listbox, className].join(' ')}
+      role="listbox"
+      aria-labelledby={labelId}
+    >
+      {children}
+    </ul>
+  );
+};
+
+export const SelectItem = ({ value: itemValue, label, children }: { value: string; label: string; children?: React.ReactNode }) => {
+  const { value, onChange, setIsOpen, options, setOptions, activeIndex, setActiveIndex, id } = useSelectContext();
+  
+  const index = options.findIndex(opt => opt.value === itemValue);
+  
+  useEffect(() => {
+    setOptions(prev => {
+      if (prev.find(opt => opt.value === itemValue)) return prev;
+      return [...prev, { value: itemValue, label }];
+    });
+  }, [itemValue, label, setOptions]);
+
+  return (
+    <li
+      id={\`\${id}-option-\${index}\`}
+      role="option"
+      aria-selected={value === itemValue}
+      className={[
+        styles.option,
+        value === itemValue && styles['option--selected'],
+        activeIndex === index && styles['option--active'],
+      ].join(' ')}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange?.(itemValue);
+        setIsOpen(false);
+      }}
+      onMouseEnter={() => setActiveIndex(index)}
+    >
+      {children || label}
+    </li>
+  );
+};
+
+export const SelectItemText = ({ children }: { children: React.ReactNode }) => (
+  <>{children}</>
+);
+
+export const SelectLabel = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { labelId } = useSelectContext();
+  return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
+};
+
+export const Select = Object.assign(SelectRoot, {
+  Trigger: SelectTrigger,
+  Value: SelectValue,
+  Icon: SelectIcon,
+  Content: SelectContent,
+  Item: SelectItem,
+  ItemText: SelectItemText,
+  Label: SelectLabel,
+});
+
 Select.displayName = 'Select';
+SelectRoot.displayName = 'Select.Root';
+SelectTrigger.displayName = 'Select.Trigger';
+SelectValue.displayName = 'Select.Value';
+SelectIcon.displayName = 'Select.Icon';
+SelectContent.displayName = 'Select.Content';
+SelectItem.displayName = 'Select.Item';
+SelectItemText.displayName = 'Select.ItemText';
+SelectLabel.displayName = 'Select.Label';
 "
 `;
 
@@ -349,8 +346,8 @@ exports[`Select snapshots > css mode snapshot 2`] = `
 `;
 
 exports[`Select snapshots > css mode snapshot 3`] = `
-"import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
 import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {
@@ -358,68 +355,39 @@ const meta: Meta<typeof Select> = {
   component: Select,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:  { control: 'select', options: ['default', 'error'] },
+    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    disabled: { control: 'boolean' },
   },
 };
 export default meta;
 type Story = StoryObj<typeof Select>;
 
-const options = [
-  { value: 'apple',  label: 'Apple'  },
-  { value: 'banana', label: 'Banana' },
-  { value: 'cherry', label: 'Cherry' },
-  { value: 'date',   label: 'Date'   },
-];
-
 export const Default: Story = {
   render: (args) => {
     const [value, setValue] = useState('');
     return (
-      <div style={{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
+      <Select {...args} value={value} onChange={setValue}>
+        <Select.Label>Country</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder="Choose a country..." />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="us" label="United States" />
+          <Select.Item value="ca" label="Canada" />
+          <Select.Item value="uk" label="United Kingdom" />
+          <Select.Item value="au" label="Australia" />
+        </Select.Content>
+      </Select>
     );
-  },
-  args: {
-    label: 'Favorite Fruit',
-  },
-};
-
-export const PreSelected: Story = {
-  ...Default,
-  render: (args) => {
-    const [value, setValue] = useState('banana');
-    return (
-      <div style={{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
-    );
-  },
-  args: {
-    ...Default.args,
-  },
-};
-
-export const Error: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    error: 'This field is required',
-  },
-};
-
-export const Disabled: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    disabled: true,
   },
 };
 "
 `;
 
 exports[`Select snapshots > tailwind mode snapshot 1`] = `
-"import React, { useState, useRef, useEffect, useId } from 'react';
+"import React, { useState, useRef, useEffect, useId, createContext, useContext } from 'react';
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
@@ -440,40 +408,61 @@ export interface SelectOption {
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
 
+interface SelectContextValue {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  activeIndex: number;
+  setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
+  value?: string;
+  onChange?: (value: string) => void;
+  labelId: string;
+  listboxId: string;
+  id: string;
+  options: SelectOption[];
+  disabled?: boolean;
+  error?: string;
+  variant: SelectVariant;
+  size: SelectSize;
+  placeholder: string;
+}
+
+const SelectContext = createContext<SelectContextValue | undefined>(undefined);
+
+const useSelectContext = () => {
+  const context = useContext(SelectContext);
+  if (!context) throw new Error('Select components must be wrapped in <Select />');
+  return context;
+};
+
 export interface SelectProps {
   options:   SelectOption[];
   value?:    string;
   onChange?: (value: string) => void;
-  label:     string;
-  placeholder?: string;
   variant?:  SelectVariant;
   size?:     SelectSize;
-  error?:    string;
   disabled?: boolean;
+  error?:    string;
+  placeholder?: string;
+  children: React.ReactNode;
 }
 
-export const Select: React.FC<SelectProps> = ({
+const SelectRoot: React.FC<SelectProps> = ({
   options,
   value,
   onChange,
-  label,
-  placeholder = 'Select an option',
   variant = 'default',
   size = 'md',
-  error,
   disabled,
+  error,
+  placeholder = 'Select an option',
+  children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const listboxRef = useRef<HTMLUListElement>(null);
-  const searchString = useRef('');
-  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const id = useId();
   const labelId = \`\${id}-label\`;
   const listboxId = \`\${id}-listbox\`;
-
-  const selectedOption = options.find((opt) => opt.value === value);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -484,6 +473,34 @@ export const Select: React.FC<SelectProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  return (
+    <SelectContext.Provider value={{ 
+      isOpen, setIsOpen, activeIndex, setActiveIndex, value, onChange, 
+      labelId, listboxId, id, options, disabled, error, variant, size, placeholder 
+    }}>
+      <div className="flex flex-col gap-[var(--spacing-unit)] w-full relative" ref={containerRef}>
+        {children}
+      </div>
+    </SelectContext.Provider>
+  );
+};
+
+const SelectLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { labelId } = useSelectContext();
+  return <label id={labelId} className="font-medium text-[var(--color-text)] text-sm">{children}</label>;
+};
+
+const SelectTrigger: React.FC = () => {
+  const { 
+    isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
+    value, options, disabled, error, variant, size, placeholder, id, onChange 
+  } = useSelectContext();
+  const listboxRef = useRef<HTMLUListElement>(null);
+  const searchString = useRef('');
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const selectedOption = options.find((opt) => opt.value === value);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
@@ -504,13 +521,6 @@ export const Select: React.FC<SelectProps> = ({
         if (!isOpen) {
           onChange?.(options[matchIndex].value);
         }
-        // Scroll into view if open
-        if (isOpen && listboxRef.current) {
-          const optionEl = listboxRef.current.children[matchIndex] as HTMLElement;
-          if (optionEl) {
-            optionEl.scrollIntoView({ block: 'nearest' });
-          }
-        }
       }
       return;
     }
@@ -527,25 +537,11 @@ export const Select: React.FC<SelectProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setActiveIndex((prev) => {
-          const next = prev < options.length - 1 ? prev + 1 : prev;
-          if (listboxRef.current) {
-             const optionEl = listboxRef.current.children[next] as HTMLElement;
-             if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
-          }
-          return next;
-        });
+        setActiveIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setActiveIndex((prev) => {
-          const next = prev > 0 ? prev - 1 : prev;
-          if (listboxRef.current) {
-             const optionEl = listboxRef.current.children[next] as HTMLElement;
-             if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
-          }
-          return next;
-        });
+        setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
         break;
       case 'Enter':
       case ' ':
@@ -557,18 +553,11 @@ export const Select: React.FC<SelectProps> = ({
       case 'Escape':
         setIsOpen(false);
         break;
-      case 'Home':
-        setActiveIndex(0);
-        break;
-      case 'End':
-        setActiveIndex(options.length - 1);
-        break;
     }
   };
 
   return (
-    <div className="flex flex-col gap-[var(--spacing-unit)] w-full relative" ref={containerRef}>
-      <label id={labelId} className="font-medium text-[var(--color-text)] text-sm">{label}</label>
+    <>
       <div
         className={[
           'flex items-center justify-between bg-[var(--color-surface)] border-1.5 rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
@@ -594,113 +583,101 @@ export const Select: React.FC<SelectProps> = ({
         </span>
         <span className="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
       </div>
-
-      {isOpen && (
-        <ul
-          id={listboxId}
-          className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-height-[200px] overflow-y-auto m-0 p-0 list-none"
-          role="listbox"
-          aria-labelledby={labelId}
-          ref={listboxRef}
-        >
-          {options.map((option, index) => (
-            <li
-              key={option.value}
-              id={\`\${id}-option-\${index}\`}
-              role="option"
-              aria-selected={option.value === value}
-              className={[
-                'px-4 py-2 cursor-pointer transition-colors text-sm',
-                option.value === value && 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold',
-                activeIndex === index && 'bg-[var(--color-secondary)] text-[var(--color-primary)]',
-              ].join(' ')}
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange?.(option.value);
-                setIsOpen(false);
-              }}
-              onMouseEnter={() => setActiveIndex(index)}
-            >
-              {option.label}
-            </li>
-          ))}
-        </ul>
-      )}
+      {isOpen && <SelectContent />}
       {error && <span className="text-xs text-[var(--color-danger)] mt-1" role="alert">{error}</span>}
-    </div>
+    </>
   );
 };
+
+const SelectContent: React.FC = () => {
+  const { listboxId, labelId, options, value, activeIndex, setActiveIndex, onChange, setIsOpen } = useSelectContext();
+  const listboxRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (activeIndex >= 0 && listboxRef.current) {
+      const optionEl = listboxRef.current.children[activeIndex] as HTMLElement;
+      if (optionEl) optionEl.scrollIntoView({ block: 'nearest' });
+    }
+  }, [activeIndex]);
+
+  return (
+    <ul
+      id={listboxId}
+      className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-height-[200px] overflow-y-auto m-0 p-0 list-none"
+      role="listbox"
+      aria-labelledby={labelId}
+      ref={listboxRef}
+    >
+      {options.map((option, index) => (
+        <li
+          key={option.value}
+          id={\`\${id}-option-\${index}\`}
+          role="option"
+          aria-selected={option.value === value}
+          className={[
+            'px-4 py-2 cursor-pointer transition-colors text-sm',
+            option.value === value && 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold',
+            activeIndex === index && 'bg-[var(--color-secondary)] text-[var(--color-primary)]',
+          ].join(' ')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange?.(option.value);
+            setIsOpen(false);
+          }}
+          onMouseEnter={() => setActiveIndex(index)}
+        >
+          {option.label}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+export const Select = Object.assign(SelectRoot, {
+  Label: SelectLabel,
+  Trigger: SelectTrigger,
+});
+
 
 Select.displayName = 'Select';
 "
 `;
 
 exports[`Select snapshots > tailwind mode snapshot 2`] = `
-"import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+"import type { Meta, StoryObj } from '@storybook/react';
 import { Select } from './Select';
+import React, { useState } from 'react';
 
 const meta: Meta<typeof Select> = {
   title: 'Crucible/Select',
   component: Select,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:  { control: 'select', options: ['default', 'error'] },
+    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    disabled: { control: 'boolean' },
   },
 };
 export default meta;
 type Story = StoryObj<typeof Select>;
 
 const options = [
-  { value: 'apple',  label: 'Apple'  },
-  { value: 'banana', label: 'Banana' },
-  { value: 'cherry', label: 'Cherry' },
-  { value: 'date',   label: 'Date'   },
+  { value: 'react', label: 'React' },
+  { value: 'angular', label: 'Angular' },
+  { value: 'vue', label: 'Vue' },
+  { value: 'svelte', label: 'Svelte' },
 ];
 
 export const Default: Story = {
   render: (args) => {
     const [value, setValue] = useState('');
     return (
-      <div style={{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
+      <Select {...args} options={options} value={value} onChange={setValue}>
+        <Select.Label>Favorite Framework</Select.Label>
+        <Select.Trigger />
+      </Select>
     );
-  },
-  args: {
-    label: 'Favorite Fruit',
-  },
-};
-
-export const PreSelected: Story = {
-  ...Default,
-  render: (args) => {
-    const [value, setValue] = useState('banana');
-    return (
-      <div style={{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
-    );
-  },
-  args: {
-    ...Default.args,
-  },
-};
-
-export const Error: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    error: 'This field is required',
-  },
-};
-
-export const Disabled: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    disabled: true,
-  },
+  }
 };
 "
 `;

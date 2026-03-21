@@ -1,11 +1,11 @@
-import React, { useId, useState } from 'react';
+import React, { useId, useState, createContext, useContext } from 'react';
 import styles from './Input.module.css';
 
 export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
-  label:     string;
+  label?:    string;
   variant?:  InputVariant;
   size?:     InputSize;
   error?:    string;
@@ -13,6 +13,130 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   required?: boolean;
 }
 
+{{#if features.compoundComponents}}
+interface InputContextValue {
+  id: string;
+  variant: InputVariant;
+  size: InputSize;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
+const InputContext = createContext<InputContextValue | undefined>(undefined);
+
+const useInputContext = () => {
+  const context = useContext(InputContext);
+  if (!context) throw new Error('Input sub-components must be used within Input');
+  return context;
+};
+
+export const InputRoot = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  error,
+  required,
+  disabled,
+  id: providedId,
+  className,
+}: {
+  children: React.ReactNode;
+  variant?: InputVariant;
+  size?: InputSize;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  id?: string;
+  className?: string;
+}) => {
+  const generatedId = useId();
+  const id = providedId || generatedId;
+
+  return (
+    <InputContext.Provider value=\{{ id, variant, size, error, required, disabled }}>
+      <div className={[styles['input-container'], className].filter(Boolean).join(' ')}>
+        {children}
+      </div>
+    </InputContext.Provider>
+  );
+};
+
+export const InputLabel = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { id, required } = useInputContext();
+  return (
+    <label htmlFor={id} className={[styles.label, className].filter(Boolean).join(' ')}>
+      {children}
+      {required && <span className={styles.required} aria-hidden="true">*</span>}
+    </label>
+  );
+};
+
+export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>>(
+  ({ className, type = 'text', ...props }, ref) => {
+    const { id, variant, size, error, disabled, required } = useInputContext();
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = type === 'password';
+    const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
+
+    const cls = [
+      styles.input,
+      styles[`input--${variant}`],
+      styles[`input--${size}`],
+      error && styles['input--error'],
+      disabled && styles['input--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div className={styles['input-wrapper']}>
+        <input
+          ref={ref}
+          id={id}
+          type={inputType}
+          className={cls}
+          aria-invalid={!!error}
+          aria-required={required}
+          disabled={disabled}
+          {...props}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className={styles['password-toggle']}
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+
+export const InputError = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { id } = useInputContext();
+  return (
+    <span id={`${id}-error`} className={[styles.error, className].filter(Boolean).join(' ')} role="alert">
+      {children}
+    </span>
+  );
+};
+
+export const Input = Object.assign(InputRoot, {
+  Label: InputLabel,
+  Field: InputField,
+  Error: InputError,
+});
+
+Input.displayName = 'Input';
+InputRoot.displayName = 'Input.Root';
+InputLabel.displayName = 'Input.Label';
+InputField.displayName = 'Input.Field';
+InputError.displayName = 'Input.Error';
+{{else}}
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, type = 'text', ...props }, ref) => {
     const generatedId = useId();
@@ -83,3 +207,4 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = 'Input';
+{{/if}}

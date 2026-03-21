@@ -47,7 +47,8 @@
       "properties": {
         "hover": { "type": "boolean" },
         "focusRing": { "type": "boolean" },
-        "motionSafe": { "type": "boolean" }
+        "motionSafe": { "type": "boolean" },
+        "compoundComponents": { "type": "boolean" }
       }
     },
     "a11y": {

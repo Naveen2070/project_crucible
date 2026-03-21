@@ -14,7 +14,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   children:  React.ReactNode;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
     const cls = [
       styles.btn,
@@ -34,14 +34,35 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading}
         {...props}
       >
-        {loading && <span className={styles.spinner} aria-hidden="true" />}
         {children}
       </button>
     );
   }
 );
 
+export const ButtonLabel = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={className} {...props}>{children}</span>
+);
+
+export const ButtonSpinner = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={[styles.spinner, className].filter(Boolean).join(' ')} aria-hidden="true" {...props} />
+);
+
+export const ButtonIcon = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={className} aria-hidden="true" {...props}>{children}</span>
+);
+
+export const Button = Object.assign(ButtonRoot, {
+  Label: ButtonLabel,
+  Spinner: ButtonSpinner,
+  Icon: ButtonIcon,
+});
+
 Button.displayName = 'Button';
+ButtonRoot.displayName = 'Button.Root';
+ButtonLabel.displayName = 'Button.Label';
+ButtonSpinner.displayName = 'Button.Spinner';
+ButtonIcon.displayName = 'Button.Icon';
 "
 `;
 
@@ -122,6 +143,7 @@ exports[`Button snapshots > css mode snapshot 2`] = `
 
 exports[`Button snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
@@ -139,24 +161,65 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Primary: Story = {
-  args: { variant: 'primary', children: 'Primary button' },
+  args: { variant: 'primary' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Primary button</Button.Label>
+    </Button>
+  ),
 };
 export const Secondary: Story = {
-  args: { variant: 'secondary', children: 'Secondary button' },
+  args: { variant: 'secondary' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Secondary button</Button.Label>
+    </Button>
+  ),
 };
 export const Ghost: Story = {
-  args: { variant: 'ghost', children: 'Ghost button' },
+  args: { variant: 'ghost' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Ghost button</Button.Label>
+    </Button>
+  ),
 };
 export const Danger: Story = {
-  args: { variant: 'danger', children: 'Danger button' },
+  args: { variant: 'danger' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Danger button</Button.Label>
+    </Button>
+  ),
 };
 
 export const Loading: Story = {
-  args: { variant: 'primary', loading: true, children: 'Loading...' },
+  args: { variant: 'primary', loading: true },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Spinner />
+      <Button.Label>Loading...</Button.Label>
+    </Button>
+  ),
 };
 
 export const Disabled: Story = {
-  args: { variant: 'primary', disabled: true, children: 'Disabled' },
+  args: { variant: 'primary', disabled: true },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Disabled</Button.Label>
+    </Button>
+  ),
+};
+
+export const WithIcon: Story = {
+  args: { variant: 'primary' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Icon>🚀</Button.Icon>
+      <Button.Label>Launch</Button.Label>
+    </Button>
+  ),
 };
 "
 `;
@@ -187,7 +250,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   children:  React.ReactNode;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
     const cls = [
       'inline-flex items-center justify-center font-medium transition-colors border-1.5 border-transparent',
@@ -210,24 +273,45 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading}
         {...props}
       >
-        {loading && (
-          <span
-            className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"
-            aria-hidden="true"
-          />
-        )}
         {children}
       </button>
     );
   }
 );
 
+export const ButtonLabel = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={className} {...props}>{children}</span>
+);
+
+export const ButtonSpinner = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={['w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2', className].filter(Boolean).join(' ')}
+    aria-hidden="true"
+    {...props}
+  />
+);
+
+export const ButtonIcon = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={['inline-flex items-center justify-center', className].filter(Boolean).join(' ')} aria-hidden="true" {...props}>{children}</span>
+);
+
+export const Button = Object.assign(ButtonRoot, {
+  Label: ButtonLabel,
+  Spinner: ButtonSpinner,
+  Icon: ButtonIcon,
+});
+
 Button.displayName = 'Button';
+ButtonRoot.displayName = 'Button.Root';
+ButtonLabel.displayName = 'Button.Label';
+ButtonSpinner.displayName = 'Button.Spinner';
+ButtonIcon.displayName = 'Button.Icon';
 "
 `;
 
 exports[`Button snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
@@ -245,24 +329,65 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Primary: Story = {
-  args: { variant: 'primary', children: 'Primary button' },
+  args: { variant: 'primary' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Primary button</Button.Label>
+    </Button>
+  ),
 };
 export const Secondary: Story = {
-  args: { variant: 'secondary', children: 'Secondary button' },
+  args: { variant: 'secondary' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Secondary button</Button.Label>
+    </Button>
+  ),
 };
 export const Ghost: Story = {
-  args: { variant: 'ghost', children: 'Ghost button' },
+  args: { variant: 'ghost' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Ghost button</Button.Label>
+    </Button>
+  ),
 };
 export const Danger: Story = {
-  args: { variant: 'danger', children: 'Danger button' },
+  args: { variant: 'danger' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Danger button</Button.Label>
+    </Button>
+  ),
 };
 
 export const Loading: Story = {
-  args: { variant: 'primary', loading: true, children: 'Loading...' },
+  args: { variant: 'primary', loading: true },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Spinner />
+      <Button.Label>Loading...</Button.Label>
+    </Button>
+  ),
 };
 
 export const Disabled: Story = {
-  args: { variant: 'primary', disabled: true, children: 'Disabled' },
+  args: { variant: 'primary', disabled: true },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Disabled</Button.Label>
+    </Button>
+  ),
+};
+
+export const WithIcon: Story = {
+  args: { variant: 'primary' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Icon>🚀</Button.Icon>
+      <Button.Label>Launch</Button.Label>
+    </Button>
+  ),
 };
 "
 `;

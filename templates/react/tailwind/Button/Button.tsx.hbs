@@ -20,6 +20,64 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   children:  React.ReactNode;
 }
 
+{{#if features.compoundComponents}}
+export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+    const cls = [
+      'inline-flex items-center justify-center font-medium transition-colors border-1.5 border-transparent',
+      'rounded-[var(--radius-md)]',
+      {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}]',
+      'focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
+      'disabled:opacity-45 disabled:cursor-not-allowed',
+      variantClasses[variant],
+      sizeClasses[size],
+      loading && 'cursor-wait',
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <button
+        ref={ref}
+        className={cls}
+        disabled={disabled || loading}
+        aria-disabled={disabled || loading}
+        aria-busy={loading}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+export const ButtonLabel = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={className} {...props}>{children}</span>
+);
+
+export const ButtonSpinner = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={['w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2', className].filter(Boolean).join(' ')}
+    aria-hidden="true"
+    {...props}
+  />
+);
+
+export const ButtonIcon = ({ children, className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span className={['inline-flex items-center justify-center', className].filter(Boolean).join(' ')} aria-hidden="true" {...props}>{children}</span>
+);
+
+export const Button = Object.assign(ButtonRoot, {
+  Label: ButtonLabel,
+  Spinner: ButtonSpinner,
+  Icon: ButtonIcon,
+});
+
+Button.displayName = 'Button';
+ButtonRoot.displayName = 'Button.Root';
+ButtonLabel.displayName = 'Button.Label';
+ButtonSpinner.displayName = 'Button.Spinner';
+ButtonIcon.displayName = 'Button.Icon';
+{{else}}
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
     const cls = [
@@ -56,3 +114,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+{{/if}}

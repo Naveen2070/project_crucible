@@ -1,73 +1,56 @@
-import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Modal } from './Modal';
-import { Button } from './Button';
+import React, { useState } from 'react';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/{{name}}',
   component: Modal,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    isOpen:   { control: 'boolean' },
   },
 };
 export default meta;
 type Story = StoryObj<typeof Modal>;
 
+{{#if features.compoundComponents}}
 export const Default: Story = {
   render: (args) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
-        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded"
+        >
+          Open Modal
+        </button>
+        <Modal {...args} isOpen={isOpen || args.isOpen} onClose={() => setIsOpen(false)}>
+          <Modal.Header>
+            <Modal.Title>Modal Title</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>This is the modal body content using compound components.</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
+              <button onClick={() => setIsOpen(false)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded">Confirm</button>
+            </div>
+          </Modal.Footer>
+        </Modal>
       </>
     );
-  },
-  args: {
-    title:    'Example Modal',
-    children: 'This is the content of the modal. You can place anything here.',
+  }
+};
+{{else}}
+export const Default: Story = {
+  args: { 
+    isOpen: false, 
+    title: 'Modal Title',
+    children: 'This is the modal body content.',
   },
 };
-
-export const WithFooter: Story = {
-  render: (args) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-      <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal with Footer</Button>
-        <Modal
-          {...args}
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          footer={
-            <>
-              <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={() => setIsOpen(false)}>Confirm</Button>
-            </>
-          }
-        />
-      </>
-    );
-  },
-  args: {
-    title:    'Confirmation Required',
-    children: 'Are you sure you want to proceed with this action?',
-  },
-};
-
-export const Small: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    size: 'sm',
-  },
-};
-
-export const Large: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    size: 'lg',
-  },
-};
+{{/if}}

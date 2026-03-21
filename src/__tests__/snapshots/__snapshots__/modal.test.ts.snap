@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Modal snapshots > css mode snapshot 1`] = `
-"import React, { useEffect, useId } from 'react';
+"import React, { useEffect, useId, createContext, useContext } from 'react';
 import FocusTrap from 'focus-trap-react';
 import styles from './Modal.module.css';
 
@@ -11,21 +11,38 @@ export type ModalSize    = 'sm' | 'md' | 'lg';
 export interface ModalProps {
   isOpen:    boolean;
   onClose:   () => void;
-  title:     string;
+  title?:    string;
   children:  React.ReactNode;
   variant?:  ModalVariant;
   size?:     ModalSize;
   footer?:   React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({
+interface ModalContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  size: ModalSize;
+  titleId: string;
+}
+
+const ModalContext = createContext<ModalContextValue | undefined>(undefined);
+
+const useModalContext = () => {
+  const context = useContext(ModalContext);
+  if (!context) throw new Error('Modal sub-components must be used within Modal');
+  return context;
+};
+
+export const ModalRoot = ({
   isOpen,
   onClose,
-  title,
   children,
-  variant = 'default',
   size = 'md',
-  footer,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  size?: ModalSize;
 }) => {
   const titleId = useId();
 
@@ -55,40 +72,93 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <FocusTrap>
-      <div className={styles.overlay} onClick={onClose}>
-        <div
-          className={[styles.modal, styles[\`modal--\${size}\`]].join(' ')}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <header className={styles.header}>
-            <h2 id={titleId} className={styles.title}>{title}</h2>
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              aria-label="Close modal"
-            >
-              &times;
-            </button>
-          </header>
-          <div className={styles.body}>
-            {children}
-          </div>
-          {footer && (
-            <footer className={styles.footer}>
-              {footer}
-            </footer>
-          )}
-        </div>
-      </div>
-    </FocusTrap>
+    <ModalContext.Provider value={{ isOpen, onClose, size, titleId }}>
+      <FocusTrap>
+        {children as React.ReactElement}
+      </FocusTrap>
+    </ModalContext.Provider>
   );
 };
 
+export const ModalOverlay = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { onClose } = useModalContext();
+  return (
+    <div className={[styles.overlay, className].filter(Boolean).join(' ')} onClick={onClose}>
+      {children}
+    </div>
+  );
+};
+
+export const ModalContent = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { size, titleId } = useModalContext();
+  return (
+    <div
+      className={[styles.modal, styles[\`modal--\${size}\`], className].filter(Boolean).join(' ')}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const ModalHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <header className={[styles.header, className].filter(Boolean).join(' ')}>
+    {children}
+  </header>
+);
+
+export const ModalTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { titleId } = useModalContext();
+  return <h2 id={titleId} className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h2>;
+};
+
+export const ModalClose = ({ className }: { className?: string }) => {
+  const { onClose } = useModalContext();
+  return (
+    <button
+      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      onClick={onClose}
+      aria-label="Close modal"
+    >
+      &times;
+    </button>
+  );
+};
+
+export const ModalBody = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.body, className].filter(Boolean).join(' ')}>
+    {children}
+  </div>
+);
+
+export const ModalFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <footer className={[styles.footer, className].filter(Boolean).join(' ')}>
+    {children}
+  </footer>
+);
+
+export const Modal = Object.assign(ModalRoot, {
+  Overlay: ModalOverlay,
+  Content: ModalContent,
+  Header: ModalHeader,
+  Title: ModalTitle,
+  Close: ModalClose,
+  Body: ModalBody,
+  Footer: ModalFooter,
+});
+
 Modal.displayName = 'Modal';
+ModalRoot.displayName = 'Modal.Root';
+ModalOverlay.displayName = 'Modal.Overlay';
+ModalContent.displayName = 'Modal.Content';
+ModalHeader.displayName = 'Modal.Header';
+ModalTitle.displayName = 'Modal.Title';
+ModalClose.displayName = 'Modal.Close';
+ModalBody.displayName = 'Modal.Body';
+ModalFooter.displayName = 'Modal.Footer';
 "
 `;
 
@@ -201,10 +271,10 @@ exports[`Modal snapshots > css mode snapshot 2`] = `
 `;
 
 exports[`Modal snapshots > css mode snapshot 3`] = `
-"import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
 import { Modal } from './Modal';
-import { Button } from './Button';
+import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',
@@ -223,62 +293,32 @@ export const Default: Story = {
     return (
       <>
         <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
-        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Modal.Overlay>
+            <Modal.Content>
+              <Modal.Header>
+                <Modal.Title>Modal Title</Modal.Title>
+                <Modal.Close />
+              </Modal.Header>
+              <Modal.Body>
+                <p>This is the modal body content.</p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
+                <Button variant="primary" onClick={() => setIsOpen(false)}>Confirm</Button>
+              </Modal.Footer>
+            </Modal.Content>
+          </Modal.Overlay>
+        </Modal>
       </>
     );
-  },
-  args: {
-    title:    'Example Modal',
-    children: 'This is the content of the modal. You can place anything here.',
-  },
-};
-
-export const WithFooter: Story = {
-  render: (args) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-      <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal with Footer</Button>
-        <Modal
-          {...args}
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          footer={
-            <>
-              <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={() => setIsOpen(false)}>Confirm</Button>
-            </>
-          }
-        />
-      </>
-    );
-  },
-  args: {
-    title:    'Confirmation Required',
-    children: 'Are you sure you want to proceed with this action?',
-  },
-};
-
-export const Small: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    size: 'sm',
-  },
-};
-
-export const Large: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    size: 'lg',
   },
 };
 "
 `;
 
 exports[`Modal snapshots > tailwind mode snapshot 1`] = `
-"import React, { useEffect, useId } from 'react';
+"import React, { useEffect, useId, createContext, useContext } from 'react';
 import FocusTrap from 'focus-trap-react';
 
 const variantClasses: Record<string, string> = {
@@ -295,24 +335,36 @@ const sizeClasses: Record<string, string> = {
 export type ModalVariant = 'default' | 'confirm';
 export type ModalSize    = 'sm' | 'md' | 'lg';
 
-export interface ModalProps {
-  isOpen:    boolean;
-  onClose:   () => void;
-  title:     string;
-  children:  React.ReactNode;
-  variant?:  ModalVariant;
-  size?:     ModalSize;
-  footer?:   React.ReactNode;
+interface ModalContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  titleId: string;
+  variant: ModalVariant;
+  size: ModalSize;
 }
 
-export const Modal: React.FC<ModalProps> = ({
+const ModalContext = createContext<ModalContextValue | undefined>(undefined);
+
+const useModalContext = () => {
+  const context = useContext(ModalContext);
+  if (!context) throw new Error('Modal components must be wrapped in <Modal />');
+  return context;
+};
+
+export interface ModalProps {
+  isOpen:   boolean;
+  onClose:  () => void;
+  variant?: ModalVariant;
+  size?:    ModalSize;
+  children: React.ReactNode;
+}
+
+const ModalRoot: React.FC<ModalProps> = ({
   isOpen,
   onClose,
-  title,
-  children,
   variant = 'default',
   size = 'md',
-  footer,
+  children,
 }) => {
   const titleId = useId();
 
@@ -342,62 +394,88 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <FocusTrap>
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      >
-        <div
-          className={[
-            'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden',
-            variantClasses[variant],
-            sizeClasses[size],
-          ].join(' ')}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          onClick={(e) => e.stopPropagation()}
+    <ModalContext.Provider value={{ isOpen, onClose, titleId, variant, size }}>
+      <FocusTrap>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
         >
-          <header className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-            <h2 id={titleId} className="text-xl font-bold text-[var(--color-text)]">{title}</h2>
-            <button
-              className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
-              onClick={onClose}
-              aria-label="Close modal"
-            >
-              &times;
-            </button>
-          </header>
-          <div className="p-6 text-[var(--color-text-muted)]">
+          <div
+            className={[
+              'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden',
+              variantClasses[variant],
+              sizeClasses[size],
+            ].join(' ')}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            onClick={(e) => e.stopPropagation()}
+          >
             {children}
           </div>
-          {footer && (
-            <footer className="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50">
-              {footer}
-            </footer>
-          )}
         </div>
-      </div>
-    </FocusTrap>
+      </FocusTrap>
+    </ModalContext.Provider>
   );
 };
+
+const ModalHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { onClose } = useModalContext();
+  return (
+    <header className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+      {children}
+      <button
+        className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
+        onClick={onClose}
+        aria-label="Close modal"
+      >
+        &times;
+      </button>
+    </header>
+  );
+};
+
+const ModalTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { titleId } = useModalContext();
+  return <h2 id={titleId} className="text-xl font-bold text-[var(--color-text)]">{children}</h2>;
+};
+
+const ModalBody: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="p-6 text-[var(--color-text-muted)]">
+    {children}
+  </div>
+);
+
+const ModalFooter: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <footer className="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50">
+    {children}
+  </footer>
+);
+
+export const Modal = Object.assign(ModalRoot, {
+  Header: ModalHeader,
+  Title: ModalTitle,
+  Body: ModalBody,
+  Footer: ModalFooter,
+});
 
 Modal.displayName = 'Modal';
 "
 `;
 
 exports[`Modal snapshots > tailwind mode snapshot 2`] = `
-"import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+"import type { Meta, StoryObj } from '@storybook/react';
 import { Modal } from './Modal';
-import { Button } from './Button';
+import React, { useState } from 'react';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',
   component: Modal,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:  { control: 'select', options: ['default', 'confirm'] },
+    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    isOpen:   { control: 'boolean' },
   },
 };
 export default meta;
@@ -408,57 +486,29 @@ export const Default: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
-        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded"
+        >
+          Open Modal
+        </button>
+        <Modal {...args} isOpen={isOpen || args.isOpen} onClose={() => setIsOpen(false)}>
+          <Modal.Header>
+            <Modal.Title>Modal Title</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>This is the modal body content using compound components.</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
+              <button onClick={() => setIsOpen(false)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded">Confirm</button>
+            </div>
+          </Modal.Footer>
+        </Modal>
       </>
     );
-  },
-  args: {
-    title:    'Example Modal',
-    children: 'This is the content of the modal. You can place anything here.',
-  },
-};
-
-export const WithFooter: Story = {
-  render: (args) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-      <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal with Footer</Button>
-        <Modal
-          {...args}
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          footer={
-            <>
-              <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={() => setIsOpen(false)}>Confirm</Button>
-            </>
-          }
-        />
-      </>
-    );
-  },
-  args: {
-    title:    'Confirmation Required',
-    children: 'Are you sure you want to proceed with this action?',
-  },
-};
-
-export const Small: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    size: 'sm',
-  },
-};
-
-export const Large: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    size: 'lg',
-  },
+  }
 };
 "
 `;

@@ -1,66 +1,45 @@
-import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Select } from './Select';
+import React, { useState } from 'react';
 
 const meta: Meta<typeof Select> = {
   title: 'Crucible/{{name}}',
   component: Select,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    disabled: { control: 'boolean' },
   },
 };
 export default meta;
 type Story = StoryObj<typeof Select>;
 
 const options = [
-  { value: 'apple',  label: 'Apple'  },
-  { value: 'banana', label: 'Banana' },
-  { value: 'cherry', label: 'Cherry' },
-  { value: 'date',   label: 'Date'   },
+  { value: 'react', label: 'React' },
+  { value: 'angular', label: 'Angular' },
+  { value: 'vue', label: 'Vue' },
+  { value: 'svelte', label: 'Svelte' },
 ];
 
+{{#if features.compoundComponents}}
 export const Default: Story = {
   render: (args) => {
     const [value, setValue] = useState('');
     return (
-      <div style=\{{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
+      <Select {...args} options={options} value={value} onChange={setValue}>
+        <Select.Label>Favorite Framework</Select.Label>
+        <Select.Trigger />
+      </Select>
     );
-  },
-  args: {
-    label: 'Favorite Fruit',
+  }
+};
+{{else}}
+export const Default: Story = {
+  args: { 
+    label: 'Favorite Framework',
+    options,
+    placeholder: 'Select a framework',
   },
 };
-
-export const PreSelected: Story = {
-  ...Default,
-  render: (args) => {
-    const [value, setValue] = useState('banana');
-    return (
-      <div style=\{{ width: '300px' }}>
-        <Select {...args} value={value} onChange={setValue} options={options} />
-      </div>
-    );
-  },
-  args: {
-    ...Default.args,
-  },
-};
-
-export const Error: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    error: 'This field is required',
-  },
-};
-
-export const Disabled: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    disabled: true,
-  },
-};
+{{/if}}

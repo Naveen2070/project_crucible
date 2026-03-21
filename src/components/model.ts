@@ -22,6 +22,7 @@ export interface ComponentModel {
   };
   features: {
     hover: boolean;
+    compoundComponents?: boolean;
   };
   generateStories: boolean;
 }
@@ -112,6 +113,7 @@ export function buildComponentModel(
     },
     features: {
       hover: config.features.hover ?? true,
+      compoundComponents: config.features.compoundComponents !== false && config.framework !== 'angular',
     },
     generateStories,
   };
