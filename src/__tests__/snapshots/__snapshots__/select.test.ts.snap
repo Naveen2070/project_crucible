@@ -645,8 +645,8 @@ Select.displayName = 'Select';
 
 exports[`Select snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import { Select } from './Select';
 import React, { useState } from 'react';
+import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {
   title: 'Crucible/Select',
@@ -661,23 +661,25 @@ const meta: Meta<typeof Select> = {
 export default meta;
 type Story = StoryObj<typeof Select>;
 
-const options = [
-  { value: 'react', label: 'React' },
-  { value: 'angular', label: 'Angular' },
-  { value: 'vue', label: 'Vue' },
-  { value: 'svelte', label: 'Svelte' },
-];
-
 export const Default: Story = {
   render: (args) => {
     const [value, setValue] = useState('');
     return (
-      <Select {...args} options={options} value={value} onChange={setValue}>
-        <Select.Label>Favorite Framework</Select.Label>
-        <Select.Trigger />
+      <Select {...args} value={value} onChange={setValue}>
+        <Select.Label>Country</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder="Choose a country..." />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="us" label="United States" />
+          <Select.Item value="ca" label="Canada" />
+          <Select.Item value="uk" label="United Kingdom" />
+          <Select.Item value="au" label="Australia" />
+        </Select.Content>
       </Select>
     );
-  }
+  },
 };
 "
 `;

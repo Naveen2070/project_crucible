@@ -465,17 +465,16 @@ Modal.displayName = 'Modal';
 
 exports[`Modal snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import { Modal } from './Modal';
 import React, { useState } from 'react';
+import { Modal } from './Modal';
+import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',
   component: Modal,
   parameters: { layout: 'centered' },
   argTypes: {
-    variant:  { control: 'select', options: ['default', 'confirm'] },
-    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
-    isOpen:   { control: 'boolean' },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
   },
 };
 export default meta;
@@ -486,29 +485,27 @@ export const Default: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <>
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded"
-        >
-          Open Modal
-        </button>
-        <Modal {...args} isOpen={isOpen || args.isOpen} onClose={() => setIsOpen(false)}>
-          <Modal.Header>
-            <Modal.Title>Modal Title</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <p>This is the modal body content using compound components.</p>
-          </Modal.Body>
-          <Modal.Footer>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
-              <button onClick={() => setIsOpen(false)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded">Confirm</button>
-            </div>
-          </Modal.Footer>
+        <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
+        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Modal.Overlay>
+            <Modal.Content>
+              <Modal.Header>
+                <Modal.Title>Modal Title</Modal.Title>
+                <Modal.Close />
+              </Modal.Header>
+              <Modal.Body>
+                <p>This is the modal body content.</p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
+                <Button variant="primary" onClick={() => setIsOpen(false)}>Confirm</Button>
+              </Modal.Footer>
+            </Modal.Content>
+          </Modal.Overlay>
         </Modal>
       </>
     );
-  }
+  },
 };
 "
 `;

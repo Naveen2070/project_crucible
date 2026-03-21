@@ -365,7 +365,7 @@ export const Default: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 className="font-bold text-lg text-[var(--color-text)]">Card Title</h3>
+        <h3 style={{ margin: 0 }}>Card Title</h3>
       </Card.Header>
       <Card.Content>
         This is a default card with some content inside it.
@@ -379,7 +379,7 @@ export const Hoverable: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 className="font-bold text-lg text-[var(--color-text)]">Hoverable Card</h3>
+        <h3 style={{ margin: 0 }}>Hoverable Card</h3>
       </Card.Header>
       <Card.Content>
         This card changes its border color and shadow on hover.
@@ -396,7 +396,7 @@ export const Clickable: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 className="font-bold text-lg text-[var(--color-text)]">Clickable Card</h3>
+        <h3 style={{ margin: 0 }}>Clickable Card</h3>
       </Card.Header>
       <Card.Content>
         This card acts like a button and has an active state.
@@ -413,7 +413,7 @@ export const Link: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 className="font-bold text-lg text-[var(--color-text)]">Link Card</h3>
+        <h3 style={{ margin: 0 }}>Link Card</h3>
       </Card.Header>
       <Card.Content>
         This card acts like an anchor tag.

@@ -489,6 +489,7 @@ InputError.displayName = 'Input.Error';
 
 exports[`Input snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {
@@ -515,21 +516,41 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
+  args: { error: 'Invalid email address' },
   render: (args) => (
-    <Input {...args} variant="error">
+    <Input {...args}>
       <Input.Label>Email</Input.Label>
       <Input.Field defaultValue="invalid-email" />
-      <Input.Error>Invalid email address</Input.Error>
+      <Input.Error>{args.error}</Input.Error>
     </Input>
   ),
 };
 
-export const Hint: Story = {
+export const Password: Story = {
   render: (args) => (
     <Input {...args}>
       <Input.Label>Password</Input.Label>
-      <Input.Field type="password" />
-      <div className="text-xs text-[var(--color-text-muted)] mt-1">Must be at least 8 characters long</div>
+      <Input.Field type="password" placeholder="Enter password" />
+    </Input>
+  ),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Account ID</Input.Label>
+      <Input.Field value="ACC-12345" readOnly />
+    </Input>
+  ),
+};
+
+export const Required: Story = {
+  args: { required: true },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Full Name</Input.Label>
+      <Input.Field placeholder="Jane Doe" />
     </Input>
   ),
 };
