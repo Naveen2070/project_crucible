@@ -116,8 +116,18 @@ program
       for (const comp of componentsToAdd) {
         if (comp === 'Select' || comp === 'Modal') {
           const btnDir = path.join(outDir, 'Button');
-          const btnFile = path.join(btnDir, 'Button.tsx');
-          if (!resolvedComponents.has('Button') && !(await fs.pathExists(btnFile))) {
+          const extensions = framework === 'react' ? ['.tsx'] : framework === 'vue' ? ['.vue'] : ['.component.ts'];
+          
+          let btnExists = false;
+          for (const ext of extensions) {
+            if (await fs.pathExists(path.join(btnDir, `Button${ext}`)) || 
+                await fs.pathExists(path.join(btnDir, `button${ext}`))) {
+              btnExists = true;
+              break;
+            }
+          }
+
+          if (!resolvedComponents.has('Button') && !btnExists) {
             let addDep = true;
             if (!opts.yes) {
               addDep = await confirm({
