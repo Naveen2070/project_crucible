@@ -1,0 +1,13 @@
+const cls = [
+  styles.{{prefix}},
+  {{#each variants}}
+  styles['{{../prefix}}--{{this}}'],
+  {{/each}}
+  {{#each sizes}}
+  styles['{{../prefix}}--{{this}}'],
+  {{/each}}
+  {{#each states}}
+  {{this}} && styles['{{../prefix}}--{{this}}'],
+  {{/each}}
+  className,
+].filter(Boolean).join(' ');

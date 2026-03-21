@@ -13,7 +13,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 {{#if features.compoundComponents}}
 export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+  ({ {{> react-button-props}} }, ref) => {
     const cls = [
       styles.btn,
       styles[`btn--${variant}`],
@@ -63,7 +63,7 @@ ButtonSpinner.displayName = 'Button.Spinner';
 ButtonIcon.displayName = 'Button.Icon';
 {{else}}
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+  ({ {{> react-button-props}} }, ref) => {
     const cls = [
       styles.btn,
       styles[`btn--${variant}`],
