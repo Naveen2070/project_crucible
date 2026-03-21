@@ -1,0 +1,69 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Input from './Input.vue';
+
+const meta: Meta<typeof Input> = {
+  title: 'Crucible/{{name}}',
+  component: Input,
+  argTypes: {
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    type:     { control: 'select', options: ['text', 'password'] },
+    disabled: { control: 'boolean' },
+    required: { control: 'boolean' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Input>;
+
+export const Default: Story = {
+  args: {
+    label: 'Email Address',
+    placeholder: 'enter@email.com',
+  },
+  render: (args) => ({
+    components: { Input },
+    setup() { return { args }; },
+    template: `<Input v-bind="args" />`,
+  }),
+};
+
+export const Password: Story = {
+  args: {
+    label: 'Password',
+    type: 'password',
+    placeholder: '••••••••',
+  },
+  render: (args) => ({
+    components: { Input },
+    setup() { return { args }; },
+    template: `<Input v-bind="args" />`,
+  }),
+};
+
+export const Error: Story = {
+  args: {
+    label: 'Username',
+    error: 'This username is already taken.',
+    variant: 'error',
+  },
+  render: (args) => ({
+    components: { Input },
+    setup() { return { args }; },
+    template: `<Input v-bind="args" />`,
+  }),
+};
+
+{{#if features.compoundComponents}}
+export const CustomLabel: Story = {
+  args: { placeholder: 'Custom slot label' },
+  render: (args) => ({
+    components: { Input },
+    setup() { return { args }; },
+    template: `
+<Input v-bind="args">
+  <template #label><label style="color: purple; font-weight: bold;">Custom Label Slot</label></template>
+</Input>`,
+  }),
+};
+{{/if}}

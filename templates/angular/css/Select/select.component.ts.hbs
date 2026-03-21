@@ -1,0 +1,47 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-select',
+  templateUrl: './select.component.html',
+  styleUrls: ['./select.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}']
+})
+export class SelectComponent {
+  @Input() label = '';
+  @Input() placeholder = 'Select an option';
+  @Input() options: any[] = [];
+  @Input() value: any = null;
+  @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
+  @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
+  @Input() error = '';
+  @Input() disabled = false;
+
+  @Output() valueChange = new EventEmitter<any>();
+
+  isOpen = false;
+
+  toggle() {
+    if (!this.disabled) {
+      this.isOpen = !this.isOpen;
+    }
+  }
+
+  selectOption(option: any) {
+    this.value = option;
+    this.valueChange.emit(option);
+    this.isOpen = false;
+  }
+
+  get displayValue(): string {
+    return this.value ? (this.value.label || this.value) : this.placeholder;
+  }
+
+  get comboboxClasses(): string {
+    return [
+      'combobox',
+      `combobox--${this.size}`,
+      this.variant === 'error' || this.error ? 'combobox--error' : '',
+      this.disabled ? 'combobox--disabled' : '',
+      this.isOpen ? 'combobox--open' : ''
+    ].filter(Boolean).join(' ');
+  }
+}

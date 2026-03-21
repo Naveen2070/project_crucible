@@ -1,0 +1,59 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Input from './Input.vue';
+
+const meta: Meta<typeof Input> = {
+  title: 'Crucible/{{name}}',
+  component: Input,
+  argTypes: {
+    variant:     { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:        { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    type:        { control: 'select', options: ['text', 'password'] },
+    disabled:    { control: 'boolean' },
+    required:    { control: 'boolean' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Input>;
+
+export const Default: Story = {
+  args: {
+    label: 'Email Address',
+    placeholder: 'Enter your email',
+  },
+};
+
+export const Password: Story = {
+  args: {
+    label: 'Password',
+    type: 'password',
+    placeholder: 'Enter your password',
+  },
+};
+
+export const Error: Story = {
+  args: {
+    label: 'Username',
+    error: 'Username is already taken',
+    variant: 'error',
+  },
+};
+
+{{#if features.compoundComponents}}
+export const WithSlots: Story = {
+  args: { label: 'Custom Label' },
+  render: (args) => ({
+    components: { Input },
+    setup() { return { args }; },
+    template: `
+<Input v-bind="args">
+  <template #label>
+    <label class="text-purple-600 font-bold">Custom Slot Label</label>
+  </template>
+  <template #error>
+    <span class="text-blue-600 text-xs">Custom error message slot</span>
+  </template>
+</Input>`,
+  }),
+};
+{{/if}}

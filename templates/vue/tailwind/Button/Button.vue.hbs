@@ -1,0 +1,62 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type ButtonVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ButtonSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+interface Props {
+  variant?:  ButtonVariant;
+  size?:     ButtonSize;
+  loading?:  boolean;
+  disabled?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'primary',
+  size: 'md',
+  loading: false,
+  disabled: false,
+});
+
+const variantClasses: Record<ButtonVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}};
+
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-5 py-2.5 text-base',
+  lg: 'px-7 py-3.5 text-lg',
+};
+
+const classes = computed(() => [
+  'inline-flex items-center justify-center font-medium transition-colors border-[1.5px] border-transparent',
+  'rounded-[var(--radius-md)]',
+  {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}]',
+  'focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
+  'disabled:opacity-45 disabled:cursor-not-allowed gap-[calc(var(--spacing-unit)*2)]',
+  variantClasses[props.variant],
+  sizeClasses[props.size],
+  props.loading ? 'cursor-wait' : '',
+]);
+</script>
+
+<template>
+  <button
+    :class="classes"
+    :disabled="disabled || loading"
+    :aria-disabled="disabled || loading"
+    :aria-busy="loading"
+  >
+    {{#if features.compoundComponents}}
+    <slot name="spinner" v-if="loading">
+      <span class="w-[1em] h-[1em] border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
+    </slot>
+    <slot name="icon" />
+    <slot />
+    {{else}}
+    <span v-if="loading" class="w-[1em] h-[1em] border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
+    <slot name="icon" />
+    <slot />
+    {{/if}}
+  </button>
+</template>

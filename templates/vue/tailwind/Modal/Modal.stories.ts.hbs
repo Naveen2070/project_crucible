@@ -1,0 +1,66 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Modal from './Modal.vue';
+
+const meta: Meta<typeof Modal> = {
+  title: 'Crucible/{{name}}',
+  component: Modal,
+  argTypes: {
+    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    isOpen:  { control: 'boolean' },
+    title:   { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Modal>;
+
+export const Default: Story = {
+  args: {
+    isOpen: true,
+    title: 'Modal Title',
+  },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+      <div>
+        <Modal v-bind="args" @close="args.isOpen = false">
+          This is the modal content. You can put anything here.
+        </Modal>
+        <button v-if="!args.isOpen" @click="args.isOpen = true" class="px-4 py-2 bg-blue-500 text-white rounded">
+          Open Modal
+        </button>
+      </div>
+    `,
+  }),
+};
+
+{{#each variants}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', isOpen: true, title: '{{capitalize this}} Modal' },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `<Modal v-bind="args" @close="args.isOpen = false">This is a {{this}} modal.</Modal>`,
+  }),
+};
+{{/each}}
+
+{{#if features.compoundComponents}}
+export const WithFooter: Story = {
+  args: { isOpen: true, title: 'Modal with Footer' },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args" @close="args.isOpen = false">
+  <p>Main content of the modal.</p>
+  <template #footer>
+    <button @click="args.isOpen = false" class="px-4 py-2 border rounded">Cancel</button>
+    <button @click="args.isOpen = false" class="px-4 py-2 bg-blue-500 text-white rounded">Confirm</button>
+  </template>
+</Modal>`,
+  }),
+};
+{{/if}}

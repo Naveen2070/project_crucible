@@ -3,7 +3,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-button',
   templateUrl: './button.component.html',
-  styleUrls: ['./button.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}']
+  styleUrls: ['./button.component.scss']
 })
 export class ButtonComponent {
   @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'primary';

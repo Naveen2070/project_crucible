@@ -1,0 +1,48 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Modal from './Modal.vue';
+
+const meta: Meta<typeof Modal> = {
+  title: 'Crucible/{{name}}',
+  component: Modal,
+  argTypes: {
+    isOpen:  { control: 'boolean' },
+    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Modal>;
+
+export const Default: Story = {
+  args: {
+    isOpen: true,
+    title: 'Modal Title',
+  },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args">
+  <p>This is the modal content. You can put anything here.</p>
+  <template #footer>
+    <button @click="args.isOpen = false">Close</button>
+  </template>
+</Modal>`,
+  }),
+};
+
+{{#if features.compoundComponents}}
+export const CustomHeader: Story = {
+  args: { isOpen: true },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args">
+  <template #title><h2 style="color: blue;">Custom Slot Title</h2></template>
+  <p>Modal with custom title slot.</p>
+</Modal>`,
+  }),
+};
+{{/if}}

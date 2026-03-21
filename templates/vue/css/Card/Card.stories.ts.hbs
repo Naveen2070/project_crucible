@@ -1,0 +1,53 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Card from './Card.vue';
+
+const meta: Meta<typeof Card> = {
+  title: 'Crucible/{{name}}',
+  component: Card,
+  argTypes: {
+    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Card>;
+
+export const Default: Story = {
+  args: {
+    title: 'Card Title',
+  },
+  render: (args) => ({
+    components: { Card },
+    setup() { return { args }; },
+    template: `<Card v-bind="args">This is the card content.</Card>`,
+  }),
+};
+
+{{#each variants}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', title: '{{capitalize this}} Card' },
+  render: (args) => ({
+    components: { Card },
+    setup() { return { args }; },
+    template: `<Card v-bind="args">This is a {{this}} card.</Card>`,
+  }),
+};
+{{/each}}
+
+{{#if features.compoundComponents}}
+export const WithSlots: Story = {
+  args: { variant: 'default' },
+  render: (args) => ({
+    components: { Card },
+    setup() { return { args }; },
+    template: `
+<Card v-bind="args">
+  <template #title>
+    <div style="background: #f0f0f0; padding: 10px; font-style: italic;">Custom Slot Title</div>
+  </template>
+  Custom card body via default slot.
+</Card>`,
+  }),
+};
+{{/if}}

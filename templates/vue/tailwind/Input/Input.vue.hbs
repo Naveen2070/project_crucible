@@ -1,0 +1,134 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+interface Props {
+  label?:       string;
+  placeholder?: string;
+  variant?:     InputVariant;
+  size?:        InputSize;
+  error?:       string;
+  disabled?:    boolean;
+  required?:    boolean;
+  type?:        'text' | 'password';
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  label: '',
+  placeholder: '',
+  variant: 'default',
+  size: 'md',
+  error: '',
+  disabled: false,
+  required: false,
+  type: 'text',
+});
+
+const showPassword = ref(false);
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const currentType = computed(() => {
+  if (props.type === 'password') {
+    return showPassword.value ? 'text' : 'password';
+  }
+  return props.type;
+});
+
+const variantClasses: Record<InputVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}};
+
+const sizeClasses: Record<InputSize, string> = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-5 py-3 text-lg',
+};
+
+const inputClasses = computed(() => [
+  'w-full border-[1.5px] rounded-[var(--radius-md)] outline-none transition-all',
+  {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
+  'disabled:opacity-50 disabled:cursor-not-allowed',
+  variantClasses[props.variant],
+  sizeClasses[props.size],
+  props.type === 'password' ? 'pr-12' : '',
+  props.error ? 'border-[var(--color-danger)]' : '',
+]);
+</script>
+
+<template>
+  <div class="flex flex-col gap-[var(--spacing-unit)] w-full">
+    {{#if features.compoundComponents}}
+    <slot name="label">
+      <label v-if="label" class="font-medium text-[var(--color-text)] text-sm">
+        \{{ label }}
+        <span v-if="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
+      </label>
+    </slot>
+    {{else}}
+    <label v-if="label" class="font-medium text-[var(--color-text)] text-sm">
+      \{{ label }}
+      <span v-if="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
+    </label>
+    {{/if}}
+    
+    <div class="relative w-full">
+      {{#if features.compoundComponents}}
+      <slot name="input">
+        <input
+          :type="currentType"
+          :class="inputClasses"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          :aria-invalid="!!error"
+          :aria-required="required"
+        >
+      </slot>
+      {{else}}
+      <input
+        :type="currentType"
+        :class="inputClasses"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :aria-invalid="!!error"
+        :aria-required="required"
+      >
+      {{/if}}
+      
+      {{#if features.compoundComponents}}
+      <slot name="toggle" v-if="type === 'password'">
+        <button
+          type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] rounded-sm"
+          @click="togglePassword"
+          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+        >
+          \{{ showPassword ? 'Hide' : 'Show' }}
+        </button>
+      </slot>
+      {{else}}
+      <button
+        v-if="type === 'password'"
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] rounded-sm"
+        @click="togglePassword"
+        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+      >
+        \{{ showPassword ? 'Hide' : 'Show' }}
+      </button>
+      {{/if}}
+    </div>
+
+    {{#if features.compoundComponents}}
+    <slot name="error">
+      <span v-if="error" class="text-xs text-[var(--color-danger)]" role="alert">\{{ error }}</span>
+    </slot>
+    {{else}}
+    <span v-if="error" class="text-xs text-[var(--color-danger)]" role="alert">\{{ error }}</span>
+    {{/if}}
+  </div>
+</template>

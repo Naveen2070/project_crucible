@@ -1,0 +1,8 @@
+<div [class]="classes" [attr.tabindex]="variant === 'clickable' ? 0 : null" [attr.role]="variant === 'clickable' ? 'button' : 'article'">
+  <div *ngIf="title" class="font-bold text-lg mb-2 text-[var(--color-text)]">
+    \{{ title }}
+  </div>
+  <div class="text-[var(--color-text-muted)]">
+    <ng-content></ng-content>
+  </div>
+</div>

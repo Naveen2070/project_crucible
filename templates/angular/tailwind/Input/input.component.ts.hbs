@@ -1,0 +1,59 @@
+import { Component, Input } from '@angular/core';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}} };
+
+const sizeClasses: Record<string, string> = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-5 py-3 text-lg',
+};
+
+@Component({
+  selector: 'app-input',
+  templateUrl: './input.component.html'
+})
+export class InputComponent {
+  @Input() label = '';
+  @Input() placeholder = '';
+  @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
+  @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
+  @Input() error = '';
+  @Input() disabled = false;
+  @Input() required = false;
+  @Input() type: 'text' | 'password' = 'text';
+  @Input() className = '';
+
+  showPassword = false;
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
+
+  get currentType(): string {
+    if (this.type === 'password') {
+      return this.showPassword ? 'text' : 'password';
+    }
+    return this.type;
+  }
+
+  get containerClasses(): string {
+    return [
+      'flex flex-col gap-[var(--spacing-unit)] w-full',
+      this.className
+    ].filter(Boolean).join(' ');
+  }
+
+  get inputClasses(): string {
+    return [
+      'w-full border-1.5 rounded-[var(--radius-md)] outline-none transition-all bg-[var(--color-surface)]',
+      {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
+      'disabled:opacity-50 disabled:cursor-not-allowed',
+      variantClasses[this.variant],
+      sizeClasses[this.size],
+      this.type === 'password' ? 'pr-12' : '',
+      (this.variant === 'error' || this.error) ? 'border-[var(--color-danger)]' : ''
+    ].filter(Boolean).join(' ');
+  }
+}

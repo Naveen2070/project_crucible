@@ -1,0 +1,55 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Select from './Select.vue';
+
+const meta: Meta<typeof Select> = {
+  title: 'Crucible/{{name}}',
+  component: Select,
+  argTypes: {
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    disabled: { control: 'boolean' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Select>;
+
+const options = [
+  { label: 'Option 1', value: '1' },
+  { label: 'Option 2', value: '2' },
+  { label: 'Option 3', value: '3' },
+];
+
+export const Default: Story = {
+  args: {
+    label: 'Select Option',
+    options,
+    placeholder: 'Pick one...',
+  },
+};
+
+{{#if features.compoundComponents}}
+export const WithSlots: Story = {
+  args: {
+    label: 'Custom Select',
+    options,
+    placeholder: 'Custom style...',
+  },
+  render: (args) => ({
+    components: { Select },
+    setup() { return { args }; },
+    template: `
+<Select v-bind="args">
+  <template #label>
+    <label style="color: green; font-weight: bold;">[CUSTOM LABEL]</label>
+  </template>
+  <template #arrow>
+    <span style="transform: rotate(90deg); display: inline-block;">-></span>
+  </template>
+  <template #option="{ option }">
+    <span style="color: blue;">Option: \{{ option.label }}</span>
+  </template>
+</Select>`,
+  }),
+};
+{{/if}}

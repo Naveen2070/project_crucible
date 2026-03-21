@@ -57,8 +57,8 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     let tplPath = path.join(tplDir, tpl);
     // console.log(`DEBUG: Reading template from ${tplPath}`);
 
-    // Fallback logic: If SCSS mode and template doesn't exist in scss folder, fallback to css folder
-    if (model.styleSystem === 'scss' && !(await fs.pathExists(tplPath))) {
+    // Fallback logic: If SCSS or Tailwind mode and template doesn't exist, fallback to 'css' folder
+    if ((model.styleSystem === 'scss' || model.styleSystem === 'tailwind') && !(await fs.pathExists(tplPath))) {
       const fallbackDir = path.join(
         __dirname,
         '../../templates',
@@ -66,7 +66,10 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
         'css',
         model.name,
       );
-      tplPath = path.join(fallbackDir, tpl);
+      const fallbackPath = path.join(fallbackDir, tpl);
+      if (await fs.pathExists(fallbackPath)) {
+        tplPath = fallbackPath;
+      }
     }
 
     if (!(await fs.pathExists(tplPath))) continue;

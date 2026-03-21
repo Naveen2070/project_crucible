@@ -1,0 +1,33 @@
+<div class="flex flex-col gap-[var(--spacing-unit)] w-full relative">
+  <label *ngIf="label" class="font-medium text-[var(--color-text)] text-sm">\{{ label }}</label>
+  
+  <div
+    [class]="triggerClasses"
+    (click)="toggle()"
+    [attr.aria-expanded]="isOpen"
+    role="combobox"
+    aria-haspopup="listbox"
+    tabindex="0"
+  >
+    <span class="truncate flex-1 text-[var(--color-text)]">\{{ displayValue }}</span>
+    <span class="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
+  </div>
+
+  <ul
+    *ngIf="isOpen"
+    class="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none"
+    role="listbox"
+  >
+    <li
+      *ngFor="let option of options"
+      (click)="selectOption(option)"
+      role="option"
+      [attr.aria-selected]="value === option"
+      [class]="'px-4 py-2 cursor-pointer transition-colors text-sm ' + (value === option ? 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold' : 'hover:bg-[var(--color-secondary)] hover:text-[var(--color-primary)]')"
+    >
+      \{{ option.label || option }}
+    </li>
+  </ul>
+
+  <span *ngIf="error" class="text-xs text-[var(--color-danger)] mt-1" role="alert">\{{ error }}</span>
+</div>

@@ -1,0 +1,124 @@
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, watch } from 'vue';
+
+export type ModalVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ModalSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+interface Props {
+  isOpen?:  boolean;
+  title?:   string;
+  variant?: ModalVariant;
+  size?:    ModalSize;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isOpen: false,
+  title: '',
+  variant: 'default',
+  size: 'md',
+});
+
+const emit = defineEmits(['close']);
+
+const onClose = () => {
+  emit('close');
+};
+
+const variantClasses: Record<ModalVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}};
+
+const sizeClasses: Record<ModalSize, string> = {
+  sm: 'max-w-md',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+};
+
+const modalClasses = computed(() => [
+  'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden flex flex-col',
+  'animate-[modalIn_0.3s_ease-out]',
+  variantClasses[props.variant],
+  sizeClasses[props.size],
+]);
+
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+});
+
+const handleEscape = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && props.isOpen) onClose();
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleEscape);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleEscape);
+  document.body.style.overflow = '';
+});
+</script>
+
+<template>
+  <Teleport to="body">
+    <div 
+      v-if="isOpen" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      @click="onClose"
+    >
+      <div 
+        :class="modalClasses" 
+        @click.stop 
+        role="dialog" 
+        aria-modal="true"
+      >
+        <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+          {{#if features.compoundComponents}}
+          <slot name="title">
+            <h2 v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+          </slot>
+          <slot name="close">
+            <button 
+              type="button" 
+              class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl p-2 rounded-[var(--radius-sm)] hover:bg-[var(--color-background)]" 
+              @click="onClose" 
+              aria-label="Close modal"
+            >
+              &times;
+            </button>
+          </slot>
+          {{else}}
+          <h2 v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+          <button 
+            type="button" 
+            class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl p-2 rounded-[var(--radius-sm)] hover:bg-[var(--color-background)]" 
+            @click="onClose" 
+            aria-label="Close modal"
+          >
+            &times;
+          </button>
+          {{/if}}
+        </header>
+        
+        <div class="p-6 overflow-y-auto text-[var(--color-text)] leading-relaxed flex-1">
+          <slot />
+        </div>
+        
+        <footer v-if="$slots.footer" class="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50 flex justify-end gap-3">
+          <slot name="footer" />
+        </footer>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
+<style scoped>
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+</style>

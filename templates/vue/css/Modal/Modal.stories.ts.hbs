@@ -1,0 +1,59 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Modal from './Modal.vue';
+
+const meta: Meta<typeof Modal> = {
+  title: 'Crucible/{{name}}',
+  component: Modal,
+  argTypes: {
+    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    isOpen:  { control: 'boolean' },
+    onClose: { action: 'close' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Modal>;
+
+export const Default: Story = {
+  args: {
+    isOpen: true,
+    title: 'Modal Title',
+  },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args">
+  This is the modal content.
+  <template #footer>
+    <button @click="args.onClose">Close</button>
+  </template>
+</Modal>`,
+  }),
+};
+
+{{#if features.compoundComponents}}
+export const WithSlots: Story = {
+  args: { isOpen: true },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args">
+  <template #title>
+    <h2 style="color: red;">Custom Red Title</h2>
+  </template>
+  <template #close>
+    <button @click="args.onClose" style="color: blue;">[QUIT]</button>
+  </template>
+  Custom body content.
+  <template #footer>
+    <div style="width: 100%; text-align: center; border: 1px dashed gray;">
+      Centered Footer
+    </div>
+  </template>
+</Modal>`,
+  }),
+};
+{{/if}}

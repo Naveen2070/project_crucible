@@ -1,0 +1,29 @@
+<div [class]="containerClasses">
+  <label *ngIf="label" class="font-medium text-[var(--color-text)] text-sm">
+    \{{ label }}
+    <span *ngIf="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
+  </label>
+  
+  <div class="relative w-full">
+    <input
+      [type]="currentType"
+      [class]="inputClasses"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [attr.aria-invalid]="!!error"
+      [attr.aria-required]="required"
+    >
+    
+    <button
+      *ngIf="type === 'password'"
+      type="button"
+      class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none rounded-sm"
+      (click)="togglePassword()"
+      [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+    >
+      \{{ showPassword ? 'Hide' : 'Show' }}
+    </button>
+  </div>
+
+  <span *ngIf="error" class="text-xs text-[var(--color-danger)] mt-1" role="alert">\{{ error }}</span>
+</div>

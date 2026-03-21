@@ -1,0 +1,32 @@
+<div 
+  *ngIf="isOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+  (click)="onClose()"
+>
+  <div
+    [class]="modalClasses"
+    role="dialog"
+    aria-modal="true"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+      <h2 *ngIf="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+      <button
+        type="button"
+        class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
+        (click)="onClose()"
+        aria-label="Close modal"
+      >
+        &times;
+      </button>
+    </header>
+    
+    <div class="p-6 text-[var(--color-text-muted)]">
+      <ng-content></ng-content>
+    </div>
+    
+    <footer class="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50 flex justify-end gap-3">
+      <ng-content select="[footer]"></ng-content>
+    </footer>
+  </div>
+</div>
