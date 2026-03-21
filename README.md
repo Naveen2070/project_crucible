@@ -31,8 +31,8 @@ Need to change the primary color? Update your config and run `add` again. Need a
 
 ## 🛠 Features
 
-- **Framework:** React (TypeScript)
-- **Style Systems:** CSS Modules or Tailwind CSS v4 (auto-setup included!)
+- **Frameworks:** React, Vue 3, and Angular (Unified Hybrid Pattern)
+- **Style Systems:** CSS Modules, SCSS, or Tailwind CSS v4 (auto-setup included!)
 - **Themes:** Built-in `minimal` and `soft` presets with easy customization.
 - **Dark Mode:** Automatic OKLCH-based dark mode derivation.
 - **Accessibility:** WCAG-compliant components (Button, Input, Card, Modal, Select).
