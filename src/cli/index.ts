@@ -19,7 +19,7 @@ const program = new Command();
 
 program
   .name('crucible')
-  .description('Design system engine — generates owned React components')
+  .description('Design system engine — scaffolds native, fully-owned components directly into your project')
   .version('0.1.0');
 
 program.addHelpText(
@@ -58,17 +58,17 @@ program
     try {
       const cwd = path.resolve(process.cwd(), opts.cwd);
       const configPath = path.resolve(cwd, opts.config);
-      if (!await fs.pathExists(configPath)) {
+      if (!(await fs.pathExists(configPath))) {
         console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
         process.exit(1);
       }
       const raw = await fs.readJson(configPath);
       const theme = raw.theme || ThemePreset.Minimal;
       const presetTokens = loadPreset(theme);
-      
+
       raw.tokens = { ...presetTokens, ...raw.tokens };
       raw.theme = ThemePreset.Custom;
-      
+
       await fs.writeJson(configPath, raw, { spaces: 2 });
       console.log(chalk.green(`✔ Ejected ${theme} theme into ${opts.config}`));
     } catch (e: any) {
@@ -120,14 +120,19 @@ program
 
     try {
       if (opts.verbose) console.log(chalk.blue(`Reading config from ${opts.config} in ${cwd}...`));
-      
+
       const configPathRelative = path.relative(process.cwd(), path.resolve(cwd, opts.config));
       const config = await readConfig(configPathRelative);
-      
-      const framework = opts.framework !== Framework.React ? opts.framework : (config.framework || Framework.React);
+
+      const framework =
+        opts.framework !== Framework.React ? opts.framework : config.framework || Framework.React;
       if (framework === Framework.Angular && !opts.quiet) {
         console.log(chalk.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
-        console.log(chalk.cyan('  Generating output that relies on native content projection (ng-content).\n'));
+        console.log(
+          chalk.cyan(
+            '  Generating output that relies on native content projection (ng-content).\n',
+          ),
+        );
       }
 
       // Pre-generation token validation (Linting pass)
@@ -150,12 +155,19 @@ program
       for (const comp of componentsToAdd) {
         if (comp === 'Select' || comp === 'Modal') {
           const btnDir = path.join(outDir, 'Button');
-          const extensions = framework === Framework.React ? ['.tsx'] : framework === Framework.Vue ? ['.vue'] : ['.component.ts'];
-          
+          const extensions =
+            framework === Framework.React
+              ? ['.tsx']
+              : framework === Framework.Vue
+                ? ['.vue']
+                : ['.component.ts'];
+
           let btnExists = false;
           for (const ext of extensions) {
-            if (await fs.pathExists(path.join(btnDir, `Button${ext}`)) || 
-                await fs.pathExists(path.join(btnDir, `button${ext}`))) {
+            if (
+              (await fs.pathExists(path.join(btnDir, `Button${ext}`))) ||
+              (await fs.pathExists(path.join(btnDir, `button${ext}`)))
+            ) {
               btnExists = true;
               break;
             }
@@ -183,17 +195,24 @@ program
       for (const comp of Array.from(resolvedComponents)) {
         if (opts.verbose) console.log(chalk.blue(`Building model for ${comp}...`));
         const model = buildComponentModel(comp, tokens, config, generateStories);
-        
+
         if (opts.verbose) console.log(chalk.blue(`Rendering templates for ${comp}...`));
         const files = await renderComponent(model);
 
-        await writeFiles(files, outDir, comp, { force: opts.force, dryRun: opts.dryRun, quiet: opts.quiet, cwd });
+        await writeFiles(files, outDir, comp, {
+          force: opts.force,
+          dryRun: opts.dryRun,
+          quiet: opts.quiet,
+          cwd,
+        });
         const storiesNote = generateStories ? ' + story' : '';
         const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
-        
+
         if (!opts.quiet) {
           console.log(
-            chalk.cyan(`\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`) + dryRunNote,
+            chalk.cyan(
+              `\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`,
+            ) + dryRunNote,
           );
         }
       }
