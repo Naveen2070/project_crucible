@@ -1,5 +1,5 @@
 import React, { useId, useState, createContext, useContext } from 'react';
-import styles from './Input.module.css';
+import styles from './{{name}}.module.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}';
 
 export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};

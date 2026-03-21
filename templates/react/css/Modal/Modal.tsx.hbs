@@ -1,6 +1,6 @@
 import React, { useEffect, useId, createContext, useContext } from 'react';
 import FocusTrap from 'focus-trap-react';
-import styles from './Modal.module.css';
+import styles from './{{name}}.module.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}';
 
 export type ModalVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type ModalSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};

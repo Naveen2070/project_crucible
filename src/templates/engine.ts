@@ -54,8 +54,21 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   }
 
   for (const { tpl, out } of targets) {
-    const tplPath = path.join(tplDir, tpl);
+    let tplPath = path.join(tplDir, tpl);
     // console.log(`DEBUG: Reading template from ${tplPath}`);
+
+    // Fallback logic: If SCSS mode and template doesn't exist in scss folder, fallback to css folder
+    if (model.styleSystem === 'scss' && !(await fs.pathExists(tplPath))) {
+      const fallbackDir = path.join(
+        __dirname,
+        '../../templates',
+        model.framework,
+        'css',
+        model.name,
+      );
+      tplPath = path.join(fallbackDir, tpl);
+    }
+
     if (!(await fs.pathExists(tplPath))) continue;
     const source = await fs.readFile(tplPath, 'utf-8');
     const compiled = Handlebars.compile(source);

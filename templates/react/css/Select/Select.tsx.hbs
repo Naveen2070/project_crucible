@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useId, createContext, useContext } from 'react';
-import styles from './Select.module.css';
+import styles from './{{name}}.module.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}';
 
 export interface SelectOption {
   value: string;
