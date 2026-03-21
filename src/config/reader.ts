@@ -40,7 +40,17 @@ export interface CrucibleConfig {
 }
 
 export async function readConfig(configPath: string): Promise<CrucibleConfig> {
-  const resolved = path.resolve(process.cwd(), configPath);
+  const cwd = process.cwd();
+  const resolved = path.resolve(cwd, configPath);
+
+  // Security: Path Traversal & Extension Protection
+  if (!resolved.startsWith(cwd)) {
+    throw new Error(`Security breach: Config file must be within the project root.`);
+  }
+  if (path.extname(resolved) !== '.json') {
+    throw new Error('Security error: Only .json configuration files are allowed.');
+  }
+
   if (!(await fs.pathExists(resolved))) {
     throw new Error(`Config not found: ${resolved}\nRun: crucible init`);
   }

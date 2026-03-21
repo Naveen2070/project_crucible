@@ -50,8 +50,13 @@ export async function writeFiles(
   }
 
   await Promise.all(Object.entries(files).map(async ([filename, content]) => {
-    const outPath = path.join(componentDir, filename);
+    const outPath = path.resolve(componentDir, filename);
     const hashKey = `${componentName}/${filename}`;
+
+    // Security: Path Traversal Protection
+    if (!outPath.startsWith(path.resolve(componentDir))) {
+      throw new Error(`Security breach: Attempted path traversal to ${outPath}`);
+    }
 
     // Format content with Prettier if possible
     let formattedContent = content;
