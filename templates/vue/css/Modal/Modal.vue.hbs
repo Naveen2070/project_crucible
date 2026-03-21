@@ -29,38 +29,45 @@ const modalClasses = computed(() => [
   `modal--${props.size}`,
   `modal--${props.variant}`,
 ]);
+
+const titleId = `modal-title-${Math.floor(Math.random() * 1000000)}`;
 </script>
 
 <template>
-  <div v-if="isOpen" class="overlay" @click="onClose">
-    <div :class="modalClasses" @click.stop role="dialog" aria-modal="true">
-      <header class="header">
-        {{#if features.compoundComponents}}
-        <slot name="title">
-          <h2 v-if="title" class="title">\{{ title }}</h2>
-        </slot>
-        <slot name="close">
-          <button type="button" class="closeButton" @click="onClose" aria-label="Close modal">
-            &times;
-          </button>
-        </slot>
-        {{else}}
-        <h2 v-if="title" class="title">\{{ title }}</h2>
-        <button type="button" class="closeButton" @click="onClose" aria-label="Close modal">
-          &times;
-        </button>
-        {{/if}}
-      </header>
-      
-      <div class="body">
-        <slot />
-      </div>
-      
-      <footer class="footer">
-        <slot name="footer" />
-      </footer>
+  <slot name="overlay" :close="onClose" :isOpen="isOpen">
+    <div v-if="isOpen" class="overlay" @click="onClose">
+      <slot name="content">
+        <div :class="modalClasses" @click.stop role="dialog" aria-modal="true" :aria-labelledby="titleId">
+          <slot name="header">
+            <header class="header">
+              <slot name="title">
+                <h2 :id="titleId" v-if="title" class="title">\{{ title }}</h2>
+              </slot>
+              <slot name="close">
+                <button type="button" class="closeButton" @click="onClose" aria-label="Close modal">
+                  &times;
+                </button>
+              </slot>
+            </header>
+          </slot>
+          
+          <slot name="body">
+            <div class="body">
+              <slot />
+            </div>
+          </slot>
+          
+          <slot name="footer" v-if="$slots.footer">
+            <footer class="footer">
+              <slot name="footer-content">
+                <slot name="footer" />
+              </slot>
+            </footer>
+          </slot>
+        </div>
+      </slot>
     </div>
-  </div>
+  </slot>
 </template>
 
 <style scoped>

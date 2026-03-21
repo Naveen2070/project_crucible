@@ -18,25 +18,22 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
 
-const variantClasses: Record<ButtonVariant, string> = {
-{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
-{{/each}}};
-
-const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-5 py-2.5 text-base',
-  lg: 'px-7 py-3.5 text-lg',
-};
-
 const classes = computed(() => [
-  'inline-flex items-center justify-center font-medium transition-colors border-[1.5px] border-transparent',
-  'rounded-[var(--radius-md)]',
-  {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}]',
-  'focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
-  'disabled:opacity-45 disabled:cursor-not-allowed gap-[calc(var(--spacing-unit)*2)]',
-  variantClasses[props.variant],
-  sizeClasses[props.size],
-  props.loading ? 'cursor-wait' : '',
+  'inline-flex items-center justify-center gap-2 font-medium border-1.5 border-transparent cursor-pointer rounded-md transition-colors duration-150',
+  {
+    'bg-primary text-surface border-primary hover:brightness-110': props.variant === 'primary',
+    'bg-secondary text-primary border-border hover:bg-primary hover:text-surface': props.variant === 'secondary',
+    'bg-transparent text-text border-border hover:bg-secondary': props.variant === 'ghost',
+    'bg-danger text-surface border-danger hover:brightness-110': props.variant === 'danger',
+    'px-3 py-1.5 text-xs': props.size === 'sm',
+    'px-5 py-2.5 text-sm': props.size === 'md',
+    'px-7 py-3.5 text-base': props.size === 'lg',
+    'opacity-45 cursor-not-allowed': props.disabled,
+    'cursor-wait': props.loading,
+  },
+  {{#if a11y.focusRing}}
+  'focus-visible:outline focus-visible:outline-{{a11y.focusRingWidth}} focus-visible:outline-{{a11y.focusRingColor}} focus-visible:outline-offset-{{a11y.focusRingOffset}}',
+  {{/if}}
 ]);
 </script>
 
@@ -49,13 +46,14 @@ const classes = computed(() => [
   >
     {{#if features.compoundComponents}}
     <slot name="spinner" v-if="loading">
-      <span class="w-[1em] h-[1em] border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
+      <span class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
     </slot>
     <slot name="icon" />
-    <slot />
+    <slot name="label">
+      <slot />
+    </slot>
     {{else}}
-    <span v-if="loading" class="w-[1em] h-[1em] border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
-    <slot name="icon" />
+    <span v-if="loading" class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
     <slot />
     {{/if}}
   </button>

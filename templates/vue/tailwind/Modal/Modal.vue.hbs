@@ -61,58 +61,61 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleEscape);
   document.body.style.overflow = '';
 });
+
+const titleId = `modal-title-${Math.floor(Math.random() * 1000000)}`;
 </script>
 
 <template>
   <Teleport to="body">
-    <div 
-      v-if="isOpen" 
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      @click="onClose"
-    >
+    <slot name="overlay" :close="onClose" :isOpen="isOpen">
       <div 
-        :class="modalClasses" 
-        @click.stop 
-        role="dialog" 
-        aria-modal="true"
+        v-if="isOpen" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        @click="onClose"
       >
-        <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-          {{#if features.compoundComponents}}
-          <slot name="title">
-            <h2 v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
-          </slot>
-          <slot name="close">
-            <button 
-              type="button" 
-              class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl p-2 rounded-[var(--radius-sm)] hover:bg-[var(--color-background)]" 
-              @click="onClose" 
-              aria-label="Close modal"
-            >
-              &times;
-            </button>
-          </slot>
-          {{else}}
-          <h2 v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
-          <button 
-            type="button" 
-            class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl p-2 rounded-[var(--radius-sm)] hover:bg-[var(--color-background)]" 
-            @click="onClose" 
-            aria-label="Close modal"
+        <slot name="content">
+          <div 
+            :class="modalClasses" 
+            @click.stop 
+            role="dialog" 
+            aria-modal="true"
+            :aria-labelledby="titleId"
           >
-            &times;
-          </button>
-          {{/if}}
-        </header>
-        
-        <div class="p-6 overflow-y-auto text-[var(--color-text)] leading-relaxed flex-1">
-          <slot />
-        </div>
-        
-        <footer v-if="$slots.footer" class="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50 flex justify-end gap-3">
-          <slot name="footer" />
-        </footer>
+            <slot name="header">
+              <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+                <slot name="title">
+                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+                </slot>
+                <slot name="close">
+                  <button 
+                    type="button" 
+                    class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl p-2 rounded-[var(--radius-sm)] hover:bg-[var(--color-background)]" 
+                    @click="onClose" 
+                    aria-label="Close modal"
+                  >
+                    &times;
+                  </button>
+                </slot>
+              </header>
+            </slot>
+            
+            <slot name="body">
+              <div class="p-6 overflow-y-auto text-[var(--color-text)] leading-relaxed flex-1">
+                <slot />
+              </div>
+            </slot>
+            
+            <slot name="footer" v-if="$slots.footer">
+              <footer class="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50 flex justify-end gap-3">
+                <slot name="footer-content">
+                  <slot name="footer" />
+                </slot>
+              </footer>
+            </slot>
+          </div>
+        </slot>
       </div>
-    </div>
+    </slot>
   </Teleport>
 </template>
 

@@ -5,28 +5,43 @@ export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/un
 export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 
 interface Props {
+  id?:          string;
   label?:       string;
   placeholder?: string;
   variant?:     InputVariant;
   size?:        InputSize;
   error?:       string;
+  hint?:        string;
   disabled?:    boolean;
   required?:    boolean;
   type?:        'text' | 'password';
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  id: '',
   label: '',
   placeholder: '',
   variant: 'default',
   size: 'md',
   error: '',
+  hint: '',
   disabled: false,
   required: false,
   type: 'text',
 });
 
 const showPassword = ref(false);
+const generatedId = `input-${Math.floor(Math.random() * 1000000)}`;
+const inputId = computed(() => props.id || generatedId);
+const errorId = computed(() => `${inputId.value}-error`);
+const hintId = computed(() => `${inputId.value}-hint`);
+
+const describedBy = computed(() => {
+  const ids = [];
+  if (props.error) ids.push(errorId.value);
+  if (props.hint) ids.push(hintId.value);
+  return ids.join(' ') || undefined;
+});
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
@@ -62,73 +77,46 @@ const inputClasses = computed(() => [
 
 <template>
   <div class="flex flex-col gap-[var(--spacing-unit)] w-full">
-    {{#if features.compoundComponents}}
     <slot name="label">
-      <label v-if="label" class="font-medium text-[var(--color-text)] text-sm">
+      <label v-if="label" :for="inputId" class="font-medium text-[var(--color-text)] text-sm">
         \{{ label }}
         <span v-if="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
       </label>
     </slot>
-    {{else}}
-    <label v-if="label" class="font-medium text-[var(--color-text)] text-sm">
-      \{{ label }}
-      <span v-if="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
-    </label>
-    {{/if}}
     
     <div class="relative w-full">
-      {{#if features.compoundComponents}}
-      <slot name="input">
+      <slot name="field">
         <input
+          :id="inputId"
           :type="currentType"
           :class="inputClasses"
           :placeholder="placeholder"
           :disabled="disabled"
           :aria-invalid="!!error"
           :aria-required="required"
+          :aria-describedby="describedBy"
         >
       </slot>
-      {{else}}
-      <input
-        :type="currentType"
-        :class="inputClasses"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :aria-invalid="!!error"
-        :aria-required="required"
-      >
-      {{/if}}
       
-      {{#if features.compoundComponents}}
       <slot name="toggle" v-if="type === 'password'">
         <button
           type="button"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] rounded-sm"
           @click="togglePassword"
           :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          :aria-pressed="showPassword"
         >
           \{{ showPassword ? 'Hide' : 'Show' }}
         </button>
       </slot>
-      {{else}}
-      <button
-        v-if="type === 'password'"
-        type="button"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] rounded-sm"
-        @click="togglePassword"
-        :aria-label="showPassword ? 'Hide password' : 'Show password'"
-      >
-        \{{ showPassword ? 'Hide' : 'Show' }}
-      </button>
-      {{/if}}
     </div>
 
-    {{#if features.compoundComponents}}
-    <slot name="error">
-      <span v-if="error" class="text-xs text-[var(--color-danger)]" role="alert">\{{ error }}</span>
+    <slot name="hint">
+      <span v-if="hint && !error" :id="hintId" class="text-xs text-[var(--color-text-muted)]">\{{ hint }}</span>
     </slot>
-    {{else}}
-    <span v-if="error" class="text-xs text-[var(--color-danger)]" role="alert">\{{ error }}</span>
-    {{/if}}
+
+    <slot name="error">
+      <span v-if="error" :id="errorId" class="text-xs text-[var(--color-danger)]" role="alert">\{{ error }}</span>
+    </slot>
   </div>
 </template>

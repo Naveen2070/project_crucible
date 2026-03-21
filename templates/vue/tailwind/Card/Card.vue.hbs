@@ -28,9 +28,9 @@ const variantClasses: Record<CardVariant, string> = {
 {{/each}}};
 
 const sizeClasses: Record<CardSize, string> = {
-  sm: 'p-4',
-  md: 'p-6',
-  lg: 'p-8',
+  sm: 'max-w-[300px]',
+  md: 'max-w-[450px]',
+  lg: 'max-w-[600px]',
 };
 
 const isClickable = computed(() => props.variant === 'clickable' || !!props.href);
@@ -42,7 +42,7 @@ const componentTag = computed(() => {
 });
 
 const classes = computed(() => [
-  'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block overflow-hidden',
+  'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block overflow-hidden bg-[var(--color-surface)]',
   {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-2',{{/if}}
   variantClasses[props.variant],
   sizeClasses[props.size],
@@ -58,19 +58,24 @@ const classes = computed(() => [
     :tabindex="isClickable ? 0 : undefined"
     @click="onClick"
   >
-    {{#if features.compoundComponents}}
-    <slot name="title">
-      <div v-if="title" class="font-bold text-lg mb-2 text-[var(--color-text)]">
-        \{{ title }}
+    <slot name="header">
+      <div v-if="title || $slots.title" class="p-4 border-b border-[var(--color-border)]">
+        <slot name="title">
+          <h3 v-if="title" class="font-bold text-lg text-[var(--color-text)]">
+            \{{ title }}
+          </h3>
+        </slot>
       </div>
     </slot>
-    {{else}}
-    <div v-if="title" class="font-bold text-lg mb-2 text-[var(--color-text)]">
-      \{{ title }}
+
+    <div class="p-4">
+      <slot name="content">
+        <slot />
+      </slot>
     </div>
-    {{/if}}
-    <div class="text-[var(--color-text-muted)]">
-      <slot />
-    </div>
+
+    <footer v-if="$slots.footer" class="p-4 border-t border-[var(--color-border)]">
+      <slot name="footer" />
+    </footer>
   </component>
 </template>

@@ -41,10 +41,11 @@ const classes = computed(() => [
       <span class="spinner" aria-hidden="true"></span>
     </slot>
     <slot name="icon" />
-    <slot />
+    <slot name="label">
+      <slot />
+    </slot>
     {{else}}
     <span v-if="loading" class="spinner" aria-hidden="true"></span>
-    <slot name="icon" />
     <slot />
     {{/if}}
   </button>
@@ -103,12 +104,10 @@ const classes = computed(() => [
   &--danger    { background: var(--color-danger);    color: var(--color-surface);  border-color: var(--color-danger); }
 
   {{#if features.hover}}
-  &:not(:disabled):hover {
-    &.btn--primary   { filter: brightness(1.1); }
-    &.btn--secondary { background: var(--color-primary); color: var(--color-surface); }
-    &.btn--ghost     { background: var(--color-secondary); }
-    &.btn--danger    { filter: brightness(1.1); }
-  }
+  &--primary:not(:disabled):hover   { filter: brightness(1.1); }
+  &--secondary:not(:disabled):hover { background: var(--color-primary); color: var(--color-surface); }
+  &--ghost:not(:disabled):hover     { background: var(--color-secondary); }
+  &--danger:not(:disabled):hover    { filter: brightness(1.1); }
   {{/if}}
 
   /* States */

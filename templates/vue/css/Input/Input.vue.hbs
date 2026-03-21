@@ -5,28 +5,43 @@ export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/un
 export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 
 interface Props {
+  id?:          string;
   label?:       string;
   placeholder?: string;
   variant?:     InputVariant;
   size?:        InputSize;
   error?:       string;
+  hint?:        string;
   disabled?:    boolean;
   required?:    boolean;
   type?:        'text' | 'password';
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  id: '',
   label: '',
   placeholder: '',
   variant: 'default',
   size: 'md',
   error: '',
+  hint: '',
   disabled: false,
   required: false,
   type: 'text',
 });
 
 const showPassword = ref(false);
+const generatedId = `input-${Math.floor(Math.random() * 1000000)}`;
+const inputId = computed(() => props.id || generatedId);
+const errorId = computed(() => `${inputId.value}-error`);
+const hintId = computed(() => `${inputId.value}-hint`);
+
+const describedBy = computed(() => {
+  const ids = [];
+  if (props.error) ids.push(errorId.value);
+  if (props.hint) ids.push(hintId.value);
+  return ids.join(' ') || undefined;
+});
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
@@ -51,74 +66,47 @@ const containerClasses = computed(() => [
 
 <template>
   <div :class="containerClasses">
-    {{#if features.compoundComponents}}
     <slot name="label">
-      <label v-if="label" class="label">
+      <label v-if="label" :for="inputId" class="label">
         \{{ label }}
         <span v-if="required" class="required" aria-hidden="true">*</span>
       </label>
     </slot>
-    {{else}}
-    <label v-if="label" class="label">
-      \{{ label }}
-      <span v-if="required" class="required" aria-hidden="true">*</span>
-    </label>
-    {{/if}}
     
     <div class="input-wrapper">
-      {{#if features.compoundComponents}}
-      <slot name="input">
+      <slot name="field">
         <input
+          :id="inputId"
           :type="currentType"
-          :class="['input', \`input--\${size}\`]"
+          :class="['input', `input--${size}`]"
           :placeholder="placeholder"
           :disabled="disabled"
           :aria-invalid="!!error"
           :aria-required="required"
+          :aria-describedby="describedBy"
         >
       </slot>
-      {{else}}
-      <input
-        :type="currentType"
-        :class="['input', \`input--\${size}\`]"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :aria-invalid="!!error"
-        :aria-required="required"
-      >
-      {{/if}}
       
-      {{#if features.compoundComponents}}
       <slot name="toggle" v-if="type === 'password'">
         <button
           type="button"
           class="password-toggle"
           @click="togglePassword"
           :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          :aria-pressed="showPassword"
         >
           \{{ showPassword ? 'Hide' : 'Show' }}
         </button>
       </slot>
-      {{else}}
-      <button
-        v-if="type === 'password'"
-        type="button"
-        class="password-toggle"
-        @click="togglePassword"
-        :aria-label="showPassword ? 'Hide password' : 'Show password'"
-      >
-        \{{ showPassword ? 'Hide' : 'Show' }}
-      </button>
-      {{/if}}
     </div>
 
-    {{#if features.compoundComponents}}
-    <slot name="error">
-      <span v-if="error" class="error" role="alert">\{{ error }}</span>
+    <slot name="hint">
+      <span v-if="hint && !error" :id="hintId" class="hint">\{{ hint }}</span>
     </slot>
-    {{else}}
-    <span v-if="error" class="error" role="alert">\{{ error }}</span>
-    {{/if}}
+
+    <slot name="error">
+      <span v-if="error" :id="errorId" class="error" role="alert">\{{ error }}</span>
+    </slot>
   </div>
 </template>
 
@@ -214,6 +202,13 @@ const containerClasses = computed(() => [
 
 .password-toggle:hover {
   color: var(--color-text);
+}
+
+.hint {
+  color:       var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size:   12px;
+  margin-top:  2px;
 }
 
 .error {

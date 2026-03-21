@@ -37,11 +37,15 @@ const isOpen = ref(false);
 const activeIndex = ref(-1);
 const containerRef = ref<HTMLElement | null>(null);
 
+const listboxId = `select-listbox-${Math.floor(Math.random() * 1000000)}`;
+const getOptionId = (index: number) => `select-option-${listboxId}-${index}`;
+
 const toggle = () => {
   if (!props.disabled) {
     isOpen.value = !isOpen.value;
     if (isOpen.value) {
-      activeIndex.value = props.options.findIndex(o => (o.value || o) === props.value);
+      activeIndex.value = props.options.findIndex(o => (o.value || o) === (props.value?.value || props.value));
+      if (activeIndex.value === -1) activeIndex.value = 0;
     }
   }
 };
@@ -51,8 +55,14 @@ const selectOption = (option: any) => {
   isOpen.value = false;
 };
 
+const isSelected = (option: any) => {
+  const val = props.value?.value || props.value;
+  const optVal = option?.value || option;
+  return val === optVal;
+};
+
 const displayValue = computed(() => {
-  const selected = props.options.find(o => (o.value || o) === props.value);
+  const selected = props.options.find(o => isSelected(o));
   return selected ? (selected.label || selected) : props.placeholder;
 });
 
@@ -89,7 +99,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       isOpen.value = true;
-      activeIndex.value = Math.max(0, props.options.findIndex(o => (o.value || o) === props.value));
+      activeIndex.value = Math.max(0, props.options.findIndex(o => isSelected(o)));
     }
     return;
   }
@@ -123,90 +133,70 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
 });
+
+const activeOptionId = computed(() => 
+  activeIndex.value >= 0 ? getOptionId(activeIndex.value) : undefined
+);
 </script>
 
 <template>
   <div class="flex flex-col gap-[var(--spacing-unit)] w-full relative" ref="containerRef">
-    {{#if features.compoundComponents}}
     <slot name="label">
       <label v-if="label" class="font-medium text-[var(--color-text)] text-sm">\{{ label }}</label>
     </slot>
-    {{else}}
-    <label v-if="label" class="font-medium text-[var(--color-text)] text-sm">\{{ label }}</label>
-    {{/if}}
     
-    <div
-      :class="comboboxClasses"
-      @click="toggle"
-      @keydown="handleKeyDown"
-      :aria-expanded="isOpen"
-      role="combobox"
-      aria-haspopup="listbox"
-      :tabindex="disabled ? -1 : 0"
-    >
-      {{#if features.compoundComponents}}
-      <slot name="value">
-        <span class="truncate flex-1 text-[var(--color-text)]">\{{ displayValue }}</span>
-      </slot>
-      <slot name="arrow">
-        <span class="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
-      </slot>
-      {{else}}
-      <span class="truncate flex-1 text-[var(--color-text)]">\{{ displayValue }}</span>
-      <span class="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
-      {{/if}}
-    </div>
+    <slot name="trigger" :toggle="toggle" :isOpen="isOpen" :displayValue="displayValue">
+      <div
+        :class="comboboxClasses"
+        @click="toggle"
+        @keydown="handleKeyDown"
+        :aria-expanded="isOpen"
+        role="combobox"
+        aria-haspopup="listbox"
+        :aria-controls="listboxId"
+        :aria-activedescendant="activeOptionId"
+        :tabindex="disabled ? -1 : 0"
+      >
+        <slot name="value">
+          <span class="truncate flex-1 text-[var(--color-text)]">\{{ displayValue }}</span>
+        </slot>
+        <slot name="icon">
+          <span class="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
+        </slot>
+      </div>
+    </slot>
 
-    <ul 
-      v-if="isOpen" 
-      class="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-[1.5px] border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none" 
-      role="listbox"
-    >
-      {{#if features.compoundComponents}}
-      <slot name="listbox">
+    <slot name="content" v-if="isOpen">
+      <ul 
+        :id="listboxId"
+        class="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-[1.5px] border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none" 
+        role="listbox"
+      >
         <li
           v-for="(option, index) in options"
           :key="option.value || option"
+          :id="getOptionId(index)"
           @click="selectOption(option)"
           @mouseenter="activeIndex = index"
           :class="[
             'px-4 py-2 cursor-pointer transition-colors text-sm',
-            ((option.value || option) === value) ? 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text)]',
+            isSelected(option) ? 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text)]',
             activeIndex === index ? 'bg-[var(--color-secondary)] text-[var(--color-primary)]' : '',
           ]"
           role="option"
-          :aria-selected="(option.value || option) === value"
+          :aria-selected="isSelected(option)"
         >
-          <slot name="option" :option="option">
-            \{{ option.label || option }}
+          <slot name="item" :option="option" :isSelected="isSelected(option)">
+            <slot name="item-text" :option="option">
+              \{{ option.label || option }}
+            </slot>
           </slot>
         </li>
-      </slot>
-      {{else}}
-      <li
-        v-for="(option, index) in options"
-        :key="option.value || option"
-        @click="selectOption(option)"
-        @mouseenter="activeIndex = index"
-        :class="[
-          'px-4 py-2 cursor-pointer transition-colors text-sm',
-          ((option.value || option) === value) ? 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text)]',
-          activeIndex === index ? 'bg-[var(--color-secondary)] text-[var(--color-primary)]' : '',
-        ]"
-        role="option"
-        :aria-selected="(option.value || option) === value"
-      >
-        \{{ option.label || option }}
-      </li>
-      {{/if}}
-    </ul>
+      </ul>
+    </slot>
 
-    {{#if features.compoundComponents}}
     <slot name="error">
       <span v-if="error" class="text-xs text-[var(--color-danger)] mt-1" role="alert">\{{ error }}</span>
     </slot>
-    {{else}}
-    <span v-if="error" class="text-xs text-[var(--color-danger)] mt-1" role="alert">\{{ error }}</span>
-    {{/if}}
   </div>
 </template>

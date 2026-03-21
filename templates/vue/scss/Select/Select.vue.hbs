@@ -29,10 +29,57 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:value']);
 
 const isOpen = ref(false);
+const activeIndex = ref(-1);
+
+const listboxId = `select-listbox-${Math.floor(Math.random() * 1000000)}`;
+const getOptionId = (index: number) => `select-option-${listboxId}-${index}`;
 
 const toggle = () => {
   if (!props.disabled) {
     isOpen.value = !isOpen.value;
+    if (isOpen.value) {
+      activeIndex.value = props.options.findIndex(o => (o.value || o) === (props.value?.value || props.value));
+      if (activeIndex.value === -1) activeIndex.value = 0;
+    }
+  }
+};
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (props.disabled) return;
+
+  if (!isOpen.value) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      toggle();
+    }
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      activeIndex.value = Math.min(activeIndex.value + 1, props.options.length - 1);
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      activeIndex.value = Math.max(activeIndex.value - 1, 0);
+      break;
+    case 'Enter':
+    case ' ':
+      e.preventDefault();
+      if (activeIndex.value >= 0) {
+        selectOption(props.options[activeIndex.value]);
+      }
+      break;
+    case 'Escape':
+      isOpen.value = false;
+      break;
+    case 'Home':
+      activeIndex.value = 0;
+      break;
+    case 'End':
+      activeIndex.value = props.options.length - 1;
+      break;
   }
 };
 
@@ -41,8 +88,15 @@ const selectOption = (option: any) => {
   isOpen.value = false;
 };
 
+const isSelected = (option: any) => {
+  const val = props.value?.value || props.value;
+  const optVal = option?.value || option;
+  return val === optVal;
+};
+
 const displayValue = computed(() => {
-  return props.value ? (props.value.label || props.value) : props.placeholder;
+  const selected = props.options.find(o => isSelected(o));
+  return selected ? (selected.label || selected) : props.placeholder;
 });
 
 const comboboxClasses = computed(() => [
@@ -54,74 +108,62 @@ const comboboxClasses = computed(() => [
     'combobox--open': isOpen.value,
   },
 ]);
+
+const activeOptionId = computed(() => 
+  activeIndex.value >= 0 ? getOptionId(activeIndex.value) : undefined
+);
 </script>
 
 <template>
   <div class="container">
-    {{#if features.compoundComponents}}
     <slot name="label">
       <label v-if="label" class="label">\{{ label }}</label>
     </slot>
-    {{else}}
-    <label v-if="label" class="label">\{{ label }}</label>
-    {{/if}}
     
-    <div
-      :class="comboboxClasses"
-      @click="toggle"
-      :aria-expanded="isOpen"
-      role="combobox"
-      aria-haspopup="listbox"
-      tabindex="0"
-    >
-      {{#if features.compoundComponents}}
-      <slot name="value">
-        <span class="value">\{{ displayValue }}</span>
-      </slot>
-      <slot name="arrow">
-        <span class="arrow" aria-hidden="true">▼</span>
-      </slot>
-      {{else}}
-      <span class="value">\{{ displayValue }}</span>
-      <span class="arrow" aria-hidden="true">▼</span>
-      {{/if}}
-    </div>
+    <slot name="trigger" :toggle="toggle" :isOpen="isOpen" :displayValue="displayValue">
+      <div
+        :class="comboboxClasses"
+        @click="toggle"
+        @keydown="handleKeyDown"
+        :aria-expanded="isOpen"
+        role="combobox"
+        aria-haspopup="listbox"
+        :aria-controls="listboxId"
+        :aria-activedescendant="activeOptionId"
+        :tabindex="disabled ? -1 : 0"
+      >
+        <slot name="value">
+          <span class="value">\{{ displayValue }}</span>
+        </slot>
+        <slot name="icon">
+          <span class="arrow" aria-hidden="true">▼</span>
+        </slot>
+      </div>
+    </slot>
 
-    <ul v-if="isOpen" class="listbox" role="listbox">
-      {{#if features.compoundComponents}}
-      <slot name="listbox">
+    <slot name="content" v-if="isOpen">
+      <ul :id="listboxId" class="listbox" role="listbox">
         <li
-          v-for="option in options"
+          v-for="(option, i) in options"
           :key="option.value || option"
+          :id="getOptionId(i)"
           @click="selectOption(option)"
-          :class="['option', { 'option--selected': value === option }]"
+          :class="['option', { 'option--selected': isSelected(option), 'option--active': activeIndex === i }]"
           role="option"
+          :aria-selected="isSelected(option)"
         >
-          <slot name="option" :option="option">
-            \{{ option.label || option }}
+          <slot name="item" :option="option" :isSelected="isSelected(option)">
+            <slot name="item-text" :option="option">
+              \{{ option.label || option }}
+            </slot>
           </slot>
         </li>
-      </slot>
-      {{else}}
-      <li
-        v-for="option in options"
-        :key="option.value || option"
-        @click="selectOption(option)"
-        :class="['option', { 'option--selected': value === option }]"
-        role="option"
-      >
-        \{{ option.label || option }}
-      </li>
-      {{/if}}
-    </ul>
+      </ul>
+    </slot>
 
-    {{#if features.compoundComponents}}
     <slot name="error">
       <span v-if="error" class="error" role="alert">\{{ error }}</span>
     </slot>
-    {{else}}
-    <span v-if="error" class="error" role="alert">\{{ error }}</span>
-    {{/if}}
   </div>
 </template>
 
@@ -246,6 +288,11 @@ const comboboxClasses = computed(() => [
         font-weight: 600;
         background:  var(--color-secondary);
         color:       var(--color-primary);
+      }
+
+      &--active {
+        background: var(--color-secondary);
+        color:      var(--color-primary);
       }
     }
   }
