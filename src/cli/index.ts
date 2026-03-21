@@ -13,6 +13,7 @@ import { runInit } from './init';
 import { checkAndSetupTailwind } from './tailwind';
 import { loadPreset } from '../themes';
 import { Framework, StyleSystem, ThemePreset } from '../core/enums';
+import { runDoctor } from './doctor';
 
 const program = new Command();
 
@@ -28,6 +29,7 @@ Examples:
   $ npx crucible init
   $ npx crucible add Button
   $ npx crucible add Input Card --framework react --cwd ./packages/ui
+  $ npx crucible doctor
   $ npx crucible list
 
 For more details, visit: https://github.com/crucible-ui/crucible
@@ -40,6 +42,12 @@ program
   .option('-y, --yes', 'Skip prompts and use defaults')
   .option('--cwd <path>', 'Current working directory', '.')
   .action((opts) => runInit({ yes: opts.yes, cwd: path.resolve(process.cwd(), opts.cwd) }));
+
+program
+  .command('doctor')
+  .description('Proactively validate your Crucible configuration and environment setup')
+  .option('--cwd <path>', 'Current working directory', '.')
+  .action((opts) => runDoctor({ cwd: path.resolve(process.cwd(), opts.cwd) }));
 
 program
   .command('eject')
