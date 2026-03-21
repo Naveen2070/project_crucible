@@ -7,7 +7,7 @@ export interface ComponentModel {
   isReact: boolean;
   isAngular: boolean;
   isVue: boolean;
-  styleSystem: 'css' | 'tailwind';
+  styleSystem: 'css' | 'tailwind' | 'scss';
   variants: string[];
   sizes: string[];
   states: string[];
@@ -42,21 +42,26 @@ const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
       'bg-[var(--color-danger)] text-[var(--color-surface)] border-[var(--color-danger)] hover:brightness-110',
   },
   Input: {
-    default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-    error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+    default:
+      'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
+    error:
+      'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
   },
   Card: {
     default: 'bg-[var(--color-surface)] border-[var(--color-border)]',
     hoverable: 'bg-[var(--color-surface)] border-[var(--color-border)] hover:shadow-lg',
-    clickable: 'bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg',
+    clickable:
+      'bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg',
   },
   Modal: {
     default: 'bg-[var(--color-surface)]',
     confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
   },
   Select: {
-    default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-    error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+    default:
+      'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
+    error:
+      'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
   },
 };
 
