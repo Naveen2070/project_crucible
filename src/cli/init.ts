@@ -37,7 +37,8 @@ const DEFAULT_CONFIG = `{
     "reduceMotion": true
   },
   "flags": {
-    "outputDir": "src/components"
+    "outputDir": "src/components",
+    "stories": false
   }
 }
 `;
@@ -59,6 +60,7 @@ export async function runInit(opts: { yes?: boolean } = {}) {
   let styleSystem = 'css';
   let outputDir = 'src/components';
   let compoundComponents = true;
+  let generateStories = false;
 
   if (!opts.yes) {
     framework = await select({
@@ -86,6 +88,11 @@ export async function runInit(opts: { yes?: boolean } = {}) {
       });
     }
 
+    generateStories = await confirm({
+      message: 'Generate Storybook stories by default?',
+      default: false,
+    });
+
     outputDir = await input({
       message: 'Where should components be generated?',
       default: 'src/components',
@@ -100,7 +107,8 @@ export async function runInit(opts: { yes?: boolean } = {}) {
     .replace('"framework": "react"', `"framework": "${framework}"`)
     .replace('"styleSystem": "css"', `"styleSystem": "${styleSystem}"`)
     .replace('"outputDir": "src/components"', `"outputDir": "${outputDir}"`)
-    .replace('"compoundComponents": true', `"compoundComponents": ${compoundComponents}`);
+    .replace('"compoundComponents": true', `"compoundComponents": ${compoundComponents}`)
+    .replace('"stories": false', `"stories": ${generateStories}`);
 
   await fs.writeFile(configPath, configContent, 'utf-8');
   console.log(chalk.green('✔ Created crucible.config.json with minimal setup.'));

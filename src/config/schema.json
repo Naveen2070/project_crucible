@@ -64,7 +64,8 @@
     "flags": {
       "type": "object",
       "properties": {
-        "outputDir": { "type": "string" }
+        "outputDir": { "type": "string" },
+        "stories": { "type": "boolean" }
       }
     }
   },
