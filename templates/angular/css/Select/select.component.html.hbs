@@ -13,12 +13,13 @@
     <span class="arrow" aria-hidden="true">▼</span>
   </div>
 
-  <ul *ngIf="isOpen" class="listbox" role="listbox">
+  <ul *ngIf="isOpen" class="listbox" role="listbox" #listbox>
     <li
-      *ngFor="let option of options"
+      *ngFor="let option of options; let i = index"
       (click)="selectOption(option)"
       [class.option]="true"
       [class.option--selected]="value === option"
+      [class.option--active]="activeIndex === i"
       role="option"
     >
       \{{ option.label || option }}

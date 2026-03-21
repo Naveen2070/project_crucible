@@ -53,14 +53,25 @@ export async function runInit(opts: { yes?: boolean } = {}) {
     }
   }
 
+  let framework = 'react';
   let styleSystem = 'css';
   let outputDir = 'src/components';
 
   if (!opts.yes) {
+    framework = await select({
+      message: 'Which framework are you using?',
+      choices: [
+        { name: 'React', value: 'react' },
+        { name: 'Angular', value: 'angular' },
+        { name: 'Vue 3', value: 'vue' },
+      ],
+    });
+
     styleSystem = await select({
       message: 'Which styling system do you want to use?',
       choices: [
         { name: 'CSS Modules (Vanilla)', value: 'css' },
+        { name: 'SCSS Modules', value: 'scss' },
         { name: 'Tailwind CSS', value: 'tailwind' },
       ],
     });
@@ -72,6 +83,7 @@ export async function runInit(opts: { yes?: boolean } = {}) {
   }
 
   const configContent = DEFAULT_CONFIG
+    .replace('"framework": "react"', `"framework": "${framework}"`)
     .replace('"styleSystem": "css"', `"styleSystem": "${styleSystem}"`)
     .replace('"outputDir": "src/components"', `"outputDir": "${outputDir}"`);
 

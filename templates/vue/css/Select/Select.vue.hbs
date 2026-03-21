@@ -29,10 +29,77 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:value']);
 
 const isOpen = ref(false);
+const activeIndex = ref(-1);
+const searchString = ref('');
+let searchTimeout: any;
 
 const toggle = () => {
   if (!props.disabled) {
     isOpen.value = !isOpen.value;
+    if (isOpen.value) {
+      activeIndex.value = props.options.findIndex(o => o === props.value || o.value === props.value);
+      if (activeIndex.value === -1) activeIndex.value = 0;
+    }
+  }
+};
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (props.disabled) return;
+
+  // Type-ahead
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    searchString.value += e.key.toLowerCase();
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      searchString.value = '';
+    }, 500);
+
+    const matchIndex = props.options.findIndex((opt) =>
+      (opt.label || opt).toLowerCase().startsWith(searchString.value)
+    );
+
+    if (matchIndex >= 0) {
+      activeIndex.value = matchIndex;
+      if (!isOpen.value) {
+        selectOption(props.options[matchIndex]);
+      }
+    }
+    return;
+  }
+
+  if (!isOpen.value) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      toggle();
+    }
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      activeIndex.value = Math.min(activeIndex.value + 1, props.options.length - 1);
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      activeIndex.value = Math.max(activeIndex.value - 1, 0);
+      break;
+    case 'Enter':
+    case ' ':
+      e.preventDefault();
+      if (activeIndex.value >= 0) {
+        selectOption(props.options[activeIndex.value]);
+      }
+      break;
+    case 'Escape':
+      isOpen.value = false;
+      break;
+    case 'Home':
+      activeIndex.value = 0;
+      break;
+    case 'End':
+      activeIndex.value = props.options.length - 1;
+      break;
   }
 };
 
@@ -69,6 +136,7 @@ const comboboxClasses = computed(() => [
     <div
       :class="comboboxClasses"
       @click="toggle"
+      @keydown="handleKeyDown"
       :aria-expanded="isOpen"
       role="combobox"
       aria-haspopup="listbox"
@@ -104,10 +172,10 @@ const comboboxClasses = computed(() => [
       </slot>
       {{else}}
       <li
-        v-for="option in options"
+        v-for="(option, i) in options"
         :key="option.value || option"
         @click="selectOption(option)"
-        :class="['option', { 'option--selected': value === option }]"
+        :class="['option', { 'option--selected': value === option, 'option--active': activeIndex === i }]"
         role="option"
       >
         \{{ option.label || option }}

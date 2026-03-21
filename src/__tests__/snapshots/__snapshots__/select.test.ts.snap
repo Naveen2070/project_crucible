@@ -87,8 +87,79 @@ export const SelectRoot = ({
 };
 
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
-  const { isOpen, setIsOpen, labelId, listboxId, size, disabled, activeIndex, id } = useSelectContext();
+  const { 
+    isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
+    value, options, disabled, id, onChange 
+  } = useSelectContext();
   
+  const searchString = useRef('');
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+
+    // Type-ahead logic
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      searchString.current += e.key.toLowerCase();
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+      searchTimeout.current = setTimeout(() => {
+        searchString.current = '';
+      }, 500);
+
+      const matchIndex = options.findIndex((opt) =>
+        opt.label.toLowerCase().startsWith(searchString.current)
+      );
+
+      if (matchIndex >= 0) {
+        setActiveIndex(matchIndex);
+        if (!isOpen) {
+          onChange?.(options[matchIndex].value);
+        }
+      }
+      return;
+    }
+
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setIsOpen(true);
+        const currentIndex = options.findIndex(o => o.value === value);
+        setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (activeIndex >= 0) {
+          onChange?.(options[activeIndex].value);
+          setIsOpen(false);
+        }
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveIndex(options.length - 1);
+        break;
+    }
+  };
+
   return (
     <div
       className={[
@@ -104,6 +175,7 @@ export const SelectTrigger = ({ children, className }: { children: React.ReactNo
       aria-labelledby={labelId}
       aria-controls={listboxId}
       tabIndex={disabled ? -1 : 0}
+      onKeyDown={handleKeyDown}
       onClick={() => !disabled && setIsOpen(!isOpen)}
       aria-activedescendant={activeIndex >= 0 ? \`\${id}-option-\${activeIndex}\` : undefined}
     >
@@ -494,17 +566,16 @@ const SelectLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const SelectTrigger: React.FC = () => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, error, variant, size, placeholder, id, onChange 
+    value, options, disabled, id, onChange 
   } = useSelectContext();
-  const listboxRef = useRef<HTMLUListElement>(null);
+  
   const searchString = useRef('');
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const selectedOption = options.find((opt) => opt.value === value);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
 
+    // Type-ahead logic
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       searchString.current += e.key.toLowerCase();
       if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -529,7 +600,8 @@ const SelectTrigger: React.FC = () => {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         setIsOpen(true);
-        setActiveIndex(selectedOption ? options.findIndex(o => o.value === value) : 0);
+        const currentIndex = options.findIndex(o => o.value === value);
+        setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
       }
       return;
     }
@@ -545,6 +617,7 @@ const SelectTrigger: React.FC = () => {
         break;
       case 'Enter':
       case ' ':
+        e.preventDefault();
         if (activeIndex >= 0) {
           onChange?.(options[activeIndex].value);
           setIsOpen(false);
@@ -552,6 +625,14 @@ const SelectTrigger: React.FC = () => {
         break;
       case 'Escape':
         setIsOpen(false);
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveIndex(options.length - 1);
         break;
     }
   };
@@ -579,7 +660,7 @@ const SelectTrigger: React.FC = () => {
         aria-activedescendant={activeIndex >= 0 ? \`\${id}-option-\${activeIndex}\` : undefined}
       >
         <span className="truncate flex-1 text-[var(--color-text)]">
-          {selectedOption ? selectedOption.label : placeholder}
+          {options.find(o => o.value === value)?.label || placeholder}
         </span>
         <span className="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
       </div>

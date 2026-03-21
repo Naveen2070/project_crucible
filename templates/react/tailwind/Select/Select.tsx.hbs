@@ -105,17 +105,16 @@ const SelectLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const SelectTrigger: React.FC = () => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, error, variant, size, placeholder, id, onChange 
+    value, options, disabled, id, onChange 
   } = useSelectContext();
-  const listboxRef = useRef<HTMLUListElement>(null);
+  
   const searchString = useRef('');
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const selectedOption = options.find((opt) => opt.value === value);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
 
+    // Type-ahead logic
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       searchString.current += e.key.toLowerCase();
       if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -140,7 +139,8 @@ const SelectTrigger: React.FC = () => {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         setIsOpen(true);
-        setActiveIndex(selectedOption ? options.findIndex(o => o.value === value) : 0);
+        const currentIndex = options.findIndex(o => o.value === value);
+        setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
       }
       return;
     }
@@ -156,6 +156,7 @@ const SelectTrigger: React.FC = () => {
         break;
       case 'Enter':
       case ' ':
+        e.preventDefault();
         if (activeIndex >= 0) {
           onChange?.(options[activeIndex].value);
           setIsOpen(false);
@@ -163,6 +164,14 @@ const SelectTrigger: React.FC = () => {
         break;
       case 'Escape':
         setIsOpen(false);
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveIndex(options.length - 1);
         break;
     }
   };
@@ -190,7 +199,7 @@ const SelectTrigger: React.FC = () => {
         aria-activedescendant={activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined}
       >
         <span className="truncate flex-1 text-[var(--color-text)]">
-          {selectedOption ? selectedOption.label : placeholder}
+          {options.find(o => o.value === value)?.label || placeholder}
         </span>
         <span className="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
       </div>
