@@ -61,6 +61,10 @@ export const CardHeader = ({ children, className }: { children: React.ReactNode;
   <div className={[styles.header, className].filter(Boolean).join(' ')}>{children}</div>
 );
 
+export const CardTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <h3 className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h3>
+);
+
 export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles.content, className].filter(Boolean).join(' ')}>{children}</div>
 );
@@ -71,6 +75,7 @@ export const CardFooter = ({ children, className }: { children: React.ReactNode;
 
 export const Card = Object.assign(CardRoot, {
   Header: CardHeader,
+  Title: CardTitle,
   Content: CardContent,
   Footer: CardFooter,
 });
@@ -78,6 +83,7 @@ export const Card = Object.assign(CardRoot, {
 Card.displayName = 'Card';
 CardRoot.displayName = 'Card.Root';
 CardHeader.displayName = 'Card.Header';
+CardTitle.displayName = 'Card.Title';
 CardContent.displayName = 'Card.Content';
 CardFooter.displayName = 'Card.Footer';
 {{else}}
