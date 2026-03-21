@@ -21,6 +21,7 @@ interface InputContextValue {
   variant: InputVariant;
   size: InputSize;
   error?: string;
+  hint?: string;
   required?: boolean;
   disabled?: boolean;
 }
@@ -38,6 +39,7 @@ export const InputRoot = ({
   variant = 'default',
   size = 'md',
   error,
+  hint,
   required,
   disabled,
   id: providedId,
@@ -47,6 +49,7 @@ export const InputRoot = ({
   variant?: InputVariant;
   size?: InputSize;
   error?: string;
+  hint?: string;
   required?: boolean;
   disabled?: boolean;
   id?: string;
@@ -56,7 +59,7 @@ export const InputRoot = ({
   const id = providedId || generatedId;
 
   return (
-    <InputContext.Provider value={{ id, variant, size, error, required, disabled }}>
+    <InputContext.Provider value={{ id, variant, size, error, hint, required, disabled }}>
       <div className={[styles['input-container'], className].filter(Boolean).join(' ')}>
         {children}
       </div>
@@ -76,7 +79,7 @@ export const InputLabel = ({ children, className }: { children: React.ReactNode;
 
 export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>>(
   ({ className, type = 'text', ...props }, ref) => {
-    const { id, variant, size, error, disabled, required } = useInputContext();
+    const { id, variant, size, error, hint, disabled, required } = useInputContext();
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
     const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
@@ -90,6 +93,11 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       className,
     ].filter(Boolean).join(' ');
 
+    const describedBy = [
+      error ? \`\${id}-error\` : null,
+      hint ? \`\${id}-hint\` : null,
+    ].filter(Boolean).join(' ') || undefined;
+
     return (
       <div className={styles['input-wrapper']}>
         <input
@@ -99,6 +107,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
           className={cls}
           aria-invalid={!!error}
           aria-required={required}
+          aria-describedby={describedBy}
           disabled={disabled}
           {...props}
         />
@@ -127,10 +136,20 @@ export const InputError = ({ children, className }: { children: React.ReactNode;
   );
 };
 
+export const InputHint = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { id } = useInputContext();
+  return (
+    <span id={\`\${id}-hint\`} className={[styles.hint, className].filter(Boolean).join(' ')}>
+      {children}
+    </span>
+  );
+};
+
 export const Input = Object.assign(InputRoot, {
   Label: InputLabel,
   Field: InputField,
   Error: InputError,
+  Hint: InputHint,
 });
 
 Input.displayName = 'Input';
@@ -138,6 +157,7 @@ InputRoot.displayName = 'Input.Root';
 InputLabel.displayName = 'Input.Label';
 InputField.displayName = 'Input.Field';
 InputError.displayName = 'Input.Error';
+InputHint.displayName = 'Input.Hint';
 "
 `;
 
@@ -365,6 +385,7 @@ interface InputContextValue {
   variant: InputVariant;
   size: InputSize;
   error?: string;
+  hint?: string;
   required?: boolean;
   disabled?: boolean;
 }
@@ -382,6 +403,7 @@ export const InputRoot = ({
   variant = 'default',
   size = 'md',
   error,
+  hint,
   required,
   disabled,
   id: providedId,
@@ -391,6 +413,7 @@ export const InputRoot = ({
   variant?: InputVariant;
   size?: InputSize;
   error?: string;
+  hint?: string;
   required?: boolean;
   disabled?: boolean;
   id?: string;
@@ -400,7 +423,7 @@ export const InputRoot = ({
   const id = providedId || generatedId;
 
   return (
-    <InputContext.Provider value={{ id, variant, size, error, required, disabled }}>
+    <InputContext.Provider value={{ id, variant, size, error, hint, required, disabled }}>
       <div className={['flex flex-col gap-[var(--spacing-unit)] w-full', className].filter(Boolean).join(' ')}>
         {children}
       </div>
@@ -420,7 +443,7 @@ export const InputLabel = ({ children, className }: { children: React.ReactNode;
 
 export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>>(
   ({ className, type = 'text', ...props }, ref) => {
-    const { id, variant, size, error, disabled, required } = useInputContext();
+    const { id, variant, size, error, hint, disabled, required } = useInputContext();
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
     const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
@@ -436,6 +459,11 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       className,
     ].filter(Boolean).join(' ');
 
+    const describedBy = [
+      error ? \`\${id}-error\` : null,
+      hint ? \`\${id}-hint\` : null,
+    ].filter(Boolean).join(' ') || undefined;
+
     return (
       <div className="relative w-full">
         <input
@@ -445,6 +473,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
           className={cls}
           aria-invalid={!!error}
           aria-required={required}
+          aria-describedby={describedBy}
           disabled={disabled}
           {...props}
         />
@@ -473,10 +502,20 @@ export const InputError = ({ children, className }: { children: React.ReactNode;
   );
 };
 
+export const InputHint = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { id } = useInputContext();
+  return (
+    <span id={\`\${id}-hint\`} className={['text-xs text-[var(--color-text-muted)]', className].filter(Boolean).join(' ')}>
+      {children}
+    </span>
+  );
+};
+
 export const Input = Object.assign(InputRoot, {
   Label: InputLabel,
   Field: InputField,
   Error: InputError,
+  Hint: InputHint,
 });
 
 Input.displayName = 'Input';
@@ -484,6 +523,7 @@ InputRoot.displayName = 'Input.Root';
 InputLabel.displayName = 'Input.Label';
 InputField.displayName = 'Input.Field';
 InputError.displayName = 'Input.Error';
+InputHint.displayName = 'Input.Hint';
 "
 `;
 
