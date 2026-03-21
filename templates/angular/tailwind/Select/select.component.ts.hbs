@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
 
 const variantClasses: Record<string, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
@@ -27,9 +27,84 @@ export class SelectComponent {
 
   @Output() valueChange = new EventEmitter<any>();
 
+  @ViewChild('listbox') listbox?: ElementRef;
+  @ViewChild('trigger') trigger?: ElementRef;
+
+  id = 'select-' + Math.random().toString(36).substr(2, 9);
   isOpen = false;
+  activeIndex = -1;
+  private searchString = '';
+  private searchTimeout?: any;
 
   constructor(private elementRef: ElementRef) {}
+
+  @HostListener('keydown', ['$event'])
+  handleKeyDown(e: KeyboardEvent) {
+    if (this.disabled) return;
+
+    // Type-ahead
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      this.searchString += e.key.toLowerCase();
+      if (this.searchTimeout) clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.searchString = '';
+      }, 500);
+
+      const matchIndex = this.options.findIndex((opt) =>
+        (opt.label || opt).toString().toLowerCase().startsWith(this.searchString)
+      );
+
+      if (matchIndex >= 0) {
+        this.activeIndex = matchIndex;
+        if (!this.isOpen) {
+          this.selectOption(this.options[matchIndex]);
+        } else {
+          this.scrollToActive();
+        }
+      }
+      return;
+    }
+
+    if (!this.isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        this.toggle();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        this.activeIndex = Math.min(this.activeIndex + 1, this.options.length - 1);
+        this.scrollToActive();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this.activeIndex = Math.max(this.activeIndex - 1, 0);
+        this.scrollToActive();
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (this.activeIndex >= 0) {
+          this.selectOption(this.options[this.activeIndex]);
+        }
+        break;
+      case 'Escape':
+      case 'Tab':
+        this.isOpen = false;
+        break;
+      case 'Home':
+        this.activeIndex = 0;
+        this.scrollToActive();
+        break;
+      case 'End':
+        this.activeIndex = this.options.length - 1;
+        this.scrollToActive();
+        break;
+    }
+  }
 
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
@@ -41,24 +116,52 @@ export class SelectComponent {
   toggle() {
     if (!this.disabled) {
       this.isOpen = !this.isOpen;
+      if (this.isOpen) {
+        this.activeIndex = this.options.findIndex(o => {
+          const optValue = o.value !== undefined ? o.value : o;
+          return optValue === this.value;
+        });
+        if (this.activeIndex === -1) this.activeIndex = 0;
+        setTimeout(() => this.scrollToActive());
+      }
     }
   }
 
   selectOption(option: any) {
-    this.value = option;
-    this.valueChange.emit(option);
+    const selectedValue = option.value !== undefined ? option.value : option;
+    this.value = selectedValue;
+    this.valueChange.emit(selectedValue);
     this.isOpen = false;
+    this.trigger?.nativeElement.focus();
+  }
+
+  private scrollToActive() {
+    if (this.listbox && this.activeIndex >= 0) {
+      const activeEl = this.listbox.nativeElement.children[this.activeIndex] as HTMLElement;
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
   }
 
   get displayValue(): string {
-    return this.value ? (this.value.label || this.value) : this.placeholder;
+    const selectedOption = this.options.find(o => {
+      const optValue = o.value !== undefined ? o.value : o;
+      return optValue === this.value;
+    });
+    
+    if (selectedOption) {
+      return selectedOption.label || selectedOption;
+    }
+    
+    return this.placeholder;
   }
 
   get triggerClasses(): string {
     return [
-      'flex items-center justify-between bg-[var(--color-surface)] border-1.5 rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
+      'flex items-center justify-between w-full bg-[var(--color-surface)] border-1.5 border-[var(--color-border)] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
       {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
-      this.isOpen ? 'border-[var(--color-primary)] rounded-b-none' : '',
+      this.isOpen ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : '',
       this.disabled ? 'opacity-50 cursor-not-allowed bg-[var(--color-background)]' : '',
       (this.variant === 'error' || this.error) ? 'border-[var(--color-danger)]' : '',
       variantClasses[this.variant],

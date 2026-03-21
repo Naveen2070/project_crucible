@@ -92,9 +92,9 @@ program
       const config = await readConfig(opts.config);
       
       const framework = opts.framework !== 'react' ? opts.framework : (config.framework || 'react');
-      if (config.features.compoundComponents && framework === 'angular') {
-        console.warn(chalk.yellow('\n⚠ compoundComponents is not supported for Angular.'));
-        console.warn(chalk.yellow('  Ignored — generating idiomatic Angular output with @Input() and ng-content.\n'));
+      if (framework === 'angular') {
+        console.log(chalk.cyan('\nℹ Angular uses a unified hybrid pattern.'));
+        console.log(chalk.cyan('  Generating idiomatic output that supports both monolithic and compound usage.\n'));
       }
 
       // Pre-generation token validation (Linting pass)

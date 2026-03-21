@@ -23,7 +23,7 @@ export class ButtonComponent {
 
   get classes(): string {
     return [
-      'inline-flex items-center justify-center font-medium transition-colors border-1.5 border-transparent',
+      'inline-flex items-center justify-center font-medium transition-colors border-[1.5px] border-transparent',
       'rounded-[var(--radius-md)]',
       {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}]',
       'focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}

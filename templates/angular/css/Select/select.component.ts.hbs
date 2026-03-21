@@ -18,7 +18,9 @@ export class SelectComponent {
   @Output() valueChange = new EventEmitter<any>();
 
   @ViewChild('listbox') listbox?: ElementRef;
+  @ViewChild('trigger') trigger?: ElementRef;
 
+  id = 'select-' + Math.random().toString(36).substr(2, 9);
   isOpen = false;
   activeIndex = -1;
   private searchString = '';
@@ -37,7 +39,7 @@ export class SelectComponent {
       }, 500);
 
       const matchIndex = this.options.findIndex((opt) =>
-        (opt.label || opt).toLowerCase().startsWith(this.searchString)
+        (opt.label || opt).toString().toLowerCase().startsWith(this.searchString)
       );
 
       if (matchIndex >= 0) {
@@ -78,6 +80,7 @@ export class SelectComponent {
         }
         break;
       case 'Escape':
+      case 'Tab':
         this.isOpen = false;
         break;
       case 'Home':
@@ -104,7 +107,10 @@ export class SelectComponent {
     if (!this.disabled) {
       this.isOpen = !this.isOpen;
       if (this.isOpen) {
-        this.activeIndex = this.options.findIndex(o => o === this.value || o.value === this.value);
+        this.activeIndex = this.options.findIndex(o => {
+          const optValue = o.value !== undefined ? o.value : o;
+          return optValue === this.value;
+        });
         if (this.activeIndex === -1) this.activeIndex = 0;
         setTimeout(() => this.scrollToActive());
       }
@@ -112,9 +118,11 @@ export class SelectComponent {
   }
 
   selectOption(option: any) {
-    this.value = option;
-    this.valueChange.emit(option);
+    const selectedValue = option.value !== undefined ? option.value : option;
+    this.value = selectedValue;
+    this.valueChange.emit(selectedValue);
     this.isOpen = false;
+    this.trigger?.nativeElement.focus();
   }
 
   private scrollToActive() {
@@ -127,7 +135,16 @@ export class SelectComponent {
   }
 
   get displayValue(): string {
-    return this.value ? (this.value.label || this.value) : this.placeholder;
+    const selectedOption = this.options.find(o => {
+      const optValue = o.value !== undefined ? o.value : o;
+      return optValue === this.value;
+    });
+    
+    if (selectedOption) {
+      return selectedOption.label || selectedOption;
+    }
+    
+    return this.placeholder;
   }
 
   get comboboxClasses(): string {

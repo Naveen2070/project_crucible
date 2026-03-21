@@ -23,10 +23,18 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   @Output() close = new EventEmitter<void>();
 
+  titleId = 'modal-title-' + Math.random().toString(36).substring(2, 9);
+
   ngOnInit() {}
 
   ngOnDestroy() {
     document.body.style.overflow = '';
+  }
+
+  @Input() showFooter = false;
+
+  get hasFooter(): boolean {
+    return this.showFooter;
   }
 
   onClose() {
@@ -35,7 +43,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   get modalClasses(): string {
     return [
-      'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden',
+      'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden relative',
       variantClasses[this.variant],
       sizeClasses[this.size],
       this.className

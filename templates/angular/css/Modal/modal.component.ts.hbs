@@ -13,6 +13,8 @@ export class ModalComponent {
   
   @Output() close = new EventEmitter<void>();
 
+  titleId = 'modal-title-' + Math.random().toString(36).substring(2, 9);
+
   onClose() {
     this.close.emit();
   }

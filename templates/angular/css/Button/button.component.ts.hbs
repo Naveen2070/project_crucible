@@ -10,6 +10,7 @@ export class ButtonComponent {
   @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
   @Input() loading = false;
   @Input() disabled = false;
+  @Input() className = '';
 
   get classes(): string {
     return [
@@ -17,7 +18,8 @@ export class ButtonComponent {
       `btn--${this.variant}`,
       `btn--${this.size}`,
       this.loading ? 'btn--loading' : '',
-      this.disabled ? 'btn--disabled' : ''
+      this.disabled ? 'btn--disabled' : '',
+      this.className
     ].filter(Boolean).join(' ');
   }
 }

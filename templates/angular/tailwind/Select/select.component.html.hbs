@@ -1,33 +1,63 @@
-<div class="flex flex-col gap-[var(--spacing-unit)] w-full relative">
-  <label *ngIf="label" class="font-medium text-[var(--color-text)] text-sm">\{{ label }}</label>
+<div class="relative w-full flex flex-col gap-[var(--spacing-unit)]">
+  <label *ngIf="label" [attr.for]="id + '-trigger'" class="text-sm font-medium text-[var(--color-text)]">
+    \{{ label }}
+  </label>
+  <ng-content select="[label]"></ng-content>
   
   <div
+    [id]="id + '-trigger'"
     [class]="triggerClasses"
     (click)="toggle()"
+    (keydown)="handleKeyDown($event)"
     [attr.aria-expanded]="isOpen"
+    [attr.aria-controls]="isOpen ? id + '-listbox' : null"
+    [attr.aria-haspopup]="'listbox'"
+    [attr.aria-activedescendant]="isOpen && activeIndex >= 0 ? id + '-option-' + activeIndex : null"
     role="combobox"
-    aria-haspopup="listbox"
-    tabindex="0"
+    [attr.tabindex]="disabled ? null : 0"
+    #trigger
   >
-    <span class="truncate flex-1 text-[var(--color-text)]">\{{ displayValue }}</span>
-    <span class="ml-2 text-[var(--color-text-muted)] text-xs" aria-hidden="true">▼</span>
+    <ng-content select="[trigger]">
+      <span class="truncate flex-1" [class.text-[var(--color-text-muted)]]="!value">
+        <ng-content select="[value]">\{{ displayValue }}</ng-content>
+      </span>
+      <span class="ml-2 transition-transform duration-200 shrink-0" [class.rotate-180]="isOpen" aria-hidden="true">
+        <ng-content select="[icon]">▼</ng-content>
+      </span>
+    </ng-content>
   </div>
 
   <ul
     *ngIf="isOpen"
-    class="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none"
+    [id]="id + '-listbox'"
+    class="absolute top-full left-0 right-0 z-10 mt-1 bg-[var(--color-surface)] border-[1.5px] border-[var(--color-primary)] rounded-[var(--radius-md)] shadow-lg max-h-60 overflow-auto outline-none list-none m-0 p-0"
     role="listbox"
+    [attr.aria-labelledby]="id + '-trigger'"
+    #listbox
   >
-    <li
-      *ngFor="let option of options"
-      (click)="selectOption(option)"
-      role="option"
-      [attr.aria-selected]="value === option"
-      [class]="'px-4 py-2 cursor-pointer transition-colors text-sm ' + (value === option ? 'bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold' : 'hover:bg-[var(--color-secondary)] hover:text-[var(--color-primary)]')"
-    >
-      \{{ option.label || option }}
-    </li>
+    <ng-content select="[content]">
+      <li
+        *ngFor="let option of options; let i = index"
+        [id]="id + '-option-' + i"
+        (click)="selectOption(option)"
+        class="px-4 py-2 cursor-pointer transition-colors text-sm text-[var(--color-text)]"
+        [class.bg-[var(--color-secondary)]]="activeIndex === i"
+        [class.text-[var(--color-primary)]]="activeIndex === i"
+        [class.font-semibold]="value === (option.value !== undefined ? option.value : option)"
+        [attr.aria-selected]="value === (option.value !== undefined ? option.value : option)"
+        role="option"
+      >
+        <ng-content select="[item]">
+          <span class="item-text">
+            <ng-content select="[item-text]">\{{ option.label || option }}</ng-content>
+          </span>
+        </ng-content>
+      </li>
+    </ng-content>
   </ul>
 
-  <span *ngIf="error" class="text-xs text-[var(--color-danger)] mt-1" role="alert">\{{ error }}</span>
+  <span *ngIf="error" class="text-xs text-[var(--color-danger)] mt-0.5" role="alert">
+    \{{ error }}
+  </span>
+  <ng-content select="[error]"></ng-content>
 </div>

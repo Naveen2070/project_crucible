@@ -5,9 +5,9 @@ const variantClasses: Record<string, string> = {
 {{/each}} };
 
 const sizeClasses: Record<string, string> = {
-  sm: 'p-4',
-  md: 'p-6',
-  lg: 'p-8',
+  sm: 'max-w-[300px]',
+  md: 'max-w-[450px]',
+  lg: 'max-w-[600px]',
 };
 
 @Component({
@@ -23,11 +23,11 @@ export class CardComponent {
   get classes(): string {
     const isClickable = this.variant === 'clickable';
     return [
-      'rounded-[var(--radius-lg)] border-1.5 transition-all text-left w-full block bg-[var(--color-surface)]',
-      {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-2',{{/if}}
+      'rounded-[var(--radius-lg)] border-[1.5px] border-[var(--color-border)] transition-all text-left w-full flex flex-col bg-[var(--color-surface)] overflow-hidden',
+      {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}] focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
       variantClasses[this.variant],
       sizeClasses[this.size],
-      isClickable ? 'cursor-pointer' : '',
+      isClickable ? 'cursor-pointer hover:border-[var(--color-primary)] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0' : '',
       this.className
     ].filter(Boolean).join(' ');
   }

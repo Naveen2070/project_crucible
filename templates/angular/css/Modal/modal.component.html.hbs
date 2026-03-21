@@ -1,13 +1,25 @@
 <div *ngIf="isOpen" class="overlay" (click)="onClose()">
-  <div [class]="modalClasses" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" [attr.aria-labelledby]="title ? 'modal-title' : null">
+  <ng-content select="[overlay]"></ng-content>
+  <div 
+    [class]="modalClasses" 
+    (click)="$event.stopPropagation()" 
+    role="dialog" 
+    aria-modal="true" 
+    [attr.aria-labelledby]="titleId"
+  >
+    <ng-content select="[content]"></ng-content>
     <header class="header">
-      <h2 *ngIf="title" id="modal-title" class="title">\{{ title }}</h2>
+      <ng-content select="[header]"></ng-content>
+      <h2 [id]="titleId" class="title">
+        <ng-content select="[modal-title]">\{{ title }}</ng-content>
+      </h2>
       <button type="button" class="closeButton" (click)="onClose()" aria-label="Close modal">
-        &times;
+        <ng-content select="[close]">&times;</ng-content>
       </button>
     </header>
     
     <div class="body">
+      <ng-content select="[body]"></ng-content>
       <ng-content></ng-content>
     </div>
     

@@ -28,7 +28,8 @@
   margin:         0;
   text-decoration: none;
 
-  .title {
+  .title, ::ng-deep [card-title] {
+    display:     block;
     margin:      0;
     padding:     calc(var(--spacing-unit) * 4);
     font-size:   1.1em;

@@ -3,29 +3,36 @@
   class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
   (click)="onClose()"
 >
+  <ng-content select="[overlay]"></ng-content>
   <div
     [class]="modalClasses"
     role="dialog"
     aria-modal="true"
+    [attr.aria-labelledby]="titleId"
     (click)="$event.stopPropagation()"
   >
+    <ng-content select="[content]"></ng-content>
     <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-      <h2 *ngIf="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+      <ng-content select="[header]"></ng-content>
+      <h2 [id]="titleId" class="text-xl font-bold text-[var(--color-text)]">
+        <ng-content select="[modal-title]">\{{ title }}</ng-content>
+      </h2>
       <button
         type="button"
-        class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
+        class="ml-auto text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
         (click)="onClose()"
         aria-label="Close modal"
       >
-        &times;
+        <ng-content select="[close]">&times;</ng-content>
       </button>
     </header>
     
     <div class="p-6 text-[var(--color-text-muted)]">
+      <ng-content select="[body]"></ng-content>
       <ng-content></ng-content>
     </div>
     
-    <footer class="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50 flex justify-end gap-3">
+    <footer class="p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50 flex justify-end gap-3 empty:hidden">
       <ng-content select="[footer]"></ng-content>
     </footer>
   </div>

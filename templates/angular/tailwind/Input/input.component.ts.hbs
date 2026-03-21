@@ -15,11 +15,14 @@ const sizeClasses: Record<string, string> = {
   templateUrl: './input.component.html'
 })
 export class InputComponent {
+  private static nextId = 0;
+  @Input() id = `input-${InputComponent.nextId++}`;
   @Input() label = '';
   @Input() placeholder = '';
   @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
   @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
   @Input() error = '';
+  @Input() hint = '';
   @Input() disabled = false;
   @Input() required = false;
   @Input() type: 'text' | 'password' = 'text';
@@ -55,5 +58,20 @@ export class InputComponent {
       this.type === 'password' ? 'pr-12' : '',
       (this.variant === 'error' || this.error) ? 'border-[var(--color-danger)]' : ''
     ].filter(Boolean).join(' ');
+  }
+
+  get errorId(): string {
+    return `${this.id}-error`;
+  }
+
+  get hintId(): string {
+    return `${this.id}-hint`;
+  }
+
+  get describedBy(): string | null {
+    const ids = [];
+    if (this.error) ids.push(this.errorId);
+    if (this.hint) ids.push(this.hintId);
+    return ids.length ? ids.join(' ') : null;
   }
 }

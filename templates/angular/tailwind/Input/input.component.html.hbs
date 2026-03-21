@@ -1,29 +1,43 @@
 <div [class]="containerClasses">
-  <label *ngIf="label" class="font-medium text-[var(--color-text)] text-sm">
+  <label *ngIf="label" [attr.for]="id" class="block text-sm font-medium mb-1.5 text-[var(--color-text)]">
     \{{ label }}
-    <span *ngIf="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
+    <span *ngIf="required" class="text-[var(--color-danger)]" aria-hidden="true">*</span>
   </label>
+  <ng-content select="[label]"></ng-content>
   
-  <div class="relative w-full">
-    <input
-      [type]="currentType"
-      [class]="inputClasses"
-      [placeholder]="placeholder"
-      [disabled]="disabled"
-      [attr.aria-invalid]="!!error"
-      [attr.aria-required]="required"
-    >
-    
-    <button
-      *ngIf="type === 'password'"
-      type="button"
-      class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] focus:outline-none rounded-sm"
-      (click)="togglePassword()"
-      [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-    >
-      \{{ showPassword ? 'Hide' : 'Show' }}
-    </button>
+  <div class="relative">
+    <ng-content select="[field]">
+      <input
+        [id]="id"
+        [type]="currentType"
+        [class]="inputClasses"
+        [placeholder]="placeholder"
+        [disabled]="disabled"
+        [attr.aria-invalid]="!!error"
+        [attr.aria-required]="required"
+        [attr.aria-describedby]="describedBy"
+      >
+      
+      <button
+        *ngIf="type === 'password'"
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+        (click)="togglePassword()"
+        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+        [attr.aria-pressed]="showPassword"
+      >
+        \{{ showPassword ? 'Hide' : 'Show' }}
+      </button>
+    </ng-content>
   </div>
 
-  <span *ngIf="error" class="text-xs text-[var(--color-danger)] mt-1" role="alert">\{{ error }}</span>
+  <p *ngIf="hint && !error" [id]="hintId" class="mt-1.5 text-xs text-[var(--color-text-muted)]">
+    \{{ hint }}
+  </p>
+  <ng-content select="[hint]"></ng-content>
+
+  <p *ngIf="error" [id]="errorId" class="mt-1.5 text-xs text-[var(--color-danger)]" role="alert">
+    \{{ error }}
+  </p>
+  <ng-content select="[error]"></ng-content>
 </div>
