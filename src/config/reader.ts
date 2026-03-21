@@ -9,7 +9,7 @@ export interface DarkModeConfig {
 
 export interface CrucibleConfig {
   version: string;
-  framework: string;
+  framework: 'react' | 'angular' | 'vue';
   theme: string;
   styleSystem: 'css' | 'tailwind';
   tokens?: {

@@ -32,6 +32,25 @@ describe('buildComponentModel', () => {
     expect(select.a11y.keyboardNav).toBe(true);
   });
 
+  it('sets framework flags correctly', () => {
+    const reactModel = buildComponentModel('Button', mockTokens, { ...mockConfig, framework: 'react' }, false);
+    const angularModel = buildComponentModel('Button', mockTokens, { ...mockConfig, framework: 'angular' }, false);
+    const vueModel = buildComponentModel('Button', mockTokens, { ...mockConfig, framework: 'vue' }, false);
+
+    expect(reactModel.isReact).toBe(true);
+    expect(angularModel.isAngular).toBe(true);
+    expect(vueModel.isVue).toBe(true);
+  });
+
+  it('disables compoundComponents for angular regardless of config', () => {
+    const model = buildComponentModel('Button', mockTokens, {
+      ...mockConfig,
+      framework: 'angular',
+      features: { ...mockConfig.features, compoundComponents: true }
+    }, false);
+    expect(model.features.compoundComponents).toBe(false);
+  });
+
   it('throws for unknown component', () => {
     expect(() => buildComponentModel('Tooltip', mockTokens, mockConfig, false)).toThrow();
   });

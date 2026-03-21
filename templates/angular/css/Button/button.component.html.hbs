@@ -1,0 +1,10 @@
+<button
+  [class]="classes"
+  [disabled]="disabled || loading"
+  [attr.aria-disabled]="disabled || loading"
+  [attr.aria-busy]="loading"
+>
+  <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
+  <ng-content select="[icon]"></ng-content>
+  <ng-content></ng-content>
+</button>

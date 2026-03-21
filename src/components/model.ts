@@ -4,6 +4,9 @@ import { ResolvedTokens } from '../tokens/resolver';
 export interface ComponentModel {
   name: string;
   framework: string;
+  isReact: boolean;
+  isAngular: boolean;
+  isVue: boolean;
   styleSystem: 'css' | 'tailwind';
   variants: string[];
   sizes: string[];
@@ -94,9 +97,14 @@ export function buildComponentModel(
   const defaults = COMPONENT_DEFAULTS[name];
   if (!defaults) throw new Error(`Unknown component: ${name}. Run: crucible list`);
 
+  const framework = config.framework ?? 'react';
+
   return {
     name,
-    framework: config.framework ?? 'react',
+    framework,
+    isReact: framework === 'react',
+    isAngular: framework === 'angular',
+    isVue: framework === 'vue',
     styleSystem: config.styleSystem ?? 'css',
     ...defaults,
     tokens,
@@ -113,7 +121,7 @@ export function buildComponentModel(
     },
     features: {
       hover: config.features.hover ?? true,
-      compoundComponents: config.features.compoundComponents !== false && config.framework !== 'angular',
+      compoundComponents: config.features.compoundComponents !== false && framework !== 'angular',
     },
     generateStories,
   };
