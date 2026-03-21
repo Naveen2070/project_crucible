@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { buildComponentModel } from '../components/model';
+import { Framework, ComponentName } from '../core/enums';
 
 const mockTokens = { cssVars: {}, darkCssVars: null, js: {} };
 const mockConfig = {
-  framework: 'react',
+  framework: Framework.React,
   features: { hover: true, focusRing: true, motionSafe: true },
   a11y: {
     focusRingColor: 'var(--color-primary)',
@@ -15,27 +16,27 @@ const mockConfig = {
 
 describe('buildComponentModel', () => {
   it('sets correct variants for Button', () => {
-    const model = buildComponentModel('Button', mockTokens, mockConfig, false);
+    const model = buildComponentModel(ComponentName.Button, mockTokens, mockConfig, false);
     expect(model.variants).toContain('primary');
     expect(model.variants).toContain('danger');
   });
 
   it('sets focusTrap for Modal only', () => {
-    const modal = buildComponentModel('Modal', mockTokens, mockConfig, false);
-    const button = buildComponentModel('Button', mockTokens, mockConfig, false);
+    const modal = buildComponentModel(ComponentName.Modal, mockTokens, mockConfig, false);
+    const button = buildComponentModel(ComponentName.Button, mockTokens, mockConfig, false);
     expect(modal.a11y.focusTrap).toBe(true);
     expect(button.a11y.focusTrap).toBeUndefined();
   });
 
   it('sets keyboardNav for Select only', () => {
-    const select = buildComponentModel('Select', mockTokens, mockConfig, false);
+    const select = buildComponentModel(ComponentName.Select, mockTokens, mockConfig, false);
     expect(select.a11y.keyboardNav).toBe(true);
   });
 
   it('sets framework flags correctly', () => {
-    const reactModel = buildComponentModel('Button', mockTokens, { ...mockConfig, framework: 'react' }, false);
-    const angularModel = buildComponentModel('Button', mockTokens, { ...mockConfig, framework: 'angular' }, false);
-    const vueModel = buildComponentModel('Button', mockTokens, { ...mockConfig, framework: 'vue' }, false);
+    const reactModel = buildComponentModel(ComponentName.Button, mockTokens, { ...mockConfig, framework: Framework.React }, false);
+    const angularModel = buildComponentModel(ComponentName.Button, mockTokens, { ...mockConfig, framework: Framework.Angular }, false);
+    const vueModel = buildComponentModel(ComponentName.Button, mockTokens, { ...mockConfig, framework: Framework.Vue }, false);
 
     expect(reactModel.isReact).toBe(true);
     expect(angularModel.isAngular).toBe(true);
@@ -43,15 +44,15 @@ describe('buildComponentModel', () => {
   });
 
   it('disables compoundComponents for angular regardless of config', () => {
-    const model = buildComponentModel('Button', mockTokens, {
+    const model = buildComponentModel(ComponentName.Button, mockTokens, {
       ...mockConfig,
-      framework: 'angular',
+      framework: Framework.Angular,
       features: { ...mockConfig.features, compoundComponents: true }
     }, false);
     expect(model.features.compoundComponents).toBe(false);
   });
 
   it('throws for unknown component', () => {
-    expect(() => buildComponentModel('Tooltip', mockTokens, mockConfig, false)).toThrow();
+    expect(() => buildComponentModel('Tooltip' as any, mockTokens, mockConfig, false)).toThrow();
   });
 });

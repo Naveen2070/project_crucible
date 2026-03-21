@@ -1,11 +1,12 @@
 import Color from 'colorjs.io';
 import { DarkModeConfig } from '../config/reader';
+import { ThemePreset, DarkModeStrategy } from '../core/enums';
 
 export function normalizeDarkMode(
   raw: boolean | DarkModeConfig | undefined,
 ): DarkModeConfig | null {
   if (!raw) return null;
-  if (raw === true) return { strategy: 'auto' };
+  if (raw === true) return { strategy: DarkModeStrategy.Auto };
   return raw as DarkModeConfig;
 }
 
@@ -15,7 +16,7 @@ export function deriveDarkTokens(
   theme: string,
 ): Record<string, string> {
   const base =
-    theme === 'soft'
+    theme === ThemePreset.Soft
       ? { surface: '#1a1525', background: '#100e1a' }
       : { surface: '#1a1a2e', background: '#0f0f1a' };
 
@@ -31,7 +32,7 @@ export function deriveDarkTokens(
     success: shiftColor(light.success, { l: +10 }),
   };
 
-  return config.strategy === 'manual' && config.tokens ? { ...auto, ...config.tokens } : auto;
+  return config.strategy === DarkModeStrategy.Manual && config.tokens ? { ...auto, ...config.tokens } : auto;
 }
 
 function shiftColor(hex: string, shift: { l?: number; c?: number }): string {

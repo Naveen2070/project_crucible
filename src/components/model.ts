@@ -1,13 +1,14 @@
 import { CrucibleConfig } from '../config/reader';
 import { ResolvedTokens } from '../tokens/resolver';
+import { Framework, StyleSystem, ComponentName } from '../core/enums';
 
 export interface ComponentModel {
   name: string;
-  framework: string;
+  framework: `${Framework}`;
   isReact: boolean;
   isAngular: boolean;
   isVue: boolean;
-  styleSystem: 'css' | 'tailwind' | 'scss';
+  styleSystem: `${StyleSystem}`;
   variants: string[];
   sizes: string[];
   states: string[];
@@ -31,7 +32,7 @@ export interface ComponentModel {
 }
 
 const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
-  Button: {
+  [ComponentName.Button]: {
     primary:
       'bg-[var(--color-primary)] text-[var(--color-surface)] border-[var(--color-primary)] hover:brightness-110',
     secondary:
@@ -41,23 +42,23 @@ const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
     danger:
       'bg-[var(--color-danger)] text-[var(--color-surface)] border-[var(--color-danger)] hover:brightness-110',
   },
-  Input: {
+  [ComponentName.Input]: {
     default:
       'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
     error:
       'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
   },
-  Card: {
+  [ComponentName.Card]: {
     default: 'bg-[var(--color-surface)] border-[var(--color-border)]',
     hoverable: 'bg-[var(--color-surface)] border-[var(--color-border)] hover:shadow-lg',
     clickable:
       'bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg',
   },
-  Modal: {
+  [ComponentName.Modal]: {
     default: 'bg-[var(--color-surface)]',
     confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
   },
-  Select: {
+  [ComponentName.Select]: {
     default:
       'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
     error:
@@ -66,27 +67,27 @@ const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
 };
 
 const COMPONENT_DEFAULTS: Record<string, Pick<ComponentModel, 'variants' | 'sizes' | 'states'>> = {
-  Button: {
+  [ComponentName.Button]: {
     variants: ['primary', 'secondary', 'ghost', 'danger'],
     sizes: ['sm', 'md', 'lg'],
     states: ['disabled', 'loading'],
   },
-  Input: {
+  [ComponentName.Input]: {
     variants: ['default', 'error'],
     sizes: ['sm', 'md', 'lg'],
     states: ['disabled', 'error'],
   },
-  Card: {
+  [ComponentName.Card]: {
     variants: ['default', 'hoverable', 'clickable'],
     sizes: ['sm', 'md', 'lg'],
     states: [],
   },
-  Modal: {
+  [ComponentName.Modal]: {
     variants: ['default', 'confirm'],
     sizes: ['sm', 'md', 'lg'],
     states: ['open', 'closed'],
   },
-  Select: {
+  [ComponentName.Select]: {
     variants: ['default', 'error'],
     sizes: ['sm', 'md', 'lg'],
     states: ['disabled', 'error', 'open'],
@@ -102,15 +103,15 @@ export function buildComponentModel(
   const defaults = COMPONENT_DEFAULTS[name];
   if (!defaults) throw new Error(`Unknown component: ${name}. Run: crucible list`);
 
-  const framework = config.framework ?? 'react';
+  const framework = config.framework ?? Framework.React;
 
   return {
     name,
     framework,
-    isReact: framework === 'react',
-    isAngular: framework === 'angular',
-    isVue: framework === 'vue',
-    styleSystem: config.styleSystem ?? 'css',
+    isReact: framework === Framework.React,
+    isAngular: framework === Framework.Angular,
+    isVue: framework === Framework.Vue,
+    styleSystem: config.styleSystem ?? StyleSystem.CSS,
     ...defaults,
     tokens,
     tailwindVariants: TAILWIND_VARIANT_DEFAULTS[name],
@@ -120,13 +121,13 @@ export function buildComponentModel(
       focusRingWidth: config.a11y.focusRingWidth ?? '2px',
       focusRingOffset: config.a11y.focusRingOffset ?? '3px',
       reduceMotion: config.a11y.reduceMotion ?? true,
-      role: name === 'Modal' ? 'dialog' : undefined,
-      focusTrap: name === 'Modal' ? true : undefined,
-      keyboardNav: name === 'Select' ? true : undefined,
+      role: name === ComponentName.Modal ? 'dialog' : undefined,
+      focusTrap: name === ComponentName.Modal ? true : undefined,
+      keyboardNav: name === ComponentName.Select ? true : undefined,
     },
     features: {
       hover: config.features.hover ?? true,
-      compoundComponents: config.features.compoundComponents !== false && framework !== 'angular',
+      compoundComponents: config.features.compoundComponents !== false && framework !== Framework.Angular,
     },
     generateStories,
   };

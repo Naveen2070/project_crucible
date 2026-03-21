@@ -4,8 +4,8 @@ import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
 import { execSync } from 'child_process';
 
-export async function checkAndSetupTailwind(opts: { yes?: boolean } = {}) {
-  const cwd = process.cwd();
+export async function checkAndSetupTailwind(opts: { yes?: boolean; cwd?: string } = {}) {
+  const cwd = opts.cwd || process.cwd();
   const packageJsonPath = path.join(cwd, 'package.json');
   
   if (!await fs.pathExists(packageJsonPath)) return;

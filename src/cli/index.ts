@@ -12,6 +12,7 @@ import { registry } from '../registry/components';
 import { runInit } from './init';
 import { checkAndSetupTailwind } from './tailwind';
 import { loadPreset } from '../themes';
+import { Framework, StyleSystem, ThemePreset } from '../core/enums';
 
 const program = new Command();
 
@@ -20,29 +21,45 @@ program
   .description('Design system engine — generates owned React components')
   .version('0.1.0');
 
+program.addHelpText(
+  'after',
+  `
+Examples:
+  $ npx crucible init
+  $ npx crucible add Button
+  $ npx crucible add Input Card --framework react --cwd ./packages/ui
+  $ npx crucible list
+
+For more details, visit: https://github.com/crucible-ui/crucible
+`,
+);
+
 program
   .command('init')
   .description('Scaffold a default crucible.config.json')
   .option('-y, --yes', 'Skip prompts and use defaults')
-  .action((opts) => runInit({ yes: opts.yes }));
+  .option('--cwd <path>', 'Current working directory', '.')
+  .action((opts) => runInit({ yes: opts.yes, cwd: path.resolve(process.cwd(), opts.cwd) }));
 
 program
   .command('eject')
   .description('Eject the built-in theme into your local crucible.config.json')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
+  .option('--cwd <path>', 'Current working directory', '.')
   .action(async (opts) => {
     try {
-      const configPath = path.join(process.cwd(), opts.config);
+      const cwd = path.resolve(process.cwd(), opts.cwd);
+      const configPath = path.resolve(cwd, opts.config);
       if (!await fs.pathExists(configPath)) {
         console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
         process.exit(1);
       }
       const raw = await fs.readJson(configPath);
-      const theme = raw.theme || 'minimal';
+      const theme = raw.theme || ThemePreset.Minimal;
       const presetTokens = loadPreset(theme);
       
       raw.tokens = { ...presetTokens, ...raw.tokens };
-      raw.theme = 'custom'; // optional, maybe keep it but tokens override
+      raw.theme = ThemePreset.Custom;
       
       await fs.writeJson(configPath, raw, { spaces: 2 });
       console.log(chalk.green(`✔ Ejected ${theme} theme into ${opts.config}`));
@@ -54,7 +71,7 @@ program
 program
   .command('add [component...]')
   .description('Scaffold a component into your project')
-  .option('--framework <fw>', 'Target framework', 'react')
+  .option('--framework <fw>', 'Target framework', Framework.React)
   .option('--dev', 'Output to playground/__generated__')
   .option('--force', 'Overwrite even if file has been edited')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
@@ -62,14 +79,18 @@ program
   .option('--stories', 'Generate Storybook story file')
   .option('--no-stories', 'Skip story generation (overrides config default)')
   .option('--dry-run', 'Simulate generation without writing files')
+  .option('--cwd <path>', 'Current working directory', '.')
+  .option('--verbose', 'Enable verbose logging')
+  .option('--quiet', 'Disable all logging except errors')
   .action(async (components: string[], opts: any) => {
+    const cwd = path.resolve(process.cwd(), opts.cwd);
     let componentsToAdd: string[] = components || [];
 
     if (componentsToAdd.length > 0) {
       for (const comp of componentsToAdd) {
-        if (!registry[comp]) {
+        if (!registry[comp as keyof typeof registry]) {
           console.error(chalk.red(`✗ Unknown component: ${comp}`));
-          console.log(`Available: ${Object.keys(registry).join(', ')}`);
+          if (!opts.quiet) console.log(`Available: ${Object.keys(registry).join(', ')}`);
           process.exit(1);
         }
       }
@@ -83,41 +104,45 @@ program
         choices: Object.keys(registry).map((name) => ({ name, value: name })),
       });
       if (answers.length === 0) {
-        console.log(chalk.gray('No components selected.'));
+        if (!opts.quiet) console.log(chalk.gray('No components selected.'));
         return;
       }
       componentsToAdd = answers;
     }
 
     try {
-      const config = await readConfig(opts.config);
+      if (opts.verbose) console.log(chalk.blue(`Reading config from ${opts.config} in ${cwd}...`));
       
-      const framework = opts.framework !== 'react' ? opts.framework : (config.framework || 'react');
-      if (framework === 'angular') {
-        console.log(chalk.cyan('\nℹ Angular uses a unified hybrid pattern.'));
-        console.log(chalk.cyan('  Generating idiomatic output that supports both monolithic and compound usage.\n'));
+      const configPathRelative = path.relative(process.cwd(), path.resolve(cwd, opts.config));
+      const config = await readConfig(configPathRelative);
+      
+      const framework = opts.framework !== Framework.React ? opts.framework : (config.framework || Framework.React);
+      if (framework === Framework.Angular && !opts.quiet) {
+        console.log(chalk.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
+        console.log(chalk.cyan('  Generating output that relies on native content projection (ng-content).\n'));
       }
 
       // Pre-generation token validation (Linting pass)
       const tokens = resolveTokens(config);
-      if (!tokens.cssVars['--color-primary']) {
+      if (!tokens.cssVars['--color-primary'] && !opts.quiet) {
         console.warn(chalk.yellow('⚠ Warning: --color-primary is missing from tokens.'));
       }
 
-      if (config.styleSystem === 'tailwind') {
-        await checkAndSetupTailwind({ yes: opts.yes });
+      if (config.styleSystem === StyleSystem.Tailwind) {
+        if (opts.verbose) console.log(chalk.blue(`Checking Tailwind setup...`));
+        await checkAndSetupTailwind({ yes: opts.yes, cwd });
       }
 
       const outDir = opts.dev
-        ? path.join(process.cwd(), 'playground/react/src/__generated__')
-        : path.join(process.cwd(), config.flags?.outputDir ?? 'src/components');
+        ? path.join(cwd, 'playground/react/src/__generated__')
+        : path.join(cwd, config.flags?.outputDir ?? 'src/components');
 
       // Dependency resolution
       const resolvedComponents = new Set<string>(componentsToAdd);
       for (const comp of componentsToAdd) {
         if (comp === 'Select' || comp === 'Modal') {
           const btnDir = path.join(outDir, 'Button');
-          const extensions = framework === 'react' ? ['.tsx'] : framework === 'vue' ? ['.vue'] : ['.component.ts'];
+          const extensions = framework === Framework.React ? ['.tsx'] : framework === Framework.Vue ? ['.vue'] : ['.component.ts'];
           
           let btnExists = false;
           for (const ext of extensions) {
@@ -136,7 +161,10 @@ program
                 default: true,
               });
             }
-            if (addDep) resolvedComponents.add('Button');
+            if (addDep) {
+              resolvedComponents.add('Button');
+              if (opts.verbose) console.log(chalk.blue(`Added Button as dependency for ${comp}`));
+            }
           }
         }
       }
@@ -145,15 +173,21 @@ program
         opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
 
       for (const comp of Array.from(resolvedComponents)) {
+        if (opts.verbose) console.log(chalk.blue(`Building model for ${comp}...`));
         const model = buildComponentModel(comp, tokens, config, generateStories);
+        
+        if (opts.verbose) console.log(chalk.blue(`Rendering templates for ${comp}...`));
         const files = await renderComponent(model);
 
-        await writeFiles(files, outDir, comp, { force: opts.force, dryRun: opts.dryRun });
+        await writeFiles(files, outDir, comp, { force: opts.force, dryRun: opts.dryRun, quiet: opts.quiet, cwd });
         const storiesNote = generateStories ? ' + story' : '';
         const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
-        console.log(
-          chalk.cyan(`\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`) + dryRunNote,
-        );
+        
+        if (!opts.quiet) {
+          console.log(
+            chalk.cyan(`\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`) + dryRunNote,
+          );
+        }
       }
     } catch (err: any) {
       console.error(chalk.red(`✗ Error: ${err.message}`));

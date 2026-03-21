@@ -1,17 +1,18 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { validateConfig } from './validator';
+import { Framework, StyleSystem, ThemePreset, DarkModeStrategy } from '../core/enums';
 
 export interface DarkModeConfig {
-  strategy: 'auto' | 'manual';
+  strategy: `${DarkModeStrategy}`;
   tokens?: Record<string, string>;
 }
 
 export interface CrucibleConfig {
   version: string;
-  framework: 'react' | 'angular' | 'vue';
-  theme: string;
-  styleSystem: 'css' | 'tailwind' | 'scss';
+  framework: `${Framework}`;
+  theme: `${ThemePreset}` | string;
+  styleSystem: `${StyleSystem}`;
   tokens?: {
     color?: Record<string, string>;
     radius?: Record<string, string>;
@@ -45,8 +46,8 @@ export async function readConfig(configPath: string): Promise<CrucibleConfig> {
   }
   const raw = await fs.readJson(resolved);
   return validateConfig({
-    styleSystem: 'css', // default
-    theme: 'minimal', // default
+    styleSystem: StyleSystem.CSS, // default
+    theme: ThemePreset.Minimal, // default
     ...raw,
   });
 }

@@ -2,6 +2,7 @@ import Handlebars from 'handlebars';
 import fs from 'fs-extra';
 import path from 'path';
 import { ComponentModel } from '../components/model';
+import { Framework, StyleSystem } from '../core/enums';
 
 // Register helpers
 Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
@@ -24,29 +25,29 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 
   const targets: { tpl: string; out: string }[] = [];
 
-  if (model.framework === 'react') {
+  if (model.framework === Framework.React) {
     targets.push({ tpl: `${model.name}.tsx.hbs`, out: `${model.name}.tsx` });
-    if (model.styleSystem === 'css') {
+    if (model.styleSystem === StyleSystem.CSS) {
       targets.push({ tpl: `${model.name}.module.css.hbs`, out: `${model.name}.module.css` });
-    } else if (model.styleSystem === 'scss') {
+    } else if (model.styleSystem === StyleSystem.SCSS) {
       targets.push({ tpl: `${model.name}.module.scss.hbs`, out: `${model.name}.module.scss` });
     }
     if (model.generateStories) {
       targets.push({ tpl: `${model.name}.stories.tsx.hbs`, out: `${model.name}.stories.tsx` });
     }
-  } else if (model.framework === 'angular') {
+  } else if (model.framework === Framework.Angular) {
     const kebabName = model.name.toLowerCase();
     targets.push({ tpl: `${kebabName}.component.ts.hbs`, out: `${kebabName}.component.ts` });
     targets.push({ tpl: `${kebabName}.component.html.hbs`, out: `${kebabName}.component.html` });
-    if (model.styleSystem === 'css') {
+    if (model.styleSystem === StyleSystem.CSS) {
       targets.push({ tpl: `${kebabName}.component.css.hbs`, out: `${kebabName}.component.css` });
-    } else if (model.styleSystem === 'scss') {
+    } else if (model.styleSystem === StyleSystem.SCSS) {
       targets.push({ tpl: `${kebabName}.component.scss.hbs`, out: `${kebabName}.component.scss` });
     }
     if (model.generateStories) {
       targets.push({ tpl: `${kebabName}.stories.ts.hbs`, out: `${kebabName}.stories.ts` });
     }
-  } else if (model.framework === 'vue') {
+  } else if (model.framework === Framework.Vue) {
     targets.push({ tpl: `${model.name}.vue.hbs`, out: `${model.name}.vue` });
     if (model.generateStories) {
       targets.push({ tpl: `${model.name}.stories.ts.hbs`, out: `${model.name}.stories.ts` });
@@ -58,12 +59,12 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     // console.log(`DEBUG: Reading template from ${tplPath}`);
 
     // Fallback logic: If SCSS or Tailwind mode and template doesn't exist, fallback to 'css' folder
-    if ((model.styleSystem === 'scss' || model.styleSystem === 'tailwind') && !(await fs.pathExists(tplPath))) {
+    if ((model.styleSystem === StyleSystem.SCSS || model.styleSystem === StyleSystem.Tailwind) && !(await fs.pathExists(tplPath))) {
       const fallbackDir = path.join(
         __dirname,
         '../../templates',
         model.framework,
-        'css',
+        StyleSystem.CSS,
         model.name,
       );
       const fallbackPath = path.join(fallbackDir, tpl);

@@ -3,6 +3,7 @@ import path from 'path';
 import chalk from 'chalk';
 import { select, input, confirm } from '@inquirer/prompts';
 import { checkAndSetupTailwind } from './tailwind';
+import { Framework, StyleSystem } from '../core/enums';
 
 const DEFAULT_CONFIG = `{
   "$schema": "https://raw.githubusercontent.com/crucible-ui/crucible/main/schema.json",
@@ -43,8 +44,9 @@ const DEFAULT_CONFIG = `{
 }
 `;
 
-export async function runInit(opts: { yes?: boolean } = {}) {
-  const configPath = path.join(process.cwd(), 'crucible.config.json');
+export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
+  const cwd = opts.cwd || process.cwd();
+  const configPath = path.join(cwd, 'crucible.config.json');
 
   if (await fs.pathExists(configPath)) {
     if (!opts.yes) {
@@ -56,8 +58,8 @@ export async function runInit(opts: { yes?: boolean } = {}) {
     }
   }
 
-  let framework = 'react';
-  let styleSystem = 'css';
+  let framework: string = Framework.React;
+  let styleSystem: string = StyleSystem.CSS;
   let outputDir = 'src/components';
   let compoundComponents = true;
   let generateStories = false;
@@ -66,22 +68,22 @@ export async function runInit(opts: { yes?: boolean } = {}) {
     framework = await select({
       message: 'Which framework are you using?',
       choices: [
-        { name: 'React', value: 'react' },
-        { name: 'Angular', value: 'angular' },
-        { name: 'Vue 3', value: 'vue' },
+        { name: 'React', value: Framework.React },
+        { name: 'Angular', value: Framework.Angular },
+        { name: 'Vue 3', value: Framework.Vue },
       ],
     });
 
     styleSystem = await select({
       message: 'Which styling system do you want to use?',
       choices: [
-        { name: 'CSS Modules (Vanilla)', value: 'css' },
-        { name: 'SCSS Modules', value: 'scss' },
-        { name: 'Tailwind CSS', value: 'tailwind' },
+        { name: 'CSS Modules (Vanilla)', value: StyleSystem.CSS },
+        { name: 'SCSS Modules', value: StyleSystem.SCSS },
+        { name: 'Tailwind CSS', value: StyleSystem.Tailwind },
       ],
     });
 
-    if (framework !== 'angular') {
+    if (framework !== Framework.Angular) {
       compoundComponents = await confirm({
         message: 'Prefer compound component pattern? (e.g. <Button.Root>)',
         default: true,
@@ -99,8 +101,8 @@ export async function runInit(opts: { yes?: boolean } = {}) {
     });
   }
 
-  if (styleSystem === 'tailwind') {
-    await checkAndSetupTailwind({ yes: opts.yes });
+  if (styleSystem === StyleSystem.Tailwind) {
+    await checkAndSetupTailwind({ yes: opts.yes, cwd });
   }
 
   const configContent = DEFAULT_CONFIG

@@ -2,11 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { buildComponentModel } from '../../components/model';
 import { resolveTokens } from '../../tokens/resolver';
 import { renderComponent } from '../../templates/engine';
+import { Framework, ThemePreset, StyleSystem, ComponentName } from '../../core/enums';
 
 const mockConfig = {
-  framework: 'react',
-  theme: 'minimal',
-  styleSystem: 'css',
+  framework: Framework.React,
+  theme: ThemePreset.Minimal,
+  styleSystem: StyleSystem.CSS,
   tokens: {
     color: {
       primary: '#6C63FF',
@@ -35,7 +36,7 @@ const mockConfig = {
 describe('Modal snapshots', () => {
   it('css mode snapshot', async () => {
     const tokens = resolveTokens(mockConfig);
-    const model = buildComponentModel('Modal', tokens, mockConfig, true);
+    const model = buildComponentModel(ComponentName.Modal, tokens, mockConfig, true);
     const files = await renderComponent(model);
     expect(files['Modal.tsx']).toMatchSnapshot();
     expect(files['Modal.module.css']).toMatchSnapshot();
@@ -43,9 +44,9 @@ describe('Modal snapshots', () => {
   });
 
   it('tailwind mode snapshot', async () => {
-    const config = { ...mockConfig, styleSystem: 'tailwind' };
+    const config = { ...mockConfig, styleSystem: StyleSystem.Tailwind };
     const tokens = resolveTokens(config);
-    const model = buildComponentModel('Modal', tokens, config, true);
+    const model = buildComponentModel(ComponentName.Modal, tokens, config, true);
     const files = await renderComponent(model);
     expect(files['Modal.tsx']).toMatchSnapshot();
     expect(files['Modal.module.css']).toBeUndefined();

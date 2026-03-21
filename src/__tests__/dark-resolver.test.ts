@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { deriveDarkTokens, normalizeDarkMode } from '../tokens/dark-resolver';
+import { ThemePreset, DarkModeStrategy } from '../core/enums';
 
 const lightColors = {
   primary: '#6C63FF',
@@ -15,7 +16,7 @@ const lightColors = {
 
 describe('normalizeDarkMode', () => {
   it('true → auto strategy', () => {
-    expect(normalizeDarkMode(true)).toEqual({ strategy: 'auto' });
+    expect(normalizeDarkMode(true)).toEqual({ strategy: DarkModeStrategy.Auto });
   });
   it('false → null', () => {
     expect(normalizeDarkMode(false)).toBeNull();
@@ -24,14 +25,14 @@ describe('normalizeDarkMode', () => {
     expect(normalizeDarkMode(undefined)).toBeNull();
   });
   it('object passes through', () => {
-    const config = { strategy: 'manual' as const, tokens: { text: '#fff' } };
+    const config = { strategy: DarkModeStrategy.Manual, tokens: { text: '#fff' } };
     expect(normalizeDarkMode(config)).toEqual(config);
   });
 });
 
 describe('deriveDarkTokens', () => {
   it('auto: flips text to light', () => {
-    const dark = deriveDarkTokens(lightColors, { strategy: 'auto' }, 'minimal');
+    const dark = deriveDarkTokens(lightColors, { strategy: DarkModeStrategy.Auto }, ThemePreset.Minimal);
     expect(dark.text).toBe('#f1f5f9');
     expect(dark.textMuted).toBe('#94a3b8');
   });
@@ -39,15 +40,15 @@ describe('deriveDarkTokens', () => {
   it('manual: user overrides auto values', () => {
     const dark = deriveDarkTokens(
       lightColors,
-      { strategy: 'manual', tokens: { text: '#ffffff' } },
-      'minimal',
+      { strategy: DarkModeStrategy.Manual, tokens: { text: '#ffffff' } },
+      ThemePreset.Minimal,
     );
     expect(dark.text).toBe('#ffffff');
     expect(dark.textMuted).toBe('#94a3b8'); // still auto
   });
 
   it('shifts primary color', () => {
-    const dark = deriveDarkTokens(lightColors, { strategy: 'auto' }, 'minimal');
+    const dark = deriveDarkTokens(lightColors, { strategy: DarkModeStrategy.Auto }, ThemePreset.Minimal);
     expect(dark.primary).not.toBe(lightColors.primary);
     // #6C63FF shifted → usually lighter in dark mode
   });

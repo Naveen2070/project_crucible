@@ -10,31 +10,35 @@ function hashContent(content: string): string {
   return crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);
 }
 
-async function loadHashes(): Promise<Record<string, string>> {
+async function loadHashes(hashFilePath: string): Promise<Record<string, string>> {
   try {
-    const content = await fs.readFile(HASH_FILE, 'utf-8');
+    const content = await fs.readFile(hashFilePath, 'utf-8');
     return JSON.parse(content);
   } catch {
     return {};
   }
 }
 
-async function saveHashes(hashes: Record<string, string>): Promise<void> {
-  await fs.writeFile(HASH_FILE, JSON.stringify(hashes, null, 2), 'utf-8');
+async function saveHashes(hashes: Record<string, string>, hashFilePath: string): Promise<void> {
+  await fs.writeFile(hashFilePath, JSON.stringify(hashes, null, 2), 'utf-8');
 }
 
 export async function writeFiles(
   files: Record<string, string>,
   outputDir: string,
   componentName: string,
-  opts: { force?: boolean; dryRun?: boolean } = {},
+  opts: { force?: boolean; dryRun?: boolean; quiet?: boolean; cwd?: string } = {},
 ): Promise<void> {
+  const cwd = opts.cwd || process.cwd();
+  const hashFilePath = path.join(cwd, HASH_FILE);
   const componentDir = path.join(outputDir, componentName);
+  
   if (!opts.dryRun) {
     await fs.ensureDir(componentDir);
   }
-  const hashes = await loadHashes();
-  const prettierConfig = await prettier.resolveConfig(process.cwd());
+  
+  const hashes = await loadHashes(hashFilePath);
+  const prettierConfig = await prettier.resolveConfig(cwd);
 
   for (const [filename, content] of Object.entries(files)) {
     const outPath = path.join(componentDir, filename);
@@ -49,7 +53,7 @@ export async function writeFiles(
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      console.warn(chalk.yellow(`⚠  Could not format ${hashKey} with Prettier: ${errorMessage}`));
+      if (!opts.quiet) console.warn(chalk.yellow(`⚠  Could not format ${hashKey} with Prettier: ${errorMessage}`));
     }
 
     const newHash = hashContent(formattedContent);
@@ -60,22 +64,22 @@ export async function writeFiles(
       const storedHash = hashes[hashKey];
 
       if (storedHash && currentHash !== storedHash) {
-        console.log(chalk.yellow(`⚠  ${hashKey} has been modified. Use --force to overwrite.`));
+        if (!opts.quiet) console.log(chalk.yellow(`⚠  ${hashKey} has been modified. Use --force to overwrite.`));
         continue;
       }
     }
 
     if (opts.dryRun) {
-      console.log(chalk.green(`~  ${hashKey} (would be written)`));
+      if (!opts.quiet) console.log(chalk.green(`~  ${hashKey} (would be written)`));
       continue;
     }
 
     await fs.writeFile(outPath, formattedContent, 'utf-8');
     hashes[hashKey] = newHash;
-    console.log(chalk.green(`✓  ${hashKey}`));
+    if (!opts.quiet) console.log(chalk.green(`✓  ${hashKey}`));
   }
 
   if (!opts.dryRun) {
-    await saveHashes(hashes);
+    await saveHashes(hashes, hashFilePath);
   }
 }

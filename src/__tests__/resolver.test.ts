@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { resolveTokens } from '../tokens/resolver';
+import { ThemePreset, StyleSystem } from '../core/enums';
 
 const mockConfig = {
-  theme: 'minimal',
-  styleSystem: 'css',
+  theme: ThemePreset.Minimal,
+  styleSystem: StyleSystem.CSS,
   tokens: {
     color: { primary: '#6C63FF', textMuted: '#6B6B8A' },
     radius: { sm: '4px', md: '8px' },

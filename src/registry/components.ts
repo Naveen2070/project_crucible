@@ -1,6 +1,8 @@
+import { Framework, StyleSystem, ComponentName } from '../core/enums';
+
 export interface ComponentDef {
-  frameworks: string[];
-  styleSystems: string[];
+  frameworks: Framework[];
+  styleSystems: StyleSystem[];
   files: {
     css: string[];
     tailwind: string[];
@@ -8,10 +10,10 @@ export interface ComponentDef {
   };
 }
 
-export const registry: Record<string, ComponentDef> = {
-  Button: {
-    frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind', 'scss'],
+export const registry: Record<ComponentName, ComponentDef> = {
+  [ComponentName.Button]: {
+    frameworks: [Framework.React, Framework.Angular, Framework.Vue],
+    styleSystems: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
     files: {
       css: [
         'Button/Button.tsx',
@@ -46,9 +48,9 @@ export const registry: Record<string, ComponentDef> = {
       ],
     },
   },
-  Input: {
-    frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind', 'scss'],
+  [ComponentName.Input]: {
+    frameworks: [Framework.React, Framework.Angular, Framework.Vue],
+    styleSystems: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
     files: {
       css: [
         'Input/Input.tsx',
@@ -83,9 +85,9 @@ export const registry: Record<string, ComponentDef> = {
       ],
     },
   },
-  Card: {
-    frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind', 'scss'],
+  [ComponentName.Card]: {
+    frameworks: [Framework.React, Framework.Angular, Framework.Vue],
+    styleSystems: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
     files: {
       css: [
         'Card/Card.tsx',
@@ -120,9 +122,9 @@ export const registry: Record<string, ComponentDef> = {
       ],
     },
   },
-  Modal: {
-    frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind', 'scss'],
+  [ComponentName.Modal]: {
+    frameworks: [Framework.React, Framework.Angular, Framework.Vue],
+    styleSystems: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
     files: {
       css: [
         'Modal/Modal.tsx',
@@ -157,9 +159,9 @@ export const registry: Record<string, ComponentDef> = {
       ],
     },
   },
-  Select: {
-    frameworks: ['react', 'angular', 'vue'],
-    styleSystems: ['css', 'tailwind', 'scss'],
+  [ComponentName.Select]: {
+    frameworks: [Framework.React, Framework.Angular, Framework.Vue],
+    styleSystems: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
     files: {
       css: [
         'Select/Select.tsx',
