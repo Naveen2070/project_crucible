@@ -27,10 +27,10 @@ async function registerPartials(framework: string) {
     await registerPartialsFromDir(globalShared, 'shared');
   }
 
-  // 2. Framework-specific partials (templates/react/shared/) - no prefix
+  // 2. Framework-specific partials (templates/react/shared/) - prefixed with "react/", "angular/", "vue/"
   const frameworkShared = path.join(__dirname, `../../templates/${framework}/shared`);
   if (await fs.pathExists(frameworkShared)) {
-    await registerPartialsFromDir(frameworkShared, '');
+    await registerPartialsFromDir(frameworkShared, framework);
   }
 }
 

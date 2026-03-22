@@ -1,9 +1,9 @@
-{{> react-stories-header}}
+{{> react/stories-header}}
   argTypes: {
     variant: { control: 'select', options: {{> shared/variant-options}} },
     size:    { control: 'select', options: {{> shared/size-options}} },
   },
-{{> react-stories-footer}}
+{{> react/stories-footer}}
 
 {{#if features.compoundComponents}}
 export const Default: Story = {

@@ -1,11 +1,11 @@
-{{> react-stories-header}}
+{{> react/stories-header}}
   argTypes: {
     variant:  { control: 'select', options: {{> shared/variant-options}} },
     size:     { control: 'select', options: {{> shared/size-options}} },
     loading:  { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
-{{> react-stories-footer}}
+{{> react/stories-footer}}
 
 {{#if features.compoundComponents}}
 {{#each variants}}

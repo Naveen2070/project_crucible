@@ -1,5 +1,5 @@
 import React from 'react';
-{{> react-styles-import}}
+{{> react/styles-import}}
 
 export type ButtonVariant = {{> shared/variant-types}};
 export type ButtonSize    = {{> shared/size-types}};
@@ -13,7 +13,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 {{#if features.compoundComponents}}
 export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ {{> react-button-props}} }, ref) => {
+  ({ {{> react/props-destructure}} }, ref) => {
     const cls = [
       styles.btn,
       styles[`btn--${variant}`],
@@ -63,7 +63,7 @@ ButtonSpinner.displayName = 'Button.Spinner';
 ButtonIcon.displayName = 'Button.Icon';
 {{else}}
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ {{> react-button-props}} }, ref) => {
+  ({ {{> react/props-destructure}} }, ref) => {
     const cls = [
       styles.btn,
       styles[`btn--${variant}`],
