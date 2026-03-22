@@ -1,26 +1,27 @@
 import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 function getAbsolutePath(value) {
-  return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+  return dirname(require.resolve(`${value}/package.json`));
 }
 
 const config = {
   stories: [
-    '../src/__generated__/**/*.mdx',
+    '../src/**/*.mdx',
+    '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
     '../src/__generated__/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
   addons: [
     getAbsolutePath('@storybook/addon-essentials'),
     getAbsolutePath('@storybook/addon-a11y'),
     getAbsolutePath('@storybook/addon-docs'),
+    '@chromatic-com/storybook'
   ],
   framework: {
     name: getAbsolutePath('@storybook/vue3-vite'),
     options: {},
-  },
-  docs: {
-    autodocs: 'tag',
   },
 };
 
