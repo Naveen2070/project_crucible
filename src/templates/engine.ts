@@ -16,24 +16,29 @@ Handlebars.registerHelper('kebab', (str: string) =>
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
 let partialsLoaded = false;
 
-async function registerPartials() {
-  if (partialsLoaded) return;
-  const sharedDir = path.join(__dirname, '../../templates/shared');
-  if (await fs.pathExists(sharedDir)) {
-    const files = await fs.readdir(sharedDir);
-    for (const file of files) {
-      if (file.endsWith('.hbs')) {
-        const name = path.basename(file, '.hbs');
-        const content = await fs.readFile(path.join(sharedDir, file), 'utf-8');
-        Handlebars.registerPartial(name, content);
+async function registerPartials(framework: string) {
+  // engine.js will be in dist/templates/, so root is ../../
+  const sharedPaths = [
+    path.join(__dirname, '../../templates/shared'),
+    path.join(__dirname, `../../templates/${framework}/shared`)
+  ];
+
+  for (const dir of sharedPaths) {
+    if (await fs.pathExists(dir)) {
+      const files = await fs.readdir(dir);
+      for (const file of files) {
+        if (file.endsWith('.hbs')) {
+          const name = path.basename(file, '.hbs');
+          const content = await fs.readFile(path.join(dir, file), 'utf-8');
+          Handlebars.registerPartial(name, content);
+        }
       }
     }
   }
-  partialsLoaded = true;
 }
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
-  await registerPartials();
+  await registerPartials(model.framework);
   // engine.js will be in dist/templates/, so root is ../../
   const tplDir = path.join(
     __dirname,

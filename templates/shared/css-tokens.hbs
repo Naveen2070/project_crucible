@@ -1,0 +1,12 @@
+:root {
+{{#each tokens.cssVars}}  {{@key}}: {{this}};
+{{/each}}
+}
+
+{{#if tokens.darkCssVars}}
+@media (prefers-color-scheme: dark) {
+  :root {
+{{#each tokens.darkCssVars}}    {{@key}}: {{this}};
+{{/each}}  }
+}
+{{/if}}
