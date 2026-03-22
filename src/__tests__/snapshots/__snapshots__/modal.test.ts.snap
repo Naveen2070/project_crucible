@@ -272,9 +272,8 @@ exports[`Modal snapshots > css mode snapshot 2`] = `
 
 exports[`Modal snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Modal } from './Modal';
-import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',
@@ -495,9 +494,8 @@ ModalFooter.displayName = 'Modal.Footer';
 
 exports[`Modal snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Modal } from './Modal';
-import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',

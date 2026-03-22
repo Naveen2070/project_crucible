@@ -1,19 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
-import { Select } from './Select';
-
-const meta: Meta<typeof Select> = {
-  title: 'Crucible/{{name}}',
-  component: Select,
-  parameters: { layout: 'centered' },
+{{> react-stories-header}}
   argTypes: {
-    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: {{> variant-options}} },
+    size:     { control: 'select', options: {{> size-options}} },
     disabled: { control: 'boolean' },
   },
-};
-export default meta;
-type Story = StoryObj<typeof Select>;
+{{> react-stories-footer}}
+
 
 {{#if features.compoundComponents}}
 export const Default: Story = {

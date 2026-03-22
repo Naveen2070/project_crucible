@@ -10,8 +10,8 @@ export class InputComponent {
   @Input() id = `input-${InputComponent.nextId++}`;
   @Input() label = '';
   @Input() placeholder = '';
-  @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
-  @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
+  @Input() variant: {{> variant-types}} = 'default';
+  @Input() size:    {{> size-types}} = 'md';
   @Input() error = '';
   @Input() hint = '';
   @Input() disabled = false;

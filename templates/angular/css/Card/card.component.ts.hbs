@@ -7,8 +7,8 @@ import { Component, Input } from '@angular/core';
 })
 export class CardComponent {
   @Input() title = '';
-  @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
-  @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
+  @Input() variant: {{> variant-types}} = 'default';
+  @Input() size:    {{> size-types}} = 'md';
 
   get classes(): string {
     return [

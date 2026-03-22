@@ -10,8 +10,8 @@ export class SelectComponent {
   @Input() placeholder = 'Select an option';
   @Input() options: any[] = [];
   @Input() value: any = null;
-  @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
-  @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
+  @Input() variant: {{> variant-types}} = 'default';
+  @Input() size:    {{> size-types}} = 'md';
   @Input() error = '';
   @Input() disabled = false;
 

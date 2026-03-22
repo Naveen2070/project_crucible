@@ -1,20 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
-import { Button } from './Button';
-
-const meta: Meta<typeof Button> = {
-  title: 'Crucible/{{name}}',
-  component: Button,
-  parameters: { layout: 'centered' },
+{{> react-stories-header}}
   argTypes: {
-    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: {{> variant-options}} },
+    size:     { control: 'select', options: {{> size-options}} },
     loading:  { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
-};
-export default meta;
-type Story = StoryObj<typeof Button>;
+{{> react-stories-footer}}
 
 {{#if features.compoundComponents}}
 {{#each variants}}

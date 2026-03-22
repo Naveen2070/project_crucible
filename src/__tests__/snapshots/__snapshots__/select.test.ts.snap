@@ -419,7 +419,7 @@ exports[`Select snapshots > css mode snapshot 2`] = `
 
 exports[`Select snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {
@@ -434,6 +434,7 @@ const meta: Meta<typeof Select> = {
 };
 export default meta;
 type Story = StoryObj<typeof Select>;
+
 
 export const Default: Story = {
   render: (args) => {
@@ -776,7 +777,7 @@ SelectLabel.displayName = 'Select.Label';
 
 exports[`Select snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {
@@ -791,6 +792,7 @@ const meta: Meta<typeof Select> = {
 };
 export default meta;
 type Story = StoryObj<typeof Select>;
+
 
 export const Default: Story = {
   render: (args) => {
