@@ -1,6 +1,6 @@
 {
   "name": "project_crucible",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Crucible — Design System Engine",
   "main": "dist/cli/index.js",
   "scripts": {

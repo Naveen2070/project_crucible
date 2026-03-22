@@ -20,7 +20,7 @@ const program = new Command();
 program
   .name('crucible')
   .description('Design system engine — scaffolds native, fully-owned components directly into your project')
-  .version('0.1.0');
+  .version('1.0.0');
 
 program.addHelpText(
   'after',
