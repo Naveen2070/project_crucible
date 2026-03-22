@@ -13,7 +13,13 @@
     "test": "vitest",
     "test:e2e": "tsx scripts/e2e.ts",
     "test:coverage": "vitest --coverage",
-    "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
+    "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN",
+    "pg": "tsx scripts/generate-playground.ts",
+    "pg:react": "tsx scripts/generate-playground.ts react",
+    "pg:angular": "tsx scripts/generate-playground.ts angular",
+    "pg:vue": "tsx scripts/generate-playground.ts vue",
+    "po": "tsx scripts/open-playground.ts",
+    "pd": "tsx scripts/dev-playground.ts"
   },
   "workspaces": [
     "playground/*"

@@ -19,7 +19,9 @@ const program = new Command();
 
 program
   .name('crucible')
-  .description('Design system engine — scaffolds native, fully-owned components directly into your project')
+  .description(
+    'Design system engine — scaffolds native, fully-owned components directly into your project',
+  )
   .version('1.0.0');
 
 program.addHelpText(
@@ -194,30 +196,32 @@ program
 
       const hashes = await loadHashes(path.join(cwd, '.crucible-hashes.json'));
 
-      await Promise.all(Array.from(resolvedComponents).map(async (comp) => {
-        if (opts.verbose) console.log(chalk.blue(`Generating ${comp}...`));
-        const model = buildComponentModel(comp, tokens, config, generateStories);
-        const files = await renderComponent(model);
+      await Promise.all(
+        Array.from(resolvedComponents).map(async (comp) => {
+          if (opts.verbose) console.log(chalk.blue(`Generating ${comp}...`));
+          const model = buildComponentModel(comp, tokens, config, generateStories);
+          const files = await renderComponent(model);
 
-        await writeFiles(files, outDir, comp, {
-          force: opts.force,
-          dryRun: opts.dryRun,
-          quiet: opts.quiet,
-          cwd,
-          hashes,
-        });
+          await writeFiles(files, outDir, comp, {
+            force: opts.force,
+            dryRun: opts.dryRun,
+            quiet: opts.quiet,
+            cwd,
+            hashes,
+          });
 
-        const storiesNote = generateStories ? ' + story' : '';
-        const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
+          const storiesNote = generateStories ? ' + story' : '';
+          const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
 
-        if (!opts.quiet) {
-          console.log(
-            chalk.cyan(
-              `\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`,
-            ) + dryRunNote,
-          );
-        }
-      }));
+          if (!opts.quiet) {
+            console.log(
+              chalk.cyan(
+                `\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`,
+              ) + dryRunNote,
+            );
+          }
+        }),
+      );
 
       if (!opts.dryRun) {
         await saveHashes(hashes, path.join(cwd, '.crucible-hashes.json'));
@@ -236,6 +240,60 @@ program
     for (const [name, def] of Object.entries(registry)) {
       console.log(`  ${name}  [${def.frameworks.join(', ')}]  [${def.styleSystems.join(', ')}]`);
     }
+  });
+
+async function runPlaygroundGenerate(opts: { framework?: string; stories?: boolean }) {
+  const { execSync } = await import('child_process');
+  const framework = opts.framework || 'all';
+  const storiesFlag = opts.stories !== false ? '--stories' : '--no-stories';
+  execSync(`npx tsx scripts/generate-playground.ts ${framework} ${storiesFlag}`, {
+    cwd: process.cwd(),
+    stdio: 'inherit',
+  });
+}
+
+async function runPlaygroundOpen(opts: { framework?: string }) {
+  const { execSync } = await import('child_process');
+  const framework = opts.framework || '';
+  execSync(`npx tsx scripts/open-playground.ts open ${framework}`, {
+    cwd: process.cwd(),
+    stdio: 'inherit',
+  });
+}
+
+async function runPlaygroundDev(opts: { framework?: string }) {
+  const { execSync } = await import('child_process');
+  const framework = opts.framework || '';
+  execSync(`npx tsx scripts/open-playground.ts dev ${framework}`, {
+    cwd: process.cwd(),
+    stdio: 'inherit',
+  });
+}
+
+program
+  .command('pg:gen [framework]')
+  .alias('pg')
+  .description('Generate playground components for frameworks')
+  .option('--stories', 'Include story files', true)
+  .option('--no-stories', 'Exclude story files')
+  .action(async (framework: string | undefined, opts: any) => {
+    await runPlaygroundGenerate({ framework, stories: opts.stories });
+  });
+
+program
+  .command('pg:open [framework]')
+  .alias('po')
+  .description('Open Storybook for a framework playground')
+  .action(async (framework: string | undefined, opts: any) => {
+    await runPlaygroundOpen({ framework });
+  });
+
+program
+  .command('pg:dev [framework]')
+  .alias('pd')
+  .description('Start dev server for a framework playground')
+  .action(async (framework: string | undefined, opts: any) => {
+    await runPlaygroundDev({ framework });
   });
 
 program.parse();
