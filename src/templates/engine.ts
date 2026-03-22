@@ -179,4 +179,17 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   return result;
 }
 
+export async function renderGlobalTokens(model: ComponentModel): Promise<string> {
+  await registerPartials(model.framework);
+  const tplPath = path.join(getTemplatesRoot(), 'shared', 'global-tokens.css.hbs');
+
+  if (!(await fs.pathExists(tplPath))) {
+    throw new Error(`Global tokens template not found: ${tplPath}`);
+  }
+
+  const source = await fs.readFile(tplPath, 'utf-8');
+  const compiled = Handlebars.compile(source);
+  return compiled(model);
+}
+
 export { invalidateCache, cleanupWatchers };

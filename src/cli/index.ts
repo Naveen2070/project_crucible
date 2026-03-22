@@ -7,7 +7,7 @@ import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../config/reader';
 import { resolveTokens } from '../tokens/resolver';
 import { buildComponentModel } from '../components/model';
-import { renderComponent } from '../templates/engine';
+import { renderComponent, renderGlobalTokens } from '../templates/engine';
 import { writeFiles, loadHashes, saveHashes } from '../scaffold/writer';
 import { registry } from '../registry/components';
 import { runInit } from './init';
@@ -236,6 +236,16 @@ program
         opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
 
       const hashes = await loadHashes(path.join(cwd, '.crucible-hashes.json'));
+
+      await fs.ensureDir(outDir);
+
+      const model = buildComponentModel('Button', tokens, config, generateStories);
+      const tokensContent = await renderGlobalTokens(model);
+      const tokensPath = path.join(outDir, 'tokens.css');
+      await fs.writeFile(tokensPath, tokensContent);
+      if (!opts.quiet) {
+        console.log(chalk.gray(`  Created tokens.css`));
+      }
 
       await Promise.all(
         Array.from(resolvedComponents).map(async (comp) => {
