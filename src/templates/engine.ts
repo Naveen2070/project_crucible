@@ -1,11 +1,11 @@
 import Handlebars from 'handlebars';
 import fs from 'fs-extra';
 import path from 'path';
+import chokidar from 'chokidar';
 import { ComponentModel } from '../components/model';
 import { Framework, StyleSystem } from '../core/enums';
 import { FRAMEWORK_TARGETS } from '../registry/frameworks';
 
-// Register helpers
 Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
 Handlebars.registerHelper('includes', (arr: any[], val: any) => arr?.includes(val));
 Handlebars.registerHelper('capitalize', (str: string) => str[0].toUpperCase() + str.slice(1));
@@ -17,20 +17,37 @@ Handlebars.registerHelper('kebab', (str: string) =>
 );
 
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
-let partialsLoaded = false;
+const loadedFrameworks = new Set<string>();
+let globalWatcher: ReturnType<typeof chokidar.watch> | null = null;
+const frameworkWatchers = new Map<string, ReturnType<typeof chokidar.watch>>();
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+function getTemplatesRoot(): string {
+  return path.join(__dirname, '../../templates');
+}
 
 async function registerPartials(framework: string) {
-  // engine.js will be in dist/templates/, so root is ../../
-  // 1. Global shared partials (templates/shared/) - prefixed with "shared/"
-  const globalShared = path.join(__dirname, '../../templates/shared');
+  if (loadedFrameworks.has(framework)) {
+    return;
+  }
+
+  const root = getTemplatesRoot();
+
+  const globalShared = path.join(root, 'shared');
   if (await fs.pathExists(globalShared)) {
     await registerPartialsFromDir(globalShared, 'shared');
   }
 
-  // 2. Framework-specific partials (templates/react/shared/) - prefixed with "react/", "angular/", "vue/"
-  const frameworkShared = path.join(__dirname, `../../templates/${framework}/shared`);
+  const frameworkShared = path.join(root, framework, 'shared');
   if (await fs.pathExists(frameworkShared)) {
     await registerPartialsFromDir(frameworkShared, framework);
+  }
+
+  loadedFrameworks.add(framework);
+
+  if (!isProduction) {
+    setupFrameworkWatcher(framework);
   }
 }
 
@@ -50,16 +67,75 @@ async function registerPartialsFromDir(dir: string, prefix: string) {
   }
 }
 
+function invalidateCache(framework?: string) {
+  templateCache.clear();
+
+  if (framework) {
+    loadedFrameworks.delete(framework);
+  } else {
+    loadedFrameworks.clear();
+  }
+}
+
+function setupGlobalWatcher() {
+  if (globalWatcher || isProduction) return;
+
+  const root = getTemplatesRoot();
+  const sharedPath = path.join(root, 'shared');
+
+  globalWatcher = chokidar.watch(sharedPath, {
+    ignoreInitial: true,
+    awaitWriteFinish: {
+      stabilityThreshold: 100,
+      pollInterval: 50,
+    },
+  });
+
+  globalWatcher.on('change', () => {
+    invalidateCache();
+  });
+}
+
+function setupFrameworkWatcher(framework: string) {
+  if (frameworkWatchers.has(framework) || isProduction) return;
+
+  const root = getTemplatesRoot();
+  const frameworkShared = path.join(root, framework, 'shared');
+
+  const watcher = chokidar.watch(frameworkShared, {
+    ignoreInitial: true,
+    awaitWriteFinish: {
+      stabilityThreshold: 100,
+      pollInterval: 50,
+    },
+  });
+
+  watcher.on('change', () => {
+    invalidateCache(framework);
+  });
+
+  frameworkWatchers.set(framework, watcher);
+}
+
+function cleanupWatchers() {
+  if (globalWatcher) {
+    globalWatcher.close();
+    globalWatcher = null;
+  }
+  for (const watcher of frameworkWatchers.values()) {
+    watcher.close();
+  }
+  frameworkWatchers.clear();
+}
+
+if (!isProduction) {
+  setupGlobalWatcher();
+  process.on('exit', cleanupWatchers);
+}
+
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
   await registerPartials(model.framework);
-  // engine.js will be in dist/templates/, so root is ../../
-  const tplDir = path.join(
-    __dirname,
-    '../../templates',
-    model.framework,
-    model.styleSystem,
-    model.name,
-  );
+  const tplDir = path.join(getTemplatesRoot(), model.framework, model.styleSystem, model.name);
   const result: Record<string, string> = {};
 
   const resolver = FRAMEWORK_TARGETS[model.framework];
@@ -71,14 +147,12 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   for (const { tpl, out } of targets) {
     let tplPath = path.join(tplDir, tpl);
 
-    // Fallback logic: If SCSS or Tailwind mode and template doesn't exist, fallback to 'css' folder
     if (
       (model.styleSystem === StyleSystem.SCSS || model.styleSystem === StyleSystem.Tailwind) &&
       !(await fs.pathExists(tplPath))
     ) {
       const fallbackDir = path.join(
-        __dirname,
-        '../../templates',
+        getTemplatesRoot(),
         model.framework,
         StyleSystem.CSS,
         model.name,
@@ -103,3 +177,5 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 
   return result;
 }
+
+export { invalidateCache, cleanupWatchers };
