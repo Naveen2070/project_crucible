@@ -12,7 +12,8 @@ const meta: Meta<SelectComponent> = {
   component: SelectComponent,
   tags: ['autodocs'],
   argTypes: {
-    size:        { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:     { control: 'select', options: {{> shared/variant-options}} },
+    size:        { control: 'select', options: {{> shared/size-options}} },
     label:       { control: 'text' },
     placeholder: { control: 'text' },
     error:       { control: 'text' },
@@ -29,8 +30,23 @@ export const Default: Story = {
     placeholder: 'Choose one...',
     options: OPTIONS,
     size: 'md',
+    variant: 'default',
   },
 };
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', label: '{{capitalize this}} Variant', options: OPTIONS },
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', label: '{{capitalize this}} Size', options: OPTIONS },
+};
+{{/each}}
 
 export const WithError: Story = {
   args: {

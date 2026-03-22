@@ -1,25 +1,28 @@
-<div *ngIf="isOpen" class="modal-overlay" (click)="onOverlayClick($event)">
-  <div 
-    class="modal"
-    [class.modal--sm]="size === 'sm'"
-    [class.modal--md]="size === 'md'"
-    [class.modal--lg]="size === 'lg'"
-    role="dialog" 
-    aria-modal="true"
-  >
-    <header class="modal-header">
-      <h2 class="modal-title">\{{ title }}</h2>
-      <button type="button" class="modal-close" (click)="onClose()" aria-label="Close modal">
-        &times;
-      </button>
-    </header>
-    
-    <div class="modal-body">
-      <ng-content></ng-content>
+@if (isOpen) {
+  <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div 
+      class="modal"
+      [class.modal--sm]="size === 'sm'"
+      [class.modal--md]="size === 'md'"
+      [class.modal--lg]="size === 'lg'"
+      [class.modal--confirm]="variant === 'confirm'"
+      role="dialog" 
+      aria-modal="true"
+    >
+      <header class="modal-header">
+        <h2 class="modal-title">\{{ title }}</h2>
+        <button type="button" class="modal-close" (click)="onClose()" aria-label="Close modal">
+          &times;
+        </button>
+      </header>
+      
+      <div class="modal-body">
+        <ng-content></ng-content>
+      </div>
+      
+      <footer class="modal-footer">
+        <ng-content select="[modal-footer]"></ng-content>
+      </footer>
     </div>
-    
-    <footer class="modal-footer">
-      <ng-content select="[modal-footer]"></ng-content>
-    </footer>
   </div>
-</div>
+}

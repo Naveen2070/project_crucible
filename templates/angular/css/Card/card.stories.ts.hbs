@@ -6,7 +6,8 @@ const meta: Meta<CardComponent> = {
   component: CardComponent,
   tags: ['autodocs'],
   argTypes: {
-    variant: { control: 'select', options: ['default', 'hoverable', 'clickable'] },
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+    size:    { control: 'select', options: {{> shared/size-options}} },
     title:   { control: 'text' },
   },
 };
@@ -18,31 +19,50 @@ export const Default: Story = {
   args: {
     title: 'Card Title',
     variant: 'default',
+    size: 'md',
   },
   render: (args) => ({
     props: args,
-    template: `<app-card [title]="title" [variant]="variant">This is the card content.</app-card>`,
+    template: `<app-card [title]="title" [variant]="variant" [size]="size">This is the card content.</app-card>`,
   }),
 };
 
-export const Hoverable: Story = {
-  args: {
-    title: 'Hoverable Card',
-    variant: 'hoverable',
-  },
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', title: '{{capitalize this}} Variant' },
   render: (args) => ({
     props: args,
-    template: `<app-card [title]="title" [variant]="variant">Hover over me!</app-card>`,
+    template: `<app-card [title]="title" [variant]="variant" [size]="size">Card content with {{this}} variant.</app-card>`,
   }),
 };
+{{/unless}}
+{{/each}}
 
-export const Clickable: Story = {
-  args: {
-    title: 'Clickable Card',
-    variant: 'clickable',
-  },
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', title: '{{capitalize this}} Size' },
   render: (args) => ({
     props: args,
-    template: `<app-card [title]="title" [variant]="variant">Click me!</app-card>`,
+    template: `<app-card [title]="title" [variant]="variant" [size]="size">Card content with {{this}} size.</app-card>`,
+  }),
+};
+{{/each}}
+
+export const CustomContent: Story = {
+  args: { title: 'Custom Content' },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-card [title]="title">
+        <div card-header>
+          <strong style="color: var(--color-primary)">Custom Header</strong>
+        </div>
+        <p>Main card content goes here.</p>
+        <div card-footer>
+          <small>Posted 2 hours ago</small>
+        </div>
+      </app-card>
+    `,
   }),
 };

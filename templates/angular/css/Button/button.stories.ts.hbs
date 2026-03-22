@@ -6,8 +6,8 @@ const meta: Meta<ButtonComponent> = {
   component: ButtonComponent,
   tags: ['autodocs'],
   argTypes: {
-    variant: { control: 'select', options: ['primary', 'secondary', 'ghost', 'danger'] },
-    size:    { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+    size:    { control: 'select', options: {{> shared/size-options}} },
     loading: { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
@@ -16,42 +16,46 @@ const meta: Meta<ButtonComponent> = {
 export default meta;
 type Story = StoryObj<ButtonComponent>;
 
-export const Primary: Story = {
-  args: { variant: 'primary', size: 'md', children: 'Primary' },
+export const Default: Story = {
+  args: { variant: 'primary', size: 'md' },
   render: (args) => ({
     props: args,
-    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Primary</app-button>`,
+    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Button</app-button>`,
   }),
 };
 
-export const Secondary: Story = {
-  args: { variant: 'secondary', size: 'md' },
+{{#each variants}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}' },
   render: (args) => ({
     props: args,
-    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Secondary</app-button>`,
+    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">{{capitalize this}} Button</app-button>`,
   }),
 };
+{{/each}}
 
-export const Ghost: Story = {
-  args: { variant: 'ghost', size: 'md' },
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
   render: (args) => ({
     props: args,
-    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Ghost</app-button>`,
+    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">{{capitalize this}} Size</app-button>`,
   }),
 };
-
-export const Danger: Story = {
-  args: { variant: 'danger', size: 'md' },
-  render: (args) => ({
-    props: args,
-    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Danger</app-button>`,
-  }),
-};
+{{/each}}
 
 export const Loading: Story = {
   args: { variant: 'primary', size: 'md', loading: true },
   render: (args) => ({
     props: args,
     template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Loading</app-button>`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: { variant: 'primary', size: 'md', disabled: true },
+  render: (args) => ({
+    props: args,
+    template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Disabled</app-button>`,
   }),
 };

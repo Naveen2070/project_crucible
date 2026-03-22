@@ -1,7 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-select',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './select.component.html',
   styleUrls: ['./select.component.css'],
 })
@@ -13,11 +16,11 @@ export class SelectComponent {
   @Input() error = '';
   @Input() disabled = false;
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() variant: 'default' | 'error' = 'default';
 
   @Output() valueChange = new EventEmitter<any>();
 
-  private _id = 'select-' + Math.random().toString(36).substring(2, 9);
-  get id() { return this._id; }
+  id = 'select-' + Math.random().toString(36).substring(2, 9);
 
   onChange(event: Event) {
     const target = event.target as HTMLSelectElement;

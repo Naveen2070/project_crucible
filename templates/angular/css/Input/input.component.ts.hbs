@@ -1,7 +1,10 @@
 import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-input',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './input.component.html',
   styleUrls: ['./input.component.css'],
 })
@@ -15,6 +18,5 @@ export class InputComponent {
   @Input() required = false;
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
 
-  private _id = 'input-' + Math.random().toString(36).substring(2, 9);
-  get id() { return this._id; }
+  id = 'input-' + Math.random().toString(36).substring(2, 9);
 }

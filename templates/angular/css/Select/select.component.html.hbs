@@ -1,20 +1,31 @@
 <div class="select-container">
-  <label *ngIf="label" [attr.for]="id" class="label">\{{ label }}</label>
+  @if (label) {
+    <label [attr.for]="id" class="label">\{{ label }}</label>
+  }
   
-  <select
-    [id]="id"
-    class="select"
-    [class.select--sm]="size === 'sm'"
-    [class.select--md]="size === 'md'"
-    [class.select--lg]="size === 'lg'"
-    [class.select--error]="error"
-    [disabled]="disabled"
-    [attr.aria-invalid]="!!error"
-    (change)="onChange($event)"
-  >
-    <option value="" disabled>\{{ placeholder }}</option>
-    <option *ngFor="let opt of options" [value]="opt.value">\{{ opt.label }}</option>
-  </select>
+  <div class="select-wrapper">
+    <ng-content select="[prefix]"></ng-content>
+    <select
+      [id]="id"
+      class="select"
+      [class.select--sm]="size === 'sm'"
+      [class.select--md]="size === 'md'"
+      [class.select--lg]="size === 'lg'"
+      [class.select--error]="variant === 'error' || error"
+      [disabled]="disabled"
+      [attr.aria-invalid]="!!error"
+      (change)="onChange($event)"
+    >
+      <option value="" disabled>\{{ placeholder }}</option>
+      @for (opt of options; track opt.value) {
+        <option [value]="opt.value">\{{ opt.label }}</option>
+      }
+    </select>
+    <ng-content select="[suffix]"></ng-content>
+  </div>
 
-  <span *ngIf="error" class="error" role="alert">\{{ error }}</span>
+  @if (error) {
+    <span class="error" role="alert">\{{ error }}</span>
+  }
+  <ng-content></ng-content>
 </div>

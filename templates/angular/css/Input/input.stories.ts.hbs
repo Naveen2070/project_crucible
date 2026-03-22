@@ -6,7 +6,7 @@ const meta: Meta<InputComponent> = {
   component: InputComponent,
   tags: ['autodocs'],
   argTypes: {
-    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    size:     { control: 'select', options: {{> shared/size-options}} },
     label:    { control: 'text' },
     placeholder: { control: 'text' },
     error:    { control: 'text' },
@@ -27,6 +27,12 @@ export const Default: Story = {
   },
 };
 
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', label: '{{capitalize this}} Size', placeholder: 'Input with {{this}} size' },
+};
+{{/each}}
+
 export const WithError: Story = {
   args: {
     label: 'Email',
@@ -36,11 +42,29 @@ export const WithError: Story = {
   },
 };
 
+export const WithHint: Story = {
+  args: {
+    label: 'Password',
+    placeholder: 'Enter password...',
+    hint: 'Must be at least 8 characters long',
+    size: 'md',
+  },
+};
+
 export const Disabled: Story = {
   args: {
     label: 'Disabled Input',
     placeholder: 'Cannot edit',
     disabled: true,
+    size: 'md',
+  },
+};
+
+export const Required: Story = {
+  args: {
+    label: 'Required Input',
+    placeholder: 'Jane Doe',
+    required: true,
     size: 'md',
   },
 };

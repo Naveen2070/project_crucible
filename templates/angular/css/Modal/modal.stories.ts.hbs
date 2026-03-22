@@ -6,9 +6,10 @@ const meta: Meta<ModalComponent> = {
   component: ModalComponent,
   tags: ['autodocs'],
   argTypes: {
-    size:  { control: 'select', options: ['sm', 'md', 'lg'] },
-    isOpen: { control: 'boolean' },
-    title:  { control: 'text' },
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+    size:    { control: 'select', options: {{> shared/size-options}} },
+    isOpen:  { control: 'boolean' },
+    title:   { control: 'text' },
   },
 };
 
@@ -20,11 +21,12 @@ export const Default: Story = {
     isOpen: true,
     title: 'Modal Title',
     size: 'md',
+    variant: 'default',
   },
   render: (args) => ({
     props: args,
     template: `
-      <app-modal [isOpen]="isOpen" [title]="title" [size]="size">
+      <app-modal [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
         <p>This is the modal content.</p>
         <div modal-footer>
           <button style="padding: 8px 16px;">Confirm</button>
@@ -33,3 +35,33 @@ export const Default: Story = {
     `,
   }),
 };
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', title: '{{capitalize this}} Variant', isOpen: true },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-modal [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
+        <p>Modal content with {{this}} variant.</p>
+      </app-modal>
+    `,
+  }),
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', title: '{{capitalize this}} Size', isOpen: true },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-modal [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
+        <p>Modal content with {{this}} size.</p>
+      </app-modal>
+    `,
+  }),
+};
+{{/each}}

@@ -1,5 +1,8 @@
 <div 
   class="card"
+  [class.card--sm]="size === 'sm'"
+  [class.card--md]="size === 'md'"
+  [class.card--lg]="size === 'lg'"
   [class.card--hoverable]="variant === 'hoverable'"
   [class.card--clickable]="variant === 'clickable'"
   [attr.tabindex]="variant === 'clickable' ? 0 : null"
@@ -9,7 +12,9 @@
     <ng-content select="[card-header]"></ng-content>
   </header>
 
-  <h3 *ngIf="title" class="card-title">\{{ title }}</h3>
+  @if (title) {
+    <h3 class="card-title">\{{ title }}</h3>
+  }
 
   <div class="card-content">
     <ng-content></ng-content>
