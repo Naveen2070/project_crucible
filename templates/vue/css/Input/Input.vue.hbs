@@ -6,6 +6,7 @@ export type InputSize    = {{> shared/size-types}};
 
 interface Props {
   id?:          string;
+  modelValue?:  string;
   label?:       string;
   placeholder?: string;
   variant?:     InputVariant;
@@ -19,6 +20,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   id: '',
+  modelValue: '',
   label: '',
   placeholder: '',
   variant: 'default',
@@ -30,11 +32,18 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'text',
 });
 
+const emit = defineEmits(['update:modelValue']);
+
 const showPassword = ref(false);
 const generatedId = `input-${Math.floor(Math.random() * 1000000)}`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => `${inputId.value}-error`);
 const hintId = computed(() => `${inputId.value}-hint`);
+
+const onInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.value);
+};
 
 const describedBy = computed(() => {
   const ids = [];
@@ -81,6 +90,8 @@ const containerClasses = computed(() => [
           :class="['input', `input--${size}`]"
           :placeholder="placeholder"
           :disabled="disabled"
+          :value="modelValue"
+          @input="onInput"
           :aria-invalid="!!error"
           :aria-required="required"
           :aria-describedby="describedBy"
