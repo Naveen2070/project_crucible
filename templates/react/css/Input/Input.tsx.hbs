@@ -1,8 +1,8 @@
 import React, { useId, useState, createContext, useContext } from 'react';
 {{> react-styles-import}}
 
-export type InputVariant = {{> variant-types}};
-export type InputSize    = {{> size-types}};
+export type InputVariant = {{> shared/variant-types}};
+export type InputSize    = {{> shared/size-types}};
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?:    string;

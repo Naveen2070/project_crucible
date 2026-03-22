@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./button.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}']
 })
 export class ButtonComponent {
-  @Input() variant: {{> variant-types}} = 'primary';
+  @Input() variant: {{> shared/variant-types}} = 'primary';
   @Input() size:    {{> size-types}} = 'md';
   @Input() loading = false;
   @Input() disabled = false;

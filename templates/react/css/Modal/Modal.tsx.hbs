@@ -2,8 +2,8 @@ import React, { useEffect, useId, createContext, useContext } from 'react';
 import FocusTrap from 'focus-trap-react';
 {{> react-styles-import}}
 
-export type ModalVariant = {{> variant-types}};
-export type ModalSize    = {{> size-types}};
+export type ModalVariant = {{> shared/variant-types}};
+export type ModalSize    = {{> shared/size-types}};
 
 export interface ModalProps {
   isOpen:    boolean;

@@ -6,8 +6,8 @@ export interface SelectOption {
   label: string;
 }
 
-export type SelectVariant = {{> variant-types}};
-export type SelectSize    = {{> size-types}};
+export type SelectVariant = {{> shared/variant-types}};
+export type SelectSize    = {{> shared/size-types}};
 
 export interface SelectProps {
   options?:  SelectOption[];

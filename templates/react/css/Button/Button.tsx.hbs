@@ -1,8 +1,8 @@
 import React from 'react';
 {{> react-styles-import}}
 
-export type ButtonVariant = {{> variant-types}};
-export type ButtonSize    = {{> size-types}};
+export type ButtonVariant = {{> shared/variant-types}};
+export type ButtonSize    = {{> shared/size-types}};
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:  ButtonVariant;
