@@ -20,6 +20,7 @@ interface GenerateOptions {
   framework?: Framework | 'all';
   styleSystem?: 'css' | 'tailwind' | 'scss';
   stories?: boolean;
+  force?: boolean;
 }
 
 function getPlaygroundPath(framework: Framework): string {
@@ -42,10 +43,34 @@ function isGenerated(framework: Framework): boolean {
 async function createConfig(framework: Framework): Promise<void> {
   const configPath = getConfigPath(framework);
   const config: Record<string, unknown> = {
-    version: '1.0.0',
+    version: '1',
     framework,
     styleSystem: 'css',
     theme: 'minimal',
+    tokens: {
+      color: {
+        primary: '#6C63FF',
+        surface: '#FFFFFF',
+        background: '#F8F9FA',
+        border: '#E2E1F0',
+        text: '#1A1A2E',
+        danger: '#E24B4A',
+        secondary: '#E2E1F0',
+        textMuted: '#6B7280',
+      },
+      radius: {
+        sm: '4px',
+        md: '8px',
+        lg: '16px',
+      },
+      spacing: {
+        unit: '4px',
+      },
+      typography: {
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        scaleBase: '16px',
+      },
+    },
     features: {
       hover: true,
       focusRing: true,
@@ -56,7 +81,7 @@ async function createConfig(framework: Framework): Promise<void> {
       focusRingStyle: 'outline',
       focusRingColor: 'var(--color-primary)',
       focusRingWidth: '2px',
-      focusRingOffset: '2px',
+      focusRingOffset: '3px',
       reduceMotion: true,
     },
     flags: {
@@ -67,6 +92,21 @@ async function createConfig(framework: Framework): Promise<void> {
 
   await fs.writeJson(configPath, config, { spaces: 2 });
   console.log(chalk.gray(`  Created ${framework}/crucible.config.json`));
+}
+
+async function installDependencies(framework: Framework): Promise<void> {
+  const playgroundPath = getPlaygroundPath(framework);
+  console.log(chalk.gray(`  Installing dependencies for ${framework}...`));
+
+  try {
+    execSync('npm install', {
+      cwd: playgroundPath,
+      stdio: 'inherit',
+    });
+    console.log(chalk.gray(`  Dependencies installed`));
+  } catch (error: any) {
+    console.log(chalk.yellow(`  Warning: Some dependencies may not have installed correctly`));
+  }
 }
 
 async function generateFramework(
@@ -80,20 +120,28 @@ async function generateFramework(
   try {
     await fs.ensureDir(path.join(playgroundPath, 'src'));
     await createConfig(framework);
+    await installDependencies(framework);
 
-    const componentsArg = COMPONENTS.join(' ');
-    const flags = options.stories ? '--stories -y' : '-y';
+    const shouldGenerate = options.force || !isGenerated(framework);
 
-    console.log(chalk.gray(`  Running: crucible add ${componentsArg} ${flags}`));
+    if (shouldGenerate) {
+      const componentsArg = COMPONENTS.join(' ');
+      const flags = options.stories ? '--stories -y --dev' : '-y --dev';
 
-    execSync(`node "${CLI_PATH}" add ${componentsArg} ${flags}`, {
-      cwd: playgroundPath,
-      stdio: options.stories ? 'inherit' : 'pipe',
-      env: { ...process.env, FORCE_COLOR: '0' },
-    });
+      console.log(chalk.gray(`  Running: crucible add ${componentsArg} ${flags}`));
 
-    const generatedCount = fs.readdirSync(getGeneratedPath(framework)).length;
-    console.log(chalk.green(`  ✓ ${framework}: ${generatedCount} components generated`));
+      execSync(`node "${CLI_PATH}" add ${componentsArg} ${flags}`, {
+        cwd: playgroundPath,
+        stdio: 'inherit',
+      });
+    } else {
+      console.log(chalk.gray(`  Components already generated, skipping...`));
+    }
+
+    const generatedCount = fs.existsSync(getGeneratedPath(framework))
+      ? fs.readdirSync(getGeneratedPath(framework)).length
+      : 0;
+    console.log(chalk.green(`  ✓ ${framework}: ${generatedCount} components ready`));
 
     return { success: true };
   } catch (error: any) {
@@ -111,6 +159,7 @@ export async function generatePlayground(options: GenerateOptions = {}): Promise
   console.log(chalk.gray(`CLI: ${CLI_PATH}`));
   console.log(chalk.gray(`Frameworks: ${frameworks.join(', ')}`));
   console.log(chalk.gray(`Stories: ${options.stories !== false}`));
+  console.log(chalk.gray(`Force: ${options.force || false}`));
 
   const results: Record<string, { success: boolean; error?: string }> = {};
 
@@ -169,9 +218,11 @@ if (isMain) {
   const args = process.argv.slice(2);
   const framework = args[0] as Framework | undefined;
   const stories = !args.includes('--no-stories');
+  const force = args.includes('--force');
 
   generatePlayground({
     framework: framework || 'all',
     stories,
+    force,
   }).catch(console.error);
 }

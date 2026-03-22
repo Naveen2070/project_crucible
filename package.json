@@ -15,11 +15,18 @@
     "test:coverage": "vitest --coverage",
     "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN",
     "pg": "tsx scripts/generate-playground.ts",
+    "pg:all": "tsx scripts/generate-playground.ts",
     "pg:react": "tsx scripts/generate-playground.ts react",
     "pg:angular": "tsx scripts/generate-playground.ts angular",
     "pg:vue": "tsx scripts/generate-playground.ts vue",
     "po": "tsx scripts/open-playground.ts",
-    "pd": "tsx scripts/dev-playground.ts"
+    "po:react": "tsx scripts/open-playground.ts react",
+    "po:angular": "tsx scripts/open-playground.ts angular",
+    "po:vue": "tsx scripts/open-playground.ts vue",
+    "pd": "tsx scripts/open-playground.ts dev",
+    "pd:react": "tsx scripts/open-playground.ts dev react",
+    "pd:angular": "tsx scripts/open-playground.ts dev angular",
+    "pd:vue": "tsx scripts/open-playground.ts dev vue"
   },
   "workspaces": [
     "playground/*"

@@ -10,22 +10,11 @@ import {
 import { spawn } from 'child_process';
 import path from 'path';
 
-const STORYBOOK_SCRIPTS: Record<string, string> = {
-  react: 'storybook',
-  angular: 'storybook',
-  vue: 'storybook',
-};
-
-async function selectFramework(allowAll = true): Promise<Framework | 'all'> {
-  const choices = allowAll
-    ? [
-        { name: 'All Frameworks', value: 'all' as const },
-        ...FRAMEWORKS.map((fw) => ({
-          name: `${fw.charAt(0).toUpperCase() + fw.slice(1)}`,
-          value: fw,
-        })),
-      ]
-    : FRAMEWORKS.map((fw) => ({ name: `${fw.charAt(0).toUpperCase() + fw.slice(1)}`, value: fw }));
+async function selectFramework(): Promise<Framework> {
+  const choices = FRAMEWORKS.map((fw) => ({
+    name: `${fw.charAt(0).toUpperCase() + fw.slice(1)} (port ${getStorybookPort(fw)})`,
+    value: fw,
+  }));
 
   return select({
     message: 'Which framework playground?',
@@ -40,18 +29,30 @@ async function openStorybook(framework: Framework): Promise<void> {
 
   console.log(chalk.cyan(`\n📖 Opening Storybook for ${framework} on port ${port}...`));
 
-  const child = spawn('npm', ['run', 'storybook'], {
-    cwd: playgroundPath,
-    stdio: 'inherit',
-    shell: true,
-    env: { ...process.env, STORYBOOK_PORT: String(port) },
-  });
+  let command: string;
+  let args: string[];
 
-  child.on('error', (err) => {
-    console.error(chalk.red(`\n✗ Failed to start Storybook: ${err.message}`));
-  });
+  if (framework === 'angular') {
+    command = 'npx';
+    args = ['ng', 'run', 'playground-angular:storybook'];
+  } else {
+    command = 'npm';
+    args = ['run', 'storybook'];
+  }
 
   return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: playgroundPath,
+      stdio: 'inherit',
+      shell: true,
+      env: { ...process.env, STORYBOOK_PORT: String(port) },
+    });
+
+    child.on('error', (err) => {
+      console.error(chalk.red(`\n✗ Failed to start Storybook: ${err.message}`));
+      reject(err);
+    });
+
     child.on('exit', (code) => {
       if (code === 0) resolve();
       else reject(new Error(`Storybook exited with code ${code}`));
@@ -60,49 +61,12 @@ async function openStorybook(framework: Framework): Promise<void> {
 }
 
 export async function openPlayground(framework?: Framework): Promise<void> {
-  let selectedFramework: Framework | 'all';
-
-  if (framework) {
-    selectedFramework = framework;
-  } else {
-    selectedFramework = await selectFramework(false);
-  }
-
-  const isAll = selectedFramework === 'all';
-  const frameworks = isAll ? [...FRAMEWORKS] : [selectedFramework];
-
-  for (const fw of frameworks as Framework[]) {
-    const generated = await promptGenerateIfNeeded(fw);
-    if (!generated) {
-      console.log(chalk.yellow(`  Skipped ${fw} - not generated`));
-      continue;
-    }
-
-    const port = getStorybookPort(fw);
-    console.log(chalk.green(`\n✓ ${fw} ready on port ${port}`));
-  }
-
-  console.log(chalk.blue('\n🎉 Playgrounds ready!\n'));
-  console.log(chalk.cyan('To view Storybook for a specific framework:'));
-  for (const fw of frameworks) {
-    const port = getStorybookPort(fw);
-    console.log(chalk.gray(`  - ${fw}: http://localhost:${port}`));
-  }
-  console.log('');
-}
-
-export async function openStorybookForFramework(framework?: Framework): Promise<void> {
   let selectedFramework: Framework;
 
   if (framework) {
     selectedFramework = framework;
   } else {
-    const selected = await selectFramework(false);
-    if (selected === 'all') {
-      selectedFramework = 'react';
-    } else {
-      selectedFramework = selected;
-    }
+    selectedFramework = await selectFramework();
   }
 
   const generated = await promptGenerateIfNeeded(selectedFramework);
@@ -120,12 +84,7 @@ export async function devPlayground(framework?: Framework): Promise<void> {
   if (framework) {
     selectedFramework = framework;
   } else {
-    const selected = await selectFramework(false);
-    if (selected === 'all') {
-      selectedFramework = 'react';
-    } else {
-      selectedFramework = selected;
-    }
+    selectedFramework = await selectFramework();
   }
 
   const generated = await promptGenerateIfNeeded(selectedFramework);
@@ -146,6 +105,16 @@ export async function devPlayground(framework?: Framework): Promise<void> {
     });
     child.on('error', (err) => {
       console.error(chalk.red(`\n✗ Failed to start dev server: ${err.message}`));
+    });
+  } else if (selectedFramework === 'angular') {
+    console.log(chalk.cyan(`\n🚀 Starting Angular dev server...`));
+    const child = spawn('npx', ['ng', 'serve', '--port', '4200'], {
+      cwd: playgroundPath,
+      stdio: 'inherit',
+      shell: true,
+    });
+    child.on('error', (err) => {
+      console.error(chalk.red(`\n✗ Failed to start Angular dev server: ${err.message}`));
     });
   } else {
     console.log(chalk.yellow(`\n⚠  ${selectedFramework} does not have a dev script.`));
