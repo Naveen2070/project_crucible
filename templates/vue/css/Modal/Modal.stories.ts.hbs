@@ -5,8 +5,8 @@ const meta: Meta<typeof Modal> = {
   title: 'Crucible/{{name}}',
   component: Modal,
   argTypes: {
-    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+    size:    { control: 'select', options: {{> shared/size-options}} },
     isOpen:  { control: 'boolean' },
     onClose: { action: 'close' },
   },
@@ -19,6 +19,8 @@ export const Default: Story = {
   args: {
     isOpen: true,
     title: 'Modal Title',
+    variant: 'default',
+    size: 'md',
   },
   render: (args) => ({
     components: { Modal },
@@ -27,30 +29,63 @@ export const Default: Story = {
 <Modal v-bind="args">
   This is the modal content.
   <template #footer>
-    <button @click="args.onClose">Close</button>
+    <button @click="args.onClose">Confirm</button>
   </template>
 </Modal>`,
   }),
 };
 
-{{#if features.compoundComponents}}
-export const WithSlots: Story = {
-  args: { isOpen: true },
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', title: '{{capitalize this}} Variant', isOpen: true },
   render: (args) => ({
     components: { Modal },
     setup() { return { args }; },
     template: `
 <Modal v-bind="args">
-  <template #title>
-    <h2 style="color: red;">Custom Red Title</h2>
+  Modal content with {{this}} variant.
+</Modal>`,
+  }),
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', title: '{{capitalize this}} Size', isOpen: true },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args">
+  Modal content with {{this}} size.
+</Modal>`,
+  }),
+};
+{{/each}}
+
+{{#if features.compoundComponents}}
+export const WithSlots: Story = {
+  args: { isOpen: true, title: 'Slot Example' },
+  render: (args) => ({
+    components: { Modal },
+    setup() { return { args }; },
+    template: `
+<Modal v-bind="args">
+  <template #header>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 2px solid purple; padding-bottom: 8px;">
+      <h3 style="margin: 0; color: purple;">Custom Header Slot</h3>
+      <button @click="args.onClose" style="background: none; border: 1px solid purple; color: purple; border-radius: 4px; padding: 2px 8px;">Exit</button>
+    </div>
   </template>
-  <template #close>
-    <button @click="args.onClose" style="color: blue;">[QUIT]</button>
+  <template #default>
+    Custom body content via default slot.
   </template>
-  Custom body content.
   <template #footer>
-    <div style="width: 100%; text-align: center; border: 1px dashed gray;">
-      Centered Footer
+    <div style="width: 100%; text-align: right;">
+      <button @click="args.onClose" style="margin-right: 8px;">Cancel</button>
+      <button @click="args.onClose" style="background: purple; color: white; border: none; border-radius: 4px; padding: 4px 12px;">Submit</button>
     </div>
   </template>
 </Modal>`,

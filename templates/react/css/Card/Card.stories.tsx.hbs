@@ -7,6 +7,7 @@
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
@@ -19,50 +20,55 @@ export const Default: Story = {
   ),
 };
 
-export const Hoverable: Story = {
-  args: { variant: 'hoverable' },
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style=\{{ margin: 0 }}>Hoverable Card</h3>
+        <h3 style=\{{ margin: 0 }}>{{capitalize this}} Variant</h3>
       </Card.Header>
       <Card.Content>
-        This card changes its border color and shadow on hover.
+        Card content with {{this}} variant.
       </Card.Content>
     </Card>
   ),
 };
+{{/unless}}
+{{/each}}
 
-export const Clickable: Story = {
-  args: { 
-    variant: 'clickable',
-    onClick: () => alert('Card clicked!'),
-  },
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style=\{{ margin: 0 }}>Clickable Card</h3>
+        <h3 style=\{{ margin: 0 }}>{{capitalize this}} Size</h3>
       </Card.Header>
       <Card.Content>
-        This card acts like a button and has an active state.
+        Card content with {{this}} size.
       </Card.Content>
     </Card>
   ),
 };
+{{/each}}
 
-export const Link: Story = {
-  args: { 
-    variant: 'clickable',
-    href: 'https://example.com',
-  },
+export const WithFooter: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style=\{{ margin: 0 }}>Link Card</h3>
+        <h3 style=\{{ margin: 0 }}>Card with Footer</h3>
       </Card.Header>
       <Card.Content>
-        This card acts like an anchor tag.
+        The footer can contain actions or additional information.
       </Card.Content>
+      <Card.Footer>
+        <div style=\{{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button style=\{{ padding: '4px 8px' }}>Cancel</button>
+          <button style=\{{ padding: '4px 8px' }}>Confirm</button>
+        </div>
+      </Card.Footer>
     </Card>
   ),
 };
@@ -71,32 +77,29 @@ export const Default: Story = {
   args: {
     title:    'Card Title',
     children: 'This is a default card with some content inside it.',
+    size: 'md',
   },
 };
 
-export const Hoverable: Story = {
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
   args: {
-    variant:  'hoverable',
-    title:    'Hoverable Card',
-    children: 'This card changes its border color and shadow on hover.',
+    variant:  '{{this}}',
+    title:    '{{capitalize this}} Variant',
+    children: 'Card content with {{this}} variant.',
   },
 };
+{{/unless}}
+{{/each}}
 
-export const Clickable: Story = {
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
   args: {
-    variant:  'clickable',
-    title:    'Clickable Card',
-    children: 'This card acts like a button and has an active state.',
-    onClick:  () => alert('Card clicked!'),
+    size:  '{{this}}',
+    title:    '{{capitalize this}} Size',
+    children: 'Card content with {{this}} size.',
   },
 };
-
-export const Link: Story = {
-  args: {
-    variant:  'clickable',
-    title:    'Link Card',
-    children: 'This card acts like an anchor tag.',
-    href:     'https://example.com',
-  },
-};
+{{/each}}
 {{/if}}

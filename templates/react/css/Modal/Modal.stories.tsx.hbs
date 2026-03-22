@@ -8,7 +8,8 @@ const meta: Meta<typeof Modal> = {
   component: Modal,
   parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    size:     { control: 'select', options: {{> shared/size-options}} },
   },
 };
 export default meta;
@@ -16,11 +17,12 @@ type Story = StoryObj<typeof Modal>;
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
-      <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => setIsOpen(true)}>Open Modal</button>
         <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
           <Modal.Overlay>
             <Modal.Content>
@@ -32,39 +34,135 @@ export const Default: Story = {
                 <p>This is the modal body content.</p>
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
-                <Button variant="primary" onClick={() => setIsOpen(false)}>Confirm</Button>
+                <div style=\{{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button onClick={() => setIsOpen(false)}>Cancel</button>
+                  <button onClick={() => setIsOpen(false)}>Confirm</button>
+                </div>
               </Modal.Footer>
             </Modal.Content>
           </Modal.Overlay>
         </Modal>
-      </>
+      </div>
     );
   },
 };
-{{else}}
-export const Default: Story = {
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}' },
   render: (args) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
-      <>
-        <Button onClick={() => setIsOpen(true)}>Open Modal</Button>
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
+        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Modal.Overlay>
+            <Modal.Content>
+              <Modal.Header>
+                <Modal.Title>{{capitalize this}} Variant</Modal.Title>
+                <Modal.Close />
+              </Modal.Header>
+              <Modal.Body>
+                <p>Modal content with {{this}} variant.</p>
+              </Modal.Body>
+            </Modal.Content>
+          </Modal.Overlay>
+        </Modal>
+      </div>
+    );
+  },
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
+        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Modal.Overlay>
+            <Modal.Content>
+              <Modal.Header>
+                <Modal.Title>{{capitalize this}} Size</Modal.Title>
+                <Modal.Close />
+              </Modal.Header>
+              <Modal.Body>
+                <p>Modal content with {{this}} size.</p>
+              </Modal.Body>
+            </Modal.Content>
+          </Modal.Overlay>
+        </Modal>
+      </div>
+    );
+  },
+};
+{{/each}}
+{{else}}
+export const Default: Story = {
+  args: { variant: 'default', size: 'md', title: 'Modal Title' },
+  render: (args) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => setIsOpen(true)}>Open Modal</button>
         <Modal
           {...args}
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
-          title="Modal Title"
-          footer={
-            <div style=\{{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button variant="primary" onClick={() => setIsOpen(false)}>Confirm</Button>
-            </div>
-          }
         >
           <p>This is the modal content.</p>
         </Modal>
-      </>
+      </div>
     );
   },
 };
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', title: '{{capitalize this}} Variant' },
+  render: (args) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
+        <Modal
+          {...args}
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+        >
+          <p>Modal content with {{this}} variant.</p>
+        </Modal>
+      </div>
+    );
+  },
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', title: '{{capitalize this}} Size' },
+  render: (args) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
+        <Modal
+          {...args}
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+        >
+          <p>Modal content with {{this}} size.</p>
+        </Modal>
+      </div>
+    );
+  },
+};
+{{/each}}
 {{/if}}

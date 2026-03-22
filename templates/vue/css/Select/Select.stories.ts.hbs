@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { ref } from 'vue';
 import Select from './Select.vue';
 
 const meta: Meta<typeof Select> = {
   title: 'Crucible/{{name}}',
   component: Select,
   argTypes: {
-    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    size:     { control: 'select', options: {{> shared/size-options}} },
     disabled: { control: 'boolean' },
   },
 };
@@ -25,7 +26,80 @@ export const Default: Story = {
     label: 'Select Option',
     options,
     placeholder: 'Pick one...',
+    size: 'md',
+    variant: 'default',
   },
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+      return { args, value };
+    },
+    template: `<Select v-bind="args" v-model="value" />`,
+  }),
+};
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}', label: '{{capitalize this}} Variant', options },
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+      return { args, value };
+    },
+    template: `<Select v-bind="args" v-model="value" />`,
+  }),
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', label: '{{capitalize this}} Size', options },
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+      return { args, value };
+    },
+    template: `<Select v-bind="args" v-model="value" />`,
+  }),
+};
+{{/each}}
+
+export const WithError: Story = {
+  args: {
+    label: 'Select Option',
+    options,
+    error: 'Selection is required',
+  },
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+      return { args, value };
+    },
+    template: `<Select v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: {
+    label: 'Disabled Select',
+    options,
+    disabled: true,
+    modelValue: options[0],
+  },
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(args.modelValue);
+      return { args, value };
+    },
+    template: `<Select v-bind="args" v-model="value" />`,
+  }),
 };
 
 {{#if features.compoundComponents}}
@@ -37,17 +111,20 @@ export const WithSlots: Story = {
   },
   render: (args) => ({
     components: { Select },
-    setup() { return { args }; },
+    setup() {
+      const value = ref(null);
+      return { args, value };
+    },
     template: `
-<Select v-bind="args">
+<Select v-bind="args" v-model="value">
   <template #label>
     <label style="color: green; font-weight: bold;">[CUSTOM LABEL]</label>
   </template>
-  <template #arrow>
+  <template #icon>
     <span style="transform: rotate(90deg); display: inline-block;">-></span>
   </template>
-  <template #option="{ option }">
-    <span style="color: blue;">Option: \{{ option.label }}</span>
+  <template #item="{ option }">
+    <span style="color: blue;">Option: \{{ typeof option === 'object' ? option.label : option }}</span>
   </template>
 </Select>`,
   }),

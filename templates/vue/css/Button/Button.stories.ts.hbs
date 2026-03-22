@@ -5,8 +5,8 @@ const meta: Meta<typeof Button> = {
   title: 'Crucible/{{name}}',
   component: Button,
   argTypes: {
-    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    size:     { control: 'select', options: {{> shared/size-options}} },
     loading:  { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
@@ -15,16 +15,54 @@ const meta: Meta<typeof Button> = {
 export default meta;
 type Story = StoryObj<typeof Button>;
 
+export const Default: Story = {
+  args: { variant: 'primary', size: 'md' },
+  render: (args) => ({
+    components: { Button },
+    setup() { return { args }; },
+    template: `<Button v-bind="args">Button</Button>`,
+  }),
+};
+
 {{#each variants}}
 export const {{capitalize this}}: Story = {
   args: { variant: '{{this}}' },
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
-    template: `<Button v-bind="args">{{capitalize this}}</Button>`,
+    template: `<Button v-bind="args">{{capitalize this}} Button</Button>`,
   }),
 };
 {{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => ({
+    components: { Button },
+    setup() { return { args }; },
+    template: `<Button v-bind="args">{{capitalize this}} Size</Button>`,
+  }),
+};
+{{/each}}
+
+export const Loading: Story = {
+  args: { variant: 'primary', size: 'md', loading: true },
+  render: (args) => ({
+    components: { Button },
+    setup() { return { args }; },
+    template: `<Button v-bind="args">Loading</Button>`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: { variant: 'primary', size: 'md', disabled: true },
+  render: (args) => ({
+    components: { Button },
+    setup() { return { args }; },
+    template: `<Button v-bind="args">Disabled</Button>`,
+  }),
+};
 
 {{#if features.compoundComponents}}
 export const WithSlots: Story = {

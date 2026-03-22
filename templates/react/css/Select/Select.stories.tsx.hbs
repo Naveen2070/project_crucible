@@ -9,6 +9,7 @@
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => {
     const [value, setValue] = useState('');
     return (
@@ -28,6 +29,68 @@ export const Default: Story = {
     );
   },
 };
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}' },
+  render: (args) => {
+    const [value, setValue] = useState('');
+    return (
+      <Select {...args} value={value} onChange={setValue}>
+        <Select.Label>{{capitalize this}} Variant</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder="Choose one..." />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="1" label="Option 1" />
+          <Select.Item value="2" label="Option 2" />
+        </Select.Content>
+      </Select>
+    );
+  },
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => {
+    const [value, setValue] = useState('');
+    return (
+      <Select {...args} value={value} onChange={setValue}>
+        <Select.Label>{{capitalize this}} Size</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder="Choose one..." />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="1" label="Option 1" />
+          <Select.Item value="2" label="Option 2" />
+        </Select.Content>
+      </Select>
+    );
+  },
+};
+{{/each}}
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => (
+    <Select {...args} value="us">
+      <Select.Label>Country</Select.Label>
+      <Select.Trigger>
+        <Select.Value placeholder="Choose a country..." />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value="us" label="United States" />
+      </Select.Content>
+    </Select>
+  ),
+};
 {{else}}
 const options = [
   { value: 'us', label: 'United States' },
@@ -41,8 +104,33 @@ export const Default: Story = {
     label: 'Country',
     options,
     placeholder: 'Choose a country...',
+    size: 'md',
   },
 };
+
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: {
+    label: '{{capitalize this}} Variant',
+    variant: '{{this}}',
+    options,
+    placeholder: 'Choose one...',
+  },
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: {
+    label: '{{capitalize this}} Size',
+    size: '{{this}}',
+    options,
+    placeholder: 'Choose one...',
+  },
+};
+{{/each}}
 
 export const Disabled: Story = {
   args: {
@@ -50,14 +138,6 @@ export const Disabled: Story = {
     options,
     disabled: true,
     value: 'us',
-  },
-};
-
-export const Error: Story = {
-  args: {
-    label: 'Country',
-    options,
-    error: 'Please select a valid country',
   },
 };
 {{/if}}

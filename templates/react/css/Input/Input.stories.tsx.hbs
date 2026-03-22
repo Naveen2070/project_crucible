@@ -9,6 +9,7 @@
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Username</Input.Label>
@@ -17,7 +18,33 @@ export const Default: Story = {
   ),
 };
 
-export const Error: Story = {
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { variant: '{{this}}' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>{{capitalize this}} Variant</Input.Label>
+      <Input.Field placeholder="Input with {{this}} variant" />
+    </Input>
+  ),
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>{{capitalize this}} Size</Input.Label>
+      <Input.Field placeholder="Input with {{this}} size" />
+    </Input>
+  ),
+};
+{{/each}}
+
+export const WithError: Story = {
   args: { error: 'Invalid email address' },
   render: (args) => (
     <Input {...args}>
@@ -28,11 +55,13 @@ export const Error: Story = {
   ),
 };
 
-export const Password: Story = {
+export const WithHint: Story = {
+  args: { hint: 'Must be at least 8 characters long' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Password</Input.Label>
       <Input.Field type="password" placeholder="Enter password" />
+      <Input.Hint>{args.hint}</Input.Hint>
     </Input>
   ),
 };
@@ -58,14 +87,28 @@ export const Required: Story = {
 };
 {{else}}
 export const Default: Story = {
-  args: { label: 'Username', placeholder: 'Enter your username' },
+  args: { label: 'Username', placeholder: 'Enter your username', size: 'md' },
 };
 
-export const Error: Story = {
+{{#each variants}}
+{{#unless (eq this "default")}}
+export const {{capitalize this}}: Story = {
+  args: { label: '{{capitalize this}} Variant', variant: '{{this}}', placeholder: 'Input with {{this}} variant' },
+};
+{{/unless}}
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { label: '{{capitalize this}} Size', size: '{{this}}', placeholder: 'Input with {{this}} size' },
+};
+{{/each}}
+
+export const WithError: Story = {
   args: { label: 'Email', error: 'Invalid email address', defaultValue: 'invalid-email' },
 };
 
-export const Hint: Story = {
+export const WithHint: Story = {
   args: { label: 'Password', hint: 'Must be at least 8 characters long', type: 'password' },
 };
 

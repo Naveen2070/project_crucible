@@ -8,12 +8,32 @@
 {{> react/stories-footer}}
 
 {{#if features.compoundComponents}}
+export const Default: Story = {
+  args: { variant: 'primary', size: 'md' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Button</Button.Label>
+    </Button>
+  ),
+};
+
 {{#each variants}}
 export const {{capitalize this}}: Story = {
   args: { variant: '{{this}}' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>{{capitalize this}} button</Button.Label>
+      <Button.Label>{{capitalize this}} Button</Button.Label>
+    </Button>
+  ),
+};
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>{{capitalize this}} Size</Button.Label>
     </Button>
   ),
 };
@@ -48,9 +68,19 @@ export const WithIcon: Story = {
   ),
 };
 {{else}}
+export const Default: Story = {
+  args: { variant: 'primary', size: 'md', children: 'Button' },
+};
+
 {{#each variants}}
 export const {{capitalize this}}: Story = {
-  args: { variant: '{{this}}', children: '{{capitalize this}} button' },
+  args: { variant: '{{this}}', children: '{{capitalize this}} Button' },
+};
+{{/each}}
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', children: '{{capitalize this}} Size' },
 };
 {{/each}}
 

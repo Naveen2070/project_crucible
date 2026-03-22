@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { ref } from 'vue';
 import Input from './Input.vue';
 
 const meta: Meta<typeof Input> = {
   title: 'Crucible/{{name}}',
   component: Input,
   argTypes: {
-    variant:     { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:        { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant:     { control: 'select', options: {{> shared/variant-options}} },
+    size:        { control: 'select', options: {{> shared/size-options}} },
     type:        { control: 'select', options: ['text', 'password'] },
     disabled:    { control: 'boolean' },
     required:    { control: 'boolean' },
@@ -18,10 +19,33 @@ type Story = StoryObj<typeof Input>;
 
 export const Default: Story = {
   args: {
-    label: 'Email Address',
-    placeholder: 'Enter your email',
+    label: 'Username',
+    placeholder: 'Enter your username',
+    size: 'md',
   },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
 };
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}', label: '{{capitalize this}} Size', placeholder: 'Input with {{this}} size' },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
+};
+{{/each}}
 
 export const Password: Story = {
   args: {
@@ -29,14 +53,81 @@ export const Password: Story = {
     type: 'password',
     placeholder: 'Enter your password',
   },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
 };
 
-export const Error: Story = {
+export const WithError: Story = {
   args: {
-    label: 'Username',
-    error: 'Username is already taken',
+    label: 'Email',
+    error: 'Invalid email address',
     variant: 'error',
+    placeholder: 'Enter email...',
   },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref('invalid-email');
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const WithHint: Story = {
+  args: {
+    label: 'Password',
+    hint: 'Must be at least 8 characters long',
+    type: 'password',
+    placeholder: 'Enter password...',
+  },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: {
+    label: 'Disabled Input',
+    disabled: true,
+    placeholder: 'Cannot edit this',
+    modelValue: 'Initial value',
+  },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref(args.modelValue);
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const Required: Story = {
+  args: {
+    label: 'Required Input',
+    required: true,
+    placeholder: 'Jane Doe',
+  },
+  render: (args) => ({
+    components: { Input },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Input v-bind="args" v-model="value" />`,
+  }),
 };
 
 {{#if features.compoundComponents}}
@@ -44,9 +135,12 @@ export const WithSlots: Story = {
   args: { label: 'Custom Label' },
   render: (args) => ({
     components: { Input },
-    setup() { return { args }; },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
     template: `
-<Input v-bind="args">
+<Input v-bind="args" v-model="value">
   <template #label>
     <label style="color: purple; font-weight: bold;">Custom Slot Label</label>
   </template>
