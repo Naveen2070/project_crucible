@@ -1,4 +1,4 @@
-import '../src/tokens.css';
+import '../src/__generated__/tokens.css';
 import type { Preview } from '@storybook/vue3-vite';
 
 const preview: Preview = {
