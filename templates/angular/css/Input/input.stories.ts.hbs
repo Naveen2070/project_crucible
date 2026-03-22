@@ -6,13 +6,12 @@ const meta: Meta<InputComponent> = {
   component: InputComponent,
   tags: ['autodocs'],
   argTypes: {
-    variant:     { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:        { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    label:       { control: 'text' },
-    placeholder: { control: 'text' },
-    error:       { control: 'text' },
-    disabled:    { control: 'boolean' },
-    required:    { control: 'boolean' },
+    variant:  { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:     { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    label:    { control: 'text' },
+    error:    { control: 'text' },
+    disabled: { control: 'boolean' },
+    required: { control: 'boolean' },
   },
 };
 
@@ -22,7 +21,6 @@ type Story = StoryObj<InputComponent>;
 export const Default: Story = {
   args: {
     label: 'Label',
-    placeholder: 'Enter text...',
     variant: 'default',
     size: 'md',
   },
@@ -31,7 +29,6 @@ export const Default: Story = {
 export const Error: Story = {
   args: {
     label: 'Label',
-    placeholder: 'Enter text...',
     variant: 'error',
     error: 'This field is required',
     size: 'md',
@@ -41,7 +38,6 @@ export const Error: Story = {
 export const Disabled: Story = {
   args: {
     label: 'Label',
-    placeholder: 'Enter text...',
     disabled: true,
     size: 'md',
   },

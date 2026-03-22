@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input{{#if hasOutputClose}}, Output, EventEmitter{{/if}} } from '@angular/core';
 
 @Component({
   selector: 'app-{{toLowerCase name}}',
@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./{{kebab name}}.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}']
 })
 export class {{name}}Component {
-  {{#if hasVariant}}@Input() variant: {{> shared/variant-types}} = '{{#if defaultVariant}}{{defaultVariant}}{{else}}default{{/if}}';{{/if}}
+  {{#if hasVariant}}@Input() variant: {{> shared/variant-types}} = '{{#if (eq variants.[0] undefined)}}primary{{else}}{{variants.[0]}}{{/if}}';{{/if}}
   {{#if hasSize}}@Input() size: {{> shared/size-types}} = 'md';{{/if}}
   {{#if hasLoading}}@Input() loading = false;{{/if}}
   {{#if hasDisabled}}@Input() disabled = false;{{/if}}
@@ -14,6 +14,7 @@ export class {{name}}Component {
   {{#if hasError}}@Input() error = '';{{/if}}
   {{#if hasHint}}@Input() hint = '';{{/if}}
   {{#if hasLabel}}@Input() label = '';{{/if}}
+  {{#if hasPlaceholder}}@Input() placeholder = '';{{/if}}
   {{#if hasTitle}}@Input() title = '';{{/if}}
   {{#if hasIsOpen}}@Input() isOpen = false;{{/if}}
   {{#if hasClassName}}@Input() className = '';{{/if}}
@@ -35,7 +36,7 @@ export class {{name}}Component {
       {{#if hasLoading}}this.loading ? '{{prefix}}--loading' : '',{{/if}}
       {{#if hasDisabled}}this.disabled ? '{{prefix}}--disabled' : '',{{/if}}
       {{#if hasError}}this.error ? '{{prefix}}--error' : '',{{/if}}
-      this.className
+      {{#if hasClassName}}this.className{{/if}}
     ].filter(Boolean).join(' ');
   }
   {{/if}}

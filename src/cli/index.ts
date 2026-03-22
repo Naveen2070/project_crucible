@@ -23,9 +23,9 @@ import {
 
 async function importTokensInIndexHtml(framework: string, cwd: string): Promise<void> {
   const indexPaths: Record<string, { index: string; href: string }> = {
-    [Framework.React]: { index: 'index.html', href: './src/__generated__/tokens.css' },
-    [Framework.Vue]: { index: 'index.html', href: './src/__generated__/tokens.css' },
-    [Framework.Angular]: { index: 'src/index.html', href: './__generated__/tokens.css' },
+    [Framework.React]: { index: 'index.html', href: './public/__generated__/tokens.css' },
+    [Framework.Vue]: { index: 'index.html', href: './public/__generated__/tokens.css' },
+    [Framework.Angular]: { index: 'src/index.html', href: './public/__generated__/tokens.css' },
   };
 
   const config = indexPaths[framework];
@@ -35,7 +35,17 @@ async function importTokensInIndexHtml(framework: string, cwd: string): Promise<
   if (!(await fs.pathExists(indexPath))) return;
 
   let content = await fs.readFile(indexPath, 'utf-8');
-  if (content.includes('tokens.css')) return;
+
+  if (content.includes('public/__generated__/tokens.css')) {
+    return;
+  }
+
+  if (content.includes('tokens.css')) {
+    content = content.replace(/href="\.\/[^"]*tokens\.css"/, `href="${config.href}"`);
+    await fs.writeFile(indexPath, content);
+    console.log(chalk.gray(`  Updated tokens.css path in index.html`));
+    return;
+  }
 
   const linkTag = `\n  <link rel="stylesheet" href="${config.href}">\n`;
   content = content.replace('</head>', `${linkTag}</head>`);
@@ -268,12 +278,17 @@ program
 
       await fs.ensureDir(outDir);
 
-      const model = buildComponentModel('Button', tokens, config, generateStories);
-      const tokensContent = await renderGlobalTokens(model);
-      const tokensPath = path.join(outDir, 'tokens.css');
-      await fs.writeFile(tokensPath, tokensContent);
-      if (!opts.quiet) {
-        console.log(chalk.gray(`  Created tokens.css`));
+      const tokensOutDir = path.join(cwd, 'public/__generated__');
+      await fs.ensureDir(tokensOutDir);
+      const tokensPath = path.join(tokensOutDir, 'tokens.css');
+
+      if (!(await fs.pathExists(tokensPath))) {
+        const model = buildComponentModel('Button', tokens, config, generateStories);
+        const tokensContent = await renderGlobalTokens(model);
+        await fs.writeFile(tokensPath, tokensContent);
+        if (!opts.quiet) {
+          console.log(chalk.gray(`  Created tokens.css`));
+        }
       }
 
       // Import tokens.css into index.html

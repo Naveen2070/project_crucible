@@ -30,6 +30,22 @@ export interface ComponentModel {
     compoundComponents?: boolean;
   };
   generateStories: boolean;
+  prefix: string;
+  hasVariant: boolean;
+  hasSize: boolean;
+  hasLoading: boolean;
+  hasDisabled: boolean;
+  hasRequired: boolean;
+  hasError: boolean;
+  hasHint: boolean;
+  hasLabel: boolean;
+  hasTitle: boolean;
+  hasIsOpen: boolean;
+  hasClassName: boolean;
+  hasId: boolean;
+  hasOutputClose: boolean;
+  hasClassesGetter: boolean;
+  hasPlaceholder: boolean;
 }
 
 export function buildComponentModel(
@@ -43,6 +59,30 @@ export function buildComponentModel(
 
   const framework = config.framework ?? Framework.React;
 
+  const hasVariant = defaults.variants.length > 0;
+  const hasSize = defaults.sizes.length > 0;
+  const hasLoading = defaults.states.includes('loading');
+  const hasDisabled = defaults.states.includes('disabled');
+  const hasRequired = name === ComponentName.Input;
+  const hasError = defaults.states.includes('error');
+  const hasHint = name === ComponentName.Input;
+  const hasLabel = name === ComponentName.Input || name === ComponentName.Select;
+  const hasTitle = name === ComponentName.Modal || name === ComponentName.Card;
+  const hasIsOpen = defaults.states.includes('open') || defaults.states.includes('closed');
+  const hasClassName = name !== ComponentName.Card && name !== ComponentName.Modal;
+  const hasId = name === ComponentName.Input || name === ComponentName.Select;
+  const hasOutputClose = name === ComponentName.Modal || name === ComponentName.Select;
+  const hasClassesGetter = hasVariant || hasSize || hasLoading || hasDisabled || hasError;
+  const hasPlaceholder = name === ComponentName.Input || name === ComponentName.Select;
+
+  const prefixMap: Record<string, string> = {
+    [ComponentName.Button]: 'btn',
+    [ComponentName.Input]: 'input',
+    [ComponentName.Card]: 'card',
+    [ComponentName.Modal]: 'modal',
+    [ComponentName.Select]: 'select',
+  };
+
   return {
     name,
     framework,
@@ -50,7 +90,9 @@ export function buildComponentModel(
     isAngular: framework === Framework.Angular,
     isVue: framework === Framework.Vue,
     styleSystem: config.styleSystem ?? StyleSystem.CSS,
-    ...defaults,
+    variants: defaults.variants,
+    sizes: defaults.sizes,
+    states: defaults.states,
     tokens,
     tailwindVariants: TAILWIND_VARIANT_DEFAULTS[name],
     a11y: {
@@ -65,8 +107,25 @@ export function buildComponentModel(
     },
     features: {
       hover: config.features.hover ?? true,
-      compoundComponents: config.features.compoundComponents !== false && framework !== Framework.Angular,
+      compoundComponents:
+        config.features.compoundComponents !== false && framework !== Framework.Angular,
     },
     generateStories,
+    prefix: prefixMap[name] ?? name.toLowerCase(),
+    hasVariant,
+    hasSize,
+    hasLoading,
+    hasDisabled,
+    hasRequired,
+    hasError,
+    hasHint,
+    hasLabel,
+    hasTitle,
+    hasIsOpen,
+    hasClassName,
+    hasId,
+    hasOutputClose,
+    hasClassesGetter,
+    hasPlaceholder,
   };
 }
