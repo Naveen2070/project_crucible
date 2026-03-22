@@ -31,8 +31,8 @@ export class {{name}}Component {
   get classes(): string {
     return [
       '{{prefix}}',
-      {{#if hasVariant}}`{{prefix}}--\${this.variant}`,{{/if}}
-      {{#if hasSize}}`{{prefix}}--\${this.size}`,{{/if}}
+      {{#if hasVariant}}`{{prefix}}--${this.variant}`,{{/if}}
+      {{#if hasSize}}`{{prefix}}--${this.size}`,{{/if}}
       {{#if hasLoading}}this.loading ? '{{prefix}}--loading' : '',{{/if}}
       {{#if hasDisabled}}this.disabled ? '{{prefix}}--disabled' : '',{{/if}}
       {{#if hasError}}this.error ? '{{prefix}}--error' : '',{{/if}}

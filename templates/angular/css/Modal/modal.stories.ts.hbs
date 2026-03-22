@@ -1,9 +1,39 @@
 import { Meta, StoryObj } from '@storybook/angular';
 import { ModalComponent } from './modal.component';
+import { Component, Input } from '@angular/core';
 
-const meta: Meta<ModalComponent> = {
+@Component({
+  selector: 'app-modal-wrapper',
+  standalone: true,
+  imports: [ModalComponent],
+  template: `
+    <app-modal 
+      [isOpen]="isOpen" 
+      [title]="title" 
+      [variant]="variant" 
+      [size]="size"
+      (close)="onClose()">
+      <p>This is the modal content.</p>
+      <div footer>
+        <button (click)="onClose()">Close</button>
+      </div>
+    </app-modal>
+  `,
+})
+class ModalWrapperComponent {
+  @Input() isOpen = true;
+  @Input() title = 'Modal Title';
+  @Input() variant = 'default';
+  @Input() size = 'md';
+  
+  onClose() {
+    this.isOpen = false;
+  }
+}
+
+const meta: Meta<ModalWrapperComponent> = {
   title: 'Crucible/{{name}}',
-  component: ModalComponent,
+  component: ModalWrapperComponent,
   tags: ['autodocs'],
   argTypes: {
     variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
@@ -14,7 +44,7 @@ const meta: Meta<ModalComponent> = {
 };
 
 export default meta;
-type Story = StoryObj<ModalComponent>;
+type Story = StoryObj<ModalWrapperComponent>;
 
 export const Default: Story = {
   args: {
@@ -23,15 +53,4 @@ export const Default: Story = {
     variant: 'default',
     size: 'md',
   },
-  render: (args) => ({
-    props: args,
-    template: `
-      <app-modal [isOpen]="isOpen" [title]="title" [variant]="variant" [size]="size">
-        <p>This is the modal content.</p>
-        <div footer>
-          <button (click)="isOpen = false">Close</button>
-        </div>
-      </app-modal>
-    `,
-  }),
 };

@@ -18,7 +18,7 @@ type Story = StoryObj<ButtonComponent>;
 
 {{#each variants}}
 export const {{capitalize this}}: Story = {
-  args: { variant: '{{this}}' },
+  args: { variant: '{{this}}', size: 'md' },
   render: (args) => ({
     props: args,
     template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">{{capitalize this}}</app-button>`,

@@ -1,39 +1,21 @@
-<div [class]="containerClasses">
+<div class="input-container" [class]="classes">
   <label *ngIf="label" [attr.for]="id" class="label">
     \{{ label }}
     <span *ngIf="required" class="required" aria-hidden="true">*</span>
   </label>
-  <ng-content select="[label]"></ng-content>
   
   <div class="input-wrapper">
-    <ng-content select="[field]">
-      <input
-        [id]="id"
-        [type]="currentType"
-        [class]="'input input--' + size"
-        [placeholder]="placeholder"
-        [disabled]="disabled"
-        [attr.aria-invalid]="!!error"
-        [attr.aria-required]="required"
-        [attr.aria-describedby]="describedBy"
-      >
-      
-      <button
-        *ngIf="type === 'password'"
-        type="button"
-        class="password-toggle"
-        (click)="togglePassword()"
-        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-        [attr.aria-pressed]="showPassword"
-      >
-        \{{ showPassword ? 'Hide' : 'Show' }}
-      </button>
-    </ng-content>
+    <input
+      [id]="id"
+      type="text"
+      class="input"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [attr.aria-invalid]="!!error"
+      [attr.aria-required]="required"
+    />
   </div>
 
-  <span *ngIf="hint && !error" [id]="hintId" class="hint">\{{ hint }}</span>
-  <ng-content select="[hint]"></ng-content>
-  
-  <span *ngIf="error" [id]="errorId" class="error" role="alert">\{{ error }}</span>
-  <ng-content select="[error]"></ng-content>
+  <span *ngIf="hint && !error" class="hint">\{{ hint }}</span>
+  <span *ngIf="error" class="error" role="alert">\{{ error }}</span>
 </div>

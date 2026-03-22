@@ -1,28 +1,20 @@
-<div class="container">
+<div class="container" [class]="comboboxClasses">
   <label *ngIf="label" [attr.for]="id + '-trigger'" class="label">\{{ label }}</label>
-  <ng-content select="[label]"></ng-content>
   
   <div
     [id]="id + '-trigger'"
-    [class]="comboboxClasses"
+    class="combobox"
     (click)="toggle()"
     (keydown)="handleKeyDown($event)"
     [attr.aria-expanded]="isOpen"
     [attr.aria-controls]="isOpen ? id + '-listbox' : null"
     [attr.aria-haspopup]="'listbox'"
-    [attr.aria-activedescendant]="isOpen && activeIndex >= 0 ? id + '-option-' + activeIndex : null"
     role="combobox"
     [attr.tabindex]="disabled ? null : 0"
     #trigger
   >
-    <ng-content select="[trigger]">
-      <span class="value">
-        <ng-content select="[value]">\{{ displayValue }}</ng-content>
-      </span>
-      <span class="arrow" aria-hidden="true">
-        <ng-content select="[icon]">▼</ng-content>
-      </span>
-    </ng-content>
+    <span class="value">\{{ displayValue }}</span>
+    <span class="arrow" aria-hidden="true">▼</span>
   </div>
 
   <ul
@@ -33,26 +25,19 @@
     [attr.aria-labelledby]="id + '-trigger'"
     #listbox
   >
-    <ng-content select="[content]">
-      <li
-        *ngFor="let option of options; let i = index"
-        [id]="id + '-option-' + i"
-        (click)="selectOption(option)"
-        [class.option]="true"
-        [class.option--selected]="value === (option.value !== undefined ? option.value : option)"
-        [class.option--active]="activeIndex === i"
-        [attr.aria-selected]="value === (option.value !== undefined ? option.value : option)"
-        role="option"
-      >
-        <ng-content select="[item]">
-          <span class="item-text">
-            <ng-content select="[item-text]">\{{ option.label || option }}</ng-content>
-          </span>
-        </ng-content>
-      </li>
-    </ng-content>
+    <li
+      *ngFor="let option of options; let i = index"
+      [id]="id + '-option-' + i"
+      (click)="selectOption(option)"
+      class="option"
+      [class.option--selected]="value === (option.value !== undefined ? option.value : option)"
+      [class.option--active]="activeIndex === i"
+      [attr.aria-selected]="value === (option.value !== undefined ? option.value : option)"
+      role="option"
+    >
+      <span class="item-text">\{{ option.label }}</span>
+    </li>
   </ul>
 
   <span *ngIf="error" class="error" role="alert">\{{ error }}</span>
-  <ng-content select="[error]"></ng-content>
 </div>
