@@ -88,7 +88,7 @@ export const SelectRoot = ({
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange 
+    value, options, disabled, id, onChange, size
   } = useSelectContext();
   
   const searchString = useRef('');
@@ -419,7 +419,7 @@ exports[`Select snapshots > css mode snapshot 2`] = `
 
 exports[`Select snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {
@@ -777,7 +777,7 @@ SelectLabel.displayName = 'Select.Label';
 
 exports[`Select snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Select } from './Select';
 
 const meta: Meta<typeof Select> = {

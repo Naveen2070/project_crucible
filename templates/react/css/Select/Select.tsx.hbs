@@ -87,7 +87,7 @@ export const SelectRoot = ({
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange 
+    value, options, disabled, id, onChange, size
   } = useSelectContext();
   
   const searchString = useRef('');

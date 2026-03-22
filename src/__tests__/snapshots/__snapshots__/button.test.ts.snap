@@ -143,7 +143,7 @@ exports[`Button snapshots > css mode snapshot 2`] = `
 
 exports[`Button snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
@@ -311,7 +311,7 @@ ButtonIcon.displayName = 'Button.Icon';
 
 exports[`Button snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
