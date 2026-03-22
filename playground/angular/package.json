@@ -32,14 +32,13 @@
     "@angular/cli": "^21.2.3",
     "@angular/compiler-cli": "^21.2.0",
     "@angular/platform-browser-dynamic": "^21.2.0",
-    "@storybook/addon-a11y": "^10.3.1",
-    "@storybook/addon-docs": "^10.3.1",
-    "@storybook/addon-onboarding": "^10.3.1",
-    "@storybook/angular": "^10.3.1",
     "eslint-plugin-storybook": "^10.3.1",
     "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
     "storybook": "^10.3.1",
-    "typescript": "~5.9.2"
+    "@storybook/angular": "^10.3.1",
+    "@storybook/addon-a11y": "^10.3.1",
+    "@storybook/addon-docs": "^10.3.1"
   },
   "eslintConfig": {
     "extends": [

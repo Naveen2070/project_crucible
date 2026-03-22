@@ -1,4 +1,4 @@
-import type { StorybookConfig } from '@storybook/angular';
+import type { StorybookConfig } from '@storybook/vue3-vite';
 
 import { dirname } from 'path';
 
@@ -16,7 +16,12 @@ const config: StorybookConfig = {
     '../src/__generated__/**/*.mdx',
     '../src/__generated__/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
-  addons: [getAbsolutePath('@storybook/addon-a11y'), getAbsolutePath('@storybook/addon-docs')],
-  framework: getAbsolutePath('@storybook/angular'),
+  addons: [
+    getAbsolutePath('@chromatic-com/storybook'),
+    getAbsolutePath('@storybook/addon-vitest'),
+    getAbsolutePath('@storybook/addon-a11y'),
+    getAbsolutePath('@storybook/addon-docs'),
+  ],
+  framework: getAbsolutePath('@storybook/vue3-vite'),
 };
 export default config;
