@@ -3,6 +3,7 @@ import path from 'path';
 import chalk from 'chalk';
 import { readConfig } from '../config/reader';
 import { StyleSystem, Framework, ComponentName } from '../core/enums';
+import { PEER_DEPENDENCIES } from '../registry/peer-deps';
 
 interface DoctorResult {
   config: boolean;
@@ -17,20 +18,6 @@ interface CircularRef {
   token: string;
   path: string[];
 }
-
-const PEER_DEPS: Record<ComponentName, Partial<Record<Framework, string[]>>> = {
-  [ComponentName.Modal]: {
-    [Framework.React]: ['focus-trap-react'],
-    [Framework.Vue]: ['focus-trap-vue3'],
-  },
-  [ComponentName.Select]: {
-    [Framework.React]: ['@floating-ui/react'],
-    [Framework.Vue]: ['@floating-ui/vue'],
-  },
-  [ComponentName.Button]: {},
-  [ComponentName.Input]: {},
-  [ComponentName.Card]: {},
-};
 
 export function extractVarRefs(value: string): string[] {
   const refs: string[] = [];
@@ -190,8 +177,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       const framework = config?.framework as Framework;
       const missingDeps: string[] = [];
 
-      for (const [component, deps] of Object.entries(PEER_DEPS)) {
-        const frameworkDeps = deps[framework] || [];
+      for (const [component, deps] of Object.entries(PEER_DEPENDENCIES)) {
+        const frameworkDeps = (deps as any)[framework] || [];
         for (const dep of frameworkDeps) {
           if (!installedDeps[dep]) {
             missingDeps.push(`${dep} (for ${component})`);

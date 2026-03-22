@@ -9,13 +9,6 @@ export interface PeerDependencyMap {
 export const PEER_DEPENDENCIES: PeerDependencyMap = {
   [ComponentName.Modal]: {
     [Framework.React]: ['focus-trap-react'],
-    [Framework.Vue]: ['focus-trap-vue'],
-    [Framework.Angular]: ['@angular/cdk'],
-  },
-  [ComponentName.Select]: {
-    [Framework.React]: ['@floating-ui/react'],
-    [Framework.Vue]: ['@floating-ui/vue'],
-    [Framework.Angular]: ['@floating-ui/dom'],
   },
 };
 
