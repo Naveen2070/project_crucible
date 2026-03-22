@@ -23,9 +23,9 @@ import {
 
 async function importTokensInIndexHtml(framework: string, cwd: string): Promise<void> {
   const indexPaths: Record<string, { index: string; href: string }> = {
-    [Framework.React]: { index: 'index.html', href: './public/__generated__/tokens.css' },
-    [Framework.Vue]: { index: 'index.html', href: './public/__generated__/tokens.css' },
-    [Framework.Angular]: { index: 'src/index.html', href: './public/__generated__/tokens.css' },
+    [Framework.React]: { index: 'index.html', href: '__generated__/tokens.css' },
+    [Framework.Vue]: { index: 'index.html', href: '__generated__/tokens.css' },
+    [Framework.Angular]: { index: 'src/index.html', href: '__generated__/tokens.css' },
   };
 
   const config = indexPaths[framework];
@@ -36,12 +36,13 @@ async function importTokensInIndexHtml(framework: string, cwd: string): Promise<
 
   let content = await fs.readFile(indexPath, 'utf-8');
 
-  if (content.includes('public/__generated__/tokens.css')) {
+  const hasCorrectPath = content.includes(`href="${config.href}"`);
+  if (hasCorrectPath) {
     return;
   }
 
   if (content.includes('tokens.css')) {
-    content = content.replace(/href="\.\/[^"]*tokens\.css"/, `href="${config.href}"`);
+    content = content.replace(/href="[^"]*tokens\.css"/, `href="${config.href}"`);
     await fs.writeFile(indexPath, content);
     console.log(chalk.gray(`  Updated tokens.css path in index.html`));
     return;
