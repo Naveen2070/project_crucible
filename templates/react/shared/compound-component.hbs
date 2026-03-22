@@ -1,0 +1,10 @@
+export const {{Name}} = Object.assign({{Name}}Root, {
+  {{#each subcomponents}}
+  {{this}}: {{../Name}}{{this}},{{/each}}
+});
+
+{{Name}}.displayName = '{{Name}}';
+{{Name}}Root.displayName = '{{Name}}.Root';
+{{#each subcomponents}}
+{{../Name}}{{this}}.displayName = '{{../Name}}.{{this}}';
+{{/each}}

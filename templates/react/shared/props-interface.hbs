@@ -1,0 +1,14 @@
+export interface {{Name}}Props {
+  {{#if hasVariant}}variant?:   {{Name}}Variant;{{/if}}
+  {{#if hasSize}}size?:      {{Name}}Size;{{/if}}
+  {{#if hasLoading}}loading?:  boolean;{{/if}}
+  {{#if hasDisabled}}disabled?: boolean;{{/if}}
+  {{#if hasError}}error?:    string;{{/if}}
+  {{#if hasHint}}hint?:     string;{{/if}}
+  {{#if hasLabel}}label?:    string;{{/if}}
+  {{#if hasTitle}}title?:    string;{{/if}}
+  {{#if hasChildren}}children: React.ReactNode;{{/if}}
+  {{#if hasOnClick}}onClick?:  () => void;{{/if}}
+  {{#if hasHref}}href?:     string;{{/if}}
+  {{#if hasClassName}}className?: string;{{/if}}
+}

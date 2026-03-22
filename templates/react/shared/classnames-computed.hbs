@@ -1,0 +1,9 @@
+const cls = [
+  styles.{{prefix}},
+  {{#if hasVariant}}styles[`{{prefix}}--\${variant}`],{{/if}}
+  {{#if hasSize}}styles[`{{prefix}}--\${size}`],{{/if}}
+  {{#if hasLoading}}loading  && styles['{{prefix}}--loading'],{{/if}}
+  {{#if hasDisabled}}disabled && styles['{{prefix}}--disabled'],{{/if}}
+  {{#if hasError}}error && styles['{{prefix}}--error'],{{/if}}
+  {{#if hasClassName}}className,{{/if}}
+].filter(Boolean).join(' ');

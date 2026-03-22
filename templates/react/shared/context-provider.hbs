@@ -1,0 +1,16 @@
+interface {{Name}}ContextValue {
+  {{#if hasVariant}}variant: {{Name}}Variant;{{/if}}
+  {{#if hasSize}}size: {{Name}}Size;{{/if}}
+  {{#if hasDisabled}}disabled?: boolean;{{/if}}
+  {{#if hasError}}error?: string;{{/if}}
+  {{#if hasHint}}hint?: string;{{/if}}
+  {{#if hasId}}id: string;{{/if}}
+}
+
+const {{Name}}Context = createContext<{{Name}}ContextValue | undefined>(undefined);
+
+const use{{Name}}Context = () => {
+  const context = useContext({{Name}}Context);
+  if (!context) throw new Error('{{Name}} sub-components must be used within {{Name}}');
+  return context;
+};

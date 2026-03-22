@@ -1,0 +1,5 @@
+export const {{Name}}\$1 = ({ children, className, ...props }: React.HTMLAttributes<HTMLElement>) => (
+  <{{#if elementType}}{{elementType}}{{else}}span{{/if}} className={[styles.{{prefix}}, className].filter(Boolean).join(' ')} {...props}>{children}</{{#if elementType}}{{elementType}}{{else}}span{{/if}}>
+);
+
+{{Name}}\$1.displayName = '{{Name}}.{{Name}}';
