@@ -1,13 +1,18 @@
 import { Meta, StoryObj } from '@storybook/angular';
 import { SelectComponent } from './select.component';
 
+const OPTIONS = [
+  { label: 'Option 1', value: 1 },
+  { label: 'Option 2', value: 2 },
+  { label: 'Option 3', value: 3 },
+];
+
 const meta: Meta<SelectComponent> = {
-  title: 'Crucible/{{name}}',
+  title: 'Crucible/Select',
   component: SelectComponent,
   tags: ['autodocs'],
   argTypes: {
-    variant:     { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:        { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    size:        { control: 'select', options: ['sm', 'md', 'lg'] },
     label:       { control: 'text' },
     placeholder: { control: 'text' },
     error:       { control: 'text' },
@@ -18,28 +23,30 @@ const meta: Meta<SelectComponent> = {
 export default meta;
 type Story = StoryObj<SelectComponent>;
 
-const options = [
-  { label: 'Option 1', value: 1 },
-  { label: 'Option 2', value: 2 },
-  { label: 'Option 3', value: 3 },
-];
-
 export const Default: Story = {
   args: {
     label: 'Select Option',
     placeholder: 'Choose one...',
-    options: options,
-    variant: 'default',
+    options: OPTIONS,
     size: 'md',
   },
 };
 
-export const Error: Story = {
+export const WithError: Story = {
   args: {
     label: 'Select Option',
-    options: options,
-    variant: 'error',
+    options: OPTIONS,
     error: 'Selection is required',
+    size: 'md',
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    label: 'Disabled Select',
+    placeholder: 'Cannot select',
+    options: OPTIONS,
+    disabled: true,
     size: 'md',
   },
 };

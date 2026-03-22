@@ -1,20 +1,23 @@
-<div class="input-container" [class]="classes">
+<div class="input-container">
   <label *ngIf="label" [attr.for]="id" class="label">
     \{{ label }}
-    <span *ngIf="required" class="required" aria-hidden="true">*</span>
+    <span *ngIf="required" class="required">*</span>
   </label>
   
-  <div class="input-wrapper">
-    <input
-      [id]="id"
-      type="text"
-      class="input"
-      [placeholder]="placeholder"
-      [disabled]="disabled"
-      [attr.aria-invalid]="!!error"
-      [attr.aria-required]="required"
-    />
-  </div>
+  <input
+    [id]="id"
+    type="text"
+    class="input"
+    [class.input--sm]="size === 'sm'"
+    [class.input--md]="size === 'md'"
+    [class.input--lg]="size === 'lg'"
+    [class.input--error]="error"
+    [class.input--disabled]="disabled"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [attr.aria-invalid]="!!error"
+    [attr.aria-required]="required"
+  />
 
   <span *ngIf="hint && !error" class="hint">\{{ hint }}</span>
   <span *ngIf="error" class="error" role="alert">\{{ error }}</span>

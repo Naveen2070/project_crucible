@@ -1,20 +1,21 @@
-<div [class]="classes" [attr.tabindex]="variant === 'clickable' ? 0 : null" [attr.role]="variant === 'clickable' ? 'button' : 'article'">
-  <header class="header">
-    <ng-content select="[header]"></ng-content>
+<div 
+  class="card"
+  [class.card--hoverable]="variant === 'hoverable'"
+  [class.card--clickable]="variant === 'clickable'"
+  [attr.tabindex]="variant === 'clickable' ? 0 : null"
+  [attr.role]="variant === 'clickable' ? 'button' : null"
+>
+  <header class="card-header">
+    <ng-content select="[card-header]"></ng-content>
   </header>
 
-  <div class="title-container">
-    <ng-content select="[card-title]">
-      <h3 *ngIf="title" class="title">\{{ title }}</h3>
-    </ng-content>
-  </div>
+  <h3 *ngIf="title" class="card-title">\{{ title }}</h3>
 
-  <div class="content">
-    <ng-content select="[content]"></ng-content>
+  <div class="card-content">
     <ng-content></ng-content>
   </div>
 
-  <footer class="footer">
-    <ng-content select="[footer]"></ng-content>
+  <footer class="card-footer">
+    <ng-content select="[card-footer]"></ng-content>
   </footer>
 </div>

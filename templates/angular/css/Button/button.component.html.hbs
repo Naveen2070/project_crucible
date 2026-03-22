@@ -1,12 +1,17 @@
 <button
-  [class]="classes"
+  class="btn"
+  [class.btn--primary]="variant === 'primary'"
+  [class.btn--secondary]="variant === 'secondary'"
+  [class.btn--ghost]="variant === 'ghost'"
+  [class.btn--danger]="variant === 'danger'"
+  [class.btn--sm]="size === 'sm'"
+  [class.btn--md]="size === 'md'"
+  [class.btn--lg]="size === 'lg'"
+  [class.btn--loading]="loading"
   [disabled]="disabled || loading"
   [attr.aria-disabled]="disabled || loading"
   [attr.aria-busy]="loading"
 >
-  <ng-content select="[spinner]"></ng-content>
   <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
-  <ng-content select="[icon]"></ng-content>
-  <ng-content select="[label]"></ng-content>
   <ng-content></ng-content>
 </button>

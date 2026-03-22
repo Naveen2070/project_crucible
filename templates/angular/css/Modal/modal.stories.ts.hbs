@@ -1,56 +1,35 @@
 import { Meta, StoryObj } from '@storybook/angular';
 import { ModalComponent } from './modal.component';
-import { Component, Input } from '@angular/core';
 
-@Component({
-  selector: 'app-modal-wrapper',
-  standalone: true,
-  imports: [ModalComponent],
-  template: `
-    <app-modal 
-      [isOpen]="isOpen" 
-      [title]="title" 
-      [variant]="variant" 
-      [size]="size"
-      (close)="onClose()">
-      <p>This is the modal content.</p>
-      <div footer>
-        <button (click)="onClose()">Close</button>
-      </div>
-    </app-modal>
-  `,
-})
-class ModalWrapperComponent {
-  @Input() isOpen = true;
-  @Input() title = 'Modal Title';
-  @Input() variant = 'default';
-  @Input() size = 'md';
-  
-  onClose() {
-    this.isOpen = false;
-  }
-}
-
-const meta: Meta<ModalWrapperComponent> = {
-  title: 'Crucible/{{name}}',
-  component: ModalWrapperComponent,
+const meta: Meta<ModalComponent> = {
+  title: 'Crucible/Modal',
+  component: ModalComponent,
   tags: ['autodocs'],
   argTypes: {
-    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    isOpen:  { control: 'boolean' },
-    title:   { control: 'text' },
+    size:  { control: 'select', options: ['sm', 'md', 'lg'] },
+    isOpen: { control: 'boolean' },
+    title:  { control: 'text' },
   },
 };
 
 export default meta;
-type Story = StoryObj<ModalWrapperComponent>;
+type Story = StoryObj<ModalComponent>;
 
 export const Default: Story = {
   args: {
     isOpen: true,
     title: 'Modal Title',
-    variant: 'default',
     size: 'md',
   },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-modal [isOpen]="isOpen" [title]="title" [size]="size">
+        <p>This is the modal content.</p>
+        <div modal-footer>
+          <button style="padding: 8px 16px;">Confirm</button>
+        </div>
+      </app-modal>
+    `,
+  }),
 };

@@ -2,12 +2,11 @@ import { Meta, StoryObj } from '@storybook/angular';
 import { CardComponent } from './card.component';
 
 const meta: Meta<CardComponent> = {
-  title: 'Crucible/{{name}}',
+  title: 'Crucible/Card',
   component: CardComponent,
   tags: ['autodocs'],
   argTypes: {
-    variant: { control: 'select', options: [{{#each variants}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
-    size:    { control: 'select', options: [{{#each sizes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}] },
+    variant: { control: 'select', options: ['default', 'hoverable', 'clickable'] },
     title:   { control: 'text' },
   },
 };
@@ -19,11 +18,10 @@ export const Default: Story = {
   args: {
     title: 'Card Title',
     variant: 'default',
-    size: 'md',
   },
   render: (args) => ({
     props: args,
-    template: `<app-card [title]="title" [variant]="variant" [size]="size">This is the card content.</app-card>`,
+    template: `<app-card [title]="title" [variant]="variant">This is the card content.</app-card>`,
   }),
 };
 
@@ -31,11 +29,10 @@ export const Hoverable: Story = {
   args: {
     title: 'Hoverable Card',
     variant: 'hoverable',
-    size: 'md',
   },
   render: (args) => ({
     props: args,
-    template: `<app-card [title]="title" [variant]="variant" [size]="size">Hover over me!</app-card>`,
+    template: `<app-card [title]="title" [variant]="variant">Hover over me!</app-card>`,
   }),
 };
 
@@ -43,10 +40,9 @@ export const Clickable: Story = {
   args: {
     title: 'Clickable Card',
     variant: 'clickable',
-    size: 'md',
   },
   render: (args) => ({
     props: args,
-    template: `<app-card [title]="title" [variant]="variant" [size]="size">Click me!</app-card>`,
+    template: `<app-card [title]="title" [variant]="variant">Click me!</app-card>`,
   }),
 };

@@ -1,1 +1,13 @@
-{{> angular/component-body}}
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-button',
+  templateUrl: './button.component.html',
+  styleUrls: ['./button.component.css'],
+})
+export class ButtonComponent {
+  @Input() variant: 'primary' | 'secondary' | 'ghost' | 'danger' = 'primary';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() disabled = false;
+  @Input() loading = false;
+}

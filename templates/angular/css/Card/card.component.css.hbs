@@ -1,25 +1,57 @@
-{{> shared/components/card-base}}
-
-.header:not(:empty) {
-  padding: calc(var(--spacing-unit) * 4);
-  border-bottom: 1px solid var(--color-border);
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e1f0;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: system-ui, -apple-system, sans-serif;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.title-container:not(:empty) {
-  padding: calc(var(--spacing-unit) * 4);
+.card--hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.title {
-  margin:      0;
-  font-size:   1.1em;
+.card--clickable {
+  cursor: pointer;
+}
+
+.card--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card--clickable:focus-visible {
+  outline: 2px solid #6c63ff;
+  outline-offset: 2px;
+}
+
+.card-header {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.card-header:empty {
+  display: none;
+}
+
+.card-title {
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
   font-weight: 600;
+  color: #1a1a2e;
 }
 
-.content {
-  padding: calc(var(--spacing-unit) * 4);
+.card-content {
+  color: #1a1a2e;
+  line-height: 1.5;
 }
 
-.footer:not(:empty) {
-  padding: calc(var(--spacing-unit) * 4);
-  border-top: 1px solid var(--color-border);
+.card-footer {
+  margin-top: 16px;
+  display: block;
+}
+
+.card-footer:empty {
+  display: none;
 }
