@@ -7,6 +7,6 @@ export const registry: Record<ComponentName, ComponentDef> = {
   [ComponentName.Button]: generateComponentFiles('Button'),
   [ComponentName.Input]: generateComponentFiles('Input'),
   [ComponentName.Card]: generateComponentFiles('Card'),
-  [ComponentName.Modal]: generateComponentFiles('Modal'),
-  [ComponentName.Select]: generateComponentFiles('Select'),
+  [ComponentName.Modal]: generateComponentFiles('Modal', ['Button']),
+  [ComponentName.Select]: generateComponentFiles('Select', ['Button']),
 };

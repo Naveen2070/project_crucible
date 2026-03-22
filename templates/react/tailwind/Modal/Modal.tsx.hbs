@@ -1,5 +1,5 @@
 import React, { useEffect, useId, createContext, useContext } from 'react';
-import FocusTrap from 'focus-trap-react';
+import { FocusTrap } from 'focus-trap-react';
 
 const variantClasses: Record<string, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',

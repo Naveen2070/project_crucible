@@ -2,7 +2,7 @@
 
 exports[`Modal snapshots > css mode snapshot 1`] = `
 "import React, { useEffect, useId, createContext, useContext } from 'react';
-import FocusTrap from 'focus-trap-react';
+import { FocusTrap } from 'focus-trap-react';
 import styles from './Modal.module.css';
 export type ModalVariant = 'default' | 'confirm';
 export type ModalSize    = 'sm' | 'md' | 'lg';
@@ -274,6 +274,7 @@ exports[`Modal snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Modal } from './Modal';
+import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',
@@ -318,7 +319,7 @@ export const Default: Story = {
 
 exports[`Modal snapshots > tailwind mode snapshot 1`] = `
 "import React, { useEffect, useId, createContext, useContext } from 'react';
-import FocusTrap from 'focus-trap-react';
+import { FocusTrap } from 'focus-trap-react';
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)]',
@@ -496,6 +497,7 @@ exports[`Modal snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Modal } from './Modal';
+import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Modal> = {
   title: 'Crucible/Modal',

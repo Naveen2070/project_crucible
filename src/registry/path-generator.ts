@@ -8,6 +8,7 @@ export interface ComponentDef {
     tailwind: string[];
     scss: string[];
   };
+  dependencies?: string[];
 }
 
 const ALL_FRAMEWORKS = [Framework.React, Framework.Angular, Framework.Vue] as const;
@@ -87,7 +88,7 @@ function generateFilesForStyle(name: string, styleSystem: StyleSystem): string[]
   return files;
 }
 
-export function generateComponentFiles(name: string): ComponentDef {
+export function generateComponentFiles(name: string, dependencies?: string[]): ComponentDef {
   return {
     frameworks: [...ALL_FRAMEWORKS],
     styleSystems: [...ALL_STYLE_SYSTEMS],
@@ -96,5 +97,6 @@ export function generateComponentFiles(name: string): ComponentDef {
       tailwind: generateFilesForStyle(name, StyleSystem.Tailwind),
       scss: generateFilesForStyle(name, StyleSystem.SCSS),
     },
+    dependencies,
   };
 }

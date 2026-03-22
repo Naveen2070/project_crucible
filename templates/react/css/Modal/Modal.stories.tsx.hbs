@@ -1,8 +1,18 @@
-{{> react/stories-header}}
+import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
+import { Modal } from './Modal';
+import { Button } from '../Button/Button';
+
+const meta: Meta<typeof Modal> = {
+  title: 'Crucible/Modal',
+  component: Modal,
+  parameters: { layout: 'centered' },
   argTypes: {
-    size: { control: 'select', options: {{> shared/size-options}} },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
   },
-{{> react/stories-footer}}
+};
+export default meta;
+type Story = StoryObj<typeof Modal>;
 
 {{#if features.compoundComponents}}
 export const Default: Story = {

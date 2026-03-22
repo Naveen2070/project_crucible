@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
+import { execSync } from 'child_process';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../config/reader';
 import { resolveTokens } from '../tokens/resolver';
@@ -14,6 +15,11 @@ import { checkAndSetupTailwind } from './tailwind';
 import { loadPreset } from '../themes';
 import { Framework, StyleSystem, ThemePreset } from '../core/enums';
 import { runDoctor } from './doctor';
+import {
+  checkComponentDependencies,
+  formatDependencyMessage,
+  getComponentDefinition,
+} from './deps';
 
 const program = new Command();
 
@@ -149,43 +155,78 @@ program
       }
 
       const outDir = opts.dev
-        ? path.join(cwd, 'playground/react/src/__generated__')
+        ? path.join(cwd, 'src/__generated__')
         : path.join(cwd, config.flags?.outputDir ?? 'src/components');
 
-      // Dependency resolution
+      // Dependency resolution using registry
       const resolvedComponents = new Set<string>(componentsToAdd);
-      for (const comp of componentsToAdd) {
-        if (comp === 'Select' || comp === 'Modal') {
-          const btnDir = path.join(outDir, 'Button');
-          const extensions =
-            framework === Framework.React
-              ? ['.tsx']
-              : framework === Framework.Vue
-                ? ['.vue']
-                : ['.component.ts'];
+      const allPeerDeps: string[] = [];
 
-          let btnExists = false;
-          for (const ext of extensions) {
-            if (
-              (await fs.pathExists(path.join(btnDir, `Button${ext}`))) ||
-              (await fs.pathExists(path.join(btnDir, `button${ext}`)))
-            ) {
-              btnExists = true;
-              break;
+      for (const comp of componentsToAdd) {
+        const def = getComponentDefinition(comp);
+
+        // Check component dependencies (e.g., Modal needs Button)
+        if (def?.dependencies) {
+          for (const dep of def.dependencies) {
+            const exists = await checkComponentDependencies(dep, outDir, framework);
+            if (exists.missingComponents.includes(dep) && !resolvedComponents.has(dep)) {
+              resolvedComponents.add(dep);
+              if (!opts.quiet) {
+                console.log(formatDependencyMessage(comp, [dep]));
+              }
             }
           }
+        }
 
-          if (!resolvedComponents.has('Button') && !btnExists) {
-            let addDep = true;
-            if (!opts.yes) {
-              addDep = await confirm({
-                message: `${comp} usually depends on Button. Scaffold Button as well?`,
-                default: true,
-              });
+        // Check peer dependencies (e.g., Modal needs focus-trap-react)
+        const check = await checkComponentDependencies(comp, outDir, framework);
+        if (check.missingPeerDeps.length > 0) {
+          for (const peerDep of check.missingPeerDeps) {
+            if (!allPeerDeps.includes(peerDep)) {
+              allPeerDeps.push(peerDep);
             }
-            if (addDep) {
-              resolvedComponents.add('Button');
-              if (opts.verbose) console.log(chalk.blue(`Added Button as dependency for ${comp}`));
+          }
+        }
+      }
+
+      // Install all peer dependencies at once
+      if (allPeerDeps.length > 0) {
+        const installList = allPeerDeps.join(' ');
+        if (opts.yes) {
+          if (!opts.quiet) {
+            console.log(chalk.cyan(`📦 Installing peer dependencies: ${installList}`));
+          }
+          try {
+            const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
+            execSync(`npm install ${installList} ${legacyFlag}`.trim(), {
+              cwd,
+              stdio: opts.quiet ? 'pipe' : 'inherit',
+            });
+          } catch {
+            if (!opts.quiet) {
+              console.warn(
+                chalk.yellow(
+                  `⚠ Failed to install peer dependencies. You may need to install them manually: ${installList}`,
+                ),
+              );
+            }
+          }
+        } else {
+          const shouldInstall = await confirm({
+            message: `These peer dependencies are required: "${installList}". Install them?`,
+            default: true,
+          });
+          if (shouldInstall) {
+            try {
+              const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
+              execSync(`npm install ${installList} ${legacyFlag}`.trim(), {
+                cwd,
+                stdio: 'inherit',
+              });
+            } catch {
+              if (!opts.quiet) {
+                console.warn(chalk.yellow(`⚠ Failed to install peer dependencies.`));
+              }
             }
           }
         }
