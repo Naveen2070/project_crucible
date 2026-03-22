@@ -7,7 +7,7 @@ import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../config/reader';
 import { resolveTokens } from '../tokens/resolver';
 import { buildComponentModel } from '../components/model';
-import { renderComponent, renderGlobalTokens } from '../templates/engine';
+import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../templates/engine';
 import { writeFiles, loadHashes, saveHashes } from '../scaffold/writer';
 import { registry } from '../registry/components';
 import { runInit } from './init';
@@ -325,8 +325,10 @@ program
       if (!opts.dryRun) {
         await saveHashes(hashes, path.join(cwd, '.crucible-hashes.json'));
       }
+      await cleanupWatchers();
     } catch (err: any) {
       console.error(chalk.red(`✗ Error: ${err.message}`));
+      await cleanupWatchers();
       process.exit(1);
     }
   });

@@ -83,6 +83,7 @@ function setupGlobalWatcher() {
 
   const root = getTemplatesRoot();
   const sharedPath = path.join(root, 'shared');
+  if (!fs.existsSync(sharedPath)) return;
 
   globalWatcher = chokidar.watch(sharedPath, {
     ignoreInitial: true,
@@ -102,6 +103,7 @@ function setupFrameworkWatcher(framework: string) {
 
   const root = getTemplatesRoot();
   const frameworkShared = path.join(root, framework, 'shared');
+  if (!fs.existsSync(frameworkShared)) return;
 
   const watcher = chokidar.watch(frameworkShared, {
     ignoreInitial: true,
@@ -118,23 +120,21 @@ function setupFrameworkWatcher(framework: string) {
   frameworkWatchers.set(framework, watcher);
 }
 
-function cleanupWatchers() {
+async function cleanupWatchers() {
   if (globalWatcher) {
-    globalWatcher.close();
+    await globalWatcher.close();
     globalWatcher = null;
   }
   for (const watcher of frameworkWatchers.values()) {
-    watcher.close();
+    await watcher.close();
   }
   frameworkWatchers.clear();
 }
 
-if (!isProduction) {
-  setupGlobalWatcher();
-  process.on('exit', cleanupWatchers);
-}
-
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
+  if (!isProduction) {
+    setupGlobalWatcher();
+  }
   await registerPartials(model.framework);
   const tplDir = path.join(getTemplatesRoot(), model.framework, model.styleSystem, model.name);
   const result: Record<string, string> = {};
