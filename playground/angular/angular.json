@@ -49,9 +49,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -95,7 +93,7 @@
             "configDir": ".storybook",
             "browserTarget": "playground-angular:build",
             "compodoc": false,
-            "port": 6006
+            "port": 6007
           }
         },
         "build-storybook": {
