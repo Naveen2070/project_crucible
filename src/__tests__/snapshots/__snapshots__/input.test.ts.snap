@@ -3,7 +3,6 @@
 exports[`Input snapshots > css mode snapshot 1`] = `
 "import React, { useId, useState, createContext, useContext } from 'react';
 import styles from './Input.module.css';
-
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
 

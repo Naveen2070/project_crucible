@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useId, createContext, useContext } from 'react';
-import styles from './{{name}}.module.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}';
+{{> react-styles-import}}
 
 export interface SelectOption {
   value: string;
   label: string;
 }
 
-export type SelectVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
-export type SelectSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type SelectVariant = {{> variant-types}};
+export type SelectSize    = {{> size-types}};
 
 export interface SelectProps {
   options?:  SelectOption[];

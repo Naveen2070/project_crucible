@@ -3,7 +3,6 @@
 exports[`Select snapshots > css mode snapshot 1`] = `
 "import React, { useState, useRef, useEffect, useId, createContext, useContext } from 'react';
 import styles from './Select.module.css';
-
 export interface SelectOption {
   value: string;
   label: string;

@@ -1,8 +1,8 @@
 import React from 'react';
-import styles from './{{name}}.module.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}';
+{{> react-styles-import}}
 
-export type CardVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
-export type CardSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type CardVariant = {{> variant-types}};
+export type CardSize    = {{> size-types}};
 
 export interface CardProps {
   variant?:   CardVariant;
