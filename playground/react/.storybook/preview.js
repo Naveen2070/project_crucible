@@ -1,4 +1,5 @@
 /** @type { import('@storybook/react-vite').Preview } */
+import '../public/__generated__/tokens.css';
 const preview = {
   parameters: {
     controls: {
