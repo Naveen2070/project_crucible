@@ -18,8 +18,7 @@ export class {{name}}Component {
   {{#if hasIsOpen}}@Input() isOpen = false;{{/if}}
   {{#if hasClassName}}@Input() className = '';{{/if}}
   {{#if hasId}}
-  private static nextId = 0;
-  @Input() id = `{{prefix}}-\${{{name}}Component.nextId++}`;
+  @Input() id = '{{prefix}}-' + Math.random().toString(36).substr(2, 9);
   {{/if}}
 
   {{#if hasOutputClose}}

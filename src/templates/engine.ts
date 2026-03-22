@@ -9,6 +9,7 @@ import { FRAMEWORK_TARGETS } from '../registry/frameworks';
 Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
 Handlebars.registerHelper('includes', (arr: any[], val: any) => arr?.includes(val));
 Handlebars.registerHelper('capitalize', (str: string) => str[0].toUpperCase() + str.slice(1));
+Handlebars.registerHelper('toLowerCase', (str: string) => str?.toLowerCase());
 Handlebars.registerHelper('kebab', (str: string) =>
   str
     .replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`)
