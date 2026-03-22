@@ -32,7 +32,7 @@ const PEER_DEPS: Record<ComponentName, Partial<Record<Framework, string[]>>> = {
   [ComponentName.Card]: {},
 };
 
-function extractVarRefs(value: string): string[] {
+export function extractVarRefs(value: string): string[] {
   const refs: string[] = [];
   const regex = /var\(--([\w-]+)\)/g;
   let match;
@@ -42,7 +42,7 @@ function extractVarRefs(value: string): string[] {
   return refs;
 }
 
-function detectCircularRefs(
+export function detectCircularRefs(
   tokens: Record<string, string>,
   visited: Set<string> = new Set(),
   path: string[] = [],
@@ -60,14 +60,16 @@ function detectCircularRefs(
     const localPath = [...path, key];
 
     for (const ref of refs) {
-      if (localVisited.has(ref)) {
+      const refKey = ref.startsWith('color-') ? ref.replace('color-', '') : ref;
+
+      if (localVisited.has(refKey)) {
         circularRefs.push({
           token: key,
-          path: [...localPath, ref],
+          path: [...localPath, refKey],
         });
-      } else if (tokens[ref]) {
+      } else if (tokens[refKey]) {
         const subRefs = detectCircularRefs(
-          { [ref]: tokens[ref], ...tokens },
+          { [refKey]: tokens[refKey], ...tokens },
           localVisited,
           localPath,
         );

@@ -40,7 +40,6 @@ function getStoriesExt(framework: Framework): string {
     case Framework.React:
       return '.stories.tsx';
     case Framework.Vue:
-      return '.stories.ts';
     case Framework.Angular:
       return '.stories.ts';
   }
@@ -60,26 +59,19 @@ function generateFrameworkFiles(
 
   const files: string[] = [];
 
-  files.push(`${pascal}/${pascal}${componentExt}`);
-
-  if (styleSystem !== StyleSystem.Tailwind) {
-    files.push(`${pascal}/${pascal}.module${moduleExt}`);
-  }
-
-  if (framework === Framework.React || framework === Framework.Vue) {
-    files.push(`${pascal}/${pascal}${storiesExt}`);
-  }
-
   if (framework === Framework.Angular) {
-    files.push(`${kebab}/${kebab}.component.ts`);
+    files.push(`${kebab}/${kebab}${componentExt}`);
     files.push(`${kebab}/${kebab}.component.html`);
     files.push(`${kebab}/${kebab}.component${styleExt}`);
-    files.push(`${kebab}/${kebab}.stories.ts`);
-  }
+    files.push(`${kebab}/${kebab}${storiesExt}`);
+  } else {
+    files.push(`${pascal}/${pascal}${componentExt}`);
 
-  if (framework === Framework.Vue) {
-    files.push(`${pascal}/${pascal}.vue`);
-    files.push(`${pascal}/${pascal}.stories.ts`);
+    if (styleSystem !== StyleSystem.Tailwind) {
+      files.push(`${pascal}/${pascal}${moduleExt}`);
+    }
+
+    files.push(`${pascal}/${pascal}${storiesExt}`);
   }
 
   return files;
