@@ -21,6 +21,64 @@ import {
   getComponentDefinition,
 } from './deps';
 
+async function importTokensInIndexHtml(framework: string, cwd: string): Promise<void> {
+  const indexPaths: Record<string, { index: string; href: string }> = {
+    [Framework.React]: { index: 'index.html', href: './src/__generated__/tokens.css' },
+    [Framework.Vue]: { index: 'index.html', href: './src/__generated__/tokens.css' },
+    [Framework.Angular]: { index: 'src/index.html', href: './__generated__/tokens.css' },
+  };
+
+  const config = indexPaths[framework];
+  if (!config) return;
+
+  const indexPath = path.join(cwd, config.index);
+  if (!(await fs.pathExists(indexPath))) return;
+
+  let content = await fs.readFile(indexPath, 'utf-8');
+  if (content.includes('tokens.css')) return;
+
+  const linkTag = `\n  <link rel="stylesheet" href="${config.href}">\n`;
+  content = content.replace('</head>', `${linkTag}</head>`);
+  await fs.writeFile(indexPath, content);
+  console.log(chalk.gray(`  Added tokens.css to index.html`));
+}
+
+async function installPeerDependenciesSmart(
+  framework: string,
+  components: string[],
+  cwd: string,
+): Promise<void> {
+  const pkgPath = path.join(cwd, 'package.json');
+  if (!(await fs.pathExists(pkgPath))) return;
+
+  const pkg = await fs.readJson(pkgPath);
+  const installed = { ...pkg.dependencies, ...pkg.devDependencies };
+
+  const toInstall: string[] = [];
+  for (const comp of components) {
+    const check = await checkComponentDependencies(comp, cwd, framework as Framework);
+    for (const dep of check.missingPeerDeps) {
+      if (!installed[dep]) {
+        toInstall.push(dep);
+      }
+    }
+  }
+
+  if (toInstall.length > 0) {
+    const unique = [...new Set(toInstall)];
+    const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
+    console.log(chalk.cyan(`📦 Installing: ${unique.join(', ')}`));
+    try {
+      execSync(`npm install ${unique.join(' ')} ${legacyFlag}`.trim(), {
+        cwd,
+        stdio: 'inherit',
+      });
+    } catch {
+      console.warn(chalk.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
+    }
+  }
+}
+
 const program = new Command();
 
 program
@@ -189,46 +247,17 @@ program
         }
       }
 
-      // Install all peer dependencies at once
       if (allPeerDeps.length > 0) {
         const installList = allPeerDeps.join(' ');
-        if (opts.yes) {
-          if (!opts.quiet) {
-            console.log(chalk.cyan(`📦 Installing peer dependencies: ${installList}`));
-          }
-          try {
-            const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
-            execSync(`npm install ${installList} ${legacyFlag}`.trim(), {
-              cwd,
-              stdio: opts.quiet ? 'pipe' : 'inherit',
-            });
-          } catch {
-            if (!opts.quiet) {
-              console.warn(
-                chalk.yellow(
-                  `⚠ Failed to install peer dependencies. You may need to install them manually: ${installList}`,
-                ),
-              );
-            }
-          }
-        } else {
-          const shouldInstall = await confirm({
+        let shouldInstall = opts.yes;
+        if (!shouldInstall) {
+          shouldInstall = await confirm({
             message: `These peer dependencies are required: "${installList}". Install them?`,
             default: true,
           });
-          if (shouldInstall) {
-            try {
-              const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
-              execSync(`npm install ${installList} ${legacyFlag}`.trim(), {
-                cwd,
-                stdio: 'inherit',
-              });
-            } catch {
-              if (!opts.quiet) {
-                console.warn(chalk.yellow(`⚠ Failed to install peer dependencies.`));
-              }
-            }
-          }
+        }
+        if (shouldInstall) {
+          await installPeerDependenciesSmart(framework, componentsToAdd, cwd);
         }
       }
 
@@ -246,6 +275,9 @@ program
       if (!opts.quiet) {
         console.log(chalk.gray(`  Created tokens.css`));
       }
+
+      // Import tokens.css into index.html
+      await importTokensInIndexHtml(framework, cwd);
 
       await Promise.all(
         Array.from(resolvedComponents).map(async (comp) => {
