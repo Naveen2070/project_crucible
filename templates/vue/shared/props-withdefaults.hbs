@@ -1,0 +1,12 @@
+const props = withDefaults(defineProps<Props>(), {
+  {{#if hasVariant}}variant: '{{defaultVariant}}',{{/if}}
+  {{#if hasSize}}size: 'md',{{/if}}
+  {{#if hasDisabled}}disabled: false,{{/if}}
+  {{#if hasLoading}}loading: false,{{/if}}
+  {{#if hasError}}error: '',{{/if}}
+  {{#if hasHint}}hint: '',{{/if}}
+  {{#if hasLabel}}label: '',{{/if}}
+  {{#if hasTitle}}title: '',{{/if}}
+  {{#if hasIsOpen}}isOpen: false,{{/if}}
+  {{#if hasId}}id: '',{{/if}}
+});

@@ -1,0 +1,15 @@
+const classes = computed(() => [
+  '{{prefix}}',
+  `{{prefix}}--\${props.variant}`,
+  `{{prefix}}--\${props.size}`,
+  {{#if hasLoading}}{
+    '{{prefix}}--loading': props.loading,
+  },{{/if}}
+  {{#if hasDisabled}}{
+    '{{prefix}}--disabled': props.disabled,
+  },{{/if}}
+  {{#if hasError}}{
+    '{{prefix}}--error': props.error,
+  },{{/if}}
+  {{#if hasClassName}}props.className,{{/if}}
+]);

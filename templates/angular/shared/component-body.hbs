@@ -1,0 +1,43 @@
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-{{toLowerCase name}}',
+  templateUrl: './{{name}}.component.html',
+  styleUrls: ['./{{name}}.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}']
+})
+export class {{name}}Component {
+  {{#if hasVariant}}@Input() variant: {{> shared/variant-types}} = '{{#if defaultVariant}}{{defaultVariant}}{{else}}default{{/if}}';{{/if}}
+  {{#if hasSize}}@Input() size: {{> shared/size-types}} = 'md';{{/if}}
+  {{#if hasLoading}}@Input() loading = false;{{/if}}
+  {{#if hasDisabled}}@Input() disabled = false;{{/if}}
+  {{#if hasRequired}}@Input() required = false;{{/if}}
+  {{#if hasError}}@Input() error = '';{{/if}}
+  {{#if hasHint}}@Input() hint = '';{{/if}}
+  {{#if hasLabel}}@Input() label = '';{{/if}}
+  {{#if hasTitle}}@Input() title = '';{{/if}}
+  {{#if hasIsOpen}}@Input() isOpen = false;{{/if}}
+  {{#if hasClassName}}@Input() className = '';{{/if}}
+  {{#if hasId}}
+  private static nextId = 0;
+  @Input() id = `{{prefix}}-\${{{name}}Component.nextId++}`;
+  {{/if}}
+
+  {{#if hasOutputClose}}
+  @Output() close = new EventEmitter<void>();
+  onClose() { this.close.emit(); }
+  {{/if}}
+
+  {{#if hasClassesGetter}}
+  get classes(): string {
+    return [
+      '{{prefix}}',
+      {{#if hasVariant}}`{{prefix}}--\${this.variant}`,{{/if}}
+      {{#if hasSize}}`{{prefix}}--\${this.size}`,{{/if}}
+      {{#if hasLoading}}this.loading ? '{{prefix}}--loading' : '',{{/if}}
+      {{#if hasDisabled}}this.disabled ? '{{prefix}}--disabled' : '',{{/if}}
+      {{#if hasError}}this.error ? '{{prefix}}--error' : '',{{/if}}
+      this.className
+    ].filter(Boolean).join(' ');
+  }
+  {{/if}}
+}

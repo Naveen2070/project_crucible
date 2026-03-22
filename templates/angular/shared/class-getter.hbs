@@ -1,0 +1,11 @@
+get classes(): string {
+  return [
+    '{{prefix}}',
+    `{{prefix}}--${this.variant}`,
+    `{{prefix}}--${this.size}`,
+    {{#if hasLoading}}this.loading ? '{{prefix}}--loading' : '',{{/if}}
+    {{#if hasDisabled}}this.disabled ? '{{prefix}}--disabled' : '',{{/if}}
+    {{#if hasError}}this.error ? '{{prefix}}--error' : '',{{/if}}
+    this.className
+  ].filter(Boolean).join(' ');
+}

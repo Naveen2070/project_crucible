@@ -1,0 +1,6 @@
+const describedBy = computed(() => {
+  const ids = [];
+  {{#if hasError}}if (props.error) ids.push({{suffix}}Id.value);{{/if}}
+  {{#if hasHint}}if (props.hint) ids.push(hintId.value);{{/if}}
+  return ids.join(' ') || undefined;
+});

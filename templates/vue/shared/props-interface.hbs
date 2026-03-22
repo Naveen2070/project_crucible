@@ -1,0 +1,13 @@
+interface Props {
+  {{#if hasVariant}}variant?: {{Name}}Variant;{{/if}}
+  {{#if hasSize}}size?: {{Name}}Size;{{/if}}
+  {{#if hasDisabled}}disabled?: boolean;{{/if}}
+  {{#if hasLoading}}loading?: boolean;{{/if}}
+  {{#if hasError}}error?: string;{{/if}}
+  {{#if hasHint}}hint?: string;{{/if}}
+  {{#if hasLabel}}label?: string;{{/if}}
+  {{#if hasTitle}}title?: string;{{/if}}
+  {{#if hasIsOpen}}isOpen?: boolean;{{/if}}
+  {{#if hasClassName}}className?: string;{{/if}}
+  {{#if hasId}}id?: string;{{/if}}
+}

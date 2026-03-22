@@ -1,0 +1,50 @@
+<script setup lang="ts">
+import { {{#if needsRef}}ref, {{/if}}{{#if needsComputed}}computed{{/if}} } from 'vue';
+
+export type {{Name}}Variant = {{> shared/variant-types}};
+export type {{Name}}Size    = {{> shared/size-types}};
+
+interface Props {
+  {{#if hasVariant}}variant?: {{Name}}Variant;{{/if}}
+  {{#if hasSize}}size?: {{Name}}Size;{{/if}}
+  {{#if hasDisabled}}disabled?: boolean;{{/if}}
+  {{#if hasLoading}}loading?: boolean;{{/if}}
+  {{#if hasError}}error?: string;{{/if}}
+  {{#if hasHint}}hint?: string;{{/if}}
+  {{#if hasLabel}}label?: string;{{/if}}
+  {{#if hasTitle}}title?: string;{{/if}}
+  {{#if hasIsOpen}}isOpen?: boolean;{{/if}}
+  {{#if hasClassName}}className?: string;{{/if}}
+  {{#if hasId}}id?: string;{{/if}}
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  {{#if hasVariant}}variant: '{{defaultVariant}}',{{/if}}
+  {{#if hasSize}}size: 'md',{{/if}}
+  {{#if hasDisabled}}disabled: false,{{/if}}
+  {{#if hasLoading}}loading: false,{{/if}}
+  {{#if hasError}}error: '',{{/if}}
+  {{#if hasHint}}hint: '',{{/if}}
+  {{#if hasLabel}}label: '',{{/if}}
+  {{#if hasTitle}}title: '',{{/if}}
+  {{#if hasIsOpen}}isOpen: false,{{/if}}
+  {{#if hasId}}id: '',{{/if}}
+});
+
+{{#if hasComputedClasses}}
+const classes = computed(() => [
+  '{{prefix}}',
+  {{#if hasVariant}}`{{prefix}}--\${props.variant}`,{{/if}}
+  {{#if hasSize}}`{{prefix}}--\${props.size}`,{{/if}}
+  {{#if hasLoading}}{
+    '{{prefix}}--loading': props.loading,
+  },{{/if}}
+  {{#if hasDisabled}}{
+    '{{prefix}}--disabled': props.disabled,
+  },{{/if}}
+  {{#if hasError}}{
+    '{{prefix}}--error': props.error,
+  },{{/if}}
+  {{#if hasClassName}}props.className,{{/if}}
+]);
+{{/if}}
