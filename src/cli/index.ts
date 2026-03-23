@@ -15,6 +15,7 @@ import { checkAndSetupTailwind } from './tailwind';
 import { loadPreset } from '../themes';
 import { Framework, StyleSystem, ThemePreset } from '../core/enums';
 import { runDoctor } from './doctor';
+import { runTokens } from './tokens';
 import {
   checkComponentDependencies,
   formatDependencyMessage,
@@ -108,6 +109,8 @@ Examples:
   $ npx crucible add Input Card --framework react --cwd ./packages/ui
   $ npx crucible doctor
   $ npx crucible list
+  $ npx crucible tokens          # Regenerate tokens.css
+  $ npx crucible tokens --force  # Force overwrite existing
 
 For more details, visit: https://github.com/crucible-ui/crucible
 `,
@@ -125,6 +128,20 @@ program
   .description('Proactively validate your Crucible configuration and environment setup')
   .option('--cwd <path>', 'Current working directory', '.')
   .action((opts) => runDoctor({ cwd: path.resolve(process.cwd(), opts.cwd) }));
+
+program
+  .command('tokens')
+  .description('Regenerate the global tokens.css file')
+  .option('--force', 'Overwrite existing tokens.css')
+  .option('--dry-run', 'Show what would be generated without writing')
+  .option('--cwd <path>', 'Current working directory', '.')
+  .action((opts) =>
+    runTokens({
+      force: opts.force,
+      dryRun: opts.dryRun,
+      cwd: path.resolve(process.cwd(), opts.cwd || '.'),
+    }),
+  );
 
 program
   .command('eject')
