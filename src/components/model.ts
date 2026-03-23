@@ -6,6 +6,8 @@ import { COMPONENT_DEFAULTS, TAILWIND_VARIANT_DEFAULTS } from '../registry/manif
 export interface ComponentModel {
   name: string;
   framework: `${Framework}`;
+  theme: string;
+  engineVersion: string;
   isReact: boolean;
   isAngular: boolean;
   isVue: boolean;
@@ -78,6 +80,8 @@ export function buildComponentModel(
   return {
     name,
     framework,
+    theme: config.theme,
+    engineVersion: '1.0.0', // Updated during generation or hardcoded for now
     isReact: framework === Framework.React,
     isAngular: framework === Framework.Angular,
     isVue: framework === Framework.Vue,

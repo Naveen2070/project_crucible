@@ -65,6 +65,7 @@ function generateFrameworkFiles(
     files.push(`${kebab}/${kebab}.component.html`);
     files.push(`${kebab}/${kebab}.component${styleExt}`);
     files.push(`${kebab}/${kebab}${storiesExt}`);
+    files.push(`${kebab}/README.md`);
   } else {
     files.push(`${pascal}/${pascal}${componentExt}`);
 
@@ -73,6 +74,7 @@ function generateFrameworkFiles(
     }
 
     files.push(`${pascal}/${pascal}${storiesExt}`);
+    files.push(`${pascal}/README.md`);
   }
 
   return files;

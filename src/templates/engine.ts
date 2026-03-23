@@ -176,6 +176,18 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     result[out] = compiled(model);
   }
 
+  // Generate README.md
+  const readmePath = path.join(getTemplatesRoot(), 'shared', 'component-readme.hbs');
+  if (await fs.pathExists(readmePath)) {
+    let compiled = templateCache.get(readmePath);
+    if (!compiled) {
+      const source = await fs.readFile(readmePath, 'utf-8');
+      compiled = Handlebars.compile(source);
+      templateCache.set(readmePath, compiled);
+    }
+    result['README.md'] = compiled(model);
+  }
+
   return result;
 }
 
