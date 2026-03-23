@@ -11,17 +11,30 @@ const DEFAULT_CONFIG = `{
   "framework": "react",
   "styleSystem": "css",
   "theme": "minimal",
+  "darkMode": false,
   "tokens": {
     "color": {
       "primary": "#6C63FF",
+      "secondary": "#F3F2FF",
       "surface": "#FFFFFF",
       "background": "#F8F9FA",
       "border": "#E2E1F0",
       "text": "#1A1A2E",
-      "danger": "#E24B4A"
+      "textMuted": "#6B6B8A",
+      "danger": "#E24B4A",
+      "success": "#1D9E75"
     },
     "radius": {
-      "md": "8px"
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px"
+    },
+    "spacing": {
+      "unit": "4px"
+    },
+    "typography": {
+      "fontFamily": "system-ui, sans-serif",
+      "scaleBase": "16px"
     }
   },
   "features": {
@@ -50,7 +63,10 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
 
   if (await fs.pathExists(configPath)) {
     if (!opts.yes) {
-      const overwrite = await confirm({ message: 'crucible.config.json already exists. Overwrite?', default: false });
+      const overwrite = await confirm({
+        message: 'crucible.config.json already exists. Overwrite?',
+        default: false,
+      });
       if (!overwrite) {
         console.log(chalk.gray('Init cancelled.'));
         return;
@@ -105,8 +121,10 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
     await checkAndSetupTailwind({ yes: opts.yes, cwd });
   }
 
-  const configContent = DEFAULT_CONFIG
-    .replace('"framework": "react"', `"framework": "${framework}"`)
+  const configContent = DEFAULT_CONFIG.replace(
+    '"framework": "react"',
+    `"framework": "${framework}"`,
+  )
     .replace('"styleSystem": "css"', `"styleSystem": "${styleSystem}"`)
     .replace('"outputDir": "src/components"', `"outputDir": "${outputDir}"`)
     .replace('"compoundComponents": true', `"compoundComponents": ${compoundComponents}`)
