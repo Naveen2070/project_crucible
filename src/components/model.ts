@@ -63,25 +63,17 @@ export function buildComponentModel(
   const hasSize = defaults.sizes.length > 0;
   const hasLoading = defaults.states.includes('loading');
   const hasDisabled = defaults.states.includes('disabled');
-  const hasRequired = name === ComponentName.Input;
+  const hasRequired = defaults.props.includes('required');
   const hasError = defaults.states.includes('error');
-  const hasHint = name === ComponentName.Input;
-  const hasLabel = name === ComponentName.Input || name === ComponentName.Select;
-  const hasTitle = name === ComponentName.Modal || name === ComponentName.Card;
+  const hasHint = defaults.props.includes('hint');
+  const hasLabel = defaults.props.includes('label');
+  const hasTitle = defaults.props.includes('title');
   const hasIsOpen = defaults.states.includes('open') || defaults.states.includes('closed');
-  const hasClassName = name !== ComponentName.Card && name !== ComponentName.Modal;
-  const hasId = name === ComponentName.Input || name === ComponentName.Select;
-  const hasOutputClose = name === ComponentName.Modal || name === ComponentName.Select;
+  const hasClassName = !defaults.noClassName;
+  const hasId = defaults.props.includes('id');
+  const hasOutputClose = defaults.behaviours?.includes('closeable') ?? false;
   const hasClassesGetter = hasVariant || hasSize || hasLoading || hasDisabled || hasError;
-  const hasPlaceholder = name === ComponentName.Input || name === ComponentName.Select;
-
-  const prefixMap: Record<string, string> = {
-    [ComponentName.Button]: 'btn',
-    [ComponentName.Input]: 'input',
-    [ComponentName.Card]: 'card',
-    [ComponentName.Modal]: 'modal',
-    [ComponentName.Select]: 'select',
-  };
+  const hasPlaceholder = defaults.props.includes('placeholder');
 
   return {
     name,
@@ -101,9 +93,9 @@ export function buildComponentModel(
       focusRingWidth: config.a11y.focusRingWidth ?? '2px',
       focusRingOffset: config.a11y.focusRingOffset ?? '3px',
       reduceMotion: config.a11y.reduceMotion ?? true,
-      role: name === ComponentName.Modal ? 'dialog' : undefined,
-      focusTrap: name === ComponentName.Modal ? true : undefined,
-      keyboardNav: name === ComponentName.Select ? true : undefined,
+      role: defaults.a11y?.role,
+      focusTrap: defaults.a11y?.focusTrap,
+      keyboardNav: defaults.a11y?.keyboardNav,
     },
     features: {
       hover: config.features.hover ?? true,
@@ -111,7 +103,7 @@ export function buildComponentModel(
         config.features.compoundComponents !== false && framework !== Framework.Angular,
     },
     generateStories,
-    prefix: prefixMap[name] ?? name.toLowerCase(),
+    prefix: defaults.prefix,
     hasVariant,
     hasSize,
     hasLoading,
