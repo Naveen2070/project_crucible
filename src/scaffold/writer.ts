@@ -38,7 +38,7 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
       // Migrate legacy hashes to manifest
       const legacyContent = await fs.readFile(legacyPath, 'utf-8');
       const legacyHashes: Record<string, string> = JSON.parse(legacyContent);
-      
+
       const files: Record<string, FileHashMeta> = {};
       const now = new Date().toISOString();
       for (const [key, hash] of Object.entries(legacyHashes)) {
@@ -47,7 +47,7 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
           generatedAt: now,
         };
       }
-      
+
       let pkgVersion = '1.0.0';
       try {
         const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
@@ -89,23 +89,23 @@ export async function writeFiles(
   files: Record<string, string>,
   outputDir: string,
   componentName: string,
-  opts: { 
-    force?: boolean; 
-    dryRun?: boolean; 
-    quiet?: boolean; 
+  opts: {
+    force?: boolean;
+    dryRun?: boolean;
+    quiet?: boolean;
     cwd?: string;
     hashes?: Manifest;
   } = {},
 ): Promise<void> {
   const cwd = opts.cwd || process.cwd();
   const componentDir = path.join(outputDir, componentName);
-  
+
   if (!opts.dryRun) {
     await fs.ensureDir(componentDir);
   }
-  
-  const manifest = opts.hashes || await loadHashes(cwd);
-  
+
+  const manifest = opts.hashes || (await loadHashes(cwd));
+
   if (!cachedPrettierConfig) {
     cachedPrettierConfig = await prettier.resolveConfig(cwd);
   }
@@ -133,52 +133,64 @@ export async function writeFiles(
     // ignore
   }
 
-  await Promise.all(Object.entries(files).map(async ([filename, content]) => {
-    const outPath = path.resolve(componentDir, filename);
-    const hashKey = `${componentName}/${filename}`;
+  await Promise.all(
+    Object.entries(files).map(async ([filename, content]) => {
+      const outPath = path.resolve(componentDir, filename);
+      const hashKey = `${componentName}/${filename}`;
 
-    // Security: Path Traversal Protection
-    if (!outPath.startsWith(path.resolve(componentDir))) {
-      throw new Error(`Security breach: Attempted path traversal to ${outPath}`);
-    }
+      // Security: Path Traversal Protection
+      if (!outPath.startsWith(path.resolve(componentDir))) {
+        throw new Error(`Security breach: Attempted path traversal to ${outPath}`);
+      }
 
-    // Format content with Prettier if possible
-    let formattedContent = content;
-    try {
-      formattedContent = await prettier.format(content, {
-        ...cachedPrettierConfig,
-        filepath: outPath,
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      if (!opts.quiet) console.warn(chalk.yellow(`⚠  Could not format ${hashKey} with Prettier: ${errorMessage}`));
-    }
+      // Format content with Prettier if possible
+      let formattedContent = content;
+      try {
+        formattedContent = await prettier.format(content, {
+          ...cachedPrettierConfig,
+          filepath: outPath,
+        });
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        if (!opts.quiet)
+          console.warn(
+            chalk.yellow(`⚠  Could not format ${hashKey} with Prettier: ${errorMessage}`),
+          );
+      }
 
-    const newHash = hashContent(formattedContent);
+      const newHash = hashContent(formattedContent);
 
-    if ((await fs.pathExists(outPath)) && !opts.force) {
-      const currentContent = await fs.readFile(outPath, 'utf-8');
-      const currentHash = hashContent(currentContent);
-      const storedFileMeta = manifest.files[hashKey];
+      if ((await fs.pathExists(outPath)) && !opts.force) {
+        const currentContent = await fs.readFile(outPath, 'utf-8');
+        const currentHash = hashContent(currentContent);
+        const storedFileMeta = manifest.files[hashKey];
 
-      if (storedFileMeta && currentHash !== storedFileMeta.contentHash) {
-        if (!opts.quiet) console.log(chalk.yellow(`⚠  ${hashKey} has been modified. Use --force to overwrite.`));
+        if (storedFileMeta && currentHash !== storedFileMeta.contentHash) {
+          if (!opts.quiet) {
+            console.log(
+              chalk.yellow(`⚠  User edits detected in ${hashKey}. Your changes are preserved.`),
+            );
+            console.log(
+              chalk.yellow(`   Use --force to overwrite, or manually merge your changes.`),
+            );
+          }
+          return;
+        }
+      }
+
+      if (opts.dryRun) {
+        if (!opts.quiet) console.log(chalk.green(`~  ${hashKey} (would be written)`));
         return;
       }
-    }
 
-    if (opts.dryRun) {
-      if (!opts.quiet) console.log(chalk.green(`~  ${hashKey} (would be written)`));
-      return;
-    }
-
-    await fs.writeFile(outPath, formattedContent, 'utf-8');
-    manifest.files[hashKey] = {
-      contentHash: newHash,
-      generatedAt: now,
-    };
-    if (!opts.quiet) console.log(chalk.green(`✓  ${hashKey}`));
-  }));
+      await fs.writeFile(outPath, formattedContent, 'utf-8');
+      manifest.files[hashKey] = {
+        contentHash: newHash,
+        generatedAt: now,
+      };
+      if (!opts.quiet) console.log(chalk.green(`✓  ${hashKey}`));
+    }),
+  );
 
   // If hashes were NOT provided in opts, we are responsible for saving them
   if (!opts.hashes && !opts.dryRun) {
