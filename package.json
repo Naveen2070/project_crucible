@@ -4,6 +4,8 @@
   "description": "Crucible — Design System Engine",
   "main": "dist/cli/index.js",
   "scripts": {
+    "audit:templates": "tsx scripts/audit-templates.ts",
+    "prebuild": "npm run audit:templates",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
