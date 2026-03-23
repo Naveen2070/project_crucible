@@ -54,3 +54,4 @@ __generated__/
 # project files
 /planning
 crucible.config.json
+.crucible
