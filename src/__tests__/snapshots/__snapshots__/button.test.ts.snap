@@ -141,11 +141,20 @@ const meta: Meta<typeof Button> = {
 export default meta;
 type Story = StoryObj<typeof Button>;
 
+export const Default: Story = {
+  args: { variant: 'primary', size: 'md' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Button</Button.Label>
+    </Button>
+  ),
+};
+
 export const Primary: Story = {
   args: { variant: 'primary' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Primary button</Button.Label>
+      <Button.Label>Primary Button</Button.Label>
     </Button>
   ),
 };
@@ -153,7 +162,7 @@ export const Secondary: Story = {
   args: { variant: 'secondary' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Secondary button</Button.Label>
+      <Button.Label>Secondary Button</Button.Label>
     </Button>
   ),
 };
@@ -161,7 +170,7 @@ export const Ghost: Story = {
   args: { variant: 'ghost' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Ghost button</Button.Label>
+      <Button.Label>Ghost Button</Button.Label>
     </Button>
   ),
 };
@@ -169,7 +178,32 @@ export const Danger: Story = {
   args: { variant: 'danger' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Danger button</Button.Label>
+      <Button.Label>Danger Button</Button.Label>
+    </Button>
+  ),
+};
+
+export const Sm: Story = {
+  args: { size: 'sm' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Sm Size</Button.Label>
+    </Button>
+  ),
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Md Size</Button.Label>
+    </Button>
+  ),
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Lg Size</Button.Label>
     </Button>
   ),
 };
@@ -309,11 +343,20 @@ const meta: Meta<typeof Button> = {
 export default meta;
 type Story = StoryObj<typeof Button>;
 
+export const Default: Story = {
+  args: { variant: 'primary', size: 'md' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Button</Button.Label>
+    </Button>
+  ),
+};
+
 export const Primary: Story = {
   args: { variant: 'primary' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Primary button</Button.Label>
+      <Button.Label>Primary Button</Button.Label>
     </Button>
   ),
 };
@@ -321,7 +364,7 @@ export const Secondary: Story = {
   args: { variant: 'secondary' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Secondary button</Button.Label>
+      <Button.Label>Secondary Button</Button.Label>
     </Button>
   ),
 };
@@ -329,7 +372,7 @@ export const Ghost: Story = {
   args: { variant: 'ghost' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Ghost button</Button.Label>
+      <Button.Label>Ghost Button</Button.Label>
     </Button>
   ),
 };
@@ -337,7 +380,32 @@ export const Danger: Story = {
   args: { variant: 'danger' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Danger button</Button.Label>
+      <Button.Label>Danger Button</Button.Label>
+    </Button>
+  ),
+};
+
+export const Sm: Story = {
+  args: { size: 'sm' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Sm Size</Button.Label>
+    </Button>
+  ),
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Md Size</Button.Label>
+    </Button>
+  ),
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Lg Size</Button.Label>
     </Button>
   ),
 };

@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { readConfig } from '../config/reader';
 import { StyleSystem, Framework, ComponentName } from '../core/enums';
 import { PEER_DEPENDENCIES } from '../registry/peer-deps';
+import { loadHashes, hashContent } from '../scaffold/writer';
 
 interface DoctorResult {
   config: boolean;
@@ -12,6 +13,7 @@ interface DoctorResult {
   peerDeps: boolean;
   typescript: boolean;
   tokens: boolean;
+  componentsSync: boolean;
 }
 
 interface CircularRef {
@@ -79,13 +81,17 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     peerDeps: true,
     typescript: true,
     tokens: true,
+    componentsSync: true,
   };
 
   const configPathRelative = path.relative(process.cwd(), path.join(cwd, 'crucible.config.json'));
+  const configPathAbsolute = path.join(cwd, 'crucible.config.json');
   let config;
+  let configContent = '';
 
   // 1. Check Config
   try {
+    configContent = await fs.readFile(configPathAbsolute, 'utf-8');
     config = await readConfig(configPathRelative);
     console.log(chalk.green('✔ Config file loaded and validated successfully.'));
     result.config = true;
@@ -262,6 +268,55 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     }
   } catch (e: any) {
     console.log(chalk.yellow(`⚠ Could not check token references: ${e.message}`));
+  }
+
+  // 7. Check Components Sync State
+  try {
+    const manifest = await loadHashes(cwd);
+    let pkgVersion = '1.0.0';
+    try {
+      const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+      pkgVersion = pkg.version || '1.0.0';
+    } catch {}
+
+    const currentConfigHash = hashContent(configContent);
+    const configStale = manifest.configHash && currentConfigHash !== manifest.configHash;
+    const engineStale = manifest.engineVersion && manifest.engineVersion !== pkgVersion;
+
+    if (Object.keys(manifest.files).length === 0) {
+      console.log(chalk.gray('— Sync state check skipped (no generated components found).'));
+    } else {
+      const outDir = path.join(cwd, config?.flags?.outputDir ?? 'src/components');
+      const componentsOnDisk = new Set<string>();
+
+      for (const [hashKey, fileMeta] of Object.entries(manifest.files)) {
+        const compName = hashKey.split('/')[0];
+        const filePath = path.join(outDir, hashKey);
+        if (await fs.pathExists(filePath)) {
+          componentsOnDisk.add(compName);
+        }
+      }
+
+      if (componentsOnDisk.size > 0) {
+        if (configStale || engineStale) {
+          result.componentsSync = false;
+          console.log(chalk.yellow(`⚠ Some components are out of sync:`));
+          const compArray = Array.from(componentsOnDisk);
+          if (configStale) {
+            console.log(chalk.gray(`  - Config drifted. Regenerate with: npx crucible add ${compArray.join(' ')} --force`));
+          }
+          if (engineStale) {
+            console.log(chalk.gray(`  - Engine updated (${manifest.engineVersion} -> ${pkgVersion}). Regenerate with: npx crucible add ${compArray.join(' ')} --force`));
+          }
+        } else {
+          console.log(chalk.green('✔ All generated components are up to date with config and engine.'));
+        }
+      } else {
+        console.log(chalk.gray('— Sync state check skipped (no generated files exist on disk).'));
+      }
+    }
+  } catch (e: any) {
+    console.log(chalk.yellow(`⚠ Could not verify component sync state: ${e.message}`));
   }
 
   console.log('\n');

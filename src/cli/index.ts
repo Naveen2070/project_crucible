@@ -275,7 +275,7 @@ program
       const generateStories =
         opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
 
-      const hashes = await loadHashes(path.join(cwd, '.crucible-hashes.json'));
+      const hashes = await loadHashes(cwd);
 
       await fs.ensureDir(outDir);
 
@@ -323,7 +323,7 @@ program
       );
 
       if (!opts.dryRun) {
-        await saveHashes(hashes, path.join(cwd, '.crucible-hashes.json'));
+        await saveHashes(hashes, cwd);
       }
       await cleanupWatchers();
     } catch (err: any) {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
-import { loadHashes, saveHashes, writeFiles } from '../scaffold/writer';
+import { loadHashes, saveHashes, writeFiles, HASH_FILE, LEGACY_HASH_FILE } from '../scaffold/writer';
 
 const TEST_DIR = path.join(__dirname, '../../.writer-test-temp');
 
@@ -14,23 +14,35 @@ describe('loadHashes', () => {
     await fs.remove(TEST_DIR);
   });
 
-  it('returns empty object when file does not exist', async () => {
-    const result = await loadHashes(path.join(TEST_DIR, 'nonexistent.json'));
-    expect(result).toEqual({});
+  it('returns default manifest when file does not exist', async () => {
+    const result = await loadHashes(TEST_DIR);
+    expect(result.files).toEqual({});
+    expect(result.engineVersion).toBeDefined();
+    expect(result.generatedAt).toBeDefined();
   });
 
-  it('returns parsed JSON when file exists', async () => {
-    const filePath = path.join(TEST_DIR, 'hashes.json');
-    await fs.writeJson(filePath, { key: 'hash123' });
-    const result = await loadHashes(filePath);
-    expect(result).toEqual({ key: 'hash123' });
+  it('returns parsed manifest when file exists', async () => {
+    const manifestPath = path.join(TEST_DIR, HASH_FILE);
+    await fs.ensureDir(path.dirname(manifestPath));
+    const mockManifest = {
+      engineVersion: '1.0.0',
+      configHash: 'abc',
+      generatedAt: '2023-01-01',
+      files: {
+        'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' }
+      }
+    };
+    await fs.writeJson(manifestPath, mockManifest);
+    const result = await loadHashes(TEST_DIR);
+    expect(result).toEqual(mockManifest);
   });
 
-  it('returns empty object on parse error', async () => {
-    const filePath = path.join(TEST_DIR, 'invalid.json');
-    await fs.writeFile(filePath, 'invalid json');
-    const result = await loadHashes(filePath);
-    expect(result).toEqual({});
+  it('migrates legacy hash file when manifest does not exist', async () => {
+    const legacyPath = path.join(TEST_DIR, LEGACY_HASH_FILE);
+    await fs.writeJson(legacyPath, { 'Button/Button.tsx': 'legacyHash123' });
+    
+    const result = await loadHashes(TEST_DIR);
+    expect(result.files['Button/Button.tsx'].contentHash).toBe('legacyHash123');
   });
 });
 
@@ -43,12 +55,19 @@ describe('saveHashes', () => {
     await fs.remove(TEST_DIR);
   });
 
-  it('writes JSON to file', async () => {
-    const filePath = path.join(TEST_DIR, 'hashes.json');
-    const hashes = { Button: 'abc123', Input: 'def456' };
-    await saveHashes(hashes, filePath);
-    const result = await fs.readJson(filePath);
-    expect(result).toEqual(hashes);
+  it('writes manifest to file', async () => {
+    const manifestPath = path.join(TEST_DIR, HASH_FILE);
+    const manifest = {
+      engineVersion: '1.0.0',
+      configHash: 'abc',
+      generatedAt: '2023-01-01',
+      files: {
+        'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' }
+      }
+    };
+    await saveHashes(manifest, TEST_DIR);
+    const result = await fs.readJson(manifestPath);
+    expect(result).toEqual(manifest);
   });
 });
 
@@ -91,8 +110,8 @@ describe('writeFiles', () => {
     const files = { 'Button.tsx': content };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
-    const hashes = await loadHashes(path.join(TEST_DIR, '.crucible-hashes.json'));
-    const originalHash = hashes['Button/Button.tsx'];
+    const hashes = await loadHashes(TEST_DIR);
+    const originalHash = hashes.files['Button/Button.tsx'].contentHash;
 
     await fs.writeFile(path.join(outputDir, 'Button', 'Button.tsx'), '// modified');
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
@@ -107,7 +126,7 @@ describe('writeFiles', () => {
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
     await fs.writeFile(path.join(outputDir, 'Button', 'Button.tsx'), '// modified');
-    const hashes = await loadHashes(path.join(TEST_DIR, '.crucible-hashes.json'));
+    const hashes = await loadHashes(TEST_DIR);
 
     await writeFiles(files, outputDir, componentName, {
       cwd: TEST_DIR,
@@ -142,7 +161,7 @@ describe('writeFiles', () => {
     const files = { 'Button.tsx': 'export const Button = () => {};' };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
-    const hashes = await loadHashes(path.join(TEST_DIR, '.crucible-hashes.json'));
-    expect(hashes['Button/Button.tsx']).toBeDefined();
+    const hashes = await loadHashes(TEST_DIR);
+    expect(hashes.files['Button/Button.tsx']).toBeDefined();
   });
 });

@@ -4,24 +4,85 @@ import crypto from 'crypto';
 import chalk from 'chalk';
 import * as prettier from 'prettier';
 
-const HASH_FILE = '.crucible-hashes.json';
+export const HASH_FILE = '.crucible/manifest.json';
+export const LEGACY_HASH_FILE = '.crucible-hashes.json';
+
 let cachedPrettierConfig: prettier.Config | null = null;
 
-function hashContent(content: string): string {
+export interface FileHashMeta {
+  contentHash: string;
+  templateHash?: string;
+  generatedAt: string;
+}
+
+export interface Manifest {
+  engineVersion: string;
+  configHash: string;
+  generatedAt: string;
+  files: Record<string, FileHashMeta>;
+}
+
+export function hashContent(content: string): string {
   return crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);
 }
 
-export async function loadHashes(hashFilePath: string): Promise<Record<string, string>> {
+export async function loadHashes(cwd: string): Promise<Manifest> {
+  const manifestPath = path.join(cwd, HASH_FILE);
+  const legacyPath = path.join(cwd, LEGACY_HASH_FILE);
+
   try {
-    const content = await fs.readFile(hashFilePath, 'utf-8');
-    return JSON.parse(content);
+    if (await fs.pathExists(manifestPath)) {
+      const content = await fs.readFile(manifestPath, 'utf-8');
+      return JSON.parse(content);
+    } else if (await fs.pathExists(legacyPath)) {
+      // Migrate legacy hashes to manifest
+      const legacyContent = await fs.readFile(legacyPath, 'utf-8');
+      const legacyHashes: Record<string, string> = JSON.parse(legacyContent);
+      
+      const files: Record<string, FileHashMeta> = {};
+      const now = new Date().toISOString();
+      for (const [key, hash] of Object.entries(legacyHashes)) {
+        files[key] = {
+          contentHash: hash,
+          generatedAt: now,
+        };
+      }
+      
+      let pkgVersion = '1.0.0';
+      try {
+        const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+        pkgVersion = pkg.version || '1.0.0';
+      } catch {}
+
+      return {
+        engineVersion: pkgVersion,
+        configHash: '',
+        generatedAt: now,
+        files,
+      };
+    }
   } catch {
-    return {};
+    // Ignore and return default
   }
+
+  let pkgVersion = '1.0.0';
+  try {
+    const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+    pkgVersion = pkg.version || '1.0.0';
+  } catch {}
+
+  return {
+    engineVersion: pkgVersion,
+    configHash: '',
+    generatedAt: new Date().toISOString(),
+    files: {},
+  };
 }
 
-export async function saveHashes(hashes: Record<string, string>, hashFilePath: string): Promise<void> {
-  await fs.writeFile(hashFilePath, JSON.stringify(hashes, null, 2), 'utf-8');
+export async function saveHashes(manifest: Manifest, cwd: string): Promise<void> {
+  const manifestPath = path.join(cwd, HASH_FILE);
+  await fs.ensureDir(path.dirname(manifestPath));
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
 }
 
 export async function writeFiles(
@@ -33,7 +94,7 @@ export async function writeFiles(
     dryRun?: boolean; 
     quiet?: boolean; 
     cwd?: string;
-    hashes?: Record<string, string>;
+    hashes?: Manifest;
   } = {},
 ): Promise<void> {
   const cwd = opts.cwd || process.cwd();
@@ -43,10 +104,33 @@ export async function writeFiles(
     await fs.ensureDir(componentDir);
   }
   
-  const hashes = opts.hashes || await loadHashes(path.join(cwd, HASH_FILE));
+  const manifest = opts.hashes || await loadHashes(cwd);
   
   if (!cachedPrettierConfig) {
     cachedPrettierConfig = await prettier.resolveConfig(cwd);
+  }
+
+  const now = new Date().toISOString();
+  manifest.generatedAt = now;
+
+  let pkgVersion = '1.0.0';
+  try {
+    const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+    pkgVersion = pkg.version || '1.0.0';
+  } catch {
+    // ignore
+  }
+  manifest.engineVersion = pkgVersion;
+
+  // Try to get config hash
+  try {
+    const configPath = path.join(cwd, 'crucible.config.json');
+    if (await fs.pathExists(configPath)) {
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      manifest.configHash = hashContent(configContent);
+    }
+  } catch {
+    // ignore
   }
 
   await Promise.all(Object.entries(files).map(async ([filename, content]) => {
@@ -75,9 +159,9 @@ export async function writeFiles(
     if ((await fs.pathExists(outPath)) && !opts.force) {
       const currentContent = await fs.readFile(outPath, 'utf-8');
       const currentHash = hashContent(currentContent);
-      const storedHash = hashes[hashKey];
+      const storedFileMeta = manifest.files[hashKey];
 
-      if (storedHash && currentHash !== storedHash) {
+      if (storedFileMeta && currentHash !== storedFileMeta.contentHash) {
         if (!opts.quiet) console.log(chalk.yellow(`⚠  ${hashKey} has been modified. Use --force to overwrite.`));
         return;
       }
@@ -89,12 +173,15 @@ export async function writeFiles(
     }
 
     await fs.writeFile(outPath, formattedContent, 'utf-8');
-    hashes[hashKey] = newHash;
+    manifest.files[hashKey] = {
+      contentHash: newHash,
+      generatedAt: now,
+    };
     if (!opts.quiet) console.log(chalk.green(`✓  ${hashKey}`));
   }));
 
   // If hashes were NOT provided in opts, we are responsible for saving them
   if (!opts.hashes && !opts.dryRun) {
-    await saveHashes(hashes, path.join(cwd, HASH_FILE));
+    await saveHashes(manifest, cwd);
   }
 }

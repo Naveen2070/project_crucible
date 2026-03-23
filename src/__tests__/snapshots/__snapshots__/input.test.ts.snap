@@ -286,6 +286,7 @@ export default meta;
 type Story = StoryObj<typeof Input>;
 
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Username</Input.Label>
@@ -295,6 +296,44 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
+  args: { variant: 'error' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Error Variant</Input.Label>
+      <Input.Field placeholder="Input with error variant" />
+    </Input>
+  ),
+};
+
+export const Sm: Story = {
+  args: { size: 'sm' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Sm Size</Input.Label>
+      <Input.Field placeholder="Input with sm size" />
+    </Input>
+  ),
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Md Size</Input.Label>
+      <Input.Field placeholder="Input with md size" />
+    </Input>
+  ),
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Lg Size</Input.Label>
+      <Input.Field placeholder="Input with lg size" />
+    </Input>
+  ),
+};
+
+export const WithError: Story = {
   args: { error: 'Invalid email address' },
   render: (args) => (
     <Input {...args}>
@@ -305,11 +344,13 @@ export const Error: Story = {
   ),
 };
 
-export const Password: Story = {
+export const WithHint: Story = {
+  args: { hint: 'Must be at least 8 characters long' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Password</Input.Label>
       <Input.Field type="password" placeholder="Enter password" />
+      <Input.Hint>{args.hint}</Input.Hint>
     </Input>
   ),
 };
@@ -528,6 +569,7 @@ export default meta;
 type Story = StoryObj<typeof Input>;
 
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Username</Input.Label>
@@ -537,6 +579,44 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
+  args: { variant: 'error' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Error Variant</Input.Label>
+      <Input.Field placeholder="Input with error variant" />
+    </Input>
+  ),
+};
+
+export const Sm: Story = {
+  args: { size: 'sm' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Sm Size</Input.Label>
+      <Input.Field placeholder="Input with sm size" />
+    </Input>
+  ),
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Md Size</Input.Label>
+      <Input.Field placeholder="Input with md size" />
+    </Input>
+  ),
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => (
+    <Input {...args}>
+      <Input.Label>Lg Size</Input.Label>
+      <Input.Field placeholder="Input with lg size" />
+    </Input>
+  ),
+};
+
+export const WithError: Story = {
   args: { error: 'Invalid email address' },
   render: (args) => (
     <Input {...args}>
@@ -547,11 +627,13 @@ export const Error: Story = {
   ),
 };
 
-export const Password: Story = {
+export const WithHint: Story = {
+  args: { hint: 'Must be at least 8 characters long' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Password</Input.Label>
       <Input.Field type="password" placeholder="Enter password" />
+      <Input.Hint>{args.hint}</Input.Hint>
     </Input>
   ),
 };

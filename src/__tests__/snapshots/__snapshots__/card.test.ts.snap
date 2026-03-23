@@ -172,6 +172,7 @@ export default meta;
 type Story = StoryObj<typeof Card>;
 
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
@@ -189,45 +190,83 @@ export const Hoverable: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style={{ margin: 0 }}>Hoverable Card</h3>
+        <h3 style={{ margin: 0 }}>Hoverable Variant</h3>
       </Card.Header>
       <Card.Content>
-        This card changes its border color and shadow on hover.
+        Card content with hoverable variant.
       </Card.Content>
     </Card>
   ),
 };
-
 export const Clickable: Story = {
-  args: { 
-    variant: 'clickable',
-    onClick: () => alert('Card clicked!'),
-  },
+  args: { variant: 'clickable' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style={{ margin: 0 }}>Clickable Card</h3>
+        <h3 style={{ margin: 0 }}>Clickable Variant</h3>
       </Card.Header>
       <Card.Content>
-        This card acts like a button and has an active state.
+        Card content with clickable variant.
       </Card.Content>
     </Card>
   ),
 };
 
-export const Link: Story = {
-  args: { 
-    variant: 'clickable',
-    href: 'https://example.com',
-  },
+export const Sm: Story = {
+  args: { size: 'sm' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style={{ margin: 0 }}>Link Card</h3>
+        <h3 style={{ margin: 0 }}>Sm Size</h3>
       </Card.Header>
       <Card.Content>
-        This card acts like an anchor tag.
+        Card content with sm size.
       </Card.Content>
+    </Card>
+  ),
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Md Size</h3>
+      </Card.Header>
+      <Card.Content>
+        Card content with md size.
+      </Card.Content>
+    </Card>
+  ),
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Lg Size</h3>
+      </Card.Header>
+      <Card.Content>
+        Card content with lg size.
+      </Card.Content>
+    </Card>
+  ),
+};
+
+export const WithFooter: Story = {
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Card with Footer</h3>
+      </Card.Header>
+      <Card.Content>
+        The footer can contain actions or additional information.
+      </Card.Content>
+      <Card.Footer>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button style={{ padding: '4px 8px' }}>Cancel</button>
+          <button style={{ padding: '4px 8px' }}>Confirm</button>
+        </div>
+      </Card.Footer>
     </Card>
   ),
 };
@@ -354,6 +393,7 @@ export default meta;
 type Story = StoryObj<typeof Card>;
 
 export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
@@ -371,45 +411,83 @@ export const Hoverable: Story = {
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style={{ margin: 0 }}>Hoverable Card</h3>
+        <h3 style={{ margin: 0 }}>Hoverable Variant</h3>
       </Card.Header>
       <Card.Content>
-        This card changes its border color and shadow on hover.
+        Card content with hoverable variant.
       </Card.Content>
     </Card>
   ),
 };
-
 export const Clickable: Story = {
-  args: { 
-    variant: 'clickable',
-    onClick: () => alert('Card clicked!'),
-  },
+  args: { variant: 'clickable' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style={{ margin: 0 }}>Clickable Card</h3>
+        <h3 style={{ margin: 0 }}>Clickable Variant</h3>
       </Card.Header>
       <Card.Content>
-        This card acts like a button and has an active state.
+        Card content with clickable variant.
       </Card.Content>
     </Card>
   ),
 };
 
-export const Link: Story = {
-  args: { 
-    variant: 'clickable',
-    href: 'https://example.com',
-  },
+export const Sm: Story = {
+  args: { size: 'sm' },
   render: (args) => (
     <Card {...args}>
       <Card.Header>
-        <h3 style={{ margin: 0 }}>Link Card</h3>
+        <h3 style={{ margin: 0 }}>Sm Size</h3>
       </Card.Header>
       <Card.Content>
-        This card acts like an anchor tag.
+        Card content with sm size.
       </Card.Content>
+    </Card>
+  ),
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Md Size</h3>
+      </Card.Header>
+      <Card.Content>
+        Card content with md size.
+      </Card.Content>
+    </Card>
+  ),
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Lg Size</h3>
+      </Card.Header>
+      <Card.Content>
+        Card content with lg size.
+      </Card.Content>
+    </Card>
+  ),
+};
+
+export const WithFooter: Story = {
+  render: (args) => (
+    <Card {...args}>
+      <Card.Header>
+        <h3 style={{ margin: 0 }}>Card with Footer</h3>
+      </Card.Header>
+      <Card.Content>
+        The footer can contain actions or additional information.
+      </Card.Content>
+      <Card.Footer>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button style={{ padding: '4px 8px' }}>Cancel</button>
+          <button style={{ padding: '4px 8px' }}>Confirm</button>
+        </div>
+      </Card.Footer>
     </Card>
   ),
 };
