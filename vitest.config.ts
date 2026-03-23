@@ -18,9 +18,20 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: 'node',
           globals: true,
           environment: 'node',
           include: ['src/__tests__/**/*.test.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'react-a11y',
+          globals: true,
+          environment: 'jsdom',
+          setupFiles: ['src/__tests__/a11y/setup.ts'],
+          include: ['src/__tests__/a11y/**/*.test.tsx'],
         },
       },
       {
