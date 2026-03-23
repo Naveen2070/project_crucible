@@ -97,7 +97,7 @@ exports[`Card snapshots > css mode snapshot 2`] = `
   display:        flex;
   flex-direction: column;
   background:     var(--color-surface);
-  border:         1.5px solid var(--color-border);
+  border:         1px solid var(--color-border);
   border-radius:  var(--radius-lg);
   color:          var(--color-text);
   font-family:    var(--font-family);
@@ -107,6 +107,7 @@ exports[`Card snapshots > css mode snapshot 2`] = `
   padding:        0;
   margin:         0;
   text-decoration: none;
+  box-shadow:     0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .card:focus-visible {
@@ -122,17 +123,17 @@ exports[`Card snapshots > css mode snapshot 2`] = `
 /* Variants */
 .card--hoverable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow:   0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .card--clickable {
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card--clickable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transform:    translateY(-2px);
 }
 

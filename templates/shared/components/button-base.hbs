@@ -7,10 +7,10 @@
   gap:             calc(var(--spacing-unit) * 2);
   font-family:     var(--font-family);
   font-weight:     500;
-  border:          1.5px solid transparent;
+  border:          1px solid transparent;
   cursor:          pointer;
   border-radius:   var(--radius-md);
-  transition:      background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 {{#if a11y.focusRing}}
@@ -27,9 +27,18 @@
 {{/if}}
 
 /* Sizes */
-.btn--sm { padding: 6px 12px;  font-size: 13px; }
-.btn--md { padding: 10px 20px; font-size: 15px; }
-.btn--lg { padding: 14px 28px; font-size: 17px; }
+.btn--sm { 
+  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);  
+  font-size: 0.875rem; 
+}
+.btn--md { 
+  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 5); 
+  font-size: 1rem; 
+}
+.btn--lg { 
+  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 7); 
+  font-size: 1.125rem; 
+}
 
 /* Variants */
 .btn--primary   { background: var(--color-primary);   color: var(--color-surface);  border-color: var(--color-primary); }

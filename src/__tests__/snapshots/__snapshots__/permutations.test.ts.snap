@@ -11,10 +11,10 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   gap:             calc(var(--spacing-unit) * 2);
   font-family:     var(--font-family);
   font-weight:     500;
-  border:          1.5px solid transparent;
+  border:          1px solid transparent;
   cursor:          pointer;
   border-radius:   var(--radius-md);
-  transition:      background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn:focus-visible {
@@ -27,9 +27,18 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 }
 
 /* Sizes */
-.btn--sm { padding: 6px 12px;  font-size: 13px; }
-.btn--md { padding: 10px 20px; font-size: 15px; }
-.btn--lg { padding: 14px 28px; font-size: 17px; }
+.btn--sm { 
+  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);  
+  font-size: 0.875rem; 
+}
+.btn--md { 
+  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 5); 
+  font-size: 1rem; 
+}
+.btn--lg { 
+  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 7); 
+  font-size: 1.125rem; 
+}
 
 /* Variants */
 .btn--primary   { background: var(--color-primary);   color: var(--color-surface);  border-color: var(--color-primary); }
@@ -153,7 +162,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   display:        flex;
   flex-direction: column;
   background:     var(--color-surface);
-  border:         1.5px solid var(--color-border);
+  border:         1px solid var(--color-border);
   border-radius:  var(--radius-lg);
   color:          var(--color-text);
   font-family:    var(--font-family);
@@ -163,6 +172,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   padding:        0;
   margin:         0;
   text-decoration: none;
+  box-shadow:     0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .card:focus-visible {
@@ -178,17 +188,17 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 /* Variants */
 .card--hoverable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow:   0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .card--clickable {
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card--clickable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transform:    translateY(-2px);
 }
 
@@ -335,14 +345,15 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 
 .label {
   font-family: var(--font-family);
-  font-size:   14px;
+  font-size:   0.875rem;
   font-weight: 500;
   color:       var(--color-text);
+  margin-bottom: calc(var(--spacing-unit) * 1.5);
 }
 
 .required {
   color:       var(--color-danger);
-  margin-left: 2px;
+  margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
 .input-wrapper {
@@ -353,11 +364,11 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 .input {
   width:           100%;
   font-family:     var(--font-family);
-  border:          1.5px solid var(--color-border);
+  border:          1px solid var(--color-border);
   border-radius:   var(--radius-md);
   background:      var(--color-surface);
   color:           var(--color-text);
-  transition:      border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing:      border-box;
 }
 
@@ -365,12 +376,22 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   outline:        2px solid var(--color-primary);
   outline-offset: 3px;
   border-color:   var(--color-primary);
+  box-shadow:     0 0 0 4px rgba(108, 99, 255, 0.1);
 }
 
 /* Sizes */
-.input--sm { padding: 6px 10px;  font-size: 13px; }
-.input--md { padding: 10px 14px; font-size: 15px; }
-.input--lg { padding: 14px 18px; font-size: 17px; }
+.input--sm { 
+  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);  
+  font-size: 0.875rem; 
+}
+.input--md { 
+  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 3.5); 
+  font-size: 1rem; 
+}
+.input--lg { 
+  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 4.5); 
+  font-size: 1.125rem; 
+}
 
 /* Variants */
 .input--error {
@@ -3736,10 +3757,10 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   gap:             calc(var(--spacing-unit) * 2);
   font-family:     var(--font-family);
   font-weight:     500;
-  border:          1.5px solid transparent;
+  border:          1px solid transparent;
   cursor:          pointer;
   border-radius:   var(--radius-md);
-  transition:      background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn:focus-visible {
@@ -3752,9 +3773,18 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 }
 
 /* Sizes */
-.btn--sm { padding: 6px 12px;  font-size: 13px; }
-.btn--md { padding: 10px 20px; font-size: 15px; }
-.btn--lg { padding: 14px 28px; font-size: 17px; }
+.btn--sm { 
+  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);  
+  font-size: 0.875rem; 
+}
+.btn--md { 
+  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 5); 
+  font-size: 1rem; 
+}
+.btn--lg { 
+  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 7); 
+  font-size: 1.125rem; 
+}
 
 /* Variants */
 .btn--primary   { background: var(--color-primary);   color: var(--color-surface);  border-color: var(--color-primary); }
@@ -3878,7 +3908,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   display:        flex;
   flex-direction: column;
   background:     var(--color-surface);
-  border:         1.5px solid var(--color-border);
+  border:         1px solid var(--color-border);
   border-radius:  var(--radius-lg);
   color:          var(--color-text);
   font-family:    var(--font-family);
@@ -3888,6 +3918,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   padding:        0;
   margin:         0;
   text-decoration: none;
+  box-shadow:     0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .card:focus-visible {
@@ -3903,17 +3934,17 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 /* Variants */
 .card--hoverable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow:   0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .card--clickable {
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card--clickable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transform:    translateY(-2px);
 }
 
@@ -4060,14 +4091,15 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 
 .label {
   font-family: var(--font-family);
-  font-size:   14px;
+  font-size:   0.875rem;
   font-weight: 500;
   color:       var(--color-text);
+  margin-bottom: calc(var(--spacing-unit) * 1.5);
 }
 
 .required {
   color:       var(--color-danger);
-  margin-left: 2px;
+  margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
 .input-wrapper {
@@ -4078,11 +4110,11 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 .input {
   width:           100%;
   font-family:     var(--font-family);
-  border:          1.5px solid var(--color-border);
+  border:          1px solid var(--color-border);
   border-radius:   var(--radius-md);
   background:      var(--color-surface);
   color:           var(--color-text);
-  transition:      border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing:      border-box;
 }
 
@@ -4090,12 +4122,22 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   outline:        2px solid var(--color-primary);
   outline-offset: 3px;
   border-color:   var(--color-primary);
+  box-shadow:     0 0 0 4px rgba(108, 99, 255, 0.1);
 }
 
 /* Sizes */
-.input--sm { padding: 6px 10px;  font-size: 13px; }
-.input--md { padding: 10px 14px; font-size: 15px; }
-.input--lg { padding: 14px 18px; font-size: 17px; }
+.input--sm { 
+  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);  
+  font-size: 0.875rem; 
+}
+.input--md { 
+  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 3.5); 
+  font-size: 1rem; 
+}
+.input--lg { 
+  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 4.5); 
+  font-size: 1.125rem; 
+}
 
 /* Variants */
 .input--error {
