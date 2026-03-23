@@ -35,30 +35,79 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
   },
 };
 
-export const COMPONENT_DEFAULTS: Record<string, { variants: string[]; sizes: string[]; states: string[] }> = {
+export interface ComponentMeta {
+  /** Visual variants (e.g., primary, secondary, ghost) */
+  variants: string[];
+
+  /** Size options (e.g., sm, md, lg) */
+  sizes: string[];
+
+  /** Behavioral states (e.g., disabled, loading, open) */
+  states: string[];
+
+  /** Props this component accepts (controls has* flag derivation) */
+  props: string[];
+
+  /** CSS class prefix (e.g., 'btn', 'input', 'card') */
+  prefix: string;
+
+  /** Components that don't accept className prop (Card, Modal) */
+  noClassName?: boolean;
+
+  /** Component behaviors (explicit, not inferred) */
+  behaviours?: ('closeable' | 'focusTrap' | 'scrollLock')[];
+
+  /** Component-specific a11y overrides */
+  a11y?: {
+    role?: string;
+    focusTrap?: boolean;
+    keyboardNav?: boolean;
+    passwordToggle?: boolean;
+  };
+}
+
+export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
   [ComponentName.Button]: {
     variants: ['primary', 'secondary', 'ghost', 'danger'],
     sizes: ['sm', 'md', 'lg'],
     states: ['disabled', 'loading'],
+    props: [],
+    prefix: 'btn',
   },
   [ComponentName.Input]: {
     variants: ['default', 'error'],
     sizes: ['sm', 'md', 'lg'],
     states: ['disabled', 'error'],
+    props: ['required', 'hint', 'label', 'placeholder', 'id'],
+    prefix: 'input',
+    a11y: { role: 'input', passwordToggle: true },
   },
   [ComponentName.Card]: {
     variants: ['default', 'hoverable', 'clickable'],
     sizes: ['sm', 'md', 'lg'],
     states: [],
+    props: ['title'],
+    prefix: 'card',
+    noClassName: true,
+    a11y: { role: 'article' },
   },
   [ComponentName.Modal]: {
     variants: ['default', 'confirm'],
     sizes: ['sm', 'md', 'lg'],
     states: ['open', 'closed'],
+    props: ['title'],
+    prefix: 'modal',
+    noClassName: true,
+    behaviours: ['closeable', 'focusTrap', 'scrollLock'],
+    a11y: { role: 'dialog', focusTrap: true },
   },
   [ComponentName.Select]: {
     variants: ['default', 'error'],
     sizes: ['sm', 'md', 'lg'],
     states: ['disabled', 'error', 'open'],
+    props: ['label', 'placeholder', 'id'],
+    prefix: 'select',
+    behaviours: ['closeable'],
+    a11y: { role: 'combobox', keyboardNav: true },
   },
 };
