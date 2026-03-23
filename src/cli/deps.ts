@@ -173,3 +173,39 @@ export function formatDependencyMessage(component: string, deps: string[]): stri
 export function getComponentDefinition(component: string): ComponentDef | undefined {
   return registry[component as keyof typeof registry];
 }
+
+export async function installPeerDependenciesSmart(
+  framework: string,
+  components: string[],
+  cwd: string,
+): Promise<void> {
+  const pkgPath = path.join(cwd, 'package.json');
+  if (!(await fs.pathExists(pkgPath))) return;
+
+  const pkg = await fs.readJson(pkgPath);
+  const installed = { ...pkg.dependencies, ...pkg.devDependencies };
+
+  const toInstall: string[] = [];
+  for (const comp of components) {
+    const check = await checkComponentDependencies(comp, cwd, framework as Framework);
+    for (const dep of check.missingPeerDeps) {
+      if (!installed[dep]) {
+        toInstall.push(dep);
+      }
+    }
+  }
+
+  if (toInstall.length > 0) {
+    const unique = [...new Set(toInstall)];
+    const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
+    console.log(chalk.cyan(`📦 Installing: ${unique.join(', ')}`));
+    try {
+      execSync(`npm install ${unique.join(' ')} ${legacyFlag}`.trim(), {
+        cwd,
+        stdio: 'inherit',
+      });
+    } catch {
+      console.warn(chalk.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
+    }
+  }
+}
