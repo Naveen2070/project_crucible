@@ -50,18 +50,19 @@ async function createConfig(framework: Framework): Promise<void> {
     tokens: {
       color: {
         primary: '#6C63FF',
+        secondary: '#F3F2FF',
         surface: '#FFFFFF',
         background: '#F8F9FA',
         border: '#E2E1F0',
         text: '#1A1A2E',
+        textMuted: '#6B6B8A',
         danger: '#E24B4A',
-        secondary: '#E2E1F0',
-        textMuted: '#6B7280',
+        success: '#1D9E75',
       },
       radius: {
         sm: '4px',
         md: '8px',
-        lg: '16px',
+        lg: '12px',
       },
       spacing: {
         unit: '4px',

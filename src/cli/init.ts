@@ -35,6 +35,14 @@ const DEFAULT_CONFIG = `{
     "typography": {
       "fontFamily": "system-ui, sans-serif",
       "scaleBase": "16px"
+    },
+    "components": {
+      "button": {
+        "borderRadius": "var(--radius-md)"
+      },
+      "card": {
+        "borderRadius": "var(--radius-lg)"
+      }
     }
   },
   "features": {

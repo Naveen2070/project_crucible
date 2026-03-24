@@ -2,7 +2,18 @@ import { describe, it, expect } from 'vitest';
 import { buildComponentModel } from '../components/model';
 import { Framework, ComponentName } from '../core/enums';
 
-const mockTokens = { cssVars: {}, darkCssVars: null, js: {} };
+const mockTokens = { 
+  cssVars: {}, 
+  darkCssVars: null, 
+  js: {}, 
+  componentTokens: {
+    button: {},
+    card: {},
+    input: {},
+    modal: {},
+    select: {}
+  }
+} as any;
 const mockConfig = {
   framework: Framework.React,
   features: { hover: true, focusRing: true, motionSafe: true },
