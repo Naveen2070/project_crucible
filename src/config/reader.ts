@@ -18,6 +18,7 @@ export interface CrucibleConfig {
     radius?: Record<string, string>;
     spacing?: { unit: string };
     typography?: { fontFamily: string; scaleBase: string };
+    components?: Record<string, Record<string, string>>;
   };
   darkMode?: boolean | DarkModeConfig;
   features: {

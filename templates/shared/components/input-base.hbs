@@ -26,13 +26,18 @@
 }
 
 .input {
+  --input-height: {{tokens.componentTokens.input.height}};
+  --input-radius: {{tokens.componentTokens.input.borderRadius}};
+  --input-border: {{tokens.componentTokens.input.borderColor}};
+  --input-transition: {{tokens.componentTokens.input.transition}};
+
   width:           100%;
   font-family:     var(--font-family);
-  border:          1px solid var(--color-border);
-  border-radius:   var(--radius-md);
+  border:          1px solid var(--input-border);
+  border-radius:   var(--input-radius);
   background:      var(--color-surface);
   color:           var(--color-text);
-  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:      var(--input-transition);
   box-sizing:      border-box;
 }
 
@@ -47,16 +52,19 @@
 
 /* Sizes */
 .input--sm { 
-  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);  
-  font-size: 0.875rem; 
+  min-height: var(--input-height);
+  padding:    0 {{tokens.componentTokens.input.paddingX}};
+  font-size:  0.875rem; 
 }
 .input--md { 
-  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 3.5); 
-  font-size: 1rem; 
+  min-height: var(--input-height);
+  padding:    0 {{tokens.componentTokens.input.paddingX}};
+  font-size:  1rem; 
 }
 .input--lg { 
-  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 4.5); 
-  font-size: 1.125rem; 
+  min-height: var(--input-height);
+  padding:    0 {{tokens.componentTokens.input.paddingX}};
+  font-size:  1.125rem; 
 }
 
 /* Variants */

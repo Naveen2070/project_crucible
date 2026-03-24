@@ -1,11 +1,13 @@
 import { CrucibleConfig } from '../config/reader';
 import { loadPreset } from '../themes';
 import { normalizeDarkMode, deriveDarkTokens } from './dark-resolver';
+import { COMPONENT_TOKEN_DEFAULTS } from './component-deriver';
 
 export interface ResolvedTokens {
   cssVars: Record<string, string>;
   darkCssVars: Record<string, string> | null;
   js: Record<string, string>;
+  componentTokens: Record<string, Record<string, string>>;
 }
 
 export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
@@ -14,6 +16,22 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
 
   const cssVars: Record<string, string> = {};
   const js: Record<string, string> = {};
+  const componentTokens: Record<string, Record<string, string>> = {};
+
+  // Component Tokens
+  for (const [compName, defaultTokens] of Object.entries(COMPONENT_TOKEN_DEFAULTS)) {
+    componentTokens[compName] = { ...defaultTokens };
+    const userOverrides = config.tokens?.components?.[compName];
+    if (userOverrides) {
+      for (const [tokenName, tokenValue] of Object.entries(userOverrides)) {
+        componentTokens[compName][tokenName] = tokenValue;
+      }
+    }
+    // Flatten into cssVars
+    for (const [tokenName, tokenValue] of Object.entries(componentTokens[compName])) {
+      cssVars[`--${compName}-${kebab(tokenName)}`] = tokenValue;
+    }
+  }
 
   // Colors
   for (const [key, value] of Object.entries(merged.color)) {
@@ -46,7 +64,7 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
     }
   }
 
-  return { cssVars, darkCssVars, js };
+  return { cssVars, darkCssVars, js, componentTokens };
 }
 
 function deepMerge(base: any, override: any): any {

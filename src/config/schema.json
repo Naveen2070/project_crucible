@@ -38,6 +38,13 @@
             "scaleBase": { "type": "string" }
           },
           "required": ["fontFamily", "scaleBase"]
+        },
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
         }
       },
       "required": ["color", "radius", "spacing", "typography"]

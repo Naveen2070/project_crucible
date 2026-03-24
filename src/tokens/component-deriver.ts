@@ -1,0 +1,42 @@
+export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = {
+  card: {
+    headerPadding:   'calc(var(--spacing-unit) * 6)',
+    contentPadding:  'calc(var(--spacing-unit) * 6)',
+    footerPadding:   'calc(var(--spacing-unit) * 6)',
+    borderRadius:    'var(--radius-lg)',
+    backgroundColor: 'var(--color-surface)',
+    borderColor:     'var(--color-border)',
+    shadow:          '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
+  },
+  button: {
+    heightSm:        'calc(var(--spacing-unit) * 9)',
+    heightMd:        'calc(var(--spacing-unit) * 10)',
+    heightLg:        'calc(var(--spacing-unit) * 11)',
+    paddingXSm:      'calc(var(--spacing-unit) * 3)',
+    paddingXMd:      'calc(var(--spacing-unit) * 4)',
+    paddingXLg:      'calc(var(--spacing-unit) * 8)',
+    borderRadius:    'var(--radius-md)',
+    fontWeight:      '500',
+    transition:      'background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease',
+  },
+  input: {
+    height:          'calc(var(--spacing-unit) * 10)',
+    paddingX:        'calc(var(--spacing-unit) * 3)',
+    borderRadius:    'var(--radius-md)',
+    borderColor:     'var(--color-border)',
+    transition:      'border-color 0.2s ease, box-shadow 0.2s ease',
+  },
+  modal: {
+    padding:         'calc(var(--spacing-unit) * 6)',
+    borderRadius:    'var(--radius-lg)',
+    overlayBg:       'rgba(0, 0, 0, 0.4)',
+    shadow:          '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+  },
+  select: {
+    height:          'calc(var(--spacing-unit) * 10)',
+    paddingX:        'calc(var(--spacing-unit) * 3)',
+    borderRadius:    'var(--radius-md)',
+    optionPadding:   'calc(var(--spacing-unit) * 2.5)',
+    dropdownShadow:  '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+  },
+};

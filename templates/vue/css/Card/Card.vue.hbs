@@ -51,8 +51,8 @@ const classes = computed(() => [
 {{> shared/components/card-base}}
 
 .header {
-  padding:       calc(var(--spacing-unit) * 4);
-  border-bottom: 1px solid var(--color-border);
+  padding:       var(--card-header-padding);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .title {
@@ -62,11 +62,11 @@ const classes = computed(() => [
 }
 
 .content {
-  padding: calc(var(--spacing-unit) * 4);
+  padding: var(--card-content-padding);
 }
 
 .footer {
-  padding:    calc(var(--spacing-unit) * 4);
-  border-top: 1px solid var(--color-border);
+  padding:    var(--card-footer-padding);
+  border-top: 1px solid var(--card-border);
 }
 </style>

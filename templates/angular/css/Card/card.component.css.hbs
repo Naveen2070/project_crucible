@@ -1,57 +1,13 @@
-.card {
-  background: #ffffff;
-  border: 1px solid #e2e1f0;
-  border-radius: 8px;
-  padding: 16px;
-  font-family: system-ui, -apple-system, sans-serif;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
+{{> shared/components/card-base}}
 
-.card--hoverable:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.card--clickable {
-  cursor: pointer;
-}
-
-.card--clickable:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.card--clickable:focus-visible {
-  outline: 2px solid #6c63ff;
-  outline-offset: 2px;
-}
-
-.card-header {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.card-header:empty {
-  display: none;
-}
-
-.card-title {
-  margin: 0 0 12px 0;
-  font-size: 1.25rem;
+.title {
+  margin:      0;
+  padding:     var(--card-header-padding);
+  font-size:   1.1em;
   font-weight: 600;
-  color: #1a1a2e;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.card-content {
-  color: #1a1a2e;
-  line-height: 1.5;
-}
-
-.card-footer {
-  margin-top: 16px;
-  display: block;
-}
-
-.card-footer:empty {
-  display: none;
+.content {
+  padding: var(--card-content-padding);
 }

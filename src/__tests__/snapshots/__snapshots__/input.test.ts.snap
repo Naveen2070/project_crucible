@@ -189,13 +189,18 @@ exports[`Input snapshots > css mode snapshot 2`] = `
 }
 
 .input {
+  --input-height: calc(var(--spacing-unit) * 10);
+  --input-radius: var(--radius-md);
+  --input-border: var(--color-border);
+  --input-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
   width:           100%;
   font-family:     var(--font-family);
-  border:          1px solid var(--color-border);
-  border-radius:   var(--radius-md);
+  border:          1px solid var(--input-border);
+  border-radius:   var(--input-radius);
   background:      var(--color-surface);
   color:           var(--color-text);
-  transition:      all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:      var(--input-transition);
   box-sizing:      border-box;
 }
 
@@ -208,16 +213,19 @@ exports[`Input snapshots > css mode snapshot 2`] = `
 
 /* Sizes */
 .input--sm { 
-  padding:   calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);  
-  font-size: 0.875rem; 
+  min-height: var(--input-height);
+  padding:    0 calc(var(--spacing-unit) * 3);
+  font-size:  0.875rem; 
 }
 .input--md { 
-  padding:   calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 3.5); 
-  font-size: 1rem; 
+  min-height: var(--input-height);
+  padding:    0 calc(var(--spacing-unit) * 3);
+  font-size:  1rem; 
 }
 .input--lg { 
-  padding:   calc(var(--spacing-unit) * 3.5) calc(var(--spacing-unit) * 4.5); 
-  font-size: 1.125rem; 
+  min-height: var(--input-height);
+  padding:    0 calc(var(--spacing-unit) * 3);
+  font-size:  1.125rem; 
 }
 
 /* Variants */
