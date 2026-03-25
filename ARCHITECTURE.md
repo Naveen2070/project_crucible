@@ -504,6 +504,99 @@ export const PROHIBITED_PATTERNS: RegExp[] = [
 ];
 ```
 
+### 10.5 Template Style Conventions
+
+#### Class Naming (BEM)
+
+All components use **BEM (Block Element Modifier)** naming:
+
+| Component | Block       | Elements                                       | Modifiers                   |
+| --------- | ----------- | ---------------------------------------------- | --------------------------- |
+| Button    | `.btn`      | —                                              | `.btn--primary`, `.btn--sm` |
+| Card      | `.card`     | `.header`, `.footer`, `.title`, `.content`     | `.card--hoverable`          |
+| Modal     | `.modal`    | `.header`, `.footer`, `.body`, `.close-button` | `.modal--sm`                |
+| Input     | `.input`    | `.label`, `.hint`, `.error`                    | `.input--error`             |
+| Select    | `.combobox` | `.label`, `.option`, `.listbox`                | `.combobox--open`           |
+
+**Angular Note:** Angular uses component-prefixed classes (`.card-header`, `.card-footer`) for view
+encapsulation.
+
+#### CSS Variable Usage
+
+Always use CSS custom properties for component values:
+
+```css
+/* CORRECT */
+.card {
+  padding: var(--card-header-padding);
+  border-radius: var(--card-border-radius);
+}
+
+/* WRONG — hardcoded values */
+.card {
+  padding: 24px;
+  border-radius: 8px;
+}
+```
+
+**Required token variables per component:**
+
+| Component | Required Variables                                                         |
+| --------- | -------------------------------------------------------------------------- |
+| Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding` |
+| Modal     | `--modal-padding`, `--modal-overlay-bg`, `--modal-border-radius`           |
+| Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`             |
+| Input     | `--input-height`, `--input-border-radius`, `--input-transition`            |
+| Select    | `--select-height`, `--select-border-radius`                                |
+
+#### Border Width Standard
+
+| Style System | Value                                   |
+| ------------ | --------------------------------------- |
+| CSS          | `1px`                                   |
+| SCSS         | `1.5px`                                 |
+| Tailwind     | `border-[1.5px]` (use bracket notation) |
+
+#### Tailwind Approach: CSS-in-Tailwind
+
+Crucible uses a **CSS-in-Tailwind** approach:
+
+```html
+<!-- Reference CSS variables via arbitrary value syntax -->
+class="bg-[var(--color-surface)] rounded-[var(--radius-lg)]"
+```
+
+No Tailwind config changes required — the CSS variable system provides all design tokens.
+
+#### Compound Component Classes
+
+When adding compound sub-components, ALWAYS define corresponding CSS classes:
+
+```tsx
+// Card.tsx — references styles.header
+export const CardHeader = ({ children, className }) => (
+  <div className={[styles.header, className].filter(Boolean).join(' ')}>{children}</div>
+);
+```
+
+**Required:** Add the CSS class definition:
+
+```css
+/* Card.module.css.hbs */
+.header {
+  padding: var(--card-header-padding);
+}
+```
+
+#### Z-Index Tokens
+
+Use token-based z-index values to prevent conflicts:
+
+| Component | Token        | Value  |
+| --------- | ------------ | ------ |
+| Modal     | `--z-modal`  | `1000` |
+| Select    | `--z-select` | `900`  |
+
 ---
 
 ## 11. File Writer & Hash System

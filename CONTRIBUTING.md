@@ -478,6 +478,129 @@ automatically on `npm run build`.
 
 ---
 
+## Template Style Guidelines
+
+### CSS Class Naming (BEM)
+
+All components use **BEM (Block Element Modifier)** naming consistently:
+
+```css
+/* Block */
+.card {
+}
+
+/* Elements (nested in SCSS, or flat with __ in CSS) */
+.card__header {
+}
+.card__footer {
+}
+.card__title {
+}
+.card__content {
+}
+
+/* Modifiers */
+.card--hoverable {
+}
+.card--clickable {
+}
+```
+
+**Angular Note:** Angular templates use component-prefixed classes (`.card-header`, `.card-footer`)
+for view encapsulation compatibility.
+
+### CSS Variable Usage
+
+Always use CSS custom properties for component-specific values:
+
+```css
+/* CORRECT */
+.card {
+  padding: var(--card-header-padding);
+  border-radius: var(--card-border-radius);
+}
+
+/* WRONG — hardcoded values */
+.card {
+  padding: 24px;
+  border-radius: 8px;
+}
+```
+
+### Compound Component Classes
+
+When adding compound sub-components, ALWAYS add corresponding CSS classes:
+
+```tsx
+// Card.tsx.hbs
+export const CardHeader = ({ children, className }) => (
+  <div className={[styles.header, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const CardFooter = ({ children, className }) => (
+  <div className={[styles.footer, className].filter(Boolean).join(' ')}>{children}</div>
+);
+```
+
+**You MUST also add these classes to the CSS:**
+
+```css
+/* Card.module.css.hbs */
+.header {
+  padding: var(--card-header-padding);
+}
+
+.footer {
+  padding: var(--card-footer-padding);
+}
+```
+
+### Tailwind Templates
+
+Use **CSS-in-Tailwind** approach — reference CSS variables via arbitrary value syntax:
+
+```html
+<!-- CORRECT — uses CSS variables -->
+class="bg-[var(--color-surface)] rounded-[var(--radius-lg)]"
+
+<!-- WRONG — hardcoded Tailwind values when token exists -->
+class="bg-white rounded-lg"
+```
+
+### Border Width
+
+| Style System | Syntax                |
+| ------------ | --------------------- |
+| CSS          | `border: 1px solid`   |
+| SCSS         | `border: 1.5px solid` |
+| Tailwind     | `border-[1.5px]`      |
+
+**Important:** Use `border-[1.5px]` NOT `border-1.5` in Tailwind templates.
+
+### Checklist for New Component Templates
+
+When adding a new component, verify:
+
+- [ ] All compound sub-components have corresponding CSS classes
+- [ ] All padding/margin values use CSS variables (`var(--component-*)`)
+- [ ] Border radius uses CSS variables (`var(--radius-*)`)
+- [ ] Border width follows standard (1px CSS, 1.5px SCSS/Tailwind)
+- [ ] Focus ring uses `{{a11y.focusRingColor}}` consistently
+- [ ] Class names follow BEM convention
+- [ ] Tailwind templates use `[var(--token)]` syntax for design tokens
+
+### Quick Reference: Component Token Variables
+
+| Component | Token Variables                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding`, `--card-border-radius` |
+| Modal     | `--modal-padding`, `--modal-overlay-bg`, `--modal-border-radius`, `--modal-shadow`                 |
+| Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`                                     |
+| Input     | `--input-height`, `--input-border-radius`, `--input-border-color`, `--input-transition`            |
+| Select    | `--select-height`, `--select-border-radius`, `--select-border-color`                               |
+
+---
+
 ## Testing Guide
 
 ### Test File Map
