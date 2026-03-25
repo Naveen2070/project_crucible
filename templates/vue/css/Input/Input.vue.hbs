@@ -76,9 +76,9 @@ const containerClasses = computed(() => [
 <template>
   <div :class="containerClasses">
     <slot name="label">
-      <label v-if="label" :for="inputId" class="label">
+      <label v-if="label" :for="inputId" class="input-label">
         \{{ label }}
-        <span v-if="required" class="required" aria-hidden="true">*</span>
+        <span v-if="required" class="input-required" aria-hidden="true">*</span>
       </label>
     </slot>
     
@@ -101,7 +101,7 @@ const containerClasses = computed(() => [
       <slot name="toggle" v-if="type === 'password'">
         <button
           type="button"
-          class="password-toggle"
+          class="input-password-toggle"
           @click="togglePassword"
           :aria-label="showPassword ? 'Hide password' : 'Show password'"
           :aria-pressed="showPassword"
@@ -112,11 +112,11 @@ const containerClasses = computed(() => [
     </div>
 
     <slot name="hint">
-      <span v-if="hint && !error" :id="hintId" class="hint">\{{ hint }}</span>
+      <span v-if="hint && !error" :id="hintId" class="input-hint">\{{ hint }}</span>
     </slot>
 
     <slot name="error">
-      <span v-if="error" :id="errorId" class="error" role="alert">\{{ error }}</span>
+      <span v-if="error" :id="errorId" class="input-error" role="alert">\{{ error }}</span>
     </slot>
   </div>
 </template>

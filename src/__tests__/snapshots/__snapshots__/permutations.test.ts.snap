@@ -374,7 +374,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   width:          100%;
 }
 
-.label {
+.input-label, .label {
   font-family: var(--font-family);
   font-size:   0.875rem;
   font-weight: 500;
@@ -382,7 +382,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   margin-bottom: calc(var(--spacing-unit) * 1.5);
 }
 
-.required {
+.input-required, .required {
   color:       var(--color-danger);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
@@ -443,7 +443,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   opacity:    0.7;
 }
 
-.password-toggle {
+.input-password-toggle, .password-toggle {
   position:   absolute;
   right:      12px;
   top:        50%;
@@ -458,27 +458,27 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   cursor:     pointer;
 }
 
-.password-toggle:hover {
+.input-password-toggle:hover, .password-toggle:hover {
   color: var(--color-text);
 }
 
-.password-toggle:focus-visible {
+.input-password-toggle:focus-visible, .password-toggle:focus-visible {
   outline:        2px solid var(--color-primary);
   outline-offset: 3px;
   border-radius:  var(--radius-sm);
 }
 
-.hint, .error {
+.input-hint, .input-error, .hint, .error {
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
 }
 
-.hint {
+.input-hint, .hint {
   color: var(--color-text-muted);
 }
 
-.error {
+.input-error, .error {
   color: var(--color-danger);
 }
 
@@ -4269,7 +4269,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   width:          100%;
 }
 
-.label {
+.input-label, .label {
   font-family: var(--font-family);
   font-size:   0.875rem;
   font-weight: 500;
@@ -4277,7 +4277,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   margin-bottom: calc(var(--spacing-unit) * 1.5);
 }
 
-.required {
+.input-required, .required {
   color:       var(--color-danger);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
@@ -4338,7 +4338,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   opacity:    0.7;
 }
 
-.password-toggle {
+.input-password-toggle, .password-toggle {
   position:   absolute;
   right:      12px;
   top:        50%;
@@ -4353,27 +4353,27 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   cursor:     pointer;
 }
 
-.password-toggle:hover {
+.input-password-toggle:hover, .password-toggle:hover {
   color: var(--color-text);
 }
 
-.password-toggle:focus-visible {
+.input-password-toggle:focus-visible, .password-toggle:focus-visible {
   outline:        2px solid var(--color-primary);
   outline-offset: 3px;
   border-radius:  var(--radius-sm);
 }
 
-.hint, .error {
+.input-hint, .input-error, .hint, .error {
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
 }
 
-.hint {
+.input-hint, .hint {
   color: var(--color-text-muted);
 }
 
-.error {
+.input-error, .error {
   color: var(--color-danger);
 }
 
