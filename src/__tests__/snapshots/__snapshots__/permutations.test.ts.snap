@@ -3439,7 +3439,7 @@ const ModalOverlay: React.FC<{ children: React.ReactNode; className?: string }> 
   const { onClose } = useModalContext();
   return (
     <div 
-      className={["fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm", className].filter(Boolean).join(' ')}
+      className={["fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--modal-overlay-bg)] backdrop-blur-sm", className].filter(Boolean).join(' ')}
       onClick={onClose}
     >
       {children}
@@ -7334,7 +7334,7 @@ const ModalOverlay: React.FC<{ children: React.ReactNode; className?: string }> 
   const { onClose } = useModalContext();
   return (
     <div 
-      className={["fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm", className].filter(Boolean).join(' ')}
+      className={["fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--modal-overlay-bg)] backdrop-blur-sm", className].filter(Boolean).join(' ')}
       onClick={onClose}
     >
       {children}

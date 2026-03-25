@@ -1,6 +1,6 @@
 <div 
   *ngIf="isOpen"
-  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--modal-overlay-bg)] backdrop-blur-sm"
   (click)="onClose()"
 >
   <ng-content select="[overlay]"></ng-content>
