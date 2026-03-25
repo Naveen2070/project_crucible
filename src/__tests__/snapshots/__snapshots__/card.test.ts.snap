@@ -149,6 +149,22 @@ exports[`Card snapshots > css mode snapshot 2`] = `
   transform:    translateY(0);
 }
 
+.header {
+  padding: var(--card-header-padding);
+}
+
+.footer {
+  padding: var(--card-footer-padding);
+}
+
+.card-header {
+  padding: var(--card-header-padding);
+}
+
+.card-footer {
+  padding: var(--card-footer-padding);
+}
+
 .title {
   margin:      0;
   padding:     var(--card-header-padding);
