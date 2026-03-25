@@ -23,7 +23,7 @@ export class CardComponent {
   get classes(): string {
     const isClickable = this.variant === 'clickable';
     return [
-      'rounded-[var(--radius-lg)] border-[1.5px] border-[var(--color-border)] transition-all text-left w-full flex flex-col bg-[var(--color-surface)] overflow-hidden',
+      'rounded-[var(--radius-lg)] border-[1px] border-[var(--color-border)] transition-all text-left w-full flex flex-col bg-[var(--color-surface)] overflow-hidden',
       {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}] focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
       variantClasses[this.variant],
       sizeClasses[this.size],

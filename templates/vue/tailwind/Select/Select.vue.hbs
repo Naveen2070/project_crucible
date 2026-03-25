@@ -77,7 +77,7 @@ const sizeClasses: Record<SelectSize, string> = {
 };
 
 const comboboxClasses = computed(() => [
-  'flex items-center justify-between bg-[var(--color-surface)] border-[1.5px] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none w-full',
+  'flex items-center justify-between bg-[var(--color-surface)] border-[1px] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none w-full',
   {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
   isOpen.value ? 'border-[var(--color-primary)] rounded-b-none' : 'border-[var(--color-border)]',
   props.disabled ? 'opacity-50 cursor-not-allowed bg-[var(--color-background)]' : '',
@@ -169,7 +169,7 @@ const activeOptionId = computed(() =>
     <slot name="content" v-if="isOpen">
       <ul 
         :id="listboxId"
-        class="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-[1.5px] border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none" 
+        class="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-[1px] border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none" 
         role="listbox"
       >
         <li

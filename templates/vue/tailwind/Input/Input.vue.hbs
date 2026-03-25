@@ -65,7 +65,7 @@ const sizeClasses: Record<InputSize, string> = {
 };
 
 const inputClasses = computed(() => [
-  'w-full border-[1.5px] rounded-[var(--radius-md)] outline-none transition-all',
+  'w-full border-[1px] rounded-[var(--radius-md)] outline-none transition-all',
   {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
   'disabled:opacity-50 disabled:cursor-not-allowed',
   variantClasses[props.variant],

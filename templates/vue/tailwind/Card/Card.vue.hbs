@@ -42,7 +42,7 @@ const componentTag = computed(() => {
 });
 
 const classes = computed(() => [
-  'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block overflow-hidden bg-[var(--color-surface)]',
+  'rounded-[var(--radius-lg)] border-[1px] transition-all text-left w-full block overflow-hidden bg-[var(--color-surface)]',
   {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-2',{{/if}}
   variantClasses[props.variant],
   sizeClasses[props.size],
