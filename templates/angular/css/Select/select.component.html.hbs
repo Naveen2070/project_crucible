@@ -1,17 +1,17 @@
 <div class="select-container">
   @if (label) {
-    <label [attr.for]="id" class="label">\{{ label }}</label>
+    <label [attr.for]="id" class="select-label">\{{ label }}</label>
   }
   
   <div class="select-wrapper">
     <ng-content select="[prefix]"></ng-content>
     <select
       [id]="id"
-      class="select"
-      [class.select--sm]="size === 'sm'"
-      [class.select--md]="size === 'md'"
-      [class.select--lg]="size === 'lg'"
-      [class.select--error]="variant === 'error' || error"
+      class="select-combobox"
+      [class.select-combobox--sm]="size === 'sm'"
+      [class.select-combobox--md]="size === 'md'"
+      [class.select-combobox--lg]="size === 'lg'"
+      [class.select-combobox--error]="variant === 'error' || error"
       [disabled]="disabled"
       [attr.aria-invalid]="!!error"
       (change)="onChange($event)"
@@ -25,7 +25,7 @@
   </div>
 
   @if (error) {
-    <span class="error" role="alert">\{{ error }}</span>
+    <span class="select-error" role="alert">\{{ error }}</span>
   }
   <ng-content></ng-content>
 </div>
