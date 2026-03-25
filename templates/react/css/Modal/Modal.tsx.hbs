@@ -117,7 +117,7 @@ export const ModalClose = ({ className }: { className?: string }) => {
   const { onClose } = useModalContext();
   return (
     <button
-      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      className={[styles['close-button'], className].filter(Boolean).join(' ')}
       onClick={onClose}
       aria-label="Close modal"
     >
@@ -208,7 +208,7 @@ export const Modal: React.FC<ModalProps> = ({
           <header className={styles.header}>
             <h2 id={titleId} className={styles.title}>{title}</h2>
             <button
-              className={styles.closeButton}
+              className={styles['close-button']}
               onClick={onClose}
               aria-label="Close modal"
             >

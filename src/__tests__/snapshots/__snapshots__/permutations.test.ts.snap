@@ -727,7 +727,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   font-family: var(--font-family);
 }
 
-.modal-close, .closeButton {
+.modal-close, .close-button {
   background:    transparent;
   border:        none;
   font-size:     1.5rem;
@@ -739,7 +739,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
   transition:    background 0.15s ease;
 }
 
-.modal-close:hover, .closeButton:hover {
+.modal-close:hover, .close-button:hover {
   background: var(--color-background);
   color:      var(--color-text);
 }
@@ -882,7 +882,7 @@ export const ModalClose = ({ className }: { className?: string }) => {
   const { onClose } = useModalContext();
   return (
     <button
-      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      className={[styles['close-button'], className].filter(Boolean).join(' ')}
       onClick={onClose}
       aria-label="Close modal"
     >
@@ -2375,7 +2375,7 @@ export const ModalClose = ({ className }: { className?: string }) => {
   const { onClose } = useModalContext();
   return (
     <button
-      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      className={[styles['close-button'], className].filter(Boolean).join(' ')}
       onClick={onClose}
       aria-label="Close modal"
     >
@@ -4622,7 +4622,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   font-family: var(--font-family);
 }
 
-.modal-close, .closeButton {
+.modal-close, .close-button {
   background:    transparent;
   border:        none;
   font-size:     1.5rem;
@@ -4634,7 +4634,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
   transition:    background 0.15s ease;
 }
 
-.modal-close:hover, .closeButton:hover {
+.modal-close:hover, .close-button:hover {
   background: var(--color-background);
   color:      var(--color-text);
 }
@@ -4777,7 +4777,7 @@ export const ModalClose = ({ className }: { className?: string }) => {
   const { onClose } = useModalContext();
   return (
     <button
-      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      className={[styles['close-button'], className].filter(Boolean).join(' ')}
       onClick={onClose}
       aria-label="Close modal"
     >
@@ -6270,7 +6270,7 @@ export const ModalClose = ({ className }: { className?: string }) => {
   const { onClose } = useModalContext();
   return (
     <button
-      className={[styles.closeButton, className].filter(Boolean).join(' ')}
+      className={[styles['close-button'], className].filter(Boolean).join(' ')}
       onClick={onClose}
       aria-label="Close modal"
     >
