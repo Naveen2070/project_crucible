@@ -31,6 +31,7 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     borderRadius:    'var(--radius-lg)',
     overlayBg:       'rgba(0, 0, 0, 0.4)',
     shadow:          '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+    zIndex:          '1000',
   },
   select: {
     height:          'calc(var(--spacing-unit) * 10)',
@@ -38,5 +39,6 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     borderRadius:    'var(--radius-md)',
     optionPadding:   'calc(var(--spacing-unit) * 2.5)',
     dropdownShadow:  '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+    zIndex:          '900',
   },
 };
