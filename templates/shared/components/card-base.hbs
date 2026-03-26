@@ -27,8 +27,8 @@
 
 {{#if a11y.focusRing}}
 .card:focus-visible {
-  outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
-  outline-offset: {{a11y.focusRingOffset}};
+  outline: none;
+  box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px {{a11y.focusRingColor}};
 }
 {{/if}}
 
@@ -40,18 +40,18 @@
 /* Variants */
 .card--hoverable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .card--clickable {
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card--clickable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  transform:    translateY(-2px);
+  box-shadow:   0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform:    translateY(-4px);
 }
 
 .card--clickable:active {

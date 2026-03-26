@@ -26,8 +26,7 @@ export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const cls = [
       'inline-flex items-center justify-center font-medium transition-colors border-[1.5px] border-transparent',
       'rounded-[var(--radius-md)]',
-      {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}]',
-      'focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
+      {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-{{a11y.focusRingOffset}} outline-none',{{/if}}
       'disabled:opacity-45 disabled:cursor-not-allowed',
       variantClasses[variant],
       sizeClasses[size],
@@ -81,8 +80,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const cls = [
       'inline-flex items-center justify-center font-medium transition-colors border-[1.5px] border-transparent',
       'rounded-[var(--radius-md)]',
-      {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-[{{a11y.focusRingWidth}}]',
-      'focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-[{{a11y.focusRingOffset}}]',{{/if}}
+      {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-{{a11y.focusRingOffset}} outline-none',{{/if}}
       'disabled:opacity-45 disabled:cursor-not-allowed',
       variantClasses[variant],
       sizeClasses[size],
