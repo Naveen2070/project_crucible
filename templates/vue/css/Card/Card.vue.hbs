@@ -26,10 +26,12 @@ const classes = computed(() => [
 <template>
   <div :class="classes" :tabindex="variant === 'clickable' ? 0 : undefined">
     <slot name="header">
-      <div v-if="title || $slots.title" class="header">
+      <div v-if="title || $slots.title || $slots.description || $slots.action" class="header">
         <slot name="title">
-          <h3 v-if="title" class="title">\{{ title }}</h3>
+          <h3 v-if="title" class="title">{{ title }}</h3>
         </slot>
+        <slot name="description" />
+        <slot name="action" />
       </div>
     </slot>
     

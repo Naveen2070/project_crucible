@@ -1,17 +1,26 @@
 <div [class]="classes" [attr.tabindex]="variant === 'clickable' ? 0 : null" [attr.role]="variant === 'clickable' ? 'button' : 'article'">
-  <header class="p-6 border-b border-[var(--color-border)] empty:hidden">
-    <ng-content select="[header]"></ng-content>
+  <header class="p-6 border-b border-[var(--color-border)] empty:hidden flex items-start justify-between gap-4">
+    <div>
+      <ng-content select="[header]"></ng-content>
+      <h3 *ngIf="title" class="m-0 text-lg font-semibold text-[var(--color-text)]">{{ title }}</h3>
+      <p class="m-0 text-sm text-[var(--color-text-muted)]">
+        <ng-content select="[description]"></ng-content>
+      </p>
+    </div>
+    <div class="flex-shrink-0">
+      <ng-content select="[action]"></ng-content>
+    </div>
   </header>
 
-  <div class="flex-1 p-6">
-    <ng-content select="[card-title]">
-      <h3 *ngIf="title" class="m-0 text-[1.1em] font-semibold text-[var(--color-text)]">\{{ title }}</h3>
-    </ng-content>
+  <div class="flex-1 p-6 text-[var(--color-text-muted)]">
+    <ng-content select="[content]"></ng-content>
+    <ng-content></ng-content>
+  </div>
 
-    <div class="mt-4 first:mt-0 text-[var(--color-text-muted)]">
-      <ng-content select="[content]"></ng-content>
-      <ng-content></ng-content>
-    </div>
+  <footer class="p-6 border-t border-[var(--color-border)] empty:hidden">
+    <ng-content select="[footer]"></ng-content>
+  </footer>
+</div>
   </div>
 
   <footer class="p-6 border-t border-[var(--color-border)] empty:hidden">

@@ -10,15 +10,23 @@
 >
   <header class="card-header">
     <ng-content select="[card-header]"></ng-content>
+    <ng-content select="[card-title]"></ng-content>
+    <p class="card-description">
+      <ng-content select="[card-description]"></ng-content>
+    </p>
+    <div class="card-action">
+      <ng-content select="[card-action]"></ng-content>
+    </div>
   </header>
-
-  @if (title) {
-    <h3 class="card-title">\{{ title }}</h3>
-  }
 
   <div class="card-content">
     <ng-content></ng-content>
   </div>
+
+  <footer class="card-footer">
+    <ng-content select="[card-footer]"></ng-content>
+  </footer>
+</div>
 
   <footer class="card-footer">
     <ng-content select="[card-footer]"></ng-content>

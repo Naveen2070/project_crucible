@@ -57,6 +57,14 @@ export const CardTitle = ({ children, className }: { children: React.ReactNode; 
   <h3 className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h3>
 );
 
+export const CardDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <p className={[styles.description, className].filter(Boolean).join(' ')}>{children}</p>
+);
+
+export const CardAction = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.action, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
 export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles.content, className].filter(Boolean).join(' ')}>{children}</div>
 );
@@ -68,17 +76,21 @@ export const CardFooter = ({ children, className }: { children: React.ReactNode;
 export const Card = Object.assign(CardRoot, {
   Header: CardHeader,
   Title: CardTitle,
+  Description: CardDescription,
+  Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
 });
 
 Card.displayName = 'Card';
-CardRoot.displayName = 'Card.Root';
-CardHeader.displayName = 'Card.Header';
-CardTitle.displayName = 'Card.Title';
-CardContent.displayName = 'Card.Content';
-CardFooter.displayName = 'Card.Footer';
 {{else}}
+export const CardDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <p className={[styles.description, className].filter(Boolean).join(' ')}>{children}</p>
+);
+
+export const CardAction = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.action, className].filter(Boolean).join(' ')}>{children}</div>
+);
 export const Card: React.FC<CardProps> = ({
   variant = 'default',
   size = 'md',
