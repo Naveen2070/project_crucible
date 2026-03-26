@@ -19,8 +19,8 @@
 
 {{#if a11y.focusRing}}
 .btn:focus-visible {
-  outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
-  outline-offset: {{a11y.focusRingOffset}};
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px {{a11y.focusRingColor}};
 }
 {{/if}}
 
@@ -30,34 +30,30 @@
 }
 {{/if}}
 
-/* Sizes */
-.btn--sm { 
-  min-height: {{tokens.componentTokens.button.heightSm}};
-  padding:    0 {{tokens.componentTokens.button.paddingXSm}};  
-  font-size:  0.875rem; 
-}
-.btn--md { 
-  min-height: {{tokens.componentTokens.button.heightMd}};
-  padding:    0 {{tokens.componentTokens.button.paddingXMd}}; 
-  font-size:  1rem; 
-}
-.btn--lg { 
-  min-height: {{tokens.componentTokens.button.heightLg}};
-  padding:    0 {{tokens.componentTokens.button.paddingXLg}}; 
-  font-size:  1.125rem; 
-}
+/* Sizes - shadcn style: xs, sm, md, lg, icon */
+.btn--xs    { min-height: 2rem; padding: 0 0.5rem; font-size: 0.75rem; }
+.btn--sm    { min-height: {{tokens.componentTokens.button.heightSm}}; padding: 0 {{tokens.componentTokens.button.paddingXSm}}; font-size: 0.875rem; }
+.btn--md    { min-height: {{tokens.componentTokens.button.heightMd}}; padding: 0 {{tokens.componentTokens.button.paddingXMd}}; font-size: 1rem; }
+.btn--lg    { min-height: {{tokens.componentTokens.button.heightLg}}; padding: 0 {{tokens.componentTokens.button.paddingXLg}}; font-size: 1.125rem; }
+.btn--icon  { min-height: 2.5rem; width: 2.5rem; padding: 0; }
 
-/* Variants */
-.btn--primary   { background: var(--color-primary);   color: var(--color-surface);  border-color: var(--color-primary); }
-.btn--secondary { background: var(--color-secondary); color: var(--color-primary);  border-color: var(--color-border); }
-.btn--ghost     { background: transparent;            color: var(--color-text);     border-color: var(--color-border); }
-.btn--danger    { background: var(--color-danger);    color: var(--color-surface);  border-color: var(--color-danger); }
+/* Variants - shadcn style */
+.btn--default   { background: var(--color-primary);   color: var(--color-primary-foreground); border-color: transparent; }
+.btn--primary   { background: var(--color-primary);   color: var(--color-primary-foreground); border-color: transparent; }
+.btn--secondary { background: var(--color-secondary); color: var(--color-secondary-foreground); border-color: transparent; }
+.btn--outline   { background: transparent;           color: var(--color-foreground);        border-color: var(--color-border); }
+.btn--ghost     { background: transparent;           color: var(--color-foreground);        border-color: transparent; }
+.btn--link      { background: transparent;           color: var(--color-primary);           border-color: transparent; text-decoration: underline; text-underline-offset: 4px; }
+.btn--destructive { background: var(--color-destructive); color: var(--color-destructive-foreground); border-color: transparent; }
 
 {{#if features.hover}}
-.btn--primary:not(:disabled):hover   { filter: brightness(1.1); }
-.btn--secondary:not(:disabled):hover { background: var(--color-primary); color: var(--color-surface); }
-.btn--ghost:not(:disabled):hover     { background: var(--color-secondary); }
-.btn--danger:not(:disabled):hover    { filter: brightness(1.1); }
+.btn--default:not(:disabled):hover     { opacity: 0.9; }
+.btn--primary:not(:disabled):hover   { opacity: 0.9; }
+.btn--secondary:not(:disabled):hover { background: var(--color-secondary); opacity: 0.8; }
+.btn--outline:not(:disabled):hover   { background: var(--color-accent); color: var(--color-accent-foreground); }
+.btn--ghost:not(:disabled):hover     { background: var(--color-accent); color: var(--color-accent-foreground); }
+.btn--link:not(:disabled):hover      { text-decoration: underline; }
+.btn--destructive:not(:disabled):hover { opacity: 0.9; }
 {{/if}}
 
 /* States */

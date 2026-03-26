@@ -2,14 +2,19 @@ import { ComponentName } from '../../core/enums';
 
 export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
   [ComponentName.Button]: {
+    default:
+      'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent hover:opacity-90',
     primary:
-      'bg-[var(--color-primary)] text-[var(--color-surface)] border-[var(--color-primary)] hover:brightness-110',
+      'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent hover:opacity-90',
     secondary:
-      'bg-[var(--color-secondary)] text-[var(--color-primary)] border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-[var(--color-surface)]',
+      'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] border-transparent hover:opacity-80',
+    outline:
+      'bg-transparent text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
     ghost:
-      'bg-transparent text-[var(--color-text)] border-[var(--color-border)] hover:bg-[var(--color-secondary)]',
+      'bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
+    link: 'bg-transparent text-[var(--color-primary)] underline-offset-4 hover:underline border-transparent',
     danger:
-      'bg-[var(--color-danger)] text-[var(--color-surface)] border-[var(--color-danger)] hover:brightness-110',
+      'bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] border-transparent hover:opacity-90',
   },
   [ComponentName.Input]: {
     default:
@@ -68,8 +73,8 @@ export interface ComponentMeta {
 
 export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
   [ComponentName.Button]: {
-    variants: ['primary', 'secondary', 'ghost', 'danger'],
-    sizes: ['sm', 'md', 'lg'],
+    variants: ['default', 'primary', 'secondary', 'outline', 'ghost', 'link', 'destructive'],
+    sizes: ['xs', 'sm', 'md', 'lg', 'icon'],
     states: ['disabled', 'loading'],
     props: [],
     prefix: 'btn',
