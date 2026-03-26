@@ -182,7 +182,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
     <>
       <div
         className={[
-          'flex items-center justify-between bg-[var(--color-surface)] border-1.5 rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
+          'flex items-center justify-between bg-[var(--color-surface)] border-[1.5px] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
           {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',{{/if}}
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
@@ -240,7 +240,7 @@ const SelectContent: React.FC<{ children: React.ReactNode; className?: string }>
       id={listboxId}
       ref={listboxRef}
       className={[
-        "absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none",
+        "absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-[1.5px] border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none",
         className
       ].join(' ')}
       role="listbox"
@@ -441,7 +441,7 @@ export const Select: React.FC<SelectProps> = ({
       <label id={labelId} className="font-medium text-[var(--color-text)] text-sm">{label}</label>
       <div
         className={[
-          'flex items-center justify-between bg-[var(--color-surface)] border-1.5 rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
+          'flex items-center justify-between bg-[var(--color-surface)] border-[1.5px] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
           {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
@@ -468,7 +468,7 @@ export const Select: React.FC<SelectProps> = ({
       {isOpen && (
         <ul
           id={listboxId}
-          className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-1.5 border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none"
+          className="absolute top-full left-0 right-0 z-50 bg-[var(--color-surface)] border-[1.5px] border-[var(--color-primary)] border-t-0 rounded-b-[var(--radius-md)] shadow-lg max-h-[200px] overflow-y-auto m-0 p-0 list-none"
           role="listbox"
           aria-labelledby={labelId}
           ref={listboxRef}

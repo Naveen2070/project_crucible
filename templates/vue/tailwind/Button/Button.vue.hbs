@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const classes = computed(() => [
-  'inline-flex items-center justify-center gap-2 font-medium border-1.5 border-transparent cursor-pointer rounded-md transition-colors duration-150',
+  'inline-flex items-center justify-center gap-2 font-medium border-[1.5px] border-transparent cursor-pointer rounded-md transition-colors duration-150',
   {
     'bg-primary text-surface border-primary hover:brightness-110': props.variant === 'primary',
     'bg-secondary text-primary border-border hover:bg-primary hover:text-surface': props.variant === 'secondary',

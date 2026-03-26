@@ -91,7 +91,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
     const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
     const cls = [
-      'w-full border-1.5 rounded-[var(--radius-md)] outline-none transition-all',
+      'w-full border-[1.5px] rounded-[var(--radius-md)] outline-none transition-all',
       {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',{{/if}}
       'disabled:opacity-50 disabled:cursor-not-allowed',
       variantClasses[variant],
@@ -179,7 +179,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
     const cls = [
-      'w-full border-1.5 rounded-[var(--radius-md)] outline-none transition-all',
+      'w-full border-[1.5px] rounded-[var(--radius-md)] outline-none transition-all',
       {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
       'disabled:opacity-50 disabled:cursor-not-allowed',
       variantClasses[variant],

@@ -35,7 +35,7 @@ export const CardRoot = ({
   const isClickable = variant === 'clickable' || !!onClick || !!href;
   
   const cls = [
-    'rounded-[var(--radius-lg)] border-1.5 transition-all text-left w-full block',
+    'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block',
     {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-2',{{/if}}
     variantClasses[variant],
     sizeClasses[size],
@@ -108,7 +108,7 @@ export const Card: React.FC<CardProps> = ({
   const isClickable = variant === 'clickable' || !!onClick || !!href;
   
   const cls = [
-    'rounded-[var(--radius-lg)] border-1.5 transition-all text-left w-full block',
+    'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block',
     {{#if a11y.focusRing}}'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[{{a11y.focusRingColor}}] focus-visible:outline-offset-2',{{/if}}
     variantClasses[variant],
     sizeClasses[size],

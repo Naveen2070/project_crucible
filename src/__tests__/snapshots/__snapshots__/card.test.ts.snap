@@ -149,32 +149,27 @@ exports[`Card snapshots > css mode snapshot 2`] = `
   transform:    translateY(0);
 }
 
-.header {
+.header, .card-header {
   padding: var(--card-header-padding);
+  border-bottom: 1px solid var(--card-border);
 }
 
-.footer {
-  padding: var(--card-footer-padding);
-}
-
-.card-header {
-  padding: var(--card-header-padding);
-}
-
-.card-footer {
-  padding: var(--card-footer-padding);
-}
-
-.title {
+.title, .card-title {
   margin:      0;
   padding:     var(--card-header-padding);
-  font-size:   1.1em;
+  font-size:   1.1rem;
   font-weight: 600;
-  border-bottom: 1px solid var(--color-border);
+  color:       var(--color-text);
+  font-family: var(--font-family);
 }
 
-.content {
+.content, .card-content {
   padding: var(--card-content-padding);
+}
+
+.footer, .card-footer {
+  padding: var(--card-footer-padding);
+  border-top: 1px solid var(--card-border);
 }
 "
 `;
@@ -337,7 +332,7 @@ export const CardRoot = ({
   const isClickable = variant === 'clickable' || !!onClick || !!href;
   
   const cls = [
-    'rounded-[var(--radius-lg)] border-1.5 transition-all text-left w-full block',
+    'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2',
     variantClasses[variant],
     sizeClasses[size],

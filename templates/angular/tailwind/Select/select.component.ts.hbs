@@ -159,7 +159,7 @@ export class SelectComponent {
 
   get triggerClasses(): string {
     return [
-      'flex items-center justify-between w-full bg-[var(--color-surface)] border-1.5 border-[var(--color-border)] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
+      'flex items-center justify-between w-full bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[var(--radius-md)] cursor-pointer transition-all outline-none',
       {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
       this.isOpen ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : '',
       this.disabled ? 'opacity-50 cursor-not-allowed bg-[var(--color-background)]' : '',
