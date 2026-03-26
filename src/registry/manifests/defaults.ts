@@ -86,7 +86,7 @@ export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
     variants: ['default', 'hoverable', 'clickable'],
     sizes: ['sm', 'md', 'lg'],
     states: [],
-    props: ['title'],
+    props: ['title', 'onClick', 'href'],
     prefix: 'card',
     noClassName: true,
     a11y: { role: 'article' },

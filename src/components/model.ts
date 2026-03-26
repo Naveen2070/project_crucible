@@ -48,6 +48,8 @@ export interface ComponentModel {
   hasOutputClose: boolean;
   hasClassesGetter: boolean;
   hasPlaceholder: boolean;
+  hasOnClick: boolean;
+  hasHref: boolean;
 }
 
 export function buildComponentModel(
@@ -76,6 +78,8 @@ export function buildComponentModel(
   const hasOutputClose = defaults.behaviours?.includes('closeable') ?? false;
   const hasClassesGetter = hasVariant || hasSize || hasLoading || hasDisabled || hasError;
   const hasPlaceholder = defaults.props.includes('placeholder');
+  const hasOnClick = defaults.props.includes('onClick');
+  const hasHref = defaults.props.includes('href');
 
   return {
     name,
@@ -123,5 +127,7 @@ export function buildComponentModel(
     hasOutputClose,
     hasClassesGetter,
     hasPlaceholder,
+    hasOnClick,
+    hasHref,
   };
 }

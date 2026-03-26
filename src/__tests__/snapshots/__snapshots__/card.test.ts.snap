@@ -6,14 +6,19 @@ import styles from './Card.module.css';
 export type CardVariant = 'default' | 'hoverable' | 'clickable';
 export type CardSize    = 'sm' | 'md' | 'lg';
 
-export interface CardProps {
-  variant?:   CardVariant;
-  size?:      CardSize;
-  title?:     string;
-  children:   React.ReactNode;
-  onClick?:   () => void;
-  className?: string;
-  href?:      string;
+export interface Props {
+  variant?:   Variant;
+  size?:      Size;
+  
+  
+  
+  
+  
+  title?:    string;
+  
+  onClick?:  () => void;
+  href?:     string;
+  
 }
 
 export const CardRoot = ({

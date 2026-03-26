@@ -4,15 +4,7 @@ import React from 'react';
 export type CardVariant = {{> shared/variant-types}};
 export type CardSize    = {{> shared/size-types}};
 
-export interface CardProps {
-  variant?:   CardVariant;
-  size?:      CardSize;
-  title?:     string;
-  children:   React.ReactNode;
-  onClick?:   () => void;
-  className?: string;
-  href?:      string;
-}
+{{> react/props-interface}}
 
 {{#if features.compoundComponents}}
 export const CardRoot = ({

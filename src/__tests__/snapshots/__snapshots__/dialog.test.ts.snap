@@ -261,12 +261,13 @@ exports[`Dialog snapshots > css mode snapshot 3`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { Dialog } from './Dialog';
-import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Dialog> = {
   title: 'Crucible/Dialog',
   component: Dialog,
   parameters: { layout: 'centered' },
+import { Button } from '../Button/Button';
+
   argTypes: {
     variant:  { control: 'select', options: ['default', 'confirm'] },
     size:     { control: 'select', options: ['sm', 'md', 'lg'] },
@@ -586,12 +587,13 @@ exports[`Dialog snapshots > tailwind mode snapshot 2`] = `
 "import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { Dialog } from './Dialog';
-import { Button } from '../Button/Button';
 
 const meta: Meta<typeof Dialog> = {
   title: 'Crucible/Dialog',
   component: Dialog,
   parameters: { layout: 'centered' },
+import { Button } from '../Button/Button';
+
   argTypes: {
     variant:  { control: 'select', options: ['default', 'confirm'] },
     size:     { control: 'select', options: ['sm', 'md', 'lg'] },

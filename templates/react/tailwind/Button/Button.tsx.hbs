@@ -39,9 +39,7 @@ export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cls}
-        disabled={disabled || loading}
-        aria-disabled={disabled || loading}
-        aria-busy={loading}
+        {{> react/aria-attributes}}
         {...props}
       >
         {children}
@@ -96,9 +94,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cls}
-        disabled={disabled || loading}
-        aria-disabled={disabled || loading}
-        aria-busy={loading}
+        {{> react/aria-attributes}}
         {...props}
       >
         {loading && (

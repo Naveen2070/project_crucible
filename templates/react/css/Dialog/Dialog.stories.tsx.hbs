@@ -1,19 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
-import { Dialog } from './Dialog';
+{{> react/stories-header}}
 import { Button } from '../Button/Button';
 
-const meta: Meta<typeof Dialog> = {
-  title: 'Crucible/Dialog',
-  component: Dialog,
-  parameters: { layout: 'centered' },
   argTypes: {
     variant:  { control: 'select', options: {{> shared/variant-options}} },
     size:     { control: 'select', options: {{> shared/size-options}} },
   },
-};
-export default meta;
-type Story = StoryObj<typeof Dialog>;
+{{> react/stories-footer}}
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
