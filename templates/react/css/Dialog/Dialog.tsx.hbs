@@ -95,6 +95,7 @@ export const DialogContent = ({ children, className }: { children: React.ReactNo
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
+      aria-describedby={`${titleId}-desc`}
       onClick={(e) => e.stopPropagation()}
     >
       {children}
@@ -111,6 +112,11 @@ export const DialogHeader = ({ children, className }: { children: React.ReactNod
 export const DialogTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { titleId } = useDialogContext();
   return <h2 id={titleId} className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h2>;
+};
+
+export const DialogDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { titleId } = useDialogContext();
+  return <p id={`${titleId}-desc`} className={[styles.description, className].filter(Boolean).join(' ')}>{children}</p>;
 };
 
 export const DialogClose = ({ className }: { className?: string }) => {
@@ -144,6 +150,7 @@ export const Dialog = Object.assign(DialogRoot, {
   Content: DialogContent,
   Header: DialogHeader,
   Title: DialogTitle,
+  Description: DialogDescription,
   Close: DialogClose,
   Body: DialogBody,
   Footer: DialogFooter,
@@ -155,6 +162,7 @@ DialogOverlay.displayName = 'Dialog.Overlay';
 DialogContent.displayName = 'Dialog.Content';
 DialogHeader.displayName = 'Dialog.Header';
 DialogTitle.displayName = 'Dialog.Title';
+DialogDescription.displayName = 'Dialog.Description';
 DialogClose.displayName = 'Dialog.Close';
 DialogBody.displayName = 'Dialog.Body';
 DialogFooter.displayName = 'Dialog.Footer';

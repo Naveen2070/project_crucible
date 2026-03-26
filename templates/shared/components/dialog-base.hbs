@@ -52,6 +52,14 @@
   font-family: var(--font-family);
 }
 
+.dialog-description, .description {
+  margin:      0.5rem 0 0;
+  font-size:   0.875rem;
+  color:       var(--color-text-muted);
+  font-family: var(--font-family);
+  line-height: 1.5;
+}
+
 .dialog-close, .close-button {
   background:    transparent;
   border:        none;
@@ -63,6 +71,13 @@
   border-radius: var(--radius-sm);
   transition:    background 0.15s ease;
 }
+
+{{#if a11y.focusRing}}
+.dialog-close:focus-visible, .close-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px {{a11y.focusRingColor}};
+}
+{{/if}}
 
 .dialog-close:hover, .close-button:hover {
   background: var(--color-background);

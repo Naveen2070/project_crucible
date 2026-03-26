@@ -254,6 +254,14 @@ export const SelectLabel = ({ children, className }: { children: React.ReactNode
   return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
 };
 
+export const SelectGroup = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles['select-group'], className].join(' ')} role="group">{children}</div>
+);
+
+export const SelectItemIndicator = ({ className }: { className?: string }) => (
+  <span className={[styles['item-indicator'], className].join(' ')} aria-hidden="true">✓</span>
+);
+
 export const Select = Object.assign(SelectRoot, {
   Root: SelectRoot,
   Trigger: SelectTrigger,
@@ -262,7 +270,9 @@ export const Select = Object.assign(SelectRoot, {
   Content: SelectContent,
   Item: SelectItem,
   ItemText: SelectItemText,
+  ItemIndicator: SelectItemIndicator,
   Label: SelectLabel,
+  Group: SelectGroup,
 });
 
 Select.displayName = 'Select';
@@ -273,7 +283,9 @@ SelectIcon.displayName = 'Select.Icon';
 SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
+SelectItemIndicator.displayName = 'Select.ItemIndicator';
 SelectLabel.displayName = 'Select.Label';
+SelectGroup.displayName = 'Select.Group';
 {{else}}
 export const Select: React.FC<SelectProps> = ({
   options = [],

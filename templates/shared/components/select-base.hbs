@@ -51,9 +51,9 @@
 
 {{#if a11y.focusRing}}
 .select-combobox:focus-visible, .combobox:focus-visible {
-  outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
-  outline-offset: {{a11y.focusRingOffset}};
-  border-color:   var(--color-primary);
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px {{a11y.focusRingColor}};
 }
 {{/if}}
 
@@ -126,6 +126,25 @@
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
+}
+
+/* Group and Indicator */
+.select-group, .select-group-label {
+  padding:     0.5rem var(--select-padding-x);
+  font-size:   0.75rem;
+  font-weight: 600;
+  color:       var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.item-indicator {
+  width:      1.25rem;
+  height:     1.25rem;
+  display:    flex;
+  align-items: center;
+  justify-content: center;
+  color:       var(--color-primary);
 }
 
 /* Sizes */

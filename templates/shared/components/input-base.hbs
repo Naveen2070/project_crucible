@@ -43,10 +43,9 @@
 
 {{#if a11y.focusRing}}
 .input:focus-visible {
-  outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
-  outline-offset: {{a11y.focusRingOffset}};
-  border-color:   var(--color-primary);
-  box-shadow:     0 0 0 4px rgba(108, 99, 255, 0.1);
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px {{a11y.focusRingColor}};
 }
 {{/if}}
 
