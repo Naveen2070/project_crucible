@@ -10,7 +10,7 @@ const COMPONENTS = [
   ComponentName.Button,
   ComponentName.Input,
   ComponentName.Card,
-  ComponentName.Modal,
+  ComponentName.Dialog,
   ComponentName.Select,
 ];
 

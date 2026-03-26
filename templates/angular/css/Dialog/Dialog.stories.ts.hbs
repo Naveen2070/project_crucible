@@ -1,9 +1,9 @@
 import { Meta, StoryObj } from '@storybook/angular';
-import { ModalComponent } from './modal.component';
+import { DialogComponent } from './Dialog.component';
 
-const meta: Meta<ModalComponent> = {
-  title: 'Crucible/Modal',
-  component: ModalComponent,
+const meta: Meta<DialogComponent> = {
+  title: 'Crucible/Dialog',
+  component: DialogComponent,
   tags: ['autodocs'],
   argTypes: {
     variant: { control: 'select', options: {{> shared/variant-options}} },
@@ -14,24 +14,24 @@ const meta: Meta<ModalComponent> = {
 };
 
 export default meta;
-type Story = StoryObj<ModalComponent>;
+type Story = StoryObj<DialogComponent>;
 
 export const Default: Story = {
   args: {
     isOpen: true,
-    title: 'Modal Title',
+    title: 'Dialog Title',
     size: 'md',
     variant: 'default',
   },
   render: (args) => ({
     props: args,
     template: `
-      <app-modal [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
-        <p>This is the modal content.</p>
-        <div modal-footer>
+      <app-Dialog [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
+        <p>This is the Dialog content.</p>
+        <div dialog-footer>
           <button style="padding: 8px 16px;">Confirm</button>
         </div>
-      </app-modal>
+      </app-Dialog>
     `,
   }),
 };
@@ -43,9 +43,9 @@ export const {{capitalize this}}: Story = {
   render: (args) => ({
     props: args,
     template: `
-      <app-modal [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
-        <p>Modal content with {{this}} variant.</p>
-      </app-modal>
+      <app-Dialog [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
+        <p>Dialog content with {{this}} variant.</p>
+      </app-Dialog>
     `,
   }),
 };
@@ -58,9 +58,9 @@ export const {{capitalize this}}: Story = {
   render: (args) => ({
     props: args,
     template: `
-      <app-modal [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
-        <p>Modal content with {{this}} size.</p>
-      </app-modal>
+      <app-Dialog [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
+        <p>Dialog content with {{this}} size.</p>
+      </app-Dialog>
     `,
   }),
 };

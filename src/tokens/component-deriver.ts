@@ -26,7 +26,7 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     borderColor:     'var(--color-border)',
     transition:      'border-color 0.2s ease, box-shadow 0.2s ease',
   },
-  modal: {
+  Dialog: {
     padding:         'calc(var(--spacing-unit) * 6)',
     borderRadius:    'var(--radius-lg)',
     overlayBg:       'rgba(0, 0, 0, 0.4)',

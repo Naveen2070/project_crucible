@@ -272,7 +272,7 @@ interface ComponentModel {
     focusRingOffset: string;
     reduceMotion: boolean;
     role?: string;
-    focusTrap?: boolean; // Modal only
+    focusTrap?: boolean; // Dialog only
     keyboardNav?: boolean; // Select only
     passwordToggle?: boolean; // Input only
   };
@@ -311,7 +311,7 @@ interface ComponentMeta {
   states: string[]; // Behavioral states
   props: string[]; // Props (derives has* flags)
   prefix: string; // CSS class prefix
-  noClassName?: boolean; // Card, Modal don't accept className
+  noClassName?: boolean; // Card, Dialog don't accept className
   behaviours?: ('closeable' | 'focusTrap' | 'scrollLock')[];
   a11y?: {
     role?: string;
@@ -374,7 +374,7 @@ graph TD
 ```mermaid
 graph LR
     Select -->|requires| Button
-    Modal -->|requires| Button
+    Dialog -->|requires| Button
     Card -->|no deps| NONE[standalone]
     Input -->|no deps| NONE
     Button -->|no deps| NONE
@@ -514,7 +514,7 @@ All components use **BEM (Block Element Modifier)** naming:
 | --------- | ----------- | ---------------------------------------------- | --------------------------- |
 | Button    | `.btn`      | —                                              | `.btn--primary`, `.btn--sm` |
 | Card      | `.card`     | `.header`, `.footer`, `.title`, `.content`     | `.card--hoverable`          |
-| Modal     | `.modal`    | `.header`, `.footer`, `.body`, `.close-button` | `.modal--sm`                |
+| Dialog     | `.Dialog`    | `.header`, `.footer`, `.body`, `.close-button` | `.Dialog--sm`                |
 | Input     | `.input`    | `.label`, `.hint`, `.error`                    | `.input--error`             |
 | Select    | `.combobox` | `.label`, `.option`, `.listbox`                | `.combobox--open`           |
 
@@ -544,7 +544,7 @@ Always use CSS custom properties for component values:
 | Component | Required Variables                                                         |
 | --------- | -------------------------------------------------------------------------- |
 | Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding` |
-| Modal     | `--modal-padding`, `--modal-overlay-bg`, `--modal-border-radius`           |
+| Dialog     | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`           |
 | Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`             |
 | Input     | `--input-height`, `--input-border-radius`, `--input-transition`            |
 | Select    | `--select-height`, `--select-border-radius`                                |
@@ -594,7 +594,7 @@ Use token-based z-index values to prevent conflicts:
 
 | Component | Token        | Value  |
 | --------- | ------------ | ------ |
-| Modal     | `--z-modal`  | `1000` |
+| Dialog     | `--z-Dialog`  | `1000` |
 | Select    | `--z-select` | `900`  |
 
 ---
@@ -863,7 +863,7 @@ enum ComponentName {
   Button = 'Button',
   Input = 'Input',
   Card = 'Card',
-  Modal = 'Modal',
+  Dialog = 'Dialog',
   Select = 'Select',
 }
 ```

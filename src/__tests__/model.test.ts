@@ -10,7 +10,7 @@ const mockTokens = {
     button: {},
     card: {},
     input: {},
-    modal: {},
+    Dialog: {},
     select: {}
   }
 } as any;
@@ -32,10 +32,10 @@ describe('buildComponentModel', () => {
     expect(model.variants).toContain('danger');
   });
 
-  it('sets focusTrap for Modal only', () => {
-    const modal = buildComponentModel(ComponentName.Modal, mockTokens, mockConfig, false);
+  it('sets focusTrap for Dialog only', () => {
+    const Dialog = buildComponentModel(ComponentName.Dialog, mockTokens, mockConfig, false);
     const button = buildComponentModel(ComponentName.Button, mockTokens, mockConfig, false);
-    expect(modal.a11y.focusTrap).toBe(true);
+    expect(Dialog.a11y.focusTrap).toBe(true);
     expect(button.a11y.focusTrap).toBeUndefined();
   });
 

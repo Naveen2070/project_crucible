@@ -172,7 +172,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Modal Component**: Dialog with focus trap and confirm variant
+- **Dialog Component**: Dialog with focus trap and confirm variant
 
 ## [0.0.3] - 2026-02-07
 

@@ -33,23 +33,23 @@ const mockConfig = {
   },
 } as any;
 
-describe('Modal snapshots', () => {
+describe('Dialog snapshots', () => {
   it('css mode snapshot', async () => {
     const tokens = resolveTokens(mockConfig);
-    const model = buildComponentModel(ComponentName.Modal, tokens, mockConfig, true);
+    const model = buildComponentModel(ComponentName.Dialog, tokens, mockConfig, true);
     const files = await renderComponent(model);
-    expect(files['Modal.tsx']).toMatchSnapshot();
-    expect(files['Modal.module.css']).toMatchSnapshot();
-    expect(files['Modal.stories.tsx']).toMatchSnapshot();
+    expect(files['Dialog.tsx']).toMatchSnapshot();
+    expect(files['Dialog.module.css']).toMatchSnapshot();
+    expect(files['Dialog.stories.tsx']).toMatchSnapshot();
   });
 
   it('tailwind mode snapshot', async () => {
     const config = { ...mockConfig, styleSystem: StyleSystem.Tailwind };
     const tokens = resolveTokens(config);
-    const model = buildComponentModel(ComponentName.Modal, tokens, config, true);
+    const model = buildComponentModel(ComponentName.Dialog, tokens, config, true);
     const files = await renderComponent(model);
-    expect(files['Modal.tsx']).toMatchSnapshot();
-    expect(files['Modal.module.css']).toBeUndefined();
-    expect(files['Modal.stories.tsx']).toMatchSnapshot();
+    expect(files['Dialog.tsx']).toMatchSnapshot();
+    expect(files['Dialog.module.css']).toBeUndefined();
+    expect(files['Dialog.stories.tsx']).toMatchSnapshot();
   });
 });

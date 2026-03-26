@@ -2,13 +2,13 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-modal',
+  selector: 'app-Dialog',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './modal.component.html',
-  styleUrls: ['./modal.component.css'],
+  templateUrl: './Dialog.component.html',
+  styleUrls: ['./Dialog.component.css'],
 })
-export class ModalComponent {
+export class DialogComponent {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
@@ -21,7 +21,7 @@ export class ModalComponent {
   }
 
   onOverlayClick(event: MouseEvent) {
-    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+    if ((event.target as HTMLElement).classList.contains('dialog-overlay')) {
       this.onClose();
     }
   }

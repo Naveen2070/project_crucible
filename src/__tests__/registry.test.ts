@@ -81,11 +81,11 @@ describe('generateComponentFiles', () => {
 
   it('handles different component names correctly', () => {
     const button = generateComponentFiles('Button');
-    const modal = generateComponentFiles('Modal');
+    const Dialog = generateComponentFiles('Dialog');
     const select = generateComponentFiles('Select');
 
     expect(button.files.css).toContain('Button/Button.tsx');
-    expect(modal.files.css).toContain('Modal/Modal.tsx');
+    expect(Dialog.files.css).toContain('Dialog/Dialog.tsx');
     expect(select.files.css).toContain('Select/Select.tsx');
   });
 

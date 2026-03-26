@@ -122,18 +122,18 @@ async function runE2E() {
       { spaces: 2 },
     );
 
-    runCLI('add Modal -y');
-    const angularModalFiles = [
-      'Modal/modal.component.ts',
-      'Modal/modal.component.html',
-      'Modal/modal.component.css',
+    runCLI('add Dialog -y');
+    const angularDialogFiles = [
+      'Dialog/Dialog.component.ts',
+      'Dialog/Dialog.component.html',
+      'Dialog/Dialog.component.css',
     ];
-    for (const file of angularModalFiles) {
+    for (const file of angularDialogFiles) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
       }
     }
-    results.push({ phase: 'Angular + Modal', passed: true });
+    results.push({ phase: 'Angular + Dialog', passed: true });
 
     // ==================== VUE TESTS ====================
     console.log(chalk.cyan('📦 Phase 4: Vue Framework'));
@@ -219,8 +219,8 @@ async function runE2E() {
     // ==================== MULTI COMPONENT TESTS ====================
     console.log(chalk.cyan('📦 Phase 9: Multi-Component Generation'));
 
-    runCLI('add Button Input Card Modal Select --no-stories -y');
-    for (const comp of ['Button', 'Input', 'Card', 'Modal', 'Select']) {
+    runCLI('add Button Input Card Dialog Select --no-stories -y');
+    for (const comp of ['Button', 'Input', 'Card', 'Dialog', 'Select']) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
         throw new Error(`Missing multi-component: ${comp}`);
       }

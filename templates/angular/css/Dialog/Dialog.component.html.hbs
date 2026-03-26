@@ -1,0 +1,28 @@
+@if (isOpen) {
+  <div class="dialog-overlay" (click)="onOverlayClick($event)">
+    <div 
+      class="Dialog"
+      [class.Dialog--sm]="size === 'sm'"
+      [class.Dialog--md]="size === 'md'"
+      [class.Dialog--lg]="size === 'lg'"
+      [class.Dialog--confirm]="variant === 'confirm'"
+      role="dialog" 
+      aria-modal="true"
+    >
+      <header class="dialog-header">
+        <h2 class="dialog-title">\{{ title }}</h2>
+        <button type="button" class="dialog-close" (click)="onClose()" aria-label="Close Dialog">
+          &times;
+        </button>
+      </header>
+      
+      <div class="dialog-body">
+        <ng-content></ng-content>
+      </div>
+      
+      <footer class="dialog-footer">
+        <ng-content select="[dialog-footer]"></ng-content>
+      </footer>
+    </div>
+  </div>
+}

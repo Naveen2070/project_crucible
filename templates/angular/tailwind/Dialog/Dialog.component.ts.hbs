@@ -11,10 +11,10 @@ const sizeClasses: Record<string, string> = {
 };
 
 @Component({
-  selector: 'app-modal',
-  templateUrl: './modal.component.html'
+  selector: 'app-Dialog',
+  templateUrl: './Dialog.component.html'
 })
-export class ModalComponent implements OnInit, OnDestroy {
+export class DialogComponent implements OnInit, OnDestroy {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'default';
@@ -23,7 +23,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = 'modal-title-' + Math.random().toString(36).substring(2, 9);
+  titleId = 'dialog-title-' + Math.random().toString(36).substring(2, 9);
 
   ngOnInit() {}
 
@@ -41,7 +41,7 @@ export class ModalComponent implements OnInit, OnDestroy {
     this.close.emit();
   }
 
-  get modalClasses(): string {
+  get dialogClasses(): string {
     return [
       'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden relative',
       variantClasses[this.variant],

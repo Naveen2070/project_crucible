@@ -11,35 +11,35 @@ const sizeClasses: Record<string, string> = {
   lg: 'max-w-2xl',
 };
 
-export type ModalVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
-export type ModalSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type DialogVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type DialogSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 
 {{#if features.compoundComponents}}
-interface ModalContextValue {
+interface DialogContextValue {
   isOpen: boolean;
   onClose: () => void;
   titleId: string;
-  variant: ModalVariant;
-  size: ModalSize;
+  variant: DialogVariant;
+  size: DialogSize;
 }
 
-const ModalContext = createContext<ModalContextValue | undefined>(undefined);
+const DialogContext = createContext<DialogContextValue | undefined>(undefined);
 
-const useModalContext = () => {
-  const context = useContext(ModalContext);
-  if (!context) throw new Error('Modal components must be wrapped in <Modal />');
+const useDialogContext = () => {
+  const context = useContext(DialogContext);
+  if (!context) throw new Error('Dialog components must be wrapped in <Dialog />');
   return context;
 };
 
-export interface ModalProps {
+export interface DialogProps {
   isOpen:   boolean;
   onClose:  () => void;
-  variant?: ModalVariant;
-  size?:    ModalSize;
+  variant?: DialogVariant;
+  size?:    DialogSize;
   children: React.ReactNode;
 }
 
-const ModalRoot: React.FC<ModalProps> = ({
+const DialogRoot: React.FC<DialogProps> = ({
   isOpen,
   onClose,
   variant = 'default',
@@ -74,17 +74,17 @@ const ModalRoot: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <ModalContext.Provider value=\{{ isOpen, onClose, titleId, variant, size }}>
+    <DialogContext.Provider value=\{{ isOpen, onClose, titleId, variant, size }}>
       {children}
-    </ModalContext.Provider>
+    </DialogContext.Provider>
   );
 };
 
-const ModalOverlay: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
-  const { onClose } = useModalContext();
+const DialogOverlay: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { onClose } = useDialogContext();
   return (
     <div 
-      className={["fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--modal-overlay-bg)] backdrop-blur-sm", className].filter(Boolean).join(' ')}
+      className={["fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--dialog-overlay-bg)] backdrop-blur-sm", className].filter(Boolean).join(' ')}
       onClick={onClose}
     >
       {children}
@@ -92,8 +92,8 @@ const ModalOverlay: React.FC<{ children: React.ReactNode; className?: string }> 
   );
 };
 
-const ModalContent: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
-  const { titleId, variant, size } = useModalContext();
+const DialogContent: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { titleId, variant, size } = useDialogContext();
   return (
     <FocusTrap>
       <div
@@ -114,74 +114,74 @@ const ModalContent: React.FC<{ children: React.ReactNode; className?: string }> 
   );
 };
 
-const ModalHeader: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
+const DialogHeader: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <header className={["flex items-center justify-between p-6 border-b border-[var(--color-border)]", className].filter(Boolean).join(' ')}>
     {children}
   </header>
 );
 
-const ModalTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
-  const { titleId } = useModalContext();
+const DialogTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { titleId } = useDialogContext();
   return <h2 id={titleId} className={["text-xl font-bold text-[var(--color-text)]", className].filter(Boolean).join(' ')}>{children}</h2>;
 };
 
-const ModalClose: React.FC<{ className?: string }> = ({ className }) => {
-  const { onClose } = useModalContext();
+const DialogClose: React.FC<{ className?: string }> = ({ className }) => {
+  const { onClose } = useDialogContext();
   return (
     <button
       className={["text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl", className].filter(Boolean).join(' ')}
       onClick={onClose}
-      aria-label="Close modal"
+      aria-label="Close Dialog"
     >
       &times;
     </button>
   );
 };
 
-const ModalBody: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
+const DialogBody: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <div className={["p-6 text-[var(--color-text-muted)]", className].filter(Boolean).join(' ')}>
     {children}
   </div>
 );
 
-const ModalFooter: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
+const DialogFooter: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <footer className={["p-6 border-t border-[var(--color-border)] bg-[var(--color-background)]/50", className].filter(Boolean).join(' ')}>
     {children}
   </footer>
 );
 
-export const Modal = Object.assign(ModalRoot, {
-  Root: ModalRoot,
-  Overlay: ModalOverlay,
-  Content: ModalContent,
-  Header: ModalHeader,
-  Title: ModalTitle,
-  Close: ModalClose,
-  Body: ModalBody,
-  Footer: ModalFooter,
+export const Dialog = Object.assign(DialogRoot, {
+  Root: DialogRoot,
+  Overlay: DialogOverlay,
+  Content: DialogContent,
+  Header: DialogHeader,
+  Title: DialogTitle,
+  Close: DialogClose,
+  Body: DialogBody,
+  Footer: DialogFooter,
 });
 
-Modal.displayName = 'Modal';
-ModalRoot.displayName = 'Modal.Root';
-ModalOverlay.displayName = 'Modal.Overlay';
-ModalContent.displayName = 'Modal.Content';
-ModalHeader.displayName = 'Modal.Header';
-ModalTitle.displayName = 'Modal.Title';
-ModalClose.displayName = 'Modal.Close';
-ModalBody.displayName = 'Modal.Body';
-ModalFooter.displayName = 'Modal.Footer';
+Dialog.displayName = 'Dialog';
+DialogRoot.displayName = 'Dialog.Root';
+DialogOverlay.displayName = 'Dialog.Overlay';
+DialogContent.displayName = 'Dialog.Content';
+DialogHeader.displayName = 'Dialog.Header';
+DialogTitle.displayName = 'Dialog.Title';
+DialogClose.displayName = 'Dialog.Close';
+DialogBody.displayName = 'Dialog.Body';
+DialogFooter.displayName = 'Dialog.Footer';
 {{else}}
-export interface ModalProps {
+export interface DialogProps {
   isOpen:    boolean;
   onClose:   () => void;
   title:     string;
   children:  React.ReactNode;
-  variant?:  ModalVariant;
-  size?:     ModalSize;
+  variant?:  DialogVariant;
+  size?:     DialogSize;
   footer?:   React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({
+export const Dialog: React.FC<DialogProps> = ({
   isOpen,
   onClose,
   title,
@@ -220,7 +220,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <FocusTrap>
       <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--modal-overlay-bg)] backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--dialog-overlay-bg)] backdrop-blur-sm"
         onClick={onClose}
       >
         <div
@@ -239,7 +239,7 @@ export const Modal: React.FC<ModalProps> = ({
             <button
               className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label="Close Dialog"
             >
               &times;
             </button>
@@ -258,5 +258,5 @@ export const Modal: React.FC<ModalProps> = ({
   );
 };
 
-Modal.displayName = 'Modal';
+Dialog.displayName = 'Dialog';
 {{/if}}

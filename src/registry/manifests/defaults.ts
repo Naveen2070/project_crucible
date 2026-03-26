@@ -23,7 +23,7 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
     clickable:
       'bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg',
   },
-  [ComponentName.Modal]: {
+  [ComponentName.Dialog]: {
     default: 'bg-[var(--color-surface)]',
     confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
   },
@@ -51,7 +51,7 @@ export interface ComponentMeta {
   /** CSS class prefix (e.g., 'btn', 'input', 'card') */
   prefix: string;
 
-  /** Components that don't accept className prop (Card, Modal) */
+  /** Components that don't accept className prop (Card, Dialog) */
   noClassName?: boolean;
 
   /** Component behaviors (explicit, not inferred) */
@@ -91,12 +91,12 @@ export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
     noClassName: true,
     a11y: { role: 'article' },
   },
-  [ComponentName.Modal]: {
+  [ComponentName.Dialog]: {
     variants: ['default', 'confirm'],
     sizes: ['sm', 'md', 'lg'],
     states: ['open', 'closed'],
     props: ['title'],
-    prefix: 'modal',
+    prefix: 'Dialog',
     noClassName: true,
     behaviours: ['closeable', 'focusTrap', 'scrollLock'],
     a11y: { role: 'dialog', focusTrap: true },

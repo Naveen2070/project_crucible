@@ -7,7 +7,7 @@ export interface PeerDependencyMap {
 }
 
 export const PEER_DEPENDENCIES: PeerDependencyMap = {
-  [ComponentName.Modal]: {
+  [ComponentName.Dialog]: {
     [Framework.React]: ['focus-trap-react'],
   },
 };

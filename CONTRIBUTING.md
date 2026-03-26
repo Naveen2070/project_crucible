@@ -293,7 +293,7 @@ export enum ComponentName {
   Button = 'Button',
   Input = 'Input',
   Card = 'Card',
-  Modal = 'Modal',
+  Dialog = 'Dialog',
   Select = 'Select',
   Textarea = 'Textarea', // NEW
 }
@@ -403,7 +403,7 @@ interface ComponentMeta {
   // CSS class prefix (e.g., 'btn', 'input')
   prefix: string;
 
-  // Set true for Card, Modal — components that don't accept className
+  // Set true for Card, Dialog — components that don't accept className
   noClassName?: boolean;
 
   // Explicit behaviors — controls hasOutputClose, focusTrap, scrollLock
@@ -412,7 +412,7 @@ interface ComponentMeta {
   // Component-specific accessibility
   a11y?: {
     role?: string; // ARIA role (e.g., 'dialog', 'textbox')
-    focusTrap?: boolean; // Modal needs this
+    focusTrap?: boolean; // Dialog needs this
     keyboardNav?: boolean; // Select needs this
     passwordToggle?: boolean; // Input needs this
   };
@@ -594,7 +594,7 @@ When adding a new component, verify:
 | Component | Token Variables                                                                                    |
 | --------- | -------------------------------------------------------------------------------------------------- |
 | Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding`, `--card-border-radius` |
-| Modal     | `--modal-padding`, `--modal-overlay-bg`, `--modal-border-radius`, `--modal-shadow`                 |
+| Dialog     | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`, `--Dialog-shadow`                 |
 | Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`                                     |
 | Input     | `--input-height`, `--input-border-radius`, `--input-border-color`, `--input-transition`            |
 | Select    | `--select-height`, `--select-border-radius`, `--select-border-color`                               |

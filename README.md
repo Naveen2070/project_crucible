@@ -56,7 +56,7 @@ Creates a `crucible.config.json` with your theme, tokens, and style system prefe
 
 ```bash
 npx crucible add Button
-npx crucible add Input Card Modal Select
+npx crucible add Input Card Dialog Select
 ```
 
 ### 3. Customize
@@ -72,7 +72,7 @@ Update `crucible.config.json` and regenerate, or edit generated files directly â
 | `Button`  | Multi-variant button with loading state |
 | `Input`   | Text input with validation states       |
 | `Card`    | Container with hover/clickable variants |
-| `Modal`   | Dialog with focus trap                  |
+| `Dialog`   | Dialog with focus trap                  |
 | `Select`  | Dropdown with keyboard navigation       |
 
 ---

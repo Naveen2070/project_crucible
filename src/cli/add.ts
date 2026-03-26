@@ -80,7 +80,7 @@ export async function runAdd(components: string[], opts: any) {
     for (const comp of componentsToAdd) {
       const def = getComponentDefinition(comp);
 
-      // Check component dependencies (e.g., Modal needs Button)
+      // Check component dependencies (e.g., Dialog needs Button)
       if (def?.dependencies) {
         for (const dep of def.dependencies) {
           const exists = await checkComponentDependencies(dep, outDir, framework);
@@ -93,7 +93,7 @@ export async function runAdd(components: string[], opts: any) {
         }
       }
 
-      // Check peer dependencies (e.g., Modal needs focus-trap-react)
+      // Check peer dependencies (e.g., Dialog needs focus-trap-react)
       const check = await checkComponentDependencies(comp, outDir, framework);
       if (check.missingPeerDeps.length > 0) {
         for (const peerDep of check.missingPeerDeps) {

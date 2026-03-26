@@ -1,11 +1,11 @@
 <div 
   *ngIf="isOpen"
-  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--modal-overlay-bg)] backdrop-blur-sm"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--dialog-overlay-bg)] backdrop-blur-sm"
   (click)="onClose()"
 >
   <ng-content select="[overlay]"></ng-content>
   <div
-    [class]="modalClasses"
+    [class]="dialogClasses"
     role="dialog"
     aria-modal="true"
     [attr.aria-labelledby]="titleId"
@@ -15,13 +15,13 @@
     <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
       <ng-content select="[header]"></ng-content>
       <h2 [id]="titleId" class="text-xl font-bold text-[var(--color-text)]">
-        <ng-content select="[modal-title]">\{{ title }}</ng-content>
+        <ng-content select="[dialog-title]">\{{ title }}</ng-content>
       </h2>
       <button
         type="button"
         class="ml-auto text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"
         (click)="onClose()"
-        aria-label="Close modal"
+        aria-label="Close Dialog"
       >
         <ng-content select="[close]">&times;</ng-content>
       </button>

@@ -89,7 +89,7 @@ gantt
 **Deliverables:**
 
 - vitest-axe integration
-- Modal focus trap tests
+- Dialog focus trap tests
 - Select keyboard navigation tests
 - Theme permutation snapshots
 

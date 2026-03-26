@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import Modal from './Modal.vue';
+import Dialog from './Dialog.vue';
 
-const meta: Meta<typeof Modal> = {
+const meta: Meta<typeof Dialog> = {
   title: 'Crucible/{{name}}',
-  component: Modal,
+  component: Dialog,
   argTypes: {
     variant: { control: 'select', options: {{> shared/variant-options}} },
     size:    { control: 'select', options: {{> shared/size-options}} },
@@ -13,25 +13,25 @@ const meta: Meta<typeof Modal> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Modal>;
+type Story = StoryObj<typeof Dialog>;
 
 export const Default: Story = {
   args: {
     isOpen: true,
-    title: 'Modal Title',
+    title: 'Dialog Title',
     variant: 'default',
     size: 'md',
   },
   render: (args) => ({
-    components: { Modal },
+    components: { Dialog },
     setup() { return { args }; },
     template: `
-<Modal v-bind="args">
-  This is the modal content.
+<Dialog v-bind="args">
+  This is the Dialog content.
   <template #footer>
     <button @click="args.onClose">Confirm</button>
   </template>
-</Modal>`,
+</Dialog>`,
   }),
 };
 
@@ -40,12 +40,12 @@ export const Default: Story = {
 export const {{capitalize this}}: Story = {
   args: { variant: '{{this}}', title: '{{capitalize this}} Variant', isOpen: true },
   render: (args) => ({
-    components: { Modal },
+    components: { Dialog },
     setup() { return { args }; },
     template: `
-<Modal v-bind="args">
-  Modal content with {{this}} variant.
-</Modal>`,
+<Dialog v-bind="args">
+  Dialog content with {{this}} variant.
+</Dialog>`,
   }),
 };
 {{/unless}}
@@ -55,12 +55,12 @@ export const {{capitalize this}}: Story = {
 export const {{capitalize this}}: Story = {
   args: { size: '{{this}}', title: '{{capitalize this}} Size', isOpen: true },
   render: (args) => ({
-    components: { Modal },
+    components: { Dialog },
     setup() { return { args }; },
     template: `
-<Modal v-bind="args">
-  Modal content with {{this}} size.
-</Modal>`,
+<Dialog v-bind="args">
+  Dialog content with {{this}} size.
+</Dialog>`,
   }),
 };
 {{/each}}
@@ -69,10 +69,10 @@ export const {{capitalize this}}: Story = {
 export const WithSlots: Story = {
   args: { isOpen: true, title: 'Slot Example' },
   render: (args) => ({
-    components: { Modal },
+    components: { Dialog },
     setup() { return { args }; },
     template: `
-<Modal v-bind="args">
+<Dialog v-bind="args">
   <template #header>
     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 2px solid purple; padding-bottom: 8px;">
       <h3 style="margin: 0; color: purple;">Custom Header Slot</h3>
@@ -88,7 +88,7 @@ export const WithSlots: Story = {
       <button @click="args.onClose" style="background: purple; color: white; border: none; border-radius: 4px; padding: 4px 12px;">Submit</button>
     </div>
   </template>
-</Modal>`,
+</Dialog>`,
   }),
 };
 {{/if}}

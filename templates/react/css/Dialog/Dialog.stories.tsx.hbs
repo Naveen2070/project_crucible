@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
-import { Modal } from './Modal';
+import { Dialog } from './Dialog';
 import { Button } from '../Button/Button';
 
-const meta: Meta<typeof Modal> = {
-  title: 'Crucible/Modal',
-  component: Modal,
+const meta: Meta<typeof Dialog> = {
+  title: 'Crucible/Dialog',
+  component: Dialog,
   parameters: { layout: 'centered' },
   argTypes: {
     variant:  { control: 'select', options: {{> shared/variant-options}} },
@@ -13,7 +13,7 @@ const meta: Meta<typeof Modal> = {
   },
 };
 export default meta;
-type Story = StoryObj<typeof Modal>;
+type Story = StoryObj<typeof Dialog>;
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
@@ -22,26 +22,26 @@ export const Default: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => setIsOpen(true)}>Open Modal</button>
-        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
-          <Modal.Overlay>
-            <Modal.Content>
-              <Modal.Header>
-                <Modal.Title>Modal Title</Modal.Title>
-                <Modal.Close />
-              </Modal.Header>
-              <Modal.Body>
-                <p>This is the modal body content.</p>
-              </Modal.Body>
-              <Modal.Footer>
+        <button onClick={() => setIsOpen(true)}>Open Dialog</button>
+        <Dialog {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Dialog.Overlay>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Dialog Title</Dialog.Title>
+                <Dialog.Close />
+              </Dialog.Header>
+              <Dialog.Body>
+                <p>This is the Dialog body content.</p>
+              </Dialog.Body>
+              <Dialog.Footer>
                 <div style=\{{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                   <button onClick={() => setIsOpen(false)}>Cancel</button>
                   <button onClick={() => setIsOpen(false)}>Confirm</button>
                 </div>
-              </Modal.Footer>
-            </Modal.Content>
-          </Modal.Overlay>
-        </Modal>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Overlay>
+        </Dialog>
       </div>
     );
   },
@@ -55,20 +55,20 @@ export const {{capitalize this}}: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
-        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
-          <Modal.Overlay>
-            <Modal.Content>
-              <Modal.Header>
-                <Modal.Title>{{capitalize this}} Variant</Modal.Title>
-                <Modal.Close />
-              </Modal.Header>
-              <Modal.Body>
-                <p>Modal content with {{this}} variant.</p>
-              </Modal.Body>
-            </Modal.Content>
-          </Modal.Overlay>
-        </Modal>
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Dialog</button>
+        <Dialog {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Dialog.Overlay>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>{{capitalize this}} Variant</Dialog.Title>
+                <Dialog.Close />
+              </Dialog.Header>
+              <Dialog.Body>
+                <p>Dialog content with {{this}} variant.</p>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Overlay>
+        </Dialog>
       </div>
     );
   },
@@ -83,20 +83,20 @@ export const {{capitalize this}}: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
-        <Modal {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
-          <Modal.Overlay>
-            <Modal.Content>
-              <Modal.Header>
-                <Modal.Title>{{capitalize this}} Size</Modal.Title>
-                <Modal.Close />
-              </Modal.Header>
-              <Modal.Body>
-                <p>Modal content with {{this}} size.</p>
-              </Modal.Body>
-            </Modal.Content>
-          </Modal.Overlay>
-        </Modal>
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Dialog</button>
+        <Dialog {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Dialog.Overlay>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>{{capitalize this}} Size</Dialog.Title>
+                <Dialog.Close />
+              </Dialog.Header>
+              <Dialog.Body>
+                <p>Dialog content with {{this}} size.</p>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Overlay>
+        </Dialog>
       </div>
     );
   },
@@ -104,19 +104,19 @@ export const {{capitalize this}}: Story = {
 {{/each}}
 {{else}}
 export const Default: Story = {
-  args: { variant: 'default', size: 'md', title: 'Modal Title' },
+  args: { variant: 'default', size: 'md', title: 'Dialog Title' },
   render: (args) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => setIsOpen(true)}>Open Modal</button>
-        <Modal
+        <button onClick={() => setIsOpen(true)}>Open Dialog</button>
+        <Dialog
           {...args}
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
         >
-          <p>This is the modal content.</p>
-        </Modal>
+          <p>This is the Dialog content.</p>
+        </Dialog>
       </div>
     );
   },
@@ -130,14 +130,14 @@ export const {{capitalize this}}: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
-        <Modal
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Dialog</button>
+        <Dialog
           {...args}
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
         >
-          <p>Modal content with {{this}} variant.</p>
-        </Modal>
+          <p>Dialog content with {{this}} variant.</p>
+        </Dialog>
       </div>
     );
   },
@@ -152,14 +152,14 @@ export const {{capitalize this}}: Story = {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Modal</button>
-        <Modal
+        <button onClick={() => setIsOpen(true)}>Open {{capitalize this}} Dialog</button>
+        <Dialog
           {...args}
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
         >
-          <p>Modal content with {{this}} size.</p>
-        </Modal>
+          <p>Dialog content with {{this}} size.</p>
+        </Dialog>
       </div>
     );
   },
