@@ -31,6 +31,8 @@ Examples:
   $ npx crucible list
   $ npx crucible tokens          # Regenerate tokens.css
   $ npx crucible tokens --force  # Force overwrite existing
+  $ npx crucible pg:gen         # Generate playground
+  $ npx crucible pg:gen --force # Clean and regenerate
 
 For more details, visit: https://github.com/Naveen2070/project_crucible
 `,

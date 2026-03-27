@@ -686,22 +686,23 @@ flowchart TD
 | `crucible tokens`          | Regenerate `tokens.css`              |
 | `crucible tokens --force`  | Force overwrite `tokens.css`         |
 | `crucible pg:gen`          | Generate all 3 playground frameworks |
+| `crucible pg:gen --force`  | Clean + regenerate playground        |
 | `crucible pg:open`         | Open Storybook                       |
 | `crucible pg:dev`          | Start Vite dev server                |
 
 ### 12.2 CLI Flags
 
-| Flag               | Description                   | Default |
-| ------------------ | ----------------------------- | ------- |
-| `--framework <fw>` | Target framework              | `react` |
-| `--dev`            | Output to playground          | `false` |
-| `--force`          | Overwrite user edits          | `false` |
-| `--stories`        | Generate Storybook story      | `false` |
-| `--no-stories`     | Skip story generation         | —       |
-| `--dry-run`        | Simulate without writing      | `false` |
-| `--cwd <path>`     | Working directory             | `.`     |
-| `--verbose`        | Enable detailed logging       | `false` |
-| `--quiet`          | Disable logging except errors | `false` |
+| Flag               | Description                             | Default |
+| ------------------ | --------------------------------------- | ------- |
+| `--framework <fw>` | Target framework                        | `react` |
+| `--dev`            | Output to playground                    | `false` |
+| `--force` / `-f`   | Overwrite user edits / clean playground | `false` |
+| `--stories`        | Generate Storybook story                | `false` |
+| `--no-stories`     | Skip story generation                   | —       |
+| `--dry-run`        | Simulate without writing                | `false` |
+| `--cwd <path>`     | Working directory                       | `.`     |
+| `--verbose`        | Enable detailed logging                 | `false` |
+| `--quiet`          | Disable logging except errors           | `false` |
 
 ### 12.3 generateStories Resolution
 

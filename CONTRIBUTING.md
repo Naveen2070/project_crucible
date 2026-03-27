@@ -277,6 +277,8 @@ crucible tokens --dry-run    # Preview
 
 ```bash
 crucible pg:gen             # Generate all 3 frameworks
+crucible pg:gen --force     # Clean + regenerate (removes .crucible, __generated__, config)
+crucible pg:gen -f           # Short form of --force
 crucible pg:open            # Open Storybook
 crucible pg:dev             # Start dev server
 ```
@@ -594,7 +596,7 @@ When adding a new component, verify:
 | Component | Token Variables                                                                                    |
 | --------- | -------------------------------------------------------------------------------------------------- |
 | Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding`, `--card-border-radius` |
-| Dialog     | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`, `--Dialog-shadow`                 |
+| Dialog    | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`, `--Dialog-shadow`             |
 | Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`                                     |
 | Input     | `--input-height`, `--input-border-radius`, `--input-border-color`, `--input-transition`            |
 | Select    | `--select-height`, `--select-border-radius`, `--select-border-color`                               |
