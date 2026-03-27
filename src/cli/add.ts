@@ -10,12 +10,22 @@ import { writeFiles, loadHashes, saveHashes } from '../scaffold/writer';
 import { registry } from '../registry/components';
 import { checkAndSetupTailwind } from './tailwind';
 import { Framework, StyleSystem } from '../core/enums';
-import { checkComponentDependencies, formatDependencyMessage, getComponentDefinition, installPeerDependenciesSmart } from './deps';
+import {
+  checkComponentDependencies,
+  formatDependencyMessage,
+  getComponentDefinition,
+  installPeerDependenciesSmart,
+} from './deps';
 import { importTokensInIndexHtml } from '../scaffold/html';
 
 export async function runAdd(components: string[], opts: any) {
   const cwd = path.resolve(process.cwd(), opts.cwd);
   let componentsToAdd: string[] = components || [];
+
+  // Handle --all flag
+  if (opts.all) {
+    componentsToAdd = Object.keys(registry);
+  }
 
   if (componentsToAdd.length > 0) {
     for (const comp of componentsToAdd) {
@@ -47,14 +57,39 @@ export async function runAdd(components: string[], opts: any) {
     const configPathRelative = path.relative(process.cwd(), path.resolve(cwd, opts.config));
     const config = await readConfig(configPathRelative);
 
+    // Override style system from CLI flag
+    if (opts.style) {
+      const validStyles: StyleSystem[] = [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS];
+      if (validStyles.includes(opts.style as StyleSystem)) {
+        config.styleSystem = opts.style as StyleSystem;
+        if (!opts.quiet)
+          console.log(chalk.gray(`  Style system: ${config.styleSystem} (CLI override)`));
+      } else {
+        console.error(
+          chalk.red(`✗ Invalid style system: ${opts.style}. Use css, tailwind, or scss.`),
+        );
+        process.exit(1);
+      }
+    }
+
+    // Override theme from CLI flag
+    if (opts.theme) {
+      const validThemes = ['minimal', 'soft'];
+      if (validThemes.includes(opts.theme)) {
+        config.theme = opts.theme;
+        if (!opts.quiet) console.log(chalk.gray(`  Theme: ${config.theme} (CLI override)`));
+      } else {
+        console.error(chalk.red(`✗ Invalid theme: ${opts.theme}. Use minimal or soft.`));
+        process.exit(1);
+      }
+    }
+
     const framework =
       opts.framework !== Framework.React ? opts.framework : config.framework || Framework.React;
     if (framework === Framework.Angular && !opts.quiet) {
       console.log(chalk.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
       console.log(
-        chalk.cyan(
-          '  Generating output that relies on native content projection (ng-content).\n',
-        ),
+        chalk.cyan('  Generating output that relies on native content projection (ng-content).\n'),
       );
     }
 
