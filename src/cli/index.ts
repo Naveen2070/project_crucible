@@ -45,6 +45,7 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
 
 program
   .command('init')
+  .alias('i')
   .description('Scaffold a default crucible.config.json')
   .option('-y, --yes', 'Skip prompts and use defaults')
   .option('--cwd <path>', 'Current working directory', '.')
@@ -52,14 +53,16 @@ program
 
 program
   .command('doctor')
+  .alias('d')
   .description('Proactively validate your Crucible configuration and environment setup')
   .option('--cwd <path>', 'Current working directory', '.')
   .action((opts) => runDoctor({ cwd: path.resolve(process.cwd(), opts.cwd) }));
 
 program
   .command('tokens')
+  .alias('t')
   .description('Regenerate the global tokens.css file')
-  .option('--force', 'Overwrite existing tokens.css')
+  .option('-f, --force', 'Overwrite existing tokens.css')
   .option('--dry-run', 'Show what would be generated without writing')
   .option('--cwd <path>', 'Current working directory', '.')
   .action((opts) => {
@@ -73,6 +76,7 @@ program
 
 program
   .command('eject')
+  .alias('e')
   .description('Eject the built-in theme into your local crucible.config.json')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
   .option('--cwd <path>', 'Current working directory', '.')
@@ -100,10 +104,11 @@ program
 
 program
   .command('add [component...]')
+  .alias('a')
   .description('Scaffold a component into your project')
   .option('--framework <fw>', 'Target framework', Framework.React)
   .option('--dev', 'Output to playground/__generated__')
-  .option('--force', 'Overwrite even if file has been edited')
+  .option('-f, --force', 'Overwrite even if file has been edited')
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
   .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
   .option('--stories', 'Generate Storybook story file')
@@ -119,6 +124,7 @@ program
 
 program
   .command('list')
+  .alias('l')
   .description('Show all available components')
   .action(() => {
     console.log(chalk.cyan('Available components:'));
