@@ -9,8 +9,8 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./button.component.css'],
 })
 export class ButtonComponent {
-  @Input() variant: 'primary' | 'secondary' | 'ghost' | 'destructive' = 'primary';
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() variant: {{> shared/variant-types}} = {{#if defaultVariant}}'{{defaultVariant}}'{{else}}'{{variants.[0]}}'{{/if}};
+  @Input() size: {{> shared/size-types}} = {{#if defaultSize}}'{{defaultSize}}'{{else}}'{{sizes.[0]}}'{{/if}};
   @Input() disabled = false;
   @Input() loading = false;
 }

@@ -16,7 +16,7 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Default: Story = {
-  args: { variant: 'primary', size: 'md' },
+  args: { variant: 'default', size: 'md' },
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
@@ -25,6 +25,7 @@ export const Default: Story = {
 };
 
 {{#each variants}}
+{{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
   args: { variant: '{{this}}' },
   render: (args) => ({
@@ -33,6 +34,7 @@ export const {{capitalize this}}: Story = {
     template: `<Button v-bind="args">{{capitalize this}} Button</Button>`,
   }),
 };
+{{/unless}}
 {{/each}}
 
 {{#each sizes}}

@@ -16,7 +16,7 @@ export class InputComponent {
   @Input() hint = '';
   @Input() disabled = false;
   @Input() required = false;
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() size: {{> shared/size-types}} = {{#if defaultSize}}'{{defaultSize}}'{{else}}'{{sizes.[0]}}'{{/if}};
 
   id = 'input-' + Math.random().toString(36).substring(2, 9);
 }

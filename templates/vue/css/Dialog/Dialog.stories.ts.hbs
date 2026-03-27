@@ -74,9 +74,9 @@ export const WithSlots: Story = {
     template: `
 <Dialog v-bind="args">
   <template #header>
-    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 2px solid purple; padding-bottom: 8px;">
-      <h3 style="margin: 0; color: purple;">Custom Header Slot</h3>
-      <button @click="args.onClose" style="background: none; border: 1px solid purple; color: purple; border-radius: 4px; padding: 2px 8px;">Exit</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 2px solid var(--color-primary); padding-bottom: 8px;">
+      <h3 style="margin: 0; color: var(--color-primary);">Custom Header Slot</h3>
+      <button @click="args.onClose" style="background: none; border: 1px solid var(--color-primary); color: var(--color-primary); border-radius: var(--radius-sm); padding: 2px 8px;">Exit</button>
     </div>
   </template>
   <template #default>
@@ -85,7 +85,7 @@ export const WithSlots: Story = {
   <template #footer>
     <div style="width: 100%; text-align: right;">
       <button @click="args.onClose" style="margin-right: 8px;">Cancel</button>
-      <button @click="args.onClose" style="background: purple; color: white; border: none; border-radius: 4px; padding: 4px 12px;">Submit</button>
+      <button @click="args.onClose" style="background: var(--color-primary); color: var(--color-primary-foreground); border: none; border-radius: var(--radius-sm); padding: 4px 12px;">Submit</button>
     </div>
   </template>
 </Dialog>`,

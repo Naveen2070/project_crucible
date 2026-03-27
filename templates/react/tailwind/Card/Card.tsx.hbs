@@ -97,7 +97,15 @@ export const Card = Object.assign(CardRoot, {
   Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
-});
+}) as typeof CardRoot & {
+  Header: typeof CardHeader;
+  Title: typeof CardTitle;
+  Description: typeof CardDescription;
+  Action: typeof CardAction;
+  Content: typeof CardContent;
+  Footer: typeof CardFooter;
+  displayName: string;
+};
 
 Card.displayName = 'Card';
 

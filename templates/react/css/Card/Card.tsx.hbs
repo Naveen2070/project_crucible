@@ -4,7 +4,15 @@ import React from 'react';
 export type CardVariant = 'default' | 'hoverable' | 'clickable';
 export type CardSize    = 'sm' | 'md' | 'lg';
 
-{{> react/props-interface}}
+export interface CardProps {
+  variant?: CardVariant;
+  size?: CardSize;
+  title?: string;
+  children?: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  href?: string;
+}
 
 {{#if features.compoundComponents}}
 export const CardRoot = ({
@@ -80,7 +88,15 @@ export const Card = Object.assign(CardRoot, {
   Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
-});
+}) as typeof CardRoot & {
+  Header: typeof CardHeader;
+  Title: typeof CardTitle;
+  Description: typeof CardDescription;
+  Action: typeof CardAction;
+  Content: typeof CardContent;
+  Footer: typeof CardFooter;
+  displayName: string;
+};
 
 Card.displayName = 'Card';
 {{else}}

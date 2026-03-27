@@ -118,13 +118,13 @@ export const WithSlots: Story = {
     template: `
 <Select v-bind="args" v-model="value">
   <template #label>
-    <label style="color: green; font-weight: bold;">[CUSTOM LABEL]</label>
+    <label style="color: var(--color-success); font-weight: bold;">[CUSTOM LABEL]</label>
   </template>
   <template #icon>
     <span style="transform: rotate(90deg); display: inline-block;">-></span>
   </template>
   <template #item="{ option }">
-    <span style="color: blue;">Option: \{{ typeof option === 'object' ? option.label : option }}</span>
+    <span style="color: var(--color-text);">Option: \{{ typeof option === 'object' ? option.label : option }}</span>
   </template>
 </Select>`,
   }),

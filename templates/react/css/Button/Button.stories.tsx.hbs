@@ -9,7 +9,7 @@
 
 {{#if features.compoundComponents}}
 export const Default: Story = {
-  args: { variant: 'primary', size: 'md' },
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Button {...args}>
       <Button.Label>Button</Button.Label>
@@ -71,7 +71,7 @@ export const WithIcon: Story = {
 };
 {{else}}
 export const Default: Story = {
-  args: { variant: 'primary', size: 'md', children: 'Button' },
+  args: { variant: 'default', size: 'md', children: 'Button' },
 };
 
 {{#each variants}}

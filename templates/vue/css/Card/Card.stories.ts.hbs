@@ -55,7 +55,7 @@ export const WithSlots: Story = {
     template: `
 <Card v-bind="args">
   <template #header>
-    <div style="background: #f0f0f0; padding: 10px; font-style: italic;">Custom Header Slot</div>
+    <div style="background: var(--color-accent); padding: 10px; font-style: italic;">Custom Header Slot</div>
   </template>
   <template #default>
     Custom card body via default slot.

@@ -5,15 +5,15 @@ import { CommonModule } from '@angular/common';
   selector: 'app-Dialog',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './Dialog.component.html',
-  styleUrls: ['./Dialog.component.css'],
+  templateUrl: './dialog.component.html',
+  styleUrls: ['./dialog.component.css'],
 })
 export class DialogComponent {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() description = '';
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
-  @Input() variant: 'default' | 'confirm' = 'default';
+  @Input() size: {{> shared/size-types}} = {{#if defaultSize}}'{{defaultSize}}'{{else}}'{{sizes.[0]}}'{{/if}};
+  @Input() variant: {{> shared/variant-types}} = {{#if defaultVariant}}'{{defaultVariant}}'{{else}}'{{variants.[0]}}'{{/if}};
 
   @Output() close = new EventEmitter<void>();
 

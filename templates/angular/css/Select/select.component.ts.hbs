@@ -15,8 +15,8 @@ export class SelectComponent {
   @Input() value: any = null;
   @Input() error = '';
   @Input() disabled = false;
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
-  @Input() variant: 'default' | 'error' = 'default';
+  @Input() size: {{> shared/size-types}} = {{#if defaultSize}}'{{defaultSize}}'{{else}}'{{sizes.[0]}}'{{/if}};
+  @Input() variant: {{> shared/variant-types}} = {{#if defaultVariant}}'{{defaultVariant}}'{{else}}'{{variants.[0]}}'{{/if}};
 
   @Output() valueChange = new EventEmitter<any>();
 

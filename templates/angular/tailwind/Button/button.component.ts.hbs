@@ -15,8 +15,8 @@ const sizeClasses: Record<string, string> = {
   templateUrl: './button.component.html'
 })
 export class ButtonComponent {
-  @Input() variant: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'primary';
-  @Input() size:    {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}} = 'md';
+  @Input() variant: {{> shared/variant-types}} = {{#if defaultVariant}}'{{defaultVariant}}'{{else}}'{{variants.[0]}}'{{/if}};
+  @Input() size: {{> shared/size-types}} = {{#if defaultSize}}'{{defaultSize}}'{{else}}'{{sizes.[0]}}'{{/if}};
   @Input() loading = false;
   @Input() disabled = false;
   @Input() className = '';

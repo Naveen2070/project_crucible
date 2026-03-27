@@ -142,10 +142,10 @@ export const WithSlots: Story = {
     template: `
 <Input v-bind="args" v-model="value">
   <template #label>
-    <label style="color: purple; font-weight: bold;">Custom Slot Label</label>
+    <label style="color: var(--color-primary); font-weight: bold;">Custom Slot Label</label>
   </template>
   <template #error>
-    <span style="color: blue;">Custom error message slot</span>
+    <span style="color: var(--color-destructive);">Custom error message slot</span>
   </template>
 </Input>`,
   }),
