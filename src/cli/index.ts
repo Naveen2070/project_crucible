@@ -4,12 +4,15 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import { registry } from '../registry/components';
 import { runInit } from './init';
-import { loadPreset } from '../themes';
-import { Framework, ThemePreset } from '../core/enums';
 import { runDoctor } from './doctor';
 import { runTokens } from './tokens';
 import { runAdd } from './add';
+import { runEject } from './eject';
+import { runList } from './list';
+import { runClean, runPgClean } from './clean';
+import { runConfigShow } from './config-show';
 import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './playground';
+import { Framework } from '../core/enums';
 
 const program = new Command();
 
@@ -81,25 +84,10 @@ program
   .option('--config <path>', 'Path to config file', 'crucible.config.json')
   .option('--cwd <path>', 'Current working directory', '.')
   .action(async (opts) => {
-    try {
-      const cwd = path.resolve(process.cwd(), opts.cwd);
-      const configPath = path.resolve(cwd, opts.config);
-      if (!(await fs.pathExists(configPath))) {
-        console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
-        process.exit(1);
-      }
-      const raw = await fs.readJson(configPath);
-      const theme = raw.theme || ThemePreset.Minimal;
-      const presetTokens = loadPreset(theme);
-
-      raw.tokens = { ...presetTokens, ...raw.tokens };
-      raw.theme = ThemePreset.Custom;
-
-      await fs.writeJson(configPath, raw, { spaces: 2 });
-      console.log(chalk.green(`✔ Ejected ${theme} theme into ${opts.config}`));
-    } catch (e: any) {
-      console.error(chalk.red(`✗ Error: ${e.message}`));
-    }
+    await runEject({
+      config: opts.config,
+      cwd: opts.cwd,
+    });
   });
 
 program
@@ -130,10 +118,7 @@ program
   .alias('l')
   .description('Show all available components')
   .action(() => {
-    console.log(chalk.cyan('Available components:'));
-    for (const [name, def] of Object.entries(registry)) {
-      console.log(`  ${name}  [${def.frameworks.join(', ')}]  [${def.styleSystems.join(', ')}]`);
-    }
+    runList();
   });
 
 program
@@ -172,24 +157,7 @@ program
   .option('-a, --all', 'Also remove crucible.config.json')
   .option('--cwd <path>', 'Current working directory', '.')
   .action(async (opts: any) => {
-    const cwd = path.resolve(process.cwd(), opts.cwd);
-    const pathsToDelete = [
-      path.join(cwd, '.crucible'),
-      path.join(cwd, 'src', '__generated__'),
-      path.join(cwd, 'src', 'components'),
-    ];
-    if (opts.all) {
-      pathsToDelete.push(path.join(cwd, 'crucible.config.json'));
-    }
-
-    console.log(chalk.blue('\n🧹 Cleaning generated files...\n'));
-    for (const p of pathsToDelete) {
-      if (await fs.pathExists(p)) {
-        await fs.remove(p);
-        console.log(chalk.green(`✔ Removed: ${path.relative(cwd, p)}`));
-      }
-    }
-    console.log(chalk.blue('\n✨ Clean complete!\n'));
+    await runClean(opts);
   });
 
 // pg:clean command - clean all playground folders
@@ -198,29 +166,10 @@ program
   .alias('pcl')
   .description('Clean all playground folders')
   .action(async () => {
-    const frameworks = ['react', 'vue', 'angular'];
-    console.log(chalk.blue('\n🧹 Cleaning playground folders...\n'));
-
-    for (const fw of frameworks) {
-      const basePath = path.join(process.cwd(), 'playground', fw);
-      const pathsToDelete = [
-        path.join(basePath, '.crucible'),
-        path.join(basePath, 'src', '__generated__'),
-        path.join(basePath, 'public', '__generated__'),
-        path.join(basePath, 'crucible.config.json'),
-      ];
-
-      for (const p of pathsToDelete) {
-        if (await fs.pathExists(p)) {
-          await fs.remove(p);
-          console.log(chalk.green(`✔ Removed: playground/${fw}/${path.relative(basePath, p)}`));
-        }
-      }
-    }
-    console.log(chalk.blue('\n✨ Playground clean complete!\n'));
+    await runPgClean();
   });
 
-// config command - show current config
+// config command - show current crucible.config.json
 program
   .command('config')
   .alias('cfg')
@@ -228,17 +177,7 @@ program
   .option('--json', 'Output raw JSON')
   .option('--cwd <path>', 'Current working directory', '.')
   .action(async (opts: any) => {
-    const cwd = path.resolve(process.cwd(), opts.cwd);
-    const configPath = path.join(cwd, 'crucible.config.json');
-
-    if (!(await fs.pathExists(configPath))) {
-      console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
-      process.exit(1);
-    }
-
-    const config = await fs.readJson(configPath);
-    const output = opts.json ? JSON.stringify(config) : JSON.stringify(config, null, 2);
-    console.log(output);
+    await runConfigShow(opts);
   });
 
 program.parse();
