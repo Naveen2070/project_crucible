@@ -9,6 +9,7 @@
     role="dialog"
     aria-modal="true"
     [attr.aria-labelledby]="titleId"
+    [attr.aria-describedby]="descriptionId"
     (click)="$event.stopPropagation()"
   >
     <ng-content select="[content]"></ng-content>
@@ -17,6 +18,10 @@
       <h2 [id]="titleId" class="text-xl font-bold text-[var(--color-text)]">
         <ng-content select="[dialog-title]">\{{ title }}</ng-content>
       </h2>
+      <ng-content select="[dialog-description]"></ng-content>
+      <p [id]="descriptionId" class="text-sm text-[var(--color-text-muted)]">
+        <ng-content select="[description]"></ng-content>
+      </p>
       <button
         type="button"
         class="ml-auto text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors text-2xl"

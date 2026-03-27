@@ -24,6 +24,7 @@ export class DialogComponent implements OnInit, OnDestroy {
   @Output() close = new EventEmitter<void>();
 
   titleId = 'dialog-title-' + Math.random().toString(36).substring(2, 9);
+  descriptionId = 'dialog-desc-' + Math.random().toString(36).substring(2, 9);
 
   ngOnInit() {}
 

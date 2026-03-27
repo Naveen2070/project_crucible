@@ -39,6 +39,23 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
     js[`color${pascal(key)}`] = value;
   }
 
+  // Semantic foreground colors (standard pattern)
+  const foregroundMap: Record<string, string> = {
+    primary: merged.color.surface ?? '#FFFFFF',
+    secondary: merged.color.text ?? '#1A1A2E',
+    destructive: merged.color.surface ?? '#FFFFFF',
+    accent: merged.color.text ?? '#1A1A2E',
+  };
+
+  for (const [key, value] of Object.entries(foregroundMap)) {
+    cssVars[`--color-${key}-foreground`] = value;
+    js[`color${pascal(key)}Foreground`] = value;
+  }
+
+  // Base foreground variable
+  cssVars['--foreground'] = merged.color.text ?? '#1A1A2E';
+  js['foreground'] = merged.color.text ?? '#1A1A2E';
+
   // Radius
   for (const [key, value] of Object.entries(merged.radius)) {
     cssVars[`--radius-${key}`] = value;
@@ -62,6 +79,18 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
     for (const [key, value] of Object.entries(darkColors)) {
       darkCssVars[`--color-${kebab(key)}`] = value;
     }
+    // Dark mode foreground colors
+    const darkForegroundMap: Record<string, string> = {
+      primary: darkColors.surface ?? '#1a1a2e',
+      secondary: darkColors.text ?? '#f1f5f9',
+      destructive: darkColors.surface ?? '#1a1a2e',
+      accent: darkColors.text ?? '#f1f5f9',
+    };
+    for (const [key, value] of Object.entries(darkForegroundMap)) {
+      darkCssVars[`--color-${key}-foreground`] = value;
+    }
+    // Base dark foreground
+    darkCssVars['--foreground'] = darkColors.text ?? '#f1f5f9';
   }
 
   return { cssVars, darkCssVars, js, componentTokens };

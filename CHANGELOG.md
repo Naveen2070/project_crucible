@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-03-27
+
+### Added
+
+- **Component Enhancements**: Professional-quality component patterns and variants patterns
+- **DialogDescription Component**: Sub-component with aria-describedby support across all frameworks
+- **Semantic Color Tokens**: Added `--color-primary-foreground`, `--color-secondary-foreground`,
+  `--color-destructive-foreground`, `--color-accent-foreground`, `--foreground`
+- **Dialog Open Animation**: Standardized `dialog-open` keyframe animation
+
+### Changed
+
+- **Button Variants**: Added `default`, `outline`, `ghost`, `link`, `destructive` variants (standard
+  pattern)
+- **Button Sizes**: Added `xs` and `icon` sizes
+- **Card Components**: Added `CardDescription` and `CardAction` sub-components
+- **Focus Ring**: Standardized to `ring-2 ring-ring ring-offset-2` pattern
+- **Modal → Dialog**: Component renamed to Dialog across all templates
+- **DialogIn Animation**: Renamed to `dialog-open` for consistency
+
+### Fixed
+
+- **Story Template Bugs**: Fixed duplicate Default export in Button stories, import placement in
+  Dialog stories
+- **Button Variant Test**: Updated to expect `destructive` instead of `danger`
+- **Dialog Accessibility**: Added aria-labelledby and aria-describedby to Angular Dialog
+
 ## [1.0.0-rc1] - 2026-03-23
 
 ### Added
@@ -29,6 +56,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Angular/Vue Templates**: Refactored to use framework-specific partials
 - **Shared Component CSS**: Extracted across all frameworks
 - **Framework-Aware Partial Caching**: With watch-mode invalidation
+- **Component Enhancements**: Professional component library-quality improvements
+- **Modal → Dialog Rename**: Consistent naming across all templates
+
+### Fixed
+
+- **Story Template Bugs**: Fixed duplicate Default export in Button stories, import placement in
+  Dialog stories
+- **Button Variant Naming**: `danger` → `destructive` for standard naming
+- **DialogDescription Support**: Added to Vue and Angular templates with aria-describedby
 
 ## [0.9.0] - 2026-03-21
 

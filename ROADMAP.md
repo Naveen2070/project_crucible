@@ -33,7 +33,10 @@
 | Compound components                   | ✅     |
 | Interactive CLI + Tailwind auto-setup | ✅     |
 | Component registry                    | ✅     |
-| 128 tests across 19 files             | ✅     |
+| 128 tests across 19 test files        | ✅     |
+| Professional component patterns       | ✅     |
+| DialogDescription + aria support      | ✅     |
+| Semantic color tokens                 | ✅     |
 
 ---
 
@@ -71,14 +74,14 @@ gantt
 
 ---
 
-## v1.1 — Documentation & A11y Testing
+## v1.1 — Documentation & A11y Testing ✅
 
 ### Phase 5: Template Enforcement ✅
 
 - Template audit script implemented
 - CI integration (prebuild hook)
 
-### Phase 6: A11y Testing
+### Phase 6: A11y Testing ✅
 
 **Goals:**
 
@@ -88,10 +91,12 @@ gantt
 
 **Deliverables:**
 
-- vitest-axe integration
-- Dialog focus trap tests
-- Select keyboard navigation tests
-- Theme permutation snapshots
+- vitest-axe integration ✅
+- Dialog focus trap tests ✅
+- Select keyboard navigation tests ✅
+- Theme permutation snapshots ✅
+- DialogDescription with aria-describedby ✅
+- Semantic color tokens (foreground variants) ✅
 
 ---
 
@@ -183,7 +188,7 @@ _Rust only if project scale demands sub-ms generation performance._
 | Version | Focus                | Target        |
 | ------- | -------------------- | ------------- |
 | 1.0.0   | Core engine          | ✅ March 2026 |
-| 1.1.0   | Documentation + A11y | Q2 2026       |
+| 1.1.0   | Documentation + A11y | ✅ March 2026 |
 | 1.2.0   | Migration engine     | Q3 2026       |
 | 1.3.0   | Studio               | Q4 2026       |
 | 2.0.0   | Go binary            | 2027          |

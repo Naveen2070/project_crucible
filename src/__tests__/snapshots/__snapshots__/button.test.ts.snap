@@ -3,8 +3,8 @@
 exports[`Button snapshots > css mode snapshot 1`] = `
 "import React from 'react';
 import styles from './Button.module.css';
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize    = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive';
+export type ButtonSize    = 'xs' | 'sm' | 'md' | 'lg' | 'icon';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:  ButtonVariant;
@@ -87,41 +87,37 @@ exports[`Button snapshots > css mode snapshot 2`] = `
 }
 
 .btn:focus-visible {
-  outline:        2px solid var(--color-primary);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .btn { transition: none; }
 }
 
-/* Sizes */
-.btn--sm { 
-  min-height: calc(var(--spacing-unit) * 9);
-  padding:    0 calc(var(--spacing-unit) * 3);  
-  font-size:  0.875rem; 
-}
-.btn--md { 
-  min-height: calc(var(--spacing-unit) * 10);
-  padding:    0 calc(var(--spacing-unit) * 4); 
-  font-size:  1rem; 
-}
-.btn--lg { 
-  min-height: calc(var(--spacing-unit) * 11);
-  padding:    0 calc(var(--spacing-unit) * 8); 
-  font-size:  1.125rem; 
-}
+/* Sizes - standard: xs, sm, md, lg, icon */
+.btn--xs    { min-height: 2rem; padding: 0 0.5rem; font-size: 0.75rem; }
+.btn--sm    { min-height: calc(var(--spacing-unit) * 9); padding: 0 calc(var(--spacing-unit) * 3); font-size: 0.875rem; }
+.btn--md    { min-height: calc(var(--spacing-unit) * 10); padding: 0 calc(var(--spacing-unit) * 4); font-size: 1rem; }
+.btn--lg    { min-height: calc(var(--spacing-unit) * 11); padding: 0 calc(var(--spacing-unit) * 8); font-size: 1.125rem; }
+.btn--icon  { min-height: 2.5rem; width: 2.5rem; padding: 0; }
 
-/* Variants */
-.btn--primary   { background: var(--color-primary);   color: var(--color-surface);  border-color: var(--color-primary); }
-.btn--secondary { background: var(--color-secondary); color: var(--color-primary);  border-color: var(--color-border); }
-.btn--ghost     { background: transparent;            color: var(--color-text);     border-color: var(--color-border); }
-.btn--danger    { background: var(--color-danger);    color: var(--color-surface);  border-color: var(--color-danger); }
+/* Variants - standard */
+.btn--default   { background: var(--color-primary);   color: var(--color-primary-foreground); border-color: transparent; }
+.btn--primary   { background: var(--color-primary);   color: var(--color-primary-foreground); border-color: transparent; }
+.btn--secondary { background: var(--color-secondary); color: var(--color-secondary-foreground); border-color: transparent; }
+.btn--outline   { background: transparent;           color: var(--color-foreground);        border-color: var(--color-border); }
+.btn--ghost     { background: transparent;           color: var(--color-foreground);        border-color: transparent; }
+.btn--link      { background: transparent;           color: var(--color-primary);           border-color: transparent; text-decoration: underline; text-underline-offset: 4px; }
+.btn--destructive { background: var(--color-destructive); color: var(--color-destructive-foreground); border-color: transparent; }
 
-.btn--primary:not(:disabled):hover   { filter: brightness(1.1); }
-.btn--secondary:not(:disabled):hover { background: var(--color-primary); color: var(--color-surface); }
-.btn--ghost:not(:disabled):hover     { background: var(--color-secondary); }
-.btn--danger:not(:disabled):hover    { filter: brightness(1.1); }
+.btn--default:not(:disabled):hover     { opacity: 0.9; }
+.btn--primary:not(:disabled):hover   { opacity: 0.9; }
+.btn--secondary:not(:disabled):hover { background: var(--color-secondary); opacity: 0.8; }
+.btn--outline:not(:disabled):hover   { background: var(--color-accent); color: var(--color-accent-foreground); }
+.btn--ghost:not(:disabled):hover     { background: var(--color-accent); color: var(--color-accent-foreground); }
+.btn--link:not(:disabled):hover      { text-decoration: underline; }
+.btn--destructive:not(:disabled):hover { opacity: 0.9; }
 
 /* States */
 .btn--disabled, .btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -148,8 +144,8 @@ const meta: Meta<typeof Button> = {
   component: Button,
   parameters: { layout: 'centered' },
   argTypes: {
-    variant:  { control: 'select', options: ['primary', 'secondary', 'ghost', 'danger'] },
-    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:  { control: 'select', options: ['default', 'primary', 'secondary', 'outline', 'ghost', 'link', 'destructive'] },
+    size:     { control: 'select', options: ['xs', 'sm', 'md', 'lg', 'icon'] },
     loading:  { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
@@ -182,6 +178,14 @@ export const Secondary: Story = {
     </Button>
   ),
 };
+export const Outline: Story = {
+  args: { variant: 'outline' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Outline Button</Button.Label>
+    </Button>
+  ),
+};
 export const Ghost: Story = {
   args: { variant: 'ghost' },
   render: (args) => (
@@ -190,15 +194,31 @@ export const Ghost: Story = {
     </Button>
   ),
 };
-export const Danger: Story = {
-  args: { variant: 'danger' },
+export const Link: Story = {
+  args: { variant: 'link' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Danger Button</Button.Label>
+      <Button.Label>Link Button</Button.Label>
+    </Button>
+  ),
+};
+export const Destructive: Story = {
+  args: { variant: 'destructive' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Destructive Button</Button.Label>
     </Button>
   ),
 };
 
+export const Xs: Story = {
+  args: { size: 'xs' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Xs Size</Button.Label>
+    </Button>
+  ),
+};
 export const Sm: Story = {
   args: { size: 'sm' },
   render: (args) => (
@@ -220,6 +240,14 @@ export const Lg: Story = {
   render: (args) => (
     <Button {...args}>
       <Button.Label>Lg Size</Button.Label>
+    </Button>
+  ),
+};
+export const Icon: Story = {
+  args: { size: 'icon' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Icon Size</Button.Label>
     </Button>
   ),
 };
@@ -259,10 +287,13 @@ exports[`Button snapshots > tailwind mode snapshot 1`] = `
 "import React from 'react';
 
 const variantClasses: Record<string, string> = {
-  primary: 'bg-[var(--color-primary)] text-[var(--color-surface)] border-[var(--color-primary)] hover:brightness-110',
-  secondary: 'bg-[var(--color-secondary)] text-[var(--color-primary)] border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-[var(--color-surface)]',
-  ghost: 'bg-transparent text-[var(--color-text)] border-[var(--color-border)] hover:bg-[var(--color-secondary)]',
-  danger: 'bg-[var(--color-danger)] text-[var(--color-surface)] border-[var(--color-danger)] hover:brightness-110',
+  default: 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent hover:opacity-90',
+  primary: 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent hover:opacity-90',
+  secondary: 'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] border-transparent hover:opacity-80',
+  outline: 'bg-transparent text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
+  ghost: 'bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
+  link: 'bg-transparent text-[var(--color-primary)] underline-offset-4 hover:underline border-transparent',
+  destructive: '',
  };
 
 const sizeClasses: Record<string, string> = {
@@ -271,8 +302,8 @@ const sizeClasses: Record<string, string> = {
   lg: 'px-7 py-3.5 text-lg',
 };
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize    = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive';
+export type ButtonSize    = 'xs' | 'sm' | 'md' | 'lg' | 'icon';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:  ButtonVariant;
@@ -286,8 +317,7 @@ export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const cls = [
       'inline-flex items-center justify-center font-medium transition-colors border-[1.5px] border-transparent',
       'rounded-[var(--radius-md)]',
-      'focus-visible:outline focus-visible:outline-[2px]',
-      'focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[3px]',
+      'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-3px outline-none',
       'disabled:opacity-45 disabled:cursor-not-allowed',
       variantClasses[variant],
       sizeClasses[size],
@@ -350,8 +380,8 @@ const meta: Meta<typeof Button> = {
   component: Button,
   parameters: { layout: 'centered' },
   argTypes: {
-    variant:  { control: 'select', options: ['primary', 'secondary', 'ghost', 'danger'] },
-    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant:  { control: 'select', options: ['default', 'primary', 'secondary', 'outline', 'ghost', 'link', 'destructive'] },
+    size:     { control: 'select', options: ['xs', 'sm', 'md', 'lg', 'icon'] },
     loading:  { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
@@ -384,6 +414,14 @@ export const Secondary: Story = {
     </Button>
   ),
 };
+export const Outline: Story = {
+  args: { variant: 'outline' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Outline Button</Button.Label>
+    </Button>
+  ),
+};
 export const Ghost: Story = {
   args: { variant: 'ghost' },
   render: (args) => (
@@ -392,15 +430,31 @@ export const Ghost: Story = {
     </Button>
   ),
 };
-export const Danger: Story = {
-  args: { variant: 'danger' },
+export const Link: Story = {
+  args: { variant: 'link' },
   render: (args) => (
     <Button {...args}>
-      <Button.Label>Danger Button</Button.Label>
+      <Button.Label>Link Button</Button.Label>
+    </Button>
+  ),
+};
+export const Destructive: Story = {
+  args: { variant: 'destructive' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Destructive Button</Button.Label>
     </Button>
   ),
 };
 
+export const Xs: Story = {
+  args: { size: 'xs' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Xs Size</Button.Label>
+    </Button>
+  ),
+};
 export const Sm: Story = {
   args: { size: 'sm' },
   render: (args) => (
@@ -422,6 +476,14 @@ export const Lg: Story = {
   render: (args) => (
     <Button {...args}>
       <Button.Label>Lg Size</Button.Label>
+    </Button>
+  ),
+};
+export const Icon: Story = {
+  args: { size: 'icon' },
+  render: (args) => (
+    <Button {...args}>
+      <Button.Label>Icon Size</Button.Label>
     </Button>
   ),
 };

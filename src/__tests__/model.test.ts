@@ -2,17 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { buildComponentModel } from '../components/model';
 import { Framework, ComponentName } from '../core/enums';
 
-const mockTokens = { 
-  cssVars: {}, 
-  darkCssVars: null, 
-  js: {}, 
+const mockTokens = {
+  cssVars: {},
+  darkCssVars: null,
+  js: {},
   componentTokens: {
     button: {},
     card: {},
     input: {},
     Dialog: {},
-    select: {}
-  }
+    select: {},
+  },
 } as any;
 const mockConfig = {
   framework: Framework.React,
@@ -29,7 +29,7 @@ describe('buildComponentModel', () => {
   it('sets correct variants for Button', () => {
     const model = buildComponentModel(ComponentName.Button, mockTokens, mockConfig, false);
     expect(model.variants).toContain('primary');
-    expect(model.variants).toContain('danger');
+    expect(model.variants).toContain('destructive');
   });
 
   it('sets focusTrap for Dialog only', () => {
@@ -45,9 +45,24 @@ describe('buildComponentModel', () => {
   });
 
   it('sets framework flags correctly', () => {
-    const reactModel = buildComponentModel(ComponentName.Button, mockTokens, { ...mockConfig, framework: Framework.React }, false);
-    const angularModel = buildComponentModel(ComponentName.Button, mockTokens, { ...mockConfig, framework: Framework.Angular }, false);
-    const vueModel = buildComponentModel(ComponentName.Button, mockTokens, { ...mockConfig, framework: Framework.Vue }, false);
+    const reactModel = buildComponentModel(
+      ComponentName.Button,
+      mockTokens,
+      { ...mockConfig, framework: Framework.React },
+      false,
+    );
+    const angularModel = buildComponentModel(
+      ComponentName.Button,
+      mockTokens,
+      { ...mockConfig, framework: Framework.Angular },
+      false,
+    );
+    const vueModel = buildComponentModel(
+      ComponentName.Button,
+      mockTokens,
+      { ...mockConfig, framework: Framework.Vue },
+      false,
+    );
 
     expect(reactModel.isReact).toBe(true);
     expect(angularModel.isAngular).toBe(true);
@@ -55,11 +70,16 @@ describe('buildComponentModel', () => {
   });
 
   it('disables compoundComponents for angular regardless of config', () => {
-    const model = buildComponentModel(ComponentName.Button, mockTokens, {
-      ...mockConfig,
-      framework: Framework.Angular,
-      features: { ...mockConfig.features, compoundComponents: true }
-    }, false);
+    const model = buildComponentModel(
+      ComponentName.Button,
+      mockTokens,
+      {
+        ...mockConfig,
+        framework: Framework.Angular,
+        features: { ...mockConfig.features, compoundComponents: true },
+      },
+      false,
+    );
     expect(model.features.compoundComponents).toBe(false);
   });
 

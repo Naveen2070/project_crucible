@@ -205,10 +205,9 @@ exports[`Input snapshots > css mode snapshot 2`] = `
 }
 
 .input:focus-visible {
-  outline:        2px solid var(--color-primary);
-  outline-offset: 3px;
-  border-color:   var(--color-primary);
-  box-shadow:     0 0 0 4px rgba(108, 99, 255, 0.1);
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary);
 }
 
 /* Sizes */
@@ -491,7 +490,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
 
     const cls = [
       'w-full border-[1.5px] rounded-[var(--radius-md)] outline-none transition-all',
-      'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
+      'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 outline-none',
       'disabled:opacity-50 disabled:cursor-not-allowed',
       variantClasses[variant],
       sizeClasses[size],

@@ -8,9 +8,12 @@
       [class.Dialog--confirm]="variant === 'confirm'"
       role="dialog" 
       aria-modal="true"
+      [attr.aria-labelledby]="titleId"
+      [attr.aria-describedby]="descriptionId"
     >
       <header class="dialog-header">
-        <h2 class="dialog-title">\{{ title }}</h2>
+        <h2 [id]="titleId" class="dialog-title">\{{ title }}</h2>
+        <p [id]="descriptionId" class="dialog-description" *ngIf="description">\{{ description }}</p>
         <button type="button" class="dialog-close" (click)="onClose()" aria-label="Close Dialog">
           &times;
         </button>

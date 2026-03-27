@@ -36,7 +36,7 @@ const sizeClasses: Record<DialogSize, string> = {
 
 const dialogClasses = computed(() => [
   'w-full bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-2xl overflow-hidden flex flex-col',
-  'animate-[DialogIn_0.3s_ease-out]',
+  'animate-[dialog-open_0.2s_ease-out]',
   variantClasses[props.variant],
   sizeClasses[props.size],
 ]);
@@ -63,6 +63,7 @@ onUnmounted(() => {
 });
 
 const titleId = `dialog-title-${Math.floor(Math.random() * 1000000)}`;
+const descriptionId = `dialog-desc-${Math.floor(Math.random() * 1000000)}`;
 </script>
 
 <template>
@@ -80,11 +81,17 @@ const titleId = `dialog-title-${Math.floor(Math.random() * 1000000)}`;
             role="dialog" 
             aria-modal="true"
             :aria-labelledby="titleId"
+            :aria-describedby="descriptionId"
           >
             <slot name="header">
               <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
                 <slot name="title">
                   <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+                </slot>
+                <slot name="description">
+                  <p :id="descriptionId" class="text-sm text-[var(--color-text-muted)] mt-1">
+                    <slot name="description-content" />
+                  </p>
                 </slot>
                 <slot name="close">
                   <button 
@@ -120,7 +127,7 @@ const titleId = `dialog-title-${Math.floor(Math.random() * 1000000)}`;
 </template>
 
 <style scoped>
-@keyframes DialogIn {
+@keyframes dialog-open {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }

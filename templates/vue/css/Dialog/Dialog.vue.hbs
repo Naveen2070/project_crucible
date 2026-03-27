@@ -31,17 +31,23 @@ const dialogClasses = computed(() => [
 ]);
 
 const titleId = `dialog-title-${Math.floor(Math.random() * 1000000)}`;
+const descriptionId = `dialog-desc-${Math.floor(Math.random() * 1000000)}`;
 </script>
 
 <template>
   <slot name="overlay" :close="onClose" :isOpen="isOpen">
     <div v-if="isOpen" class="dialog-overlay" @click="onClose">
       <slot name="content">
-        <div :class="dialogClasses" @click.stop role="dialog" aria-modal="true" :aria-labelledby="titleId">
+        <div :class="dialogClasses" @click.stop role="dialog" aria-modal="true" :aria-labelledby="titleId" :aria-describedby="descriptionId">
           <slot name="header">
             <header class="dialog-header">
               <slot name="title">
                 <h2 :id="titleId" v-if="title" class="dialog-title">\{{ title }}</h2>
+              </slot>
+              <slot name="description">
+                <p :id="descriptionId" class="dialog-description">
+                  <slot name="description-content" />
+                </p>
               </slot>
               <slot name="close">
                 <button type="button" class="dialog-close" @click="onClose" aria-label="Close Dialog">

@@ -18,6 +18,7 @@ export const Default: Story = {
 };
 
 {{#each variants}}
+{{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
   args: { variant: '{{this}}' },
   render: (args) => (
@@ -26,6 +27,7 @@ export const {{capitalize this}}: Story = {
     </Button>
   ),
 };
+{{/unless}}
 {{/each}}
 
 {{#each sizes}}

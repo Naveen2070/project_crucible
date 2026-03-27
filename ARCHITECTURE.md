@@ -178,6 +178,25 @@ interface ResolvedTokens {
 }
 ```
 
+### 4.4 Semantic Color Tokens (Standard Pattern)
+
+Crucible generates semantic foreground color tokens for proper contrast pairing:
+
+```css
+:root {
+  --color-primary: #6c63ff;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f3f2ff;
+  --color-secondary-foreground: #1a1a2e;
+  --color-destructive: #e24b4a;
+  --color-destructive-foreground: #ffffff;
+  --color-accent-foreground: #1a1a2e;
+  --foreground: #1a1a2e;
+}
+```
+
+These tokens ensure proper text/background contrast for accessibility compliance.
+
 ---
 
 ## 5. Theme Preset System
@@ -514,7 +533,7 @@ All components use **BEM (Block Element Modifier)** naming:
 | --------- | ----------- | ---------------------------------------------- | --------------------------- |
 | Button    | `.btn`      | —                                              | `.btn--primary`, `.btn--sm` |
 | Card      | `.card`     | `.header`, `.footer`, `.title`, `.content`     | `.card--hoverable`          |
-| Dialog     | `.Dialog`    | `.header`, `.footer`, `.body`, `.close-button` | `.Dialog--sm`                |
+| Dialog    | `.Dialog`   | `.header`, `.footer`, `.body`, `.close-button` | `.Dialog--sm`               |
 | Input     | `.input`    | `.label`, `.hint`, `.error`                    | `.input--error`             |
 | Select    | `.combobox` | `.label`, `.option`, `.listbox`                | `.combobox--open`           |
 
@@ -544,7 +563,7 @@ Always use CSS custom properties for component values:
 | Component | Required Variables                                                         |
 | --------- | -------------------------------------------------------------------------- |
 | Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding` |
-| Dialog     | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`           |
+| Dialog    | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`        |
 | Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`             |
 | Input     | `--input-height`, `--input-border-radius`, `--input-transition`            |
 | Select    | `--select-height`, `--select-border-radius`                                |
@@ -594,7 +613,7 @@ Use token-based z-index values to prevent conflicts:
 
 | Component | Token        | Value  |
 | --------- | ------------ | ------ |
-| Dialog     | `--z-Dialog`  | `1000` |
+| Dialog    | `--z-Dialog` | `1000` |
 | Select    | `--z-select` | `900`  |
 
 ---
@@ -795,7 +814,7 @@ graph BT
 | `doctor.test.ts`        | Circular ref detection                      |
 | `writer.test.ts`        | Hash system, dry-run, force, path traversal |
 | `snapshots/*.test.ts`   | Full pipeline output per component          |
-| `a11y/*.test.ts`        | Accessibility verification                  |
+| `a11y/*.test.ts`        | Accessibility verification (axe)            |
 
 ### 15.4 E2E Test Phases
 

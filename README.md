@@ -31,14 +31,15 @@ npx crucible add Button
 
 ## Features
 
-| Feature             | Description                                |
-| ------------------- | ------------------------------------------ |
-| **Multi-Framework** | React, Vue 3, and Angular support          |
-| **Style Systems**   | CSS Modules, SCSS, or Tailwind CSS v4      |
-| **Theme Presets**   | Built-in `minimal` and `soft` presets      |
-| **Dark Mode**       | Automatic OKLCH-based dark mode derivation |
-| **Accessibility**   | WCAG-compliant component scaffolding       |
-| **User Ownership**  | Hash-based protection for user edits       |
+| Feature                | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| **Multi-Framework**    | React, Vue 3, and Angular support             |
+| **Style Systems**      | CSS Modules, SCSS, or Tailwind CSS v4         |
+| **Theme Presets**      | Built-in `minimal` and `soft` presets         |
+| **Dark Mode**          | Automatic OKLCH-based dark mode derivation    |
+| **Accessibility**      | WCAG 2.1 AA-compliant with ARIA support       |
+| **Component Patterns** | Professional patterns with variants and sizes |
+| **User Ownership**     | Hash-based protection for user edits          |
 
 ---
 
@@ -67,13 +68,13 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 
 ## Available Components
 
-| Component | Description                             |
-| --------- | --------------------------------------- |
-| `Button`  | Multi-variant button with loading state |
-| `Input`   | Text input with validation states       |
-| `Card`    | Container with hover/clickable variants |
-| `Dialog`   | Dialog with focus trap                  |
-| `Select`  | Dropdown with keyboard navigation       |
+| Component | Description                                    |
+| --------- | ---------------------------------------------- |
+| `Button`  | 7 variants, 5 sizes, compound components       |
+| `Input`   | Text input with validation, label, hint, error |
+| `Card`    | Container with header, description, action     |
+| `Dialog`  | Modal with focus trap, description support     |
+| `Select`  | Dropdown with keyboard navigation, groups      |
 
 ---
 
@@ -151,8 +152,8 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 ## Project Status
 
-| Version | Status    | Description                                    |
-| ------- | --------- | ---------------------------------------------- |
-| v1.0.0  | ✅ Stable | Core engine with 3 frameworks, 3 style systems |
+| Version | Status    | Description                                               |
+| ------- | --------- | --------------------------------------------------------- |
+| v1.0.0  | ✅ Stable | Core engine with 3 frameworks, 3 style systems, 128 tests |
 
 See [ROADMAP.md](./ROADMAP.md) for future plans.

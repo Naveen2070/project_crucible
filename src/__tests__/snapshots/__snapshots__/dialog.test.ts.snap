@@ -96,6 +96,7 @@ export const DialogContent = ({ children, className }: { children: React.ReactNo
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
+      aria-describedby={\`\${titleId}-desc\`}
       onClick={(e) => e.stopPropagation()}
     >
       {children}
@@ -112,6 +113,11 @@ export const DialogHeader = ({ children, className }: { children: React.ReactNod
 export const DialogTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { titleId } = useDialogContext();
   return <h2 id={titleId} className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h2>;
+};
+
+export const DialogDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { titleId } = useDialogContext();
+  return <p id={\`\${titleId}-desc\`} className={[styles.description, className].filter(Boolean).join(' ')}>{children}</p>;
 };
 
 export const DialogClose = ({ className }: { className?: string }) => {
@@ -145,6 +151,7 @@ export const Dialog = Object.assign(DialogRoot, {
   Content: DialogContent,
   Header: DialogHeader,
   Title: DialogTitle,
+  Description: DialogDescription,
   Close: DialogClose,
   Body: DialogBody,
   Footer: DialogFooter,
@@ -156,6 +163,7 @@ DialogOverlay.displayName = 'Dialog.Overlay';
 DialogContent.displayName = 'Dialog.Content';
 DialogHeader.displayName = 'Dialog.Header';
 DialogTitle.displayName = 'Dialog.Title';
+DialogDescription.displayName = 'Dialog.Description';
 DialogClose.displayName = 'Dialog.Close';
 DialogBody.displayName = 'Dialog.Body';
 DialogFooter.displayName = 'Dialog.Footer';
@@ -193,10 +201,10 @@ exports[`Dialog snapshots > css mode snapshot 2`] = `
   display:         flex;
   flex-direction:  column;
   width:           100%;
-  animation:       DialogIn 0.3s ease-out;
+  animation:       dialog-open 0.2s ease-out;
 }
 
-@keyframes DialogIn {
+@keyframes dialog-open {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
@@ -217,6 +225,14 @@ exports[`Dialog snapshots > css mode snapshot 2`] = `
   font-family: var(--font-family);
 }
 
+.dialog-description, .description {
+  margin:      0.5rem 0 0;
+  font-size:   0.875rem;
+  color:       var(--color-text-muted);
+  font-family: var(--font-family);
+  line-height: 1.5;
+}
+
 .dialog-close, .close-button {
   background:    transparent;
   border:        none;
@@ -227,6 +243,11 @@ exports[`Dialog snapshots > css mode snapshot 2`] = `
   padding:       calc(var(--spacing-unit) * 2);
   border-radius: var(--radius-sm);
   transition:    background 0.15s ease;
+}
+
+.dialog-close:focus-visible, .close-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary);
 }
 
 .dialog-close:hover, .close-button:hover {
@@ -266,8 +287,6 @@ const meta: Meta<typeof Dialog> = {
   title: 'Crucible/Dialog',
   component: Dialog,
   parameters: { layout: 'centered' },
-import { Button } from '../Button/Button';
-
   argTypes: {
     variant:  { control: 'select', options: ['default', 'confirm'] },
     size:     { control: 'select', options: ['sm', 'md', 'lg'] },
@@ -275,6 +294,7 @@ import { Button } from '../Button/Button';
 };
 export default meta;
 type Story = StoryObj<typeof Dialog>;
+import { Button } from '../Button/Button';
 
 export const Default: Story = {
   args: { variant: 'default', size: 'md' },
@@ -592,8 +612,6 @@ const meta: Meta<typeof Dialog> = {
   title: 'Crucible/Dialog',
   component: Dialog,
   parameters: { layout: 'centered' },
-import { Button } from '../Button/Button';
-
   argTypes: {
     variant:  { control: 'select', options: ['default', 'confirm'] },
     size:     { control: 'select', options: ['sm', 'md', 'lg'] },
@@ -601,6 +619,7 @@ import { Button } from '../Button/Button';
 };
 export default meta;
 type Story = StoryObj<typeof Dialog>;
+import { Button } from '../Button/Button';
 
 export const Default: Story = {
   args: { variant: 'default', size: 'md' },

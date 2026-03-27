@@ -71,6 +71,14 @@ export const CardTitle = ({ children, className }: { children: React.ReactNode; 
   <h3 className={[styles.title, className].filter(Boolean).join(' ')}>{children}</h3>
 );
 
+export const CardDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <p className={[styles.description, className].filter(Boolean).join(' ')}>{children}</p>
+);
+
+export const CardAction = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={[styles.action, className].filter(Boolean).join(' ')}>{children}</div>
+);
+
 export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles.content, className].filter(Boolean).join(' ')}>{children}</div>
 );
@@ -82,16 +90,13 @@ export const CardFooter = ({ children, className }: { children: React.ReactNode;
 export const Card = Object.assign(CardRoot, {
   Header: CardHeader,
   Title: CardTitle,
+  Description: CardDescription,
+  Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
 });
 
 Card.displayName = 'Card';
-CardRoot.displayName = 'Card.Root';
-CardHeader.displayName = 'Card.Header';
-CardTitle.displayName = 'Card.Title';
-CardContent.displayName = 'Card.Content';
-CardFooter.displayName = 'Card.Footer';
 "
 `;
 
@@ -124,8 +129,8 @@ exports[`Card snapshots > css mode snapshot 2`] = `
 }
 
 .card:focus-visible {
-  outline:        2px solid var(--color-primary);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--color-primary);
 }
 
 /* Sizes */
@@ -136,18 +141,18 @@ exports[`Card snapshots > css mode snapshot 2`] = `
 /* Variants */
 .card--hoverable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .card--clickable {
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card--clickable:hover {
   border-color: var(--color-primary);
-  box-shadow:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  transform:    translateY(-2px);
+  box-shadow:   0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform:    translateY(-4px);
 }
 
 .card--clickable:active {
@@ -166,6 +171,21 @@ exports[`Card snapshots > css mode snapshot 2`] = `
   font-weight: 600;
   color:       var(--color-text);
   font-family: var(--font-family);
+}
+
+.description, .card-description {
+  margin:      0;
+  padding:     0 var(--card-header-padding);
+  font-size:   0.875rem;
+  color:       var(--color-text-muted);
+  font-family: var(--font-family);
+}
+
+.action, .card-action {
+  margin-left: auto;
+  display:     flex;
+  align-items: center;
+  gap:        var(--spacing-unit);
 }
 
 .content, .card-content {
@@ -373,7 +393,15 @@ export const CardHeader = ({ children, className }: { children: React.ReactNode;
 );
 
 export const CardTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <h3 className={['font-bold text-lg mb-2 text-[var(--color-text)]', className].filter(Boolean).join(' ')}>{children}</h3>
+  <h3 className={['font-semibold text-lg text-[var(--color-text)]', className].filter(Boolean).join(' ')}>{children}</h3>
+);
+
+export const CardDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <p className={['text-sm text-[var(--color-text-muted)]', className].filter(Boolean).join(' ')}>{children}</p>
+);
+
+export const CardAction = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={['ml-auto flex items-center gap-2', className].filter(Boolean).join(' ')}>{children}</div>
 );
 
 export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
@@ -387,16 +415,67 @@ export const CardFooter = ({ children, className }: { children: React.ReactNode;
 export const Card = Object.assign(CardRoot, {
   Header: CardHeader,
   Title: CardTitle,
+  Description: CardDescription,
+  Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
 });
 
 Card.displayName = 'Card';
-CardRoot.displayName = 'Card.Root';
-CardHeader.displayName = 'Card.Header';
-CardTitle.displayName = 'Card.Title';
-CardContent.displayName = 'Card.Content';
-CardFooter.displayName = 'Card.Footer';
+
+export const CardDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <p className={['text-sm text-[var(--color-text-muted)]', className].filter(Boolean).join(' ')}>{children}</p>
+);
+
+export const CardAction = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={['ml-auto flex items-center gap-2', className].filter(Boolean).join(' ')}>{children}</div>
+);
+
+export const Card: React.FC<CardProps> = ({
+  variant = 'default',
+  size = 'md',
+  title,
+  children,
+  onClick,
+  className,
+  href,
+}) => {
+  const isClickable = variant === 'clickable' || !!onClick || !!href;
+  
+  const cls = [
+    'rounded-[var(--radius-lg)] border-[1.5px] transition-all text-left w-full block',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2',
+    variantClasses[variant],
+    sizeClasses[size],
+    className,
+  ].filter(Boolean).join(' ');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick?.();
+      if (href) window.location.href = href;
+    }
+  };
+
+  const Component = href ? 'a' : isClickable ? 'button' : 'article';
+
+  return (
+    <Component
+      className={cls}
+      onClick={onClick}
+      href={href}
+      role={href ? undefined : isClickable ? 'button' : 'article'}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? handleKeyDown : undefined}
+    >
+      {title && <h3 className="font-bold text-lg mb-2 text-[var(--color-text)]">{title}</h3>}
+      <div className="text-[var(--color-text-muted)]">{children}</div>
+    </Component>
+  );
+};
+
+Card.displayName = 'Card';
 "
 `;
 

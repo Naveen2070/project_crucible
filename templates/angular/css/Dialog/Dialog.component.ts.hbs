@@ -11,10 +11,14 @@ import { CommonModule } from '@angular/common';
 export class DialogComponent {
   @Input() isOpen = false;
   @Input() title = '';
+  @Input() description = '';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() variant: 'default' | 'confirm' = 'default';
 
   @Output() close = new EventEmitter<void>();
+
+  titleId = `dialog-title-${Math.random().toString(36).substr(2, 9)}`;
+  descriptionId = `dialog-desc-${Math.random().toString(36).substr(2, 9)}`;
 
   onClose() {
     this.close.emit();
