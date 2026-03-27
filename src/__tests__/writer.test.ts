@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
-import { loadHashes, saveHashes, writeFiles, HASH_FILE, LEGACY_HASH_FILE } from '../scaffold/writer';
+import {
+  loadHashes,
+  saveHashes,
+  writeFiles,
+  HASH_FILE,
+  LEGACY_HASH_FILE,
+} from '../scaffold/writer';
 
 const TEST_DIR = path.join(__dirname, '../../.writer-test-temp');
 
@@ -29,8 +35,8 @@ describe('loadHashes', () => {
       configHash: 'abc',
       generatedAt: '2023-01-01',
       files: {
-        'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' }
-      }
+        'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' },
+      },
     };
     await fs.writeJson(manifestPath, mockManifest);
     const result = await loadHashes(TEST_DIR);
@@ -40,7 +46,7 @@ describe('loadHashes', () => {
   it('migrates legacy hash file when manifest does not exist', async () => {
     const legacyPath = path.join(TEST_DIR, LEGACY_HASH_FILE);
     await fs.writeJson(legacyPath, { 'Button/Button.tsx': 'legacyHash123' });
-    
+
     const result = await loadHashes(TEST_DIR);
     expect(result.files['Button/Button.tsx'].contentHash).toBe('legacyHash123');
   });
@@ -62,8 +68,8 @@ describe('saveHashes', () => {
       configHash: 'abc',
       generatedAt: '2023-01-01',
       files: {
-        'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' }
-      }
+        'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' },
+      },
     };
     await saveHashes(manifest, TEST_DIR);
     const result = await fs.readJson(manifestPath);
@@ -163,5 +169,51 @@ describe('writeFiles', () => {
 
     const hashes = await loadHashes(TEST_DIR);
     expect(hashes.files['Button/Button.tsx']).toBeDefined();
+  });
+
+  it('5.2: does not save manifest in dry-run mode', async () => {
+    const files = { 'Button.tsx': 'export const Button = () => {};' };
+    await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, dryRun: true, quiet: true });
+
+    const manifestPath = path.join(TEST_DIR, HASH_FILE);
+    const manifestExists = await fs.pathExists(manifestPath);
+    expect(manifestExists).toBe(false);
+  });
+
+  it('5.3: does not modify existing files in dry-run mode', async () => {
+    await fs.ensureDir(path.join(outputDir, componentName));
+    await fs.writeFile(path.join(outputDir, componentName, 'Button.tsx'), '// original');
+
+    const files = { 'Button.tsx': '// new content' };
+    await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, dryRun: true, quiet: true });
+
+    const content = await fs.readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
+    expect(content).toBe('// original');
+  });
+
+  it('5.8: handles files without manifest entry', async () => {
+    await fs.ensureDir(path.join(outputDir, componentName));
+    await fs.writeFile(path.join(outputDir, componentName, 'Button.tsx'), '// existing file');
+
+    const files = { 'Button.tsx': '// new content' };
+    await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
+
+    const content = await fs.readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
+    expect(content).toContain('// new content');
+  });
+
+  it('5.11: throws on read-only file write', async () => {
+    await fs.ensureDir(path.join(outputDir, componentName));
+    const filePath = path.join(outputDir, componentName, 'Button.tsx');
+    await fs.writeFile(filePath, '// existing');
+
+    await fs.chmod(filePath, 0o444);
+
+    const files = { 'Button.tsx': '// new content' };
+    await expect(
+      writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true }),
+    ).rejects.toThrow();
+
+    await fs.chmod(filePath, 0o644);
   });
 });
