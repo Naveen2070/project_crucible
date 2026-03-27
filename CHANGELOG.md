@@ -14,6 +14,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Semantic Color Tokens**: Added `--color-primary-foreground`, `--color-secondary-foreground`,
   `--color-destructive-foreground`, `--color-accent-foreground`, `--foreground`
 - **Dialog Open Animation**: Standardized `dialog-open` keyframe animation
+- **CLI Command Shorthands**: Added aliases for all commands (i, d, t, e, a, l, pg, po, pd, c, pcl,
+  cfg)
+- **CLI New Flags**: Added `-s/--style`, `-t/--theme`, `-a/--all` flags to `add` command
+- **CLI New Commands**: Added `clean`, `pg:clean`, `config` commands
 
 ### Changed
 

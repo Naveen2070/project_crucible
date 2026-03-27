@@ -238,13 +238,22 @@ npm run audit:templates  # Check templates for logic violations
 
 ```bash
 # Single component
-crucible add Button
+crucible add Button                    # or: crucible a Button
 
 # Multiple components
 crucible add Button Input Card
 
+# Add all components
+crucible add -a                        # or: crucible a -a
+
+# With style override
+crucible add Button -s tailwind        # css, tailwind, scss
+
+# With theme override
+crucible add Button -t soft            # minimal, soft
+
 # With framework
-crucible add Button --framework vue
+crucible add Button --framework vue    # or: -f vue
 
 # With stories
 crucible add Button --stories
@@ -259,28 +268,36 @@ crucible add
 ### Setup & Configuration
 
 ```bash
-crucible init              # Scaffold config file
-crucible doctor            # Validate setup
-crucible eject            # Copy preset to config
-crucible list             # Show available components
+crucible init              # Scaffold config file (alias: i)
+crucible doctor            # Validate setup (alias: d)
+crucible eject            # Copy preset to config (alias: e)
+crucible list             # Show available components (alias: l)
+crucible config           # Show current config (alias: cfg)
 ```
 
 ### Tokens
 
 ```bash
-crucible tokens              # Regenerate tokens.css
-crucible tokens --force      # Force overwrite
+crucible tokens              # Regenerate tokens.css (alias: t)
+crucible tokens --force      # Force overwrite (alias: t -f)
 crucible tokens --dry-run    # Preview
 ```
 
 ### Playground
 
 ```bash
-crucible pg:gen             # Generate all 3 frameworks
-crucible pg:gen --force     # Clean + regenerate (removes .crucible, __generated__, config)
-crucible pg:gen -f           # Short form of --force
-crucible pg:open            # Open Storybook
-crucible pg:dev             # Start dev server
+crucible pg:gen             # Generate all 3 frameworks (alias: pg)
+crucible pg:gen --force     # Clean + regenerate (alias: pg -f)
+crucible pg:open            # Open Storybook (alias: po)
+crucible pg:dev             # Start dev server (alias: pd)
+crucible pg:clean           # Clean all playgrounds (alias: pcl)
+```
+
+### Cleanup
+
+```bash
+crucible clean              # Remove generated files (alias: c)
+crucible clean --all         # Also remove config (alias: c -a)
 ```
 
 ---

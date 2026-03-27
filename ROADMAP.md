@@ -21,22 +21,25 @@
 
 ## v1.0 — Complete
 
-| Feature                               | Status |
-| ------------------------------------- | ------ |
-| TypeScript CLI engine                 | ✅     |
-| React, Vue, Angular frameworks        | ✅     |
-| CSS, Tailwind, SCSS style systems     | ✅     |
-| Theme presets (minimal, soft)         | ✅     |
-| Dark mode (OKLCH derivation)          | ✅     |
-| Hash-based user edit protection       | ✅     |
-| Template logic enforcement            | ✅     |
-| Compound components                   | ✅     |
-| Interactive CLI + Tailwind auto-setup | ✅     |
-| Component registry                    | ✅     |
-| 128 tests across 19 test files        | ✅     |
-| Professional component patterns       | ✅     |
-| DialogDescription + aria support      | ✅     |
-| Semantic color tokens                 | ✅     |
+| Feature                                    | Status |
+| ------------------------------------------ | ------ |
+| TypeScript CLI engine                      | ✅     |
+| React, Vue, Angular frameworks             | ✅     |
+| CSS, Tailwind, SCSS style systems          | ✅     |
+| Theme presets (minimal, soft)              | ✅     |
+| Dark mode (OKLCH derivation)               | ✅     |
+| Hash-based user edit protection            | ✅     |
+| Template logic enforcement                 | ✅     |
+| Compound components                        | ✅     |
+| Interactive CLI + Tailwind auto-setup      | ✅     |
+| Component registry                         | ✅     |
+| 128 tests across 19 test files             | ✅     |
+| Professional component patterns            | ✅     |
+| DialogDescription + aria support           | ✅     |
+| Semantic color tokens                      | ✅     |
+| CLI command shorthands (i, d, t, etc.)     | ✅     |
+| CLI new flags (--style, --theme, --all)    | ✅     |
+| CLI new commands (clean, pg:clean, config) | ✅     |
 
 ---
 
