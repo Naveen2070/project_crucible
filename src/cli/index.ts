@@ -13,6 +13,11 @@ import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './pl
 
 const program = new Command();
 
+function warnForce(cmd: string): void {
+  console.log(chalk.yellow(`\n⚠  --force flag is active for: ${cmd}`));
+  console.log(chalk.gray('   This will overwrite user-edited files and bypass hash protection.\n'));
+}
+
 program
   .name('crucible')
   .description(
@@ -57,13 +62,14 @@ program
   .option('--force', 'Overwrite existing tokens.css')
   .option('--dry-run', 'Show what would be generated without writing')
   .option('--cwd <path>', 'Current working directory', '.')
-  .action((opts) =>
+  .action((opts) => {
+    if (opts.force) warnForce('crucible tokens');
     runTokens({
       force: opts.force,
       dryRun: opts.dryRun,
       cwd: path.resolve(process.cwd(), opts.cwd || '.'),
-    }),
-  );
+    });
+  });
 
 program
   .command('eject')
@@ -106,7 +112,10 @@ program
   .option('--cwd <path>', 'Current working directory', '.')
   .option('--verbose', 'Enable verbose logging')
   .option('--quiet', 'Disable all logging except errors')
-  .action((components: string[], opts: any) => runAdd(components, opts));
+  .action((components: string[], opts: any) => {
+    if (opts.force) warnForce('crucible add');
+    runAdd(components, opts);
+  });
 
 program
   .command('list')
@@ -126,6 +135,7 @@ program
   .option('--no-stories', 'Exclude story files')
   .option('-f, --force', 'Clean up existing generated files before generating')
   .action(async (framework: string | undefined, opts: any) => {
+    if (opts.force) warnForce('crucible pg:gen');
     await runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
   });
 

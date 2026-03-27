@@ -247,9 +247,20 @@ const isMain = require.main === module;
 
 if (isMain) {
   const args = process.argv.slice(2);
-  const framework = args[0] as Framework | undefined;
-  const stories = !args.includes('--no-stories');
   const force = args.includes('--force') || args.includes('-f');
+
+  if (force) {
+    console.log(chalk.yellow('\n⚠  --force flag is active'));
+    console.log(
+      chalk.gray('   This will clean up existing generated files before regenerating.\n'),
+    );
+  }
+
+  const validFrameworks = [...FRAMEWORKS];
+  const framework = args.find((arg) => validFrameworks.includes(arg as Framework)) as
+    | Framework
+    | undefined;
+  const stories = !args.includes('--no-stories');
 
   generatePlayground({
     framework: framework || 'all',
