@@ -1,8 +1,13 @@
-export async function runPlaygroundGenerate(opts: { framework?: string; stories?: boolean }) {
+export async function runPlaygroundGenerate(opts: {
+  framework?: string;
+  stories?: boolean;
+  force?: boolean;
+}) {
   const { execSync } = await import('child_process');
   const framework = opts.framework || 'all';
   const storiesFlag = opts.stories !== false ? '--stories' : '--no-stories';
-  execSync(`npx tsx scripts/generate-playground.ts ${framework} ${storiesFlag}`, {
+  const forceFlag = opts.force ? '--force' : '';
+  execSync(`npx tsx scripts/generate-playground.ts ${framework} ${storiesFlag} ${forceFlag}`, {
     cwd: process.cwd(),
     stdio: 'inherit',
   });

@@ -35,9 +35,35 @@ function getGeneratedPath(framework: Framework): string {
   return path.join(getPlaygroundPath(framework), 'src', '__generated__');
 }
 
+function getPublicGeneratedPath(framework: Framework): string {
+  return path.join(getPlaygroundPath(framework), 'public', '__generated__');
+}
+
+function getCruciblePath(framework: Framework): string {
+  return path.join(getPlaygroundPath(framework), '.crucible');
+}
+
 function isGenerated(framework: Framework): boolean {
   const genPath = getGeneratedPath(framework);
   return fs.existsSync(genPath) && fs.readdirSync(genPath).length > 0;
+}
+
+async function cleanupPlayground(framework: Framework): Promise<void> {
+  const pgPath = getPlaygroundPath(framework);
+  const pathsToDelete = [
+    getConfigPath(framework),
+    getGeneratedPath(framework),
+    getPublicGeneratedPath(framework),
+    getCruciblePath(framework),
+  ];
+
+  console.log(chalk.gray(`  Cleaning up existing files...`));
+  for (const p of pathsToDelete) {
+    if (fs.existsSync(p)) {
+      await fs.remove(p);
+      console.log(chalk.gray(`    Removed: ${path.relative(pgPath, p)}`));
+    }
+  }
 }
 
 async function createConfig(framework: Framework): Promise<void> {
@@ -56,7 +82,7 @@ async function createConfig(framework: Framework): Promise<void> {
         border: '#E2E1F0',
         text: '#1A1A2E',
         textMuted: '#6B6B8A',
-        danger: '#E24B4A',
+        destructive: '#E24B4A',
         success: '#1D9E75',
       },
       radius: {
@@ -119,6 +145,10 @@ async function generateFramework(
   console.log(chalk.cyan(`\n📦 Generating ${framework} playground...`));
 
   try {
+    if (options.force) {
+      await cleanupPlayground(framework);
+    }
+
     await fs.ensureDir(path.join(playgroundPath, 'src'));
     await createConfig(framework);
     await installDependencies(framework);
@@ -219,7 +249,7 @@ if (isMain) {
   const args = process.argv.slice(2);
   const framework = args[0] as Framework | undefined;
   const stories = !args.includes('--no-stories');
-  const force = args.includes('--force');
+  const force = args.includes('--force') || args.includes('-f');
 
   generatePlayground({
     framework: framework || 'all',

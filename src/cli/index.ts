@@ -122,8 +122,9 @@ program
   .description('Generate playground components for frameworks')
   .option('--stories', 'Include story files', true)
   .option('--no-stories', 'Exclude story files')
+  .option('-f, --force', 'Clean up existing generated files before generating')
   .action(async (framework: string | undefined, opts: any) => {
-    await runPlaygroundGenerate({ framework, stories: opts.stories });
+    await runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
   });
 
 program
