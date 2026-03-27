@@ -1,7 +1,7 @@
 {
   "name": "project_crucible",
   "version": "1.0.0",
-  "description": "Crucible — Design System Engine",
+  "description": "Crucible — Code Generation Engine that generates style system/spec-based components",
   "main": "dist/cli/index.js",
   "scripts": {
     "audit:templates": "tsx scripts/audit-templates.ts",

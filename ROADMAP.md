@@ -1,5 +1,7 @@
 # Crucible Roadmap
 
+> **Crucible — Code Generation Engine that generates style system/spec-based components**
+
 **Current Version:** 1.0.0 | **Last Updated:** March 2026
 
 ---
@@ -21,25 +23,25 @@
 
 ## v1.0 — Complete
 
-| Feature                                    | Status |
-| ------------------------------------------ | ------ |
-| TypeScript CLI engine                      | ✅     |
-| React, Vue, Angular frameworks             | ✅     |
-| CSS, Tailwind, SCSS style systems          | ✅     |
-| Theme presets (minimal, soft)              | ✅     |
-| Dark mode (OKLCH derivation)               | ✅     |
-| Hash-based user edit protection            | ✅     |
-| Template logic enforcement                 | ✅     |
-| Compound components                        | ✅     |
-| Interactive CLI + Tailwind auto-setup      | ✅     |
-| Component registry                         | ✅     |
-| 128 tests across 19 test files             | ✅     |
-| Professional component patterns            | ✅     |
-| DialogDescription + aria support           | ✅     |
-| Semantic color tokens                      | ✅     |
-| CLI command shorthands (i, d, t, etc.)     | ✅     |
-| CLI new flags (--style, --theme, --all)    | ✅     |
-| CLI new commands (clean, pg:clean, config) | ✅     |
+| Feature                                       | Status |
+| --------------------------------------------- | ------ |
+| TypeScript CLI engine                         | ✅     |
+| React, Vue, Angular frameworks                | ✅     |
+| CSS, Tailwind, SCSS style systems             | ✅     |
+| Theme presets (minimal, soft)                 | ✅     |
+| Dark mode (OKLCH derivation)                  | ✅     |
+| Hash-based user edit protection               | ✅     |
+| Template logic enforcement                    | ✅     |
+| Compound components                           | ✅     |
+| Interactive CLI + Tailwind auto-setup         | ✅     |
+| Component registry                            | ✅     |
+| 230 tests across 24 test files + 19 E2E tests | ✅     |
+| Professional component patterns               | ✅     |
+| DialogDescription + aria support              | ✅     |
+| Semantic color tokens                         | ✅     |
+| CLI command shorthands (i, d, t, etc.)        | ✅     |
+| CLI new flags (--style, --theme, --all)       | ✅     |
+| CLI new commands (clean, pg:clean, config)    | ✅     |
 
 ---
 
@@ -77,29 +79,48 @@ gantt
 
 ---
 
-## v1.1 — Documentation & A11y Testing ✅
+## v1.1 — Documentation & A11y Testing ✅ (COMPLETE)
 
 ### Phase 5: Template Enforcement ✅
 
-- Template audit script implemented
-- CI integration (prebuild hook)
+- Template audit script implemented ✅
+- CI integration (prebuild hook) ✅
 
 ### Phase 6: A11y Testing ✅
 
 **Goals:**
 
-- Programmatic accessibility verification for all components
-- Theme permutation testing (30+ snapshots)
-- Dark mode contrast validation
+- Programmatic accessibility verification for all components ✅
+- Theme permutation testing (90+ snapshots) ✅
+- Dark mode contrast validation ✅
 
 **Deliverables:**
 
 - vitest-axe integration ✅
 - Dialog focus trap tests ✅
 - Select keyboard navigation tests ✅
-- Theme permutation snapshots ✅
+- Theme permutation snapshots (90 tests) ✅
 - DialogDescription with aria-describedby ✅
 - Semantic color tokens (foreground variants) ✅
+
+### All Test Phases Complete ✅
+
+| Phase     | Tests   | Status          |
+| --------- | ------- | --------------- |
+| Phase 1   | 1       | ✅ Done         |
+| Phase 2   | 11      | ✅ Done         |
+| Phase 3   | 24      | ✅ Done         |
+| Phase 4   | 108     | ✅ Done         |
+| Phase 5   | 16      | ✅ Done         |
+| Phase 6   | 11      | ✅ Done         |
+| Phase 7   | 17      | ✅ Done         |
+| Phase 8   | 3       | ✅ Done         |
+| Phase 9   | 5       | ✅ Done         |
+| Phase 10  | 3       | ✅ Done         |
+| Phase 11  | 2       | ✅ Done         |
+| **TOTAL** | **230** | ✅ **COMPLETE** |
+
+E2E Tests: **19 passed** ✅
 
 ---
 

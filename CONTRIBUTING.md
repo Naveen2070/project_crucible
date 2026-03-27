@@ -1,5 +1,7 @@
 # Contributing to Crucible
 
+> **Crucible — Code Generation Engine that generates style system/spec-based components**
+
 Welcome! This guide covers everything you need to set up, run, and contribute to Crucible.
 
 ---
@@ -218,8 +220,8 @@ npm run dev            # Watch mode + playground (concurrent)
 ### Testing
 
 ```bash
-npm test               # Run all tests (128 tests, 19 files)
-npm run test:e2e      # Run E2E script (15 phases)
+npm test               # Run all tests (230 tests, 24 files)
+npm run test:e2e       # Run E2E script (19 phases)
 npm run test:watch    # Watch mode
 ```
 

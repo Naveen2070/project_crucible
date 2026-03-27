@@ -6,8 +6,9 @@
 
 ## 1. System Overview
 
-Crucible is a **code generation engine**, not a component library. It has no runtime presence in the
-user's application. Its entire job is to produce files the user then owns.
+Crucible is a **code generation engine** that generates style system/spec-based components, not a
+component library. It has no runtime presence in the user's application. Its entire job is to
+produce files the user then owns.
 
 ### The Five Layers
 
@@ -811,7 +812,7 @@ graph BT
 
 ### 15.3 Test Suite
 
-**Current: 128 tests across 19 test files**
+**Current: 230 tests across 24 test files + 19 E2E tests**
 
 | Test File               | Coverage                                    |
 | ----------------------- | ------------------------------------------- |

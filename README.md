@@ -1,9 +1,9 @@
-# ⚗ Crucible — Design System Engine
+# ⚗ Crucible — Code Generation Engine
 
 > **Generated once. Yours forever.**
 >
-> A code-generation engine that scaffolds production-ready components into your project. No
-> wrappers, no black-box libraries. You own every file generated.
+> A code generation engine that scaffolds production-ready, style system/spec-based components into
+> your project. No wrappers, no black-box libraries. You own every file generated.
 
 [![npm version](https://img.shields.io/npm/v/crucible.svg)](https://www.npmjs.com/package/crucible)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -176,8 +176,8 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 ## Project Status
 
-| Version | Status    | Description                                               |
-| ------- | --------- | --------------------------------------------------------- |
-| v1.0.0  | ✅ Stable | Core engine with 3 frameworks, 3 style systems, 128 tests |
+| Version | Status    | Description                                                                   |
+| ------- | --------- | ----------------------------------------------------------------------------- |
+| v1.0.0  | ✅ Stable | Core engine with 3 frameworks, 3 style systems, 230 unit tests + 19 E2E tests |
 
 See [ROADMAP.md](./ROADMAP.md) for future plans.
