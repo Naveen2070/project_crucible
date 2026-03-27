@@ -220,4 +220,25 @@ program
     console.log(chalk.blue('\n✨ Playground clean complete!\n'));
   });
 
+// config command - show current config
+program
+  .command('config')
+  .alias('cfg')
+  .description('Show current crucible.config.json')
+  .option('--json', 'Output raw JSON')
+  .option('--cwd <path>', 'Current working directory', '.')
+  .action(async (opts: any) => {
+    const cwd = path.resolve(process.cwd(), opts.cwd);
+    const configPath = path.join(cwd, 'crucible.config.json');
+
+    if (!(await fs.pathExists(configPath))) {
+      console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
+      process.exit(1);
+    }
+
+    const config = await fs.readJson(configPath);
+    const output = opts.json ? JSON.stringify(config) : JSON.stringify(config, null, 2);
+    console.log(output);
+  });
+
 program.parse();
