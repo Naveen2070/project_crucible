@@ -10,7 +10,7 @@ const lightColors = {
   border: '#E2E1F0',
   text: '#1A1A2E',
   textMuted: '#6B6B8A',
-  danger: '#E24B4A',
+  destructive: '#E24B4A',
   success: '#1D9E75',
 };
 
@@ -32,7 +32,11 @@ describe('normalizeDarkMode', () => {
 
 describe('deriveDarkTokens', () => {
   it('auto: flips text to light', () => {
-    const dark = deriveDarkTokens(lightColors, { strategy: DarkModeStrategy.Auto }, ThemePreset.Minimal);
+    const dark = deriveDarkTokens(
+      lightColors,
+      { strategy: DarkModeStrategy.Auto },
+      ThemePreset.Minimal,
+    );
     expect(dark.text).toBe('#f1f5f9');
     expect(dark.textMuted).toBe('#94a3b8');
   });
@@ -48,7 +52,11 @@ describe('deriveDarkTokens', () => {
   });
 
   it('shifts primary color', () => {
-    const dark = deriveDarkTokens(lightColors, { strategy: DarkModeStrategy.Auto }, ThemePreset.Minimal);
+    const dark = deriveDarkTokens(
+      lightColors,
+      { strategy: DarkModeStrategy.Auto },
+      ThemePreset.Minimal,
+    );
     expect(dark.primary).not.toBe(lightColors.primary);
     // #6C63FF shifted → usually lighter in dark mode
   });

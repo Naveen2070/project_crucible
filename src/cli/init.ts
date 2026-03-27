@@ -21,7 +21,7 @@ const DEFAULT_CONFIG = `{
       "border": "#E2E1F0",
       "text": "#1A1A2E",
       "textMuted": "#6B6B8A",
-      "danger": "#E24B4A",
+      "destructive": "#E24B4A",
       "success": "#1D9E75"
     },
     "radius": {

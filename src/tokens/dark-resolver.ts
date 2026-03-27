@@ -28,11 +28,13 @@ export function deriveDarkTokens(
     border: withAlpha(light.primary, 0.15),
     text: '#f1f5f9',
     textMuted: '#94a3b8',
-    danger: shiftColor(light.danger, { l: +10 }),
+    destructive: shiftColor(light.destructive, { l: +10 }),
     success: shiftColor(light.success, { l: +10 }),
   };
 
-  return config.strategy === DarkModeStrategy.Manual && config.tokens ? { ...auto, ...config.tokens } : auto;
+  return config.strategy === DarkModeStrategy.Manual && config.tokens
+    ? { ...auto, ...config.tokens }
+    : auto;
 }
 
 function shiftColor(hex: string, shift: { l?: number; c?: number }): string {

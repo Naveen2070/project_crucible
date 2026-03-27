@@ -7,7 +7,7 @@ export const softTokens = {
     border: '#DDD6FE',
     text: '#1E1B2E',
     textMuted: '#6D6490',
-    danger: '#DC2626',
+    destructive: '#DC2626',
     success: '#059669',
   },
   radius: { sm: '6px', md: '12px', lg: '20px' },
