@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Crucible — Code Generation Engine that generates style system/spec-based components for React, Vue, and Angular. No runtime dependencies. You own every file generated.",
   "main": "dist/cli/index.js",
-  "type": "module",
   "scripts": {
     "audit:templates": "tsx scripts/audit-templates.ts",
     "prebuild": "npm run audit:templates",
