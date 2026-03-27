@@ -13,12 +13,26 @@ interface E2EResult {
   error?: string;
 }
 
+function runCLI(args: string): string {
+  try {
+    return execSync(`node "${CLI_PATH}" ${args}`, {
+      cwd: TEST_DIR,
+      encoding: 'utf-8',
+    }) as string;
+  } catch (e: any) {
+    if (e.stdout) {
+      console.log(e.stdout);
+    }
+    if (e.stderr) {
+      console.error(e.stderr);
+    }
+    throw new Error(e.message);
+  }
+}
+
 async function runE2E() {
   console.log(chalk.blue('\n🚀 Starting Comprehensive E2E Test Suite...\n'));
   const results: E2EResult[] = [];
-
-  // Build is handled separately - assuming CLI is already built
-  // execSync('npm run build', { cwd: ROOT_DIR, stdio: 'ignore' });
 
   // Cleanup previous test runs
   await fs.remove(TEST_DIR);
@@ -28,29 +42,15 @@ async function runE2E() {
     // Setup basic package.json
     await fs.writeJson(
       path.join(TEST_DIR, 'package.json'),
-      {
-        name: 'crucible-e2e-test',
-        version: '1.0.0',
-        dependencies: { react: '^18.2.0', 'react-dom': '^18.2.0' },
-        devDependencies: {
-          '@types/react': '^18.2.0',
-          '@types/react-dom': '^18.2.0',
-          typescript: '^5.0.0',
-          vite: '^5.0.0',
-          '@storybook/react': '^7.6.0',
-        },
-      },
+      { name: 'test-project', version: '1.0.0', type: 'module' },
       { spaces: 2 },
     );
 
-    // Helper function for running CLI commands
-    const runCLI = (args: string, cwd: string = TEST_DIR) => {
-      return execSync(`node "${CLI_PATH}" ${args}`, { cwd, encoding: 'utf-8' });
-    };
+    // ==================== REACT TESTS ====================
+    console.log(chalk.cyan('\n�️ REACT FRAMEWORK'));
 
-    // ==================== REACT CSS TESTS ====================
-    console.log(chalk.cyan('📦 Phase 1: React + CSS Framework'));
-
+    // React + CSS
+    console.log(chalk.cyan('📦 Phase 1: React + CSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -69,27 +69,69 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-
     runCLI('add Button --stories -y');
-    const reactButtonFiles = [
+    const reactCssFiles = [
       'Button/Button.tsx',
       'Button/Button.module.css',
       'Button/Button.stories.tsx',
     ];
-    for (const file of reactButtonFiles) {
+    for (const file of reactCssFiles) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
       }
     }
-    results.push({ phase: 'React CSS + Button', passed: true });
+    results.push({ phase: 'React + CSS + Button', passed: true });
 
-    // ==================== REACT TAILWIND TESTS ====================
-    console.log(chalk.cyan('📦 Phase 2: React + Tailwind Framework'));
+    // React + SCSS
+    console.log(chalk.cyan('📦 Phase 2: React + SCSS'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    runCLI('add Button -y');
+    if (
+      !(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.module.scss')))
+    ) {
+      throw new Error('Missing: Button/Button.module.scss');
+    }
+    results.push({ phase: 'React + SCSS + Button', passed: true });
 
-    const tailwindConfig = (await fs.readJson(path.join(TEST_DIR, 'crucible.config.json'))) as any;
-    tailwindConfig.styleSystem = 'tailwind';
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), tailwindConfig, { spaces: 2 });
-
+    // React + Tailwind
+    console.log(chalk.cyan('📦 Phase 3: React + Tailwind'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
     runCLI('add Input Card -y');
     for (const comp of ['Input', 'Card']) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
@@ -100,27 +142,31 @@ async function runE2E() {
         throw new Error(`${comp} should not have CSS module in Tailwind mode`);
       }
     }
-    results.push({ phase: 'React Tailwind + Input/Card', passed: true });
+    results.push({ phase: 'React + Tailwind + Input/Card', passed: true });
 
     // ==================== ANGULAR TESTS ====================
-    console.log(chalk.cyan('📦 Phase 3: Angular Framework'));
+    console.log(chalk.cyan('\n🅰️ ANGULAR FRAMEWORK'));
 
-    const angularConfig = {
-      version: '1.0.0',
-      framework: 'angular',
-      styleSystem: 'css',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
+    // Angular + CSS
+    console.log(chalk.cyan('📦 Phase 4: Angular + CSS'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
       },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), angularConfig, { spaces: 2 });
-
+      { spaces: 2 },
+    );
     await fs.writeJson(
       path.join(TEST_DIR, 'tsconfig.json'),
       {
@@ -135,114 +181,42 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'Input'));
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'Card'));
     runCLI('add Dialog -y');
-    const angularDialogFiles = [
+    const angularCssFiles = [
       'dialog/dialog.component.ts',
       'dialog/dialog.component.html',
       'dialog/dialog.component.css',
     ];
-    for (const file of angularDialogFiles) {
+    for (const file of angularCssFiles) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
       }
     }
-    results.push({ phase: 'Angular + Dialog', passed: true });
+    results.push({ phase: 'Angular + CSS + Dialog', passed: true });
 
-    // ==================== VUE TESTS ====================
-    console.log(chalk.cyan('📦 Phase 4: Vue + CSS Framework'));
-
-    const vueConfig = {
-      version: '1.0.0',
-      framework: 'vue',
-      styleSystem: 'css',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
+    // Angular + SCSS
+    console.log(chalk.cyan('📦 Phase 5: Angular + SCSS'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
       },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), vueConfig, { spaces: 2 });
-
-    runCLI('add Select --stories -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.vue')))) {
-      throw new Error('Missing: Select/Select.vue');
-    }
-    if (
-      !(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.stories.ts')))
-    ) {
-      throw new Error('Missing: Select/Select.stories.ts');
-    }
-    results.push({ phase: 'Vue + CSS + Select', passed: true });
-
-    // ==================== ANGULAR TAILWIND TESTS ====================
-    console.log(chalk.cyan('📦 Phase 5: Angular + Tailwind Framework'));
-
-    const angularTailwindConfig = {
-      version: '1.0.0',
-      framework: 'angular',
-      styleSystem: 'tailwind',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
-      },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), angularTailwindConfig, {
-      spaces: 2,
-    });
-
-    // Clean up previous Angular files
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
-
-    runCLI('add Dialog -y');
-    const angularTailwindFiles = ['dialog/dialog.component.ts', 'dialog/dialog.component.html'];
-    for (const file of angularTailwindFiles) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
-        throw new Error(`Missing: ${file}`);
-      }
-    }
-    // Tailwind should NOT create CSS files
-    const hasCssFile = await fs.pathExists(
-      path.join(TEST_DIR, 'src/components', 'dialog', 'dialog.component.css'),
+      { spaces: 2 },
     );
-    if (hasCssFile) {
-      throw new Error('Angular + Tailwind should not create CSS files');
-    }
-    results.push({ phase: 'Angular + Tailwind + Dialog', passed: true });
-
-    // ==================== ANGULAR SCSS TESTS ====================
-    console.log(chalk.cyan('📦 Phase 6: Angular + SCSS Framework'));
-
-    const angularScssConfig = {
-      version: '1.0.0',
-      framework: 'angular',
-      styleSystem: 'scss',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
-      },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), angularScssConfig, {
-      spaces: 2,
-    });
-
-    // Clean up previous Angular files
     await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
-
     runCLI('add Dialog -y');
     const angularScssFiles = [
       'dialog/dialog.component.ts',
@@ -256,37 +230,128 @@ async function runE2E() {
     }
     results.push({ phase: 'Angular + SCSS + Dialog', passed: true });
 
-    // ==================== VUE TAILWIND TESTS ====================
-    console.log(chalk.cyan('📦 Phase 7: Vue + Tailwind Framework'));
-
-    const vueTailwindConfig = {
-      version: '1.0.0',
-      framework: 'vue',
-      styleSystem: 'tailwind',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
+    // Angular + Tailwind
+    console.log(chalk.cyan('📦 Phase 6: Angular + Tailwind'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
       },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), vueTailwindConfig, {
-      spaces: 2,
-    });
+      { spaces: 2 },
+    );
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
+    runCLI('add Dialog -y');
+    const angularTailwindFiles = ['dialog/dialog.component.ts', 'dialog/dialog.component.html'];
+    for (const file of angularTailwindFiles) {
+      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const hasAngularTailwindCss = await fs.pathExists(
+      path.join(TEST_DIR, 'src/components', 'dialog', 'dialog.component.css'),
+    );
+    if (hasAngularTailwindCss) {
+      throw new Error('Angular + Tailwind should not create CSS files');
+    }
+    results.push({ phase: 'Angular + Tailwind + Dialog', passed: true });
 
-    // Clean up previous Vue files AND Button from Phase 1
+    // ==================== VUE TESTS ====================
+    console.log(chalk.cyan('\n💚 VUE FRAMEWORK'));
+
+    // Vue + CSS
+    console.log(chalk.cyan('📦 Phase 7: Vue + CSS'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    runCLI('add Select --stories -y');
+    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.vue')))) {
+      throw new Error('Missing: Select/Select.vue');
+    }
+    if (
+      !(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.stories.ts')))
+    ) {
+      throw new Error('Missing: Select/Select.stories.ts');
+    }
+    results.push({ phase: 'Vue + CSS + Select', passed: true });
+
+    // Vue + SCSS
+    console.log(chalk.cyan('📦 Phase 8: Vue + SCSS'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Select'));
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
-
-    // Use Button instead of Select for Vue Tailwind - Select has template issue
     runCLI('add Button -y');
     if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
       throw new Error('Missing: Button/Button.vue');
     }
-    // Tailwind should NOT create CSS modules
+    results.push({ phase: 'Vue + SCSS + Button', passed: true });
+
+    // Vue + Tailwind
+    console.log(chalk.cyan('📦 Phase 9: Vue + Tailwind'));
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    runCLI('add Button -y');
+    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
+      throw new Error('Missing: Button/Button.vue');
+    }
     const hasVueTailwindCss = await fs.pathExists(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.module.css'),
     );
@@ -295,66 +360,31 @@ async function runE2E() {
     }
     results.push({ phase: 'Vue + Tailwind + Button', passed: true });
 
-    // ==================== VUE SCSS TESTS ====================
-    console.log(chalk.cyan('📦 Phase 8: Vue + SCSS Framework'));
+    // ==================== FEATURE TESTS ====================
+    console.log(chalk.cyan('\n⚙️ FEATURE TESTS'));
 
-    const vueScssConfig = {
-      version: '1.0.0',
-      framework: 'vue',
-      styleSystem: 'scss',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
-      },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), vueScssConfig, { spaces: 2 });
-
-    // Clean up previous Vue files (from Phase 7 Vue + Tailwind)
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
-
-    // Vue uses inline <style> blocks instead of separate module files
-    // So this test just verifies Vue component is generated correctly
-    runCLI('add Button -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
-      throw new Error('Missing: Button/Button.vue');
-    }
-    // Vue doesn't create separate .module.scss files - styles are inline
-    results.push({ phase: 'Vue + SCSS + Button', passed: true });
-
-    // ==================== REACT SCSS TESTS ====================
-    console.log(chalk.cyan('📦 Phase 9: React + SCSS Framework'));
-
-    const scssConfig = {
-      version: '1.0.0',
-      framework: 'react',
-      styleSystem: 'scss',
-      theme: 'minimal',
-      features: { hover: true, focusRing: true, motionSafe: true },
-      a11y: {
-        focusRingStyle: 'outline',
-        focusRingColor: 'var(--color-primary)',
-        focusRingWidth: '2px',
-        focusRingOffset: '2px',
-        reduceMotion: true,
-      },
-    };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), scssConfig, { spaces: 2 });
-
-    runCLI('add Button -y');
-    const scssPath = path.join(TEST_DIR, 'src/components', 'Button', 'Button.module.scss');
-    if (!(await fs.pathExists(scssPath))) {
-      throw new Error('Missing: Button/Button.module.scss for SCSS');
-    }
-    results.push({ phase: 'React + SCSS + Button', passed: true });
-
-    // ==================== DRY RUN TESTS ====================
+    // Dry Run
     console.log(chalk.cyan('📦 Phase 10: Dry Run Mode'));
-
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    runCLI('add Button -y');
     const originalButtonContent = await fs.readFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       'utf-8',
@@ -369,9 +399,8 @@ async function runE2E() {
     }
     results.push({ phase: 'Dry Run Mode', passed: true });
 
-    // ==================== FORCE FLAG TESTS ====================
+    // Force Flag
     console.log(chalk.cyan('📦 Phase 11: Force Flag'));
-
     await fs.writeFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       '// Modified by user',
@@ -386,9 +415,10 @@ async function runE2E() {
     }
     results.push({ phase: 'Force Flag', passed: true });
 
-    // ==================== HASH PROTECTION TESTS ====================
+    // Hash Protection
     console.log(chalk.cyan('📦 Phase 12: Hash Protection'));
-
+    // Generate Input component first for hash protection test
+    runCLI('add Input -y');
     await fs.writeFile(
       path.join(TEST_DIR, 'src/components', 'Input', 'Input.tsx'),
       '// User modification that should be protected',
@@ -403,19 +433,15 @@ async function runE2E() {
     }
     results.push({ phase: 'Hash Protection', passed: true });
 
-    // ==================== MULTI COMPONENT TESTS ====================
+    // Multi-Component
     console.log(chalk.cyan('📦 Phase 13: Multi-Component Generation'));
-
-    // Clean up folders that were created with stories in earlier phases
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Select'));
-
     runCLI('add Button Input Card Dialog Select --no-stories -y');
     for (const comp of ['Button', 'Input', 'Card', 'Dialog', 'Select']) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
         throw new Error(`Missing multi-component: ${comp}`);
       }
-      // Check both React and Vue/Angular story extensions
       const hasStoriesTsx = await fs.pathExists(
         path.join(TEST_DIR, 'src/components', comp, `${comp}.stories.tsx`),
       );
@@ -428,37 +454,69 @@ async function runE2E() {
     }
     results.push({ phase: 'Multi-Component Generation', passed: true });
 
-    // ==================== THEME PRESETS TESTS ====================
+    // Theme Presets
     console.log(chalk.cyan('📦 Phase 14: Theme Presets'));
-
-    // Delete tokens.css so it regenerates with new theme
     await fs.remove(path.join(TEST_DIR, 'public/__generated__/tokens.css'));
-
-    const softConfig = { ...scssConfig, theme: 'soft' };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), softConfig, { spaces: 2 });
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'soft',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
     runCLI('add Card --force -y');
-    // Check tokens.css for soft theme primary color (#7C3AED vs minimal #6C63FF)
-    const tokensPath = path.join(TEST_DIR, 'public/__generated__/tokens.css');
-    const tokensContent = await fs.readFile(tokensPath, 'utf-8');
+    const tokensContent = await fs.readFile(
+      path.join(TEST_DIR, 'public/__generated__/tokens.css'),
+      'utf-8',
+    );
     if (!tokensContent.includes('#7C3AED')) {
       throw new Error('Soft theme tokens not applied');
     }
     results.push({ phase: 'Soft Theme Preset', passed: true });
 
-    // ==================== OUTPUT DIR TESTS ====================
+    // Custom Output Directory
     console.log(chalk.cyan('📦 Phase 15: Custom Output Directory'));
-
-    const customDirConfig = { ...softConfig, flags: { outputDir: 'custom/components' } };
-    await fs.writeJson(path.join(TEST_DIR, 'crucible.config.json'), customDirConfig, { spaces: 2 });
+    await fs.writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        flags: { outputDir: 'custom/components' },
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
     runCLI('add Button --force -y');
     if (!(await fs.pathExists(path.join(TEST_DIR, 'custom/components', 'Button', 'Button.tsx')))) {
       throw new Error('Custom output directory not used');
     }
     results.push({ phase: 'Custom Output Directory', passed: true });
 
-    // ==================== INIT COMMAND TESTS ====================
-    console.log(chalk.cyan('📦 Phase 16: Init Command'));
+    // ==================== CLI COMMAND TESTS ====================
+    console.log(chalk.cyan('\n🖥️ CLI COMMANDS'));
 
+    // Init Command
+    console.log(chalk.cyan('📦 Phase 16: Init Command'));
     await fs.remove(path.join(TEST_DIR, 'crucible.config.json'));
     runCLI('init -y');
     if (!(await fs.pathExists(path.join(TEST_DIR, 'crucible.config.json')))) {
@@ -466,9 +524,8 @@ async function runE2E() {
     }
     results.push({ phase: 'Init Command', passed: true });
 
-    // ==================== EJECT COMMAND TESTS ====================
+    // Eject Command
     console.log(chalk.cyan('📦 Phase 17: Eject Command'));
-
     runCLI('eject');
     const ejectedConfig = await fs.readJson(path.join(TEST_DIR, 'crucible.config.json'));
     if (ejectedConfig.theme !== 'custom') {
@@ -479,19 +536,16 @@ async function runE2E() {
     }
     results.push({ phase: 'Eject Command', passed: true });
 
-    // ==================== LIST COMMAND TESTS ====================
+    // List Command
     console.log(chalk.cyan('📦 Phase 18: List Command'));
-
     const listOutput = runCLI('list');
-    // List command shows available components in registry, not generated ones
     if (!listOutput.includes('Button') || !listOutput.includes('react')) {
       throw new Error('List command did not show components');
     }
     results.push({ phase: 'List Command', passed: true });
 
-    // ==================== ERROR HANDLING TESTS ====================
+    // Error Handling
     console.log(chalk.cyan('📦 Phase 19: Error Handling'));
-
     try {
       runCLI('add UnknownComponent -y');
       throw new Error('Should have failed for unknown component');
@@ -506,12 +560,10 @@ async function runE2E() {
     results.push({ phase: 'FAILED', passed: false, error: error.message });
     process.exitCode = 1;
   } finally {
-    // Cleanup
     console.log(chalk.gray('\n🧹 Cleaning up...'));
     await fs.remove(TEST_DIR);
   }
 
-  // Print summary
   console.log(chalk.bold('\n📊 Test Results Summary:\n'));
   let passed = 0;
   let failed = 0;
