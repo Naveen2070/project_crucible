@@ -675,34 +675,42 @@ flowchart TD
 
 ### 12.1 Command Reference
 
-| Command                    | Description                          |
-| -------------------------- | ------------------------------------ |
-| `crucible init`            | Scaffold `crucible.config.json`      |
-| `crucible add <component>` | Generate component                   |
-| `crucible add`             | Interactive multi-select             |
-| `crucible doctor`          | Validate setup                       |
-| `crucible list`            | Show available components            |
-| `crucible eject`           | Copy preset tokens to config         |
-| `crucible tokens`          | Regenerate `tokens.css`              |
-| `crucible tokens --force`  | Force overwrite `tokens.css`         |
-| `crucible pg:gen`          | Generate all 3 playground frameworks |
-| `crucible pg:gen --force`  | Clean + regenerate playground        |
-| `crucible pg:open`         | Open Storybook                       |
-| `crucible pg:dev`          | Start Vite dev server                |
+| Command                    | Shorthand | Description                          |
+| -------------------------- | --------- | ------------------------------------ |
+| `crucible init`            | `i`       | Scaffold `crucible.config.json`      |
+| `crucible add <component>` | `a`       | Generate component                   |
+| `crucible add --all`       | `a -a`    | Add all components                   |
+| `crucible doctor`          | `d`       | Validate setup                       |
+| `crucible list`            | `l`       | Show available components            |
+| `crucible eject`           | `e`       | Copy preset tokens to config         |
+| `crucible tokens`          | `t`       | Regenerate `tokens.css`              |
+| `crucible tokens --force`  | `t -f`    | Force overwrite `tokens.css`         |
+| `crucible pg:gen`          | `pg`      | Generate all 3 playground frameworks |
+| `crucible pg:gen --force`  | `pg -f`   | Clean + regenerate playground        |
+| `crucible pg:open`         | `po`      | Open Storybook                       |
+| `crucible pg:dev`          | `pd`      | Start Vite dev server                |
+| `crucible clean`           | `c`       | Remove generated files               |
+| `crucible clean --all`     | `c -a`    | Remove + config file                 |
+| `crucible pg:clean`        | `pcl`     | Clean all playground folders         |
+| `crucible config`          | `cfg`     | Show current config                  |
 
 ### 12.2 CLI Flags
 
-| Flag               | Description                             | Default |
-| ------------------ | --------------------------------------- | ------- |
-| `--framework <fw>` | Target framework                        | `react` |
-| `--dev`            | Output to playground                    | `false` |
-| `--force` / `-f`   | Overwrite user edits / clean playground | `false` |
-| `--stories`        | Generate Storybook story                | `false` |
-| `--no-stories`     | Skip story generation                   | —       |
-| `--dry-run`        | Simulate without writing                | `false` |
-| `--cwd <path>`     | Working directory                       | `.`     |
-| `--verbose`        | Enable detailed logging                 | `false` |
-| `--quiet`          | Disable logging except errors           | `false` |
+| Flag               | Shorthand | Description                             | Default |
+| ------------------ | --------- | --------------------------------------- | ------- |
+| `--framework <fw>` | —         | Target framework                        | `react` |
+| `--style <system>` | `-s`      | Override style (css/tailwind/scss)      | —       |
+| `--theme <name>`   | `-t`      | Override theme (minimal/soft)           | —       |
+| `--dev`            | —         | Output to playground                    | `false` |
+| `--force`          | `-f`      | Overwrite user edits / clean playground | `false` |
+| `--stories`        | —         | Generate Storybook story                | `false` |
+| `--no-stories`     | —         | Skip story generation                   | —       |
+| `--all`            | `-a`      | Add all components / clean all          | `false` |
+| `--dry-run`        | —         | Simulate without writing                | `false` |
+| `--cwd <path>`     | —         | Working directory                       | `.`     |
+| `--verbose`        | —         | Enable detailed logging                 | `false` |
+| `--quiet`          | —         | Disable logging except errors           | `false` |
+| `--json`           | —         | Output raw JSON (config command)        | `false` |
 
 ### 12.3 generateStories Resolution
 
