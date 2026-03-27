@@ -163,7 +163,7 @@ export class SelectComponent {
       {{#if a11y.focusRing}}'focus-visible:ring-2 focus-visible:ring-[{{a11y.focusRingColor}}] focus-visible:ring-offset-2',{{/if}}
       this.isOpen ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : '',
       this.disabled ? 'opacity-50 cursor-not-allowed bg-[var(--color-background)]' : '',
-      (this.variant === 'error' || this.error) ? 'border-[var(--color-danger)]' : '',
+      (this.variant === 'error' || this.error) ? 'border-[var(--color-destructive)]' : '',
       variantClasses[this.variant],
       sizeClasses[this.size],
       this.className

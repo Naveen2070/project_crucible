@@ -179,7 +179,7 @@ exports[`Input snapshots > css mode snapshot 2`] = `
 }
 
 .input-required, .required {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
@@ -229,7 +229,7 @@ exports[`Input snapshots > css mode snapshot 2`] = `
 
 /* Variants */
 .input--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .input--disabled {
@@ -274,7 +274,7 @@ exports[`Input snapshots > css mode snapshot 2`] = `
 }
 
 .input-error, .error {
-  color: var(--color-danger);
+  color: var(--color-destructive);
 }
 
 .input[type="password"],
@@ -400,7 +400,7 @@ exports[`Input snapshots > tailwind mode snapshot 1`] = `
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-  error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
  };
 const sizeClasses: Record<string, string> = {
   sm: 'px-3 py-1.5 text-sm',
@@ -476,7 +476,7 @@ export const InputLabel = ({ children, className }: { children: React.ReactNode;
   return (
     <label htmlFor={id} className={['font-medium text-[var(--color-text)] text-sm', className].filter(Boolean).join(' ')}>
       {children}
-      {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
+      {required && <span className="text-[var(--color-destructive)] ml-1" aria-hidden="true">*</span>}
     </label>
   );
 };
@@ -495,7 +495,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-danger)]',
+      error && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -536,7 +536,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
 export const InputError = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { id } = useInputContext();
   return (
-    <span id={\`\${id}-error\`} className={['text-xs text-[var(--color-danger)]', className].filter(Boolean).join(' ')} role="alert">
+    <span id={\`\${id}-error\`} className={['text-xs text-[var(--color-destructive)]', className].filter(Boolean).join(' ')} role="alert">
       {children}
     </span>
   );

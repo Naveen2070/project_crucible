@@ -20,7 +20,7 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
     default:
       'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
     error:
-      'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+      'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
   },
   [ComponentName.Card]: {
     default: 'bg-[var(--color-surface)] border-[var(--color-border)]',
@@ -36,7 +36,7 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
     default:
       'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
     error:
-      'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+      'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
   },
 };
 

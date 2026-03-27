@@ -78,7 +78,7 @@ export const InputLabel = ({ children, className }: { children: React.ReactNode;
   return (
     <label htmlFor={id} className={['font-medium text-[var(--color-text)] text-sm', className].filter(Boolean).join(' ')}>
       {children}
-      {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
+      {required && <span className="text-[var(--color-destructive)] ml-1" aria-hidden="true">*</span>}
     </label>
   );
 };
@@ -97,7 +97,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-danger)]',
+      error && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -138,7 +138,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
 export const InputError = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { id } = useInputContext();
   return (
-    <span id={`${id}-error`} className={['text-xs text-[var(--color-danger)]', className].filter(Boolean).join(' ')} role="alert">
+    <span id={`${id}-error`} className={['text-xs text-[var(--color-destructive)]', className].filter(Boolean).join(' ')} role="alert">
       {children}
     </span>
   );
@@ -185,7 +185,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12', // make room for the toggle button
-      error && 'border-[var(--color-danger)]',
+      error && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -198,7 +198,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="flex flex-col gap-[var(--spacing-unit)] w-full">
         <label htmlFor={id} className="font-medium text-[var(--color-text)] text-sm">
           {label}
-          {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
+          {required && <span className="text-[var(--color-destructive)] ml-1" aria-hidden="true">*</span>}
         </label>
         <div className="relative w-full">
           <input
@@ -229,7 +229,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </span>
         )}
         {error && (
-          <span id={errorId} className="text-xs text-[var(--color-danger)]" role="alert">
+          <span id={errorId} className="text-xs text-[var(--color-destructive)]" role="alert">
             {error}
           </span>
         )}

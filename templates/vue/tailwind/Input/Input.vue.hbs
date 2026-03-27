@@ -71,7 +71,7 @@ const inputClasses = computed(() => [
   variantClasses[props.variant],
   sizeClasses[props.size],
   props.type === 'password' ? 'pr-12' : '',
-  props.error ? 'border-[var(--color-danger)]' : '',
+  props.error ? 'border-[var(--color-destructive)]' : '',
 ]);
 </script>
 
@@ -80,7 +80,7 @@ const inputClasses = computed(() => [
     <slot name="label">
       <label v-if="label" :for="inputId" class="font-medium text-[var(--color-text)] text-sm">
         \{{ label }}
-        <span v-if="required" class="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>
+        <span v-if="required" class="text-[var(--color-destructive)] ml-1" aria-hidden="true">*</span>
       </label>
     </slot>
     
@@ -116,7 +116,7 @@ const inputClasses = computed(() => [
     </slot>
 
     <slot name="error">
-      <span v-if="error" :id="errorId" class="text-xs text-[var(--color-danger)]" role="alert">\{{ error }}</span>
+      <span v-if="error" :id="errorId" class="text-xs text-[var(--color-destructive)]" role="alert">\{{ error }}</span>
     </slot>
   </div>
 </template>

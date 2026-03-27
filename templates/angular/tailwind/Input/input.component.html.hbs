@@ -1,7 +1,7 @@
 <div [class]="containerClasses">
   <label *ngIf="label" [attr.for]="id" class="block text-sm font-medium mb-1.5 text-[var(--color-text)]">
     \{{ label }}
-    <span *ngIf="required" class="text-[var(--color-danger)]" aria-hidden="true">*</span>
+    <span *ngIf="required" class="text-[var(--color-destructive)]" aria-hidden="true">*</span>
   </label>
   <ng-content select="[label]"></ng-content>
   
@@ -36,7 +36,7 @@
   </p>
   <ng-content select="[hint]"></ng-content>
 
-  <p *ngIf="error" [id]="errorId" class="mt-1.5 text-xs text-[var(--color-danger)]" role="alert">
+  <p *ngIf="error" [id]="errorId" class="mt-1.5 text-xs text-[var(--color-destructive)]" role="alert">
     \{{ error }}
   </p>
   <ng-content select="[error]"></ng-content>

@@ -56,7 +56,7 @@ export class InputComponent {
       variantClasses[this.variant],
       sizeClasses[this.size],
       this.type === 'password' ? 'pr-12' : '',
-      (this.variant === 'error' || this.error) ? 'border-[var(--color-danger)]' : ''
+      (this.variant === 'error' || this.error) ? 'border-[var(--color-destructive)]' : ''
     ].filter(Boolean).join(' ');
   }
 

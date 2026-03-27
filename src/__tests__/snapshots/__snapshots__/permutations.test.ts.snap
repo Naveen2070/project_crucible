@@ -859,7 +859,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 }
 
 .input-required, .required {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
@@ -909,7 +909,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 
 /* Variants */
 .input--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .input--disabled {
@@ -954,7 +954,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: css > Compo
 }
 
 .input-error, .error {
-  color: var(--color-danger);
+  color: var(--color-destructive);
 }
 
 .input[type="password"],
@@ -1342,7 +1342,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-combobox--error, .combobox--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .select-value, .value {
@@ -1400,7 +1400,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-error, .error {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
@@ -2753,7 +2753,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: scss > Comp
 }
 
 .input-required, .required {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
@@ -2803,7 +2803,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: scss > Comp
 
 /* Variants */
 .input--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .input--disabled {
@@ -2848,7 +2848,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: scss > Comp
 }
 
 .input-error, .error {
-  color: var(--color-danger);
+  color: var(--color-destructive);
 }
 ",
   "Input.tsx": "import React, { useId, useState, createContext, useContext } from 'react';
@@ -3289,7 +3289,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-combobox--error, .combobox--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .select-value, .value {
@@ -3347,7 +3347,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-error, .error {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
@@ -4334,7 +4334,7 @@ exports[`Theme Permutation Snapshots > Theme: minimal > StyleSystem: tailwind > 
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-  error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
  };
 const sizeClasses: Record<string, string> = {
   sm: 'px-3 py-1.5 text-sm',
@@ -4410,7 +4410,7 @@ export const InputLabel = ({ children, className }: { children: React.ReactNode;
   return (
     <label htmlFor={id} className={['font-medium text-[var(--color-text)] text-sm', className].filter(Boolean).join(' ')}>
       {children}
-      {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
+      {required && <span className="text-[var(--color-destructive)] ml-1" aria-hidden="true">*</span>}
     </label>
   );
 };
@@ -4429,7 +4429,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-danger)]',
+      error && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -4470,7 +4470,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
 export const InputError = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { id } = useInputContext();
   return (
-    <span id={\`\${id}-error\`} className={['text-xs text-[var(--color-danger)]', className].filter(Boolean).join(' ')} role="alert">
+    <span id={\`\${id}-error\`} className={['text-xs text-[var(--color-destructive)]', className].filter(Boolean).join(' ')} role="alert">
       {children}
     </span>
   );
@@ -4662,7 +4662,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-  error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
  };
 
 const sizeClasses: Record<string, string> = {
@@ -4846,7 +4846,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
           'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
-          error && 'border-[var(--color-danger)]',
+          error && 'border-[var(--color-destructive)]',
           variantClasses[variant],
           sizeClasses[size],
           className,
@@ -4863,7 +4863,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
       >
         {children}
       </div>
-      {error && <span className="text-xs text-[var(--color-danger)] mt-1" role="alert">{error}</span>}
+      {error && <span className="text-xs text-[var(--color-destructive)] mt-1" role="alert">{error}</span>}
     </>
   );
 };
@@ -5833,7 +5833,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 }
 
 .input-required, .required {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
@@ -5883,7 +5883,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 
 /* Variants */
 .input--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .input--disabled {
@@ -5928,7 +5928,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: css > Componen
 }
 
 .input-error, .error {
-  color: var(--color-danger);
+  color: var(--color-destructive);
 }
 
 .input[type="password"],
@@ -6316,7 +6316,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-combobox--error, .combobox--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .select-value, .value {
@@ -6374,7 +6374,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-error, .error {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
@@ -7727,7 +7727,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: scss > Compone
 }
 
 .input-required, .required {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   margin-left: calc(var(--spacing-unit) * 0.5);
 }
 
@@ -7777,7 +7777,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: scss > Compone
 
 /* Variants */
 .input--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .input--disabled {
@@ -7822,7 +7822,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: scss > Compone
 }
 
 .input-error, .error {
-  color: var(--color-danger);
+  color: var(--color-destructive);
 }
 ",
   "Input.tsx": "import React, { useId, useState, createContext, useContext } from 'react';
@@ -8263,7 +8263,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-combobox--error, .combobox--error {
-  border-color: var(--color-danger);
+  border-color: var(--color-destructive);
 }
 
 .select-value, .value {
@@ -8321,7 +8321,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 }
 
 .select-error, .error {
-  color:       var(--color-danger);
+  color:       var(--color-destructive);
   font-family: var(--font-family);
   font-size:   12px;
   margin-top:  2px;
@@ -9308,7 +9308,7 @@ exports[`Theme Permutation Snapshots > Theme: soft > StyleSystem: tailwind > Com
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-  error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
  };
 const sizeClasses: Record<string, string> = {
   sm: 'px-3 py-1.5 text-sm',
@@ -9384,7 +9384,7 @@ export const InputLabel = ({ children, className }: { children: React.ReactNode;
   return (
     <label htmlFor={id} className={['font-medium text-[var(--color-text)] text-sm', className].filter(Boolean).join(' ')}>
       {children}
-      {required && <span className="text-[var(--color-danger)] ml-1" aria-hidden="true">*</span>}
+      {required && <span className="text-[var(--color-destructive)] ml-1" aria-hidden="true">*</span>}
     </label>
   );
 };
@@ -9403,7 +9403,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-danger)]',
+      error && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -9444,7 +9444,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
 export const InputError = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { id } = useInputContext();
   return (
-    <span id={\`\${id}-error\`} className={['text-xs text-[var(--color-danger)]', className].filter(Boolean).join(' ')} role="alert">
+    <span id={\`\${id}-error\`} className={['text-xs text-[var(--color-destructive)]', className].filter(Boolean).join(' ')} role="alert">
       {children}
     </span>
   );
@@ -9636,7 +9636,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-  error: 'bg-[var(--color-surface)] border-[var(--color-danger)] focus:border-[var(--color-danger)]',
+  error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
  };
 
 const sizeClasses: Record<string, string> = {
@@ -9820,7 +9820,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
           'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
-          error && 'border-[var(--color-danger)]',
+          error && 'border-[var(--color-destructive)]',
           variantClasses[variant],
           sizeClasses[size],
           className,
@@ -9837,7 +9837,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
       >
         {children}
       </div>
-      {error && <span className="text-xs text-[var(--color-danger)] mt-1" role="alert">{error}</span>}
+      {error && <span className="text-xs text-[var(--color-destructive)] mt-1" role="alert">{error}</span>}
     </>
   );
 };
