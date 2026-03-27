@@ -16,7 +16,7 @@ describe('Button a11y', () => {
   });
 
   test('variants all pass axe', async () => {
-    for (const variant of ['primary', 'secondary', 'ghost', 'danger']) {
+    for (const variant of ['primary', 'secondary', 'ghost', 'destructive']) {
       const { container } = render(<Button variant={variant as any}>Test</Button>);
       const results = await axe(container);
       expect(results).toHaveNoViolations();

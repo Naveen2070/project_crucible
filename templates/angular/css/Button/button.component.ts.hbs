@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./button.component.css'],
 })
 export class ButtonComponent {
-  @Input() variant: 'primary' | 'secondary' | 'ghost' | 'danger' = 'primary';
+  @Input() variant: 'primary' | 'secondary' | 'ghost' | 'destructive' = 'primary';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() disabled = false;
   @Input() loading = false;

@@ -101,13 +101,13 @@ const classes = computed(() => [
   &--primary   { background: var(--color-primary);   color: var(--color-surface);  border-color: var(--color-primary); }
   &--secondary { background: var(--color-secondary); color: var(--color-primary);  border-color: var(--color-border); }
   &--ghost     { background: transparent;            color: var(--color-text);     border-color: var(--color-border); }
-  &--danger    { background: var(--color-danger);    color: var(--color-surface);  border-color: var(--color-danger); }
+  &--destructive { background: var(--color-destructive); color: var(--color-destructive-foreground); border-color: transparent; }
 
   {{#if features.hover}}
   &--primary:not(:disabled):hover   { filter: brightness(1.1); }
   &--secondary:not(:disabled):hover { background: var(--color-primary); color: var(--color-surface); }
   &--ghost:not(:disabled):hover     { background: var(--color-secondary); }
-  &--danger:not(:disabled):hover    { filter: brightness(1.1); }
+  &--destructive:not(:disabled):hover { opacity: 0.9; }
   {{/if}}
 
   /* States */
