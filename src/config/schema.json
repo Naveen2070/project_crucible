@@ -4,8 +4,8 @@
   "properties": {
     "version": { "type": "string" },
     "framework": { "type": "string", "enum": ["react", "angular", "vue"] },
-    "theme": { "type": "string", "enum": ["minimal", "soft", "custom"] },
-    "styleSystem": { "type": "string", "enum": ["css", "tailwind", "scss"] },
+    "theme": { "type": "string", "enum": ["minimal", "soft", "custom"], "default": "minimal" },
+    "styleSystem": { "type": "string", "enum": ["css", "tailwind", "scss"], "default": "css" },
     "darkMode": {
       "oneOf": [
         { "type": "boolean" },
@@ -17,7 +17,8 @@
           },
           "required": ["strategy"]
         }
-      ]
+      ],
+      "default": false
     },
     "tokens": {
       "type": "object",
@@ -28,16 +29,14 @@
           "type": "object",
           "properties": {
             "unit": { "type": "string" }
-          },
-          "required": ["unit"]
+          }
         },
         "typography": {
           "type": "object",
           "properties": {
             "fontFamily": { "type": "string" },
             "scaleBase": { "type": "string" }
-          },
-          "required": ["fontFamily", "scaleBase"]
+          }
         },
         "components": {
           "type": "object",
@@ -46,34 +45,36 @@
             "additionalProperties": { "type": "string" }
           }
         }
-      },
-      "required": ["color", "radius", "spacing", "typography"]
+      }
     },
     "features": {
       "type": "object",
       "properties": {
-        "hover": { "type": "boolean" },
-        "focusRing": { "type": "boolean" },
-        "motionSafe": { "type": "boolean" },
-        "compoundComponents": { "type": "boolean" }
-      }
+        "hover": { "type": "boolean", "default": true },
+        "focusRing": { "type": "boolean", "default": true },
+        "motionSafe": { "type": "boolean", "default": true },
+        "compoundComponents": { "type": "boolean", "default": true }
+      },
+      "default": {}
     },
     "a11y": {
       "type": "object",
       "properties": {
-        "focusRingStyle": { "type": "string" },
-        "focusRingColor": { "type": "string" },
-        "focusRingWidth": { "type": "string" },
-        "focusRingOffset": { "type": "string" },
-        "reduceMotion": { "type": "boolean" }
-      }
+        "focusRingStyle": { "type": "string", "default": "outline" },
+        "focusRingColor": { "type": "string", "default": "var(--color-primary)" },
+        "focusRingWidth": { "type": "string", "default": "2px" },
+        "focusRingOffset": { "type": "string", "default": "2px" },
+        "reduceMotion": { "type": "boolean", "default": true }
+      },
+      "default": {}
     },
     "flags": {
       "type": "object",
       "properties": {
-        "outputDir": { "type": "string" },
-        "stories": { "type": "boolean" }
-      }
+        "outputDir": { "type": "string", "default": "src/components" },
+        "stories": { "type": "boolean", "default": false }
+      },
+      "default": {}
     }
   },
   "required": ["version", "framework"]

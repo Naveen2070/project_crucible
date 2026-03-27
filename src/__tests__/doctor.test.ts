@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractVarRefs, detectCircularRefs } from '../cli/doctor';
+import { extractVarRefs, detectCircularRefs } from '../cli/commands/doctor';
 
 describe('extractVarRefs', () => {
   it('extracts single var reference', () => {

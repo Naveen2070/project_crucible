@@ -215,6 +215,50 @@ describe('CLI Commands', () => {
       await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', theme: 'soft', quiet: false, yes: true });
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Theme: soft (CLI override)'));
     });
+
+    it('CLI --stories flag overrides config set to false', async () => {
+      const configPath = path.join(TEST_DIR, 'crucible.config.json');
+      await fs.writeJson(configPath, {
+        version: '1',
+        framework: 'react',
+        flags: { stories: false },
+        tokens: { 
+          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
+          radius: { sm: '0', md: '0', lg: '0' }, 
+          spacing: { unit: '1px' }, 
+          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        }
+      });
+      
+      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', stories: true, quiet: true, yes: true });
+      
+      const manifestPath = path.join(TEST_DIR, '.crucible', 'manifest.json');
+      const manifest = await fs.readJson(manifestPath);
+      const hasStory = Object.keys(manifest.files).some(f => f.endsWith('.stories.tsx'));
+      expect(hasStory).toBe(true);
+    });
+
+    it('CLI --no-stories flag overrides config set to true', async () => {
+      const configPath = path.join(TEST_DIR, 'crucible.config.json');
+      await fs.writeJson(configPath, {
+        version: '1',
+        framework: 'react',
+        flags: { stories: true },
+        tokens: { 
+          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
+          radius: { sm: '0', md: '0', lg: '0' }, 
+          spacing: { unit: '1px' }, 
+          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        }
+      });
+      
+      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', stories: false, quiet: true, yes: true });
+      
+      const manifestPath = path.join(TEST_DIR, '.crucible', 'manifest.json');
+      const manifest = await fs.readJson(manifestPath);
+      const hasStory = Object.keys(manifest.files).some(f => f.endsWith('.stories.tsx'));
+      expect(hasStory).toBe(false);
+    });
   });
 
   describe('Config Show', () => {
