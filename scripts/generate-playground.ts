@@ -230,7 +230,7 @@ export async function promptGenerateIfNeeded(framework: Framework): Promise<bool
   });
 
   if (shouldGenerate) {
-    await generatePlayground({ framework, stories: true });
+    await generatePlayground({ framework, stories: true, force: true });
     return true;
   }
 
