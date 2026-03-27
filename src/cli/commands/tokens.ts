@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
-import { readConfig } from '../config/reader';
-import { resolveTokens } from '../tokens/resolver';
-import { buildComponentModel } from '../components/model';
-import { renderGlobalTokens } from '../templates/engine';
+import { readConfig } from '../../config/reader';
+import { resolveTokens } from '../../tokens/resolver';
+import { buildComponentModel } from '../../components/model';
+import { renderGlobalTokens } from '../../templates/engine';
 
 export interface TokensOptions {
   force?: boolean;

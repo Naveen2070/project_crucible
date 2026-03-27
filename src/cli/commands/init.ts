@@ -2,8 +2,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import { select, input, confirm } from '@inquirer/prompts';
-import { checkAndSetupTailwind } from './tailwind';
-import { Framework, StyleSystem } from '../core/enums';
+import { checkAndSetupTailwind } from '../utils/tailwind';
+import { Framework, StyleSystem } from '../../core/enums';
 
 const DEFAULT_CONFIG = `{
   "$schema": "https://raw.githubusercontent.com/crucible-ui/crucible/main/schema.json",

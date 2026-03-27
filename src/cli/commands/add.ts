@@ -2,21 +2,21 @@ import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import { checkbox, confirm } from '@inquirer/prompts';
-import { readConfig } from '../config/reader';
-import { resolveTokens } from '../tokens/resolver';
-import { buildComponentModel } from '../components/model';
-import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../templates/engine';
-import { writeFiles, loadHashes, saveHashes } from '../scaffold/writer';
-import { registry } from '../registry/components';
-import { checkAndSetupTailwind } from './tailwind';
-import { Framework, StyleSystem } from '../core/enums';
+import { readConfig } from '../../config/reader';
+import { resolveTokens } from '../../tokens/resolver';
+import { buildComponentModel } from '../../components/model';
+import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../../templates/engine';
+import { writeFiles, loadHashes, saveHashes } from '../../scaffold/writer';
+import { registry } from '../../registry/components';
+import { checkAndSetupTailwind } from '../utils/tailwind';
+import { Framework, StyleSystem } from '../../core/enums';
 import {
   checkComponentDependencies,
   formatDependencyMessage,
   getComponentDefinition,
   installPeerDependenciesSmart,
-} from './deps';
-import { importTokensInIndexHtml } from '../scaffold/html';
+} from '../utils/deps';
+import { importTokensInIndexHtml } from '../../scaffold/html';
 
 export async function runAdd(components: string[], opts: any) {
   const cwd = path.resolve(process.cwd(), opts.cwd);

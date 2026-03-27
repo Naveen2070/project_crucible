@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { registry } from '../registry/components';
+import { registry } from '../../registry/components';
 
 export function runList() {
   console.log(chalk.cyan('Available components:'));

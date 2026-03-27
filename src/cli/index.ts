@@ -1,17 +1,15 @@
 import { Command } from 'commander';
 import path from 'path';
 import chalk from 'chalk';
-import fs from 'fs-extra';
-import { registry } from '../registry/components';
-import { runInit } from './init';
-import { runDoctor } from './doctor';
-import { runTokens } from './tokens';
-import { runAdd } from './add';
-import { runEject } from './eject';
-import { runList } from './list';
-import { runClean, runPgClean } from './clean';
-import { runConfigShow } from './config-show';
-import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './playground';
+import { runInit } from './commands/init';
+import { runDoctor } from './commands/doctor';
+import { runTokens } from './commands/tokens';
+import { runAdd } from './commands/add';
+import { runEject } from './commands/eject';
+import { runList } from './commands/list';
+import { runClean, runPgClean } from './commands/clean';
+import { runConfigShow } from './commands/config-show';
+import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './commands/playground';
 import { Framework } from '../core/enums';
 
 const program = new Command();

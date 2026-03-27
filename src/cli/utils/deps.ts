@@ -3,9 +3,9 @@ import fs from 'fs-extra';
 import path from 'path';
 import { execSync } from 'child_process';
 import { confirm } from '@inquirer/prompts';
-import { registry, ComponentDef } from '../registry/components';
-import { getPeerDependencies } from '../registry/peer-deps';
-import { Framework } from '../core/enums';
+import { registry, ComponentDef } from '../../registry/components';
+import { getPeerDependencies } from '../../registry/peer-deps';
+import { Framework } from '../../core/enums';
 
 export interface DependencyCheck {
   missingComponents: string[];

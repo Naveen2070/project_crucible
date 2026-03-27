@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
-import { readConfig } from '../config/reader';
-import { StyleSystem, Framework, ComponentName } from '../core/enums';
-import { PEER_DEPENDENCIES } from '../registry/peer-deps';
-import { loadHashes, hashContent } from '../scaffold/writer';
+import { readConfig } from '../../config/reader';
+import { StyleSystem, Framework } from '../../core/enums';
+import { PEER_DEPENDENCIES } from '../../registry/peer-deps';
+import { loadHashes, hashContent } from '../../scaffold/writer';
 
 interface DoctorResult {
   config: boolean;
@@ -275,7 +275,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     const manifest = await loadHashes(cwd);
     let pkgVersion = '1.0.0';
     try {
-      const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+      const pkg = await fs.readJson(path.join(__dirname, '../../../package.json'));
       pkgVersion = pkg.version || '1.0.0';
     } catch {}
 

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
-import { runInit } from '../cli/init';
-import { runAdd } from '../cli/add';
-import { runEject } from '../cli/eject';
-import { runList } from '../cli/list';
-import { runTokens } from '../cli/tokens';
-import { runConfigShow } from '../cli/config-show';
+import { runInit } from '../cli/commands/init';
+import { runAdd } from '../cli/commands/add';
+import { runEject } from '../cli/commands/eject';
+import { runList } from '../cli/commands/list';
+import { runTokens } from '../cli/commands/tokens';
+import { runConfigShow } from '../cli/commands/config-show';
 import { registry } from '../registry/components';
 
 // Mock process.exit

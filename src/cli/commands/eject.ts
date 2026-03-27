@@ -1,8 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
-import { loadPreset } from '../themes';
-import { ThemePreset } from '../core/enums';
+import { loadPreset } from '../../themes';
+import { ThemePreset } from '../../core/enums';
 
 export interface EjectOptions {
   config: string;
