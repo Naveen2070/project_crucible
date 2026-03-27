@@ -26,7 +26,7 @@ const onClose = () => {
 
 const variantClasses: Record<DialogVariant, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
-{{/each}}};
+{{/each}} };
 
 const sizeClasses: Record<DialogSize, string> = {
   sm: 'max-w-md',

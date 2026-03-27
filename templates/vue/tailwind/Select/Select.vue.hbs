@@ -68,7 +68,7 @@ const displayValue = computed(() => {
 
 const variantClasses: Record<SelectVariant, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
-{{/each}}};
+{{/each}} };
 
 const sizeClasses: Record<SelectSize, string> = {
   sm: 'px-3 py-1.5 text-sm',

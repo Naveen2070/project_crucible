@@ -56,7 +56,7 @@ const currentType = computed(() => {
 
 const variantClasses: Record<InputVariant, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
-{{/each}}};
+{{/each}} };
 
 const sizeClasses: Record<InputSize, string> = {
   sm: 'px-3 py-1.5 text-sm',

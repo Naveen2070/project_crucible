@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 
 const variantClasses: Record<string, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
-{{/each}}};
+{{/each}} };
 
 const sizeClasses: Record<string, string> = {
   sm: 'px-3 py-1.5 text-sm',

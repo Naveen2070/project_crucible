@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateComponentFiles } from '../registry/path-generator';
-import { Framework, StyleSystem } from '../core/enums';
+import { registry } from '../registry/components';
+import { Framework, StyleSystem, ComponentName } from '../core/enums';
 
 describe('generateComponentFiles', () => {
   it('generates all frameworks', () => {
@@ -37,6 +38,20 @@ describe('generateComponentFiles', () => {
       expect(result.files.scss).toContain('Button/Button.tsx');
       expect(result.files.scss).toContain('Button/Button.module.scss');
       expect(result.files.scss).toContain('Button/Button.stories.tsx');
+    });
+  });
+
+  describe('Component dependencies', () => {
+    it('Dialog generates required dependencies exactly once', () => {
+      const result = registry[ComponentName.Dialog];
+      expect(result.dependencies).toContain('Button');
+      expect(result.dependencies).toHaveLength(1);
+    });
+
+    it('Select generates required dependencies exactly once', () => {
+      const result = registry[ComponentName.Select];
+      expect(result.dependencies).toContain('Button');
+      expect(result.dependencies).toHaveLength(1);
     });
   });
 
@@ -98,5 +113,16 @@ describe('generateComponentFiles', () => {
 
     expect(button.files.tailwind.length).toBeLessThan(button.files.css.length);
     expect(button.files.scss.length).toBe(button.files.css.length);
+  });
+
+  describe('custom output directory', () => {
+    it('config with custom outputDir does not affect default path', () => {
+      const result = generateComponentFiles('Button');
+
+      expect(result.files.css[0]).toBe('Button/Button.tsx');
+
+      const customOutputFiles = result.files.css.map((f) => f.replace('Button/', 'custom/path/'));
+      expect(customOutputFiles).toContain('custom/path/Button.tsx');
+    });
   });
 });

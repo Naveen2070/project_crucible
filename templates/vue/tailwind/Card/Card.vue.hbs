@@ -25,7 +25,7 @@ const onClick = (event: MouseEvent) => {
 
 const variantClasses: Record<CardVariant, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
-{{/each}}};
+{{/each}} };
 
 const sizeClasses: Record<CardSize, string> = {
   sm: 'max-w-[300px]',
