@@ -293,7 +293,7 @@ const variantClasses: Record<string, string> = {
   outline: 'bg-transparent text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
   ghost: 'bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
   link: 'bg-transparent text-[var(--color-primary)] underline-offset-4 hover:underline border-transparent',
-  destructive: '',
+  destructive: 'bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] border-transparent hover:opacity-90',
  };
 
 const sizeClasses: Record<string, string> = {

@@ -13,7 +13,7 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
     ghost:
       'bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
     link: 'bg-transparent text-[var(--color-primary)] underline-offset-4 hover:underline border-transparent',
-    danger:
+    destructive:
       'bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] border-transparent hover:opacity-90',
   },
   [ComponentName.Input]: {
