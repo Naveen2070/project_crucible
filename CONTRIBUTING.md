@@ -1,6 +1,9 @@
 # Contributing to Crucible
 
 > **Crucible — Code Generation Engine that generates style system/spec-based components**
+>
+> Crucible is a code generation engine, not a component library. It produces source files that you
+> own, not a package that sits in node_modules.
 
 Welcome! This guide covers everything you need to set up, run, and contribute to Crucible.
 
@@ -220,9 +223,10 @@ npm run dev            # Watch mode + playground (concurrent)
 ### Testing
 
 ```bash
-npm test               # Run all tests (230 tests, 24 files)
+npm test               # Run all tests (230 tests across 24 files)
 npm run test:e2e       # Run E2E script (19 phases)
 npm run test:watch    # Watch mode
+npm run test:coverage  # Coverage report
 ```
 
 ### Code Quality
@@ -460,6 +464,8 @@ These flags are automatically derived from ComponentMeta:
 | `hasId`          | `props.includes('id')`                                   |
 | `hasOutputClose` | `behaviours?.includes('closeable')`                      |
 | `hasPlaceholder` | `props.includes('placeholder')`                          |
+| `hasOnClick`     | `props.includes('onClick')`                              |
+| `hasHref`        | `props.includes('href')`                                 |
 
 ---
 

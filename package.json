@@ -1,8 +1,9 @@
 {
-  "name": "project_crucible",
+  "name": "crucible",
   "version": "1.0.0",
-  "description": "Crucible — Code Generation Engine that generates style system/spec-based components",
+  "description": "Crucible — Code Generation Engine that generates style system/spec-based components for React, Vue, and Angular. No runtime dependencies. You own every file generated.",
   "main": "dist/cli/index.js",
+  "type": "module",
   "scripts": {
     "audit:templates": "tsx scripts/audit-templates.ts",
     "prebuild": "npm run audit:templates",
@@ -36,9 +37,37 @@
   "bin": {
     "crucible": "./bin/crucible.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "code-generation",
+    "component-generator",
+    "design-system",
+    "style-system",
+    "react-components",
+    "vue-components",
+    "angular-components",
+    "tailwind",
+    "css-modules",
+    "scss",
+    "cli",
+    "scaffolding",
+    "component-library",
+    "style-system-engine",
+    "component-spec",
+    "aria",
+    "accessibility",
+    "dark-mode",
+    "oklch"
+  ],
+  "author": "Naveen R",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Naveen2070/project_crucible"
+  },
+  "bugs": {
+    "url": "https://github.com/Naveen2070/project_crucible"
+  },
+  "homepage": "https://github.com/Naveen2070/project_crucible#readme",
   "dependencies": {
     "@inquirer/prompts": "^8.3.2",
     "ajv": "^8.17.1",
@@ -70,5 +99,8 @@
     "typescript": "^5.8.2",
     "vitest": "^3.0.7",
     "vitest-axe": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=24.13.1"
   }
 }

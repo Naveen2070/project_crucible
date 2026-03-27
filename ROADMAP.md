@@ -8,40 +8,48 @@
 
 ## Philosophy
 
+Crucible is a code generation engine, not a component library. The core philosophy:
+
 ### The Three Core Risks
 
 1. **The Code Generation Trap** — Users edit generated files. Without an upgrade path, Crucible is
-   write-once.
+   write-once. This is the primary motivation for v1.2 (Migration Engine).
 
 2. **Logic Leaking into Templates** — Every `{{#if}}` chain is a maintenance burden. Multi-framework
-   support requires clean templates.
+   support requires clean, logic-free templates enforced by the audit script.
 
 3. **A11y Regressions** — Focus traps, ARIA live regions, combobox keyboard navigation. A single
-   regression destroys the core value.
+   regression destroys the core value. Testing pyramid catches these before release.
 
 ---
 
-## v1.0 — Complete
+## v1.0 — Complete ✅
 
-| Feature                                       | Status |
-| --------------------------------------------- | ------ |
-| TypeScript CLI engine                         | ✅     |
-| React, Vue, Angular frameworks                | ✅     |
-| CSS, Tailwind, SCSS style systems             | ✅     |
-| Theme presets (minimal, soft)                 | ✅     |
-| Dark mode (OKLCH derivation)                  | ✅     |
-| Hash-based user edit protection               | ✅     |
-| Template logic enforcement                    | ✅     |
-| Compound components                           | ✅     |
-| Interactive CLI + Tailwind auto-setup         | ✅     |
-| Component registry                            | ✅     |
-| 230 tests across 24 test files + 19 E2E tests | ✅     |
-| Professional component patterns               | ✅     |
-| DialogDescription + aria support              | ✅     |
-| Semantic color tokens                         | ✅     |
-| CLI command shorthands (i, d, t, etc.)        | ✅     |
-| CLI new flags (--style, --theme, --all)       | ✅     |
-| CLI new commands (clean, pg:clean, config)    | ✅     |
+| Feature                                           | Status |
+| ------------------------------------------------- | ------ |
+| TypeScript CLI engine (five-layer pipeline)       | ✅     |
+| React, Vue 3, Angular frameworks                  | ✅     |
+| CSS Modules, Tailwind CSS v4, SCSS style systems  | ✅     |
+| Theme presets (minimal, soft) with deep merge     | ✅     |
+| Dark mode (OKLCH perceptually uniform derivation) | ✅     |
+| Hash-based user edit protection                   | ✅     |
+| Template logic enforcement (audit script)         | ✅     |
+| Compound components (all 3 frameworks)            | ✅     |
+| Interactive CLI with @inquirer/prompts            | ✅     |
+| Tailwind auto-setup                               | ✅     |
+| Component registry with ComponentMeta             | ✅     |
+| 230 unit tests across 24 test files               | ✅     |
+| 19 E2E phases covering all commands               | ✅     |
+| Professional component patterns                   | ✅     |
+| DialogDescription + aria-describedby              | ✅     |
+| Semantic color tokens (foreground variants)       | ✅     |
+| CLI command shorthands (i, d, t, etc.)            | ✅     |
+| CLI new flags (--style, --theme, --all)           | ✅     |
+| CLI new commands (clean, pg:clean, config)        | ✅     |
+| Prettier integration                              | ✅     |
+| Dependency resolution (auto-scaffold Button)      | ✅     |
+| Global tokens.css emission                        | ✅     |
+| Playground system (3 frameworks)                  | ✅     |
 
 ---
 
@@ -79,7 +87,10 @@ gantt
 
 ---
 
-## v1.1 — Documentation & A11y Testing ✅ (COMPLETE)
+## v1.1 — Documentation & A11y Testing ✅
+
+> Note: All v1.1 features were included in the v1.0.0 stable release. The phases below represent the
+> development work that led to the stable release.
 
 ### Phase 5: Template Enforcement ✅
 
@@ -120,7 +131,19 @@ gantt
 | Phase 11  | 2       | ✅ Done         |
 | **TOTAL** | **230** | ✅ **COMPLETE** |
 
-E2E Tests: **19 passed** ✅
+E2E Tests: **19 phases** ✅
+
+#### E2E Phase Coverage
+
+| Phase | Coverage                                  |
+| ----- | ----------------------------------------- |
+| 1-3   | React: CSS, SCSS, Tailwind                |
+| 4-6   | Angular: CSS, SCSS, Tailwind              |
+| 7-9   | Vue: CSS, SCSS, Tailwind                  |
+| 10-12 | Write protection (dry-run, force, hash)   |
+| 13-15 | Configuration (batch, themes, output dir) |
+| 16-18 | CLI commands (init, eject, list)          |
+| 19    | Error handling                            |
 
 ---
 

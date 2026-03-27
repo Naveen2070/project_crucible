@@ -9,17 +9,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Test Suite Expansion**: Comprehensive test coverage with 230 unit tests across 24 test files +
-  19 E2E tests
-- **Component Enhancements**: Professional-quality component patterns and variants patterns
-- **DialogDescription Component**: Sub-component with aria-describedby support across all frameworks
-- **Semantic Color Tokens**: Added `--color-primary-foreground`, `--color-secondary-foreground`,
-  `--color-destructive-foreground`, `--color-accent-foreground`, `--foreground`
-- **Dialog Open Animation**: Standardized `dialog-open` keyframe animation
-- **CLI Command Shorthands**: Added aliases for all commands (i, d, t, e, a, l, pg, po, pd, c, pcl,
-  cfg)
-- **CLI New Flags**: Added `-s/--style`, `-t/--theme`, `-a/--all` flags to `add` command
-- **CLI New Commands**: Added `clean`, `pg:clean`, `config` commands
+> **v1.0.0 is the first stable release of Crucible — a code generation engine that generates style
+> system/spec-based components.**
+
+- **230 Unit Tests**: Comprehensive test coverage across 24 test files
+- **19 E2E Phases**: Full CLI automation testing
+- **Multi-Framework Support**: React, Vue 3, and Angular with full feature parity
+- **Three Style Systems**: CSS Modules, SCSS Modules, Tailwind CSS v4
+- **Theme Presets**: Minimal (neutral) and Soft (rounded, pastel tints) with deep merge
+- **Automatic Dark Mode**: OKLCH-based perceptually uniform color derivation
+- **Compound Components**: React static property pattern, Vue named slots, Angular content
+  projection
+- **Interactive CLI**: @inquirer/prompts with guided setup and shorthand commands
+- **Hash-Based Protection**: User edit detection before overwriting
+- **Component Registry**: Path generator with ComponentMeta defaults
+- **Template Audit**: Logic enforcement script (`npm run audit:templates`)
+- **Prettier Integration**: Auto-formatting all generated code
+- **Dependency Resolution**: Auto-scaffold Button for Select/Dialog components
+- **Semantic Color Tokens**: Foreground variants for all colors (primary, secondary, destructive)
+- **CLI Command Shorthands**: i, d, t, e, a, l, pg, po, pd, c, pcl, cfg
+- **CLI New Flags**: `-s/--style`, `-t/--theme`, `-a/--all` for `add` command
+- **CLI New Commands**: `clean`, `pg:clean`, `config`
+- **Tailwind Auto-Setup**: Auto-detect and configure Tailwind CSS v4
+- **Global Tokens**: tokens.css emission to public/**generated**/
+- **Playground System**: Dev environments for all three frameworks
 
 ### Changed
 
