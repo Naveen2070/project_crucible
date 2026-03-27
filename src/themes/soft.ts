@@ -12,5 +12,5 @@ export const softTokens = {
   },
   radius: { sm: '6px', md: '12px', lg: '20px' },
   spacing: { unit: '5px' },
-  typography: { fontFamily: "'Inter', system-ui, sans-serif", scaleBase: '16px' },
+  typography: { fontFamily: '"Inter", system-ui, sans-serif', scaleBase: '16px' },
 };

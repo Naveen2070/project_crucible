@@ -1,8 +1,8 @@
 import React from 'react';
 {{> react/styles-import}}
 
-export type CardVariant = {{> shared/variant-types}};
-export type CardSize    = {{> shared/size-types}};
+export type CardVariant = 'default' | 'hoverable' | 'clickable';
+export type CardSize    = 'sm' | 'md' | 'lg';
 
 {{> react/props-interface}}
 
