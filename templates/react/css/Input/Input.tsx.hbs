@@ -86,7 +86,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       styles.input,
       styles[`input--${variant}`],
       styles[`input--${size}`],
-      error && styles['input--error'],
+      (error || variant === 'error') && styles['input--error'],
       disabled && styles['input--disabled'],
       className,
     ].filter(Boolean).join(' ');
@@ -172,7 +172,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       styles.input,
       styles[`input--${variant}`],
       styles[`input--${size}`],
-      error && styles['input--error'],
+      (error || variant === 'error') && styles['input--error'],
       props.disabled && styles['input--disabled'],
       className,
     ].filter(Boolean).join(' ');

@@ -8206,7 +8206,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       styles.input,
       styles[\`input--\${variant}\`],
       styles[\`input--\${size}\`],
-      error && styles['input--error'],
+      (error || variant === 'error') && styles['input--error'],
       disabled && styles['input--disabled'],
       className,
     ].filter(Boolean).join(' ');
@@ -10097,7 +10097,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       styles.input,
       styles[\`input--\${variant}\`],
       styles[\`input--\${size}\`],
-      error && styles['input--error'],
+      (error || variant === 'error') && styles['input--error'],
       disabled && styles['input--disabled'],
       className,
     ].filter(Boolean).join(' ');
@@ -11597,7 +11597,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-destructive)]',
+      (error || variant === 'error') && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -12014,7 +12014,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
           'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
-          error && 'border-[var(--color-destructive)]',
+          (error || variant === 'error') && 'border-[var(--color-destructive)]',
           variantClasses[variant],
           sizeClasses[size],
           className,
@@ -13192,7 +13192,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       styles.input,
       styles[\`input--\${variant}\`],
       styles[\`input--\${size}\`],
-      error && styles['input--error'],
+      (error || variant === 'error') && styles['input--error'],
       disabled && styles['input--disabled'],
       className,
     ].filter(Boolean).join(' ');
@@ -15083,7 +15083,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       styles.input,
       styles[\`input--\${variant}\`],
       styles[\`input--\${size}\`],
-      error && styles['input--error'],
+      (error || variant === 'error') && styles['input--error'],
       disabled && styles['input--disabled'],
       className,
     ].filter(Boolean).join(' ');
@@ -16583,7 +16583,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-destructive)]',
+      (error || variant === 'error') && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -17000,7 +17000,7 @@ const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }>
           'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
           isOpen && 'border-[var(--color-primary)] rounded-b-none',
           disabled && 'opacity-50 cursor-not-allowed bg-[var(--color-background)]',
-          error && 'border-[var(--color-destructive)]',
+          (error || variant === 'error') && 'border-[var(--color-destructive)]',
           variantClasses[variant],
           sizeClasses[size],
           className,

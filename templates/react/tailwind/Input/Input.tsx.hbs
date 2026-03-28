@@ -97,7 +97,7 @@ export const InputField = React.forwardRef<HTMLInputElement, Omit<React.InputHTM
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12',
-      error && 'border-[var(--color-destructive)]',
+      (error || variant === 'error') && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
@@ -185,7 +185,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       variantClasses[variant],
       sizeClasses[size],
       isPassword && 'pr-12', // make room for the toggle button
-      error && 'border-[var(--color-destructive)]',
+      (error || variant === 'error') && 'border-[var(--color-destructive)]',
       className,
     ].filter(Boolean).join(' ');
 
