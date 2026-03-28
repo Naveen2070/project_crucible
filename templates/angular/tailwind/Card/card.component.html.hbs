@@ -10,25 +10,25 @@
 >
   <header class="p-6 border-b border-[var(--color-border)] empty:hidden flex items-start justify-between gap-4">
     <div>
-      <ng-content select="[header]"></ng-content>
+      <ng-content select="[card-header]"></ng-content>
       @if (title) {
         <h3 class="m-0 text-lg font-semibold text-[var(--color-text)]">\{{ title }}</h3>
       }
       <p class="m-0 text-sm text-[var(--color-text-muted)]">
-        <ng-content select="[description]"></ng-content>
+        <ng-content select="[card-description]"></ng-content>
       </p>
     </div>
     <div class="flex-shrink-0">
-      <ng-content select="[action]"></ng-content>
+      <ng-content select="[card-action]"></ng-content>
     </div>
   </header>
 
   <div class="flex-1 p-6 text-[var(--color-text-muted)]">
-    <ng-content select="[content]"></ng-content>
+    <ng-content select="[card-content]"></ng-content>
     <ng-content></ng-content>
   </div>
 
   <footer class="p-6 border-t border-[var(--color-border)] empty:hidden">
-    <ng-content select="[footer]"></ng-content>
+    <ng-content select="[card-footer]"></ng-content>
   </footer>
 </div>

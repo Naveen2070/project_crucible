@@ -12,23 +12,23 @@
       [attr.aria-describedby]="descriptionId"
       (click)="$event.stopPropagation()"
     >
-      <ng-content select="[content]"></ng-content>
+      <ng-content select="[dialog-content]"></ng-content>
       <header class="dialog-header">
-        <ng-content select="[header]"></ng-content>
+        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="dialog-title">
           <ng-content select="[dialog-title]">\{{ title }}</ng-content>
         </h2>
         <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="dialog-description">
-          <ng-content select="[description]"></ng-content>
+          <ng-content select="[dialog-description]"></ng-content>
         </p>
         <button type="button" class="dialog-close" (click)="onClose()" aria-label="Close Dialog">
-          <ng-content select="[close]">&times;</ng-content>
+          <ng-content select="[dialog-close]">&times;</ng-content>
         </button>
       </header>
       
       <div class="dialog-body">
-        <ng-content select="[body]"></ng-content>
+        <ng-content select="[dialog-body]"></ng-content>
         <ng-content></ng-content>
       </div>
       
