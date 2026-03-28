@@ -389,6 +389,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   <header class="card-header">
     <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
+    @if (title) {
+      <h3 class="card-title">{{ title }}</h3>
+    }
     <p class="card-description">
       <ng-content select="[card-description]"></ng-content>
     </p>
@@ -1561,6 +1564,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   <header class="card-header">
     <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
+    @if (title) {
+      <h3 class="card-title">{{ title }}</h3>
+    }
     <p class="card-description">
       <ng-content select="[card-description]"></ng-content>
     </p>
@@ -3948,6 +3954,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   <header class="card-header">
     <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
+    @if (title) {
+      <h3 class="card-title">{{ title }}</h3>
+    }
     <p class="card-description">
       <ng-content select="[card-description]"></ng-content>
     </p>
@@ -5120,6 +5129,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   <header class="card-header">
     <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
+    @if (title) {
+      <h3 class="card-title">{{ title }}</h3>
+    }
     <p class="card-description">
       <ng-content select="[card-description]"></ng-content>
     </p>
