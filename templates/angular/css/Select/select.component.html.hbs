@@ -1,10 +1,11 @@
 <div class="select-container">
+  <ng-content select="[select-label]"></ng-content>
   @if (label) {
     <label [attr.for]="id" class="select-label">\{{ label }}</label>
   }
   
   <div class="select-wrapper">
-    <ng-content select="[prefix]"></ng-content>
+    <ng-content select="[select-prefix]"></ng-content>
     <select
       [id]="id"
       class="select-combobox"
@@ -21,9 +22,10 @@
         <option [value]="opt.value">\{{ opt.label }}</option>
       }
     </select>
-    <ng-content select="[suffix]"></ng-content>
+    <ng-content select="[select-suffix]"></ng-content>
   </div>
 
+  <ng-content select="[select-error]"></ng-content>
   @if (error) {
     <span class="select-error" role="alert">\{{ error }}</span>
   }

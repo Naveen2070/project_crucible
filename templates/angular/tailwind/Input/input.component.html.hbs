@@ -1,4 +1,5 @@
 <div [class]="containerClasses">
+  <ng-content select="[input-label]"></ng-content>
   @if (label) {
     <label [attr.for]="id" class="block text-sm font-medium mb-1.5 text-[var(--color-text)]">
       \{{ label }}
@@ -7,10 +8,9 @@
       }
     </label>
   }
-  <ng-content select="[label]"></ng-content>
   
   <div class="relative">
-    <ng-content select="[field]">
+    <ng-content select="[input-field]">
       <input
         [id]="id"
         [type]="currentType"
@@ -36,17 +36,18 @@
     </ng-content>
   </div>
 
+  <ng-content select="[input-hint]"></ng-content>
   @if (hint && !error) {
     <p [id]="hintId" class="mt-1.5 text-xs text-[var(--color-text-muted)]">
       \{{ hint }}
     </p>
   }
-  <ng-content select="[hint]"></ng-content>
 
+  <ng-content select="[input-error]"></ng-content>
   @if (error) {
     <p [id]="errorId" class="mt-1.5 text-xs text-[var(--color-destructive)]" role="alert">
       \{{ error }}
     </p>
   }
-  <ng-content select="[error]"></ng-content>
+  <ng-content></ng-content>
 </div>

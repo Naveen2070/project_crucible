@@ -1,4 +1,5 @@
 <div class="input-container">
+  <ng-content select="[input-label]"></ng-content>
   @if (label) {
     <label [attr.for]="id" class="label">
       \{{ label }}
@@ -9,7 +10,7 @@
   }
   
   <div class="input-wrapper">
-    <ng-content select="[prefix]"></ng-content>
+    <ng-content select="[input-prefix]"></ng-content>
     <input
       [id]="id"
       type="text"
@@ -24,12 +25,14 @@
       [attr.aria-invalid]="!!error"
       [attr.aria-required]="required"
     />
-    <ng-content select="[suffix]"></ng-content>
+    <ng-content select="[input-suffix]"></ng-content>
   </div>
 
+  <ng-content select="[input-hint]"></ng-content>
   @if (hint && !error) {
     <span class="hint">\{{ hint }}</span>
   }
+  <ng-content select="[input-error]"></ng-content>
   @if (error) {
     <span class="error" role="alert">\{{ error }}</span>
   }

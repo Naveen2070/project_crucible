@@ -4,14 +4,14 @@
   [attr.aria-disabled]="disabled || loading"
   [attr.aria-busy]="loading"
 >
-  <ng-content select="[spinner]"></ng-content>
+  <ng-content select="[btn-spinner]"></ng-content>
   @if (loading) {
     <span
       class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"
       aria-hidden="true"
     ></span>
   }
-  <ng-content select="[icon]"></ng-content>
-  <ng-content select="[label]"></ng-content>
+  <ng-content select="[btn-icon]"></ng-content>
+  <ng-content select="[btn-label]"></ng-content>
   <ng-content></ng-content>
 </button>

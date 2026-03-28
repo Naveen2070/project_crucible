@@ -1,10 +1,10 @@
 <div class="relative w-full flex flex-col gap-[var(--spacing-unit)]">
+  <ng-content select="[select-label]"></ng-content>
   @if (label) {
     <label [attr.for]="id + '-trigger'" class="text-sm font-medium text-[var(--color-text)]">
       \{{ label }}
     </label>
   }
-  <ng-content select="[label]"></ng-content>
   
   <div
     [id]="id + '-trigger'"
@@ -19,12 +19,12 @@
     [attr.tabindex]="disabled ? null : 0"
     #trigger
   >
-    <ng-content select="[trigger]">
+    <ng-content select="[select-trigger]">
       <span class="truncate flex-1" [class.text-[var(--color-text-muted)]]="!value">
-        <ng-content select="[value]">\{{ displayValue }}</ng-content>
+        <ng-content select="[select-value]">\{{ displayValue }}</ng-content>
       </span>
       <span class="ml-2 transition-transform duration-200 shrink-0" [class.rotate-180]="isOpen" aria-hidden="true">
-        <ng-content select="[icon]">▼</ng-content>
+        <ng-content select="[select-icon]">▼</ng-content>
       </span>
     </ng-content>
   </div>
@@ -37,7 +37,7 @@
       [attr.aria-labelledby]="id + '-trigger'"
       #listbox
     >
-      <ng-content select="[content]">
+      <ng-content select="[select-content]">
         @for (option of options; track option.value; let i = $index) {
           <li
             [id]="id + '-option-' + i"
@@ -49,9 +49,9 @@
             [attr.aria-selected]="value === (option.value !== undefined ? option.value : option)"
             role="option"
           >
-            <ng-content select="[item]">
+            <ng-content select="[select-item]">
               <span class="item-text">
-                <ng-content select="[item-text]">\{{ option.label || option }}</ng-content>
+                <ng-content select="[select-item-text]">\{{ option.label || option }}</ng-content>
               </span>
             </ng-content>
           </li>
@@ -60,10 +60,11 @@
     </ul>
   }
 
+  <ng-content select="[select-error]"></ng-content>
   @if (error) {
     <span class="text-xs text-[var(--color-destructive)] mt-0.5" role="alert">
       \{{ error }}
     </span>
   }
-  <ng-content select="[error]"></ng-content>
+  <ng-content></ng-content>
 </div>

@@ -17,8 +17,11 @@
   [attr.aria-disabled]="disabled || loading"
   [attr.aria-busy]="loading"
 >
+  <ng-content select="[btn-spinner]"></ng-content>
   @if (loading) {
     <span class="spinner" aria-hidden="true"></span>
   }
+  <ng-content select="[btn-icon]"></ng-content>
+  <ng-content select="[btn-label]"></ng-content>
   <ng-content></ng-content>
 </button>
