@@ -9,7 +9,6 @@
   [attr.role]="variant === 'clickable' ? 'button' : article"
 >
   <header class="card-header">
-    <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
     @if (title) {
       <h3 class="card-title">\{{ title }}</h3>

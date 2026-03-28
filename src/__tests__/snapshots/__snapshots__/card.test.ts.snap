@@ -169,7 +169,6 @@ exports[`Card snapshots > css mode snapshot 2`] = `
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);

@@ -336,7 +336,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -366,18 +365,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   padding: var(--card-footer-padding);
   border-top: 1px solid var(--card-border);
 }
-
-.title, .card-title {
-  margin:      0;
-  padding:     var(--card-header-padding);
-  font-size:   1.1em;
-  font-weight: 600;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.content, .card-content {
-  padding: var(--card-content-padding);
-}
 ",
   "card.component.html": "<div 
   class="card"
@@ -390,7 +377,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   [attr.role]="variant === 'clickable' ? 'button' : article"
 >
   <header class="card-header">
-    <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
     @if (title) {
       <h3 class="card-title">{{ title }}</h3>
@@ -632,11 +618,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="dialog-header">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="dialog-title">
           <ng-content select="[dialog-title]">{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="dialog-description">
           <ng-content select="[dialog-description]"></ng-content>
         </p>
@@ -1581,7 +1565,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   [attr.role]="variant === 'clickable' ? 'button' : article"
 >
   <header class="card-header">
-    <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
     @if (title) {
       <h3 class="card-title">{{ title }}</h3>
@@ -1669,7 +1652,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -1827,11 +1809,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="dialog-header">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="dialog-title">
           <ng-content select="[dialog-title]">{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="dialog-description">
           <ng-content select="[dialog-description]"></ng-content>
         </p>
@@ -2812,10 +2792,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 >
   <header class="p-6 border-b border-[var(--color-border)] empty:hidden flex items-start justify-between gap-4">
     <div>
-      <ng-content select="[card-header]"></ng-content>
       @if (title) {
         <h3 class="m-0 text-lg font-semibold text-[var(--color-text)]">{{ title }}</h3>
       }
+      <ng-content select="[card-title]"></ng-content>
       <p class="m-0 text-sm text-[var(--color-text-muted)]">
         <ng-content select="[card-description]"></ng-content>
       </p>
@@ -2970,13 +2950,11 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="text-xl font-bold text-[var(--color-text)]">
           <ng-content select="[dialog-title]">{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="text-sm text-[var(--color-text-muted)]">
-          <ng-content select="[description]"></ng-content>
+          <ng-content select="[dialog-description]"></ng-content>
         </p>
         <button
           type="button"
@@ -3936,7 +3914,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -3966,18 +3943,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   padding: var(--card-footer-padding);
   border-top: 1px solid var(--card-border);
 }
-
-.title, .card-title {
-  margin:      0;
-  padding:     var(--card-header-padding);
-  font-size:   1.1em;
-  font-weight: 600;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.content, .card-content {
-  padding: var(--card-content-padding);
-}
 ",
   "card.component.html": "<div 
   class="card"
@@ -3990,7 +3955,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   [attr.role]="variant === 'clickable' ? 'button' : article"
 >
   <header class="card-header">
-    <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
     @if (title) {
       <h3 class="card-title">{{ title }}</h3>
@@ -4232,11 +4196,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="dialog-header">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="dialog-title">
           <ng-content select="[dialog-title]">{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="dialog-description">
           <ng-content select="[dialog-description]"></ng-content>
         </p>
@@ -5181,7 +5143,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   [attr.role]="variant === 'clickable' ? 'button' : article"
 >
   <header class="card-header">
-    <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
     @if (title) {
       <h3 class="card-title">{{ title }}</h3>
@@ -5269,7 +5230,6 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -5427,11 +5387,9 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="dialog-header">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="dialog-title">
           <ng-content select="[dialog-title]">{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="dialog-description">
           <ng-content select="[dialog-description]"></ng-content>
         </p>
@@ -6412,10 +6370,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 >
   <header class="p-6 border-b border-[var(--color-border)] empty:hidden flex items-start justify-between gap-4">
     <div>
-      <ng-content select="[card-header]"></ng-content>
       @if (title) {
         <h3 class="m-0 text-lg font-semibold text-[var(--color-text)]">{{ title }}</h3>
       }
+      <ng-content select="[card-title]"></ng-content>
       <p class="m-0 text-sm text-[var(--color-text-muted)]">
         <ng-content select="[card-description]"></ng-content>
       </p>
@@ -6570,13 +6528,11 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="text-xl font-bold text-[var(--color-text)]">
           <ng-content select="[dialog-title]">{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="text-sm text-[var(--color-text-muted)]">
-          <ng-content select="[description]"></ng-content>
+          <ng-content select="[dialog-description]"></ng-content>
         </p>
         <button
           type="button"
@@ -7477,7 +7433,6 @@ exports[`Framework x Style-System Permutation Snapshots > Framework: react > The
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -9258,7 +9213,6 @@ exports[`Framework x Style-System Permutation Snapshots > Framework: react > The
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -12465,7 +12419,6 @@ exports[`Framework x Style-System Permutation Snapshots > Framework: react > The
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -14246,7 +14199,6 @@ exports[`Framework x Style-System Permutation Snapshots > Framework: react > The
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -17495,7 +17447,6 @@ const classes = computed(() => [
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -19052,7 +19003,6 @@ const classes = computed(() => [
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -21547,7 +21497,6 @@ const classes = computed(() => [
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);
@@ -23104,7 +23053,6 @@ const classes = computed(() => [
 
 .title, .card-title {
   margin:      0;
-  padding:     var(--card-header-padding);
   font-size:   1.1rem;
   font-weight: 600;
   color:       var(--color-text);

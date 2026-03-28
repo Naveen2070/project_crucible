@@ -14,11 +14,9 @@
     >
       <ng-content select="[dialog-content]"></ng-content>
       <header class="dialog-header">
-        <ng-content select="[dialog-header]"></ng-content>
         <h2 [id]="titleId" class="dialog-title">
           <ng-content select="[dialog-title]">\{{ title }}</ng-content>
         </h2>
-        <ng-content select="[dialog-description]"></ng-content>
         <p [id]="descriptionId" class="dialog-description">
           <ng-content select="[dialog-description]"></ng-content>
         </p>
