@@ -314,11 +314,12 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
-  args: { variant: 'error' },
+  args: { variant: 'error', error: 'This field is required' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Error Variant</Input.Label>
       <Input.Field placeholder="Input with error variant" />
+      <Input.Error>{args.error}</Input.Error>
     </Input>
   ),
 };
@@ -597,11 +598,12 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
-  args: { variant: 'error' },
+  args: { variant: 'error', error: 'This field is required' },
   render: (args) => (
     <Input {...args}>
       <Input.Label>Error Variant</Input.Label>
       <Input.Field placeholder="Input with error variant" />
+      <Input.Error>{args.error}</Input.Error>
     </Input>
   ),
 };

@@ -21,11 +21,18 @@ export const Default: Story = {
 {{#each variants}}
 {{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
+{{#if (eq this "error")}}
+  args: { variant: '{{this}}', error: 'This field is required' },
+{{else}}
   args: { variant: '{{this}}' },
+{{/if}}
   render: (args) => (
     <Input {...args}>
       <Input.Label>{{capitalize this}} Variant</Input.Label>
       <Input.Field placeholder="Input with {{this}} variant" />
+      {{#if (eq this "error")}}
+      <Input.Error>{args.error}</Input.Error>
+      {{/if}}
     </Input>
   ),
 };
@@ -93,7 +100,11 @@ export const Default: Story = {
 {{#each variants}}
 {{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
+{{#if (eq this "error")}}
+  args: { label: '{{capitalize this}} Variant', variant: '{{this}}', error: 'This field is required', placeholder: 'Input with {{this}} variant' },
+{{else}}
   args: { label: '{{capitalize this}} Variant', variant: '{{this}}', placeholder: 'Input with {{this}} variant' },
+{{/if}}
 };
 {{/unless}}
 {{/each}}

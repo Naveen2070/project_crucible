@@ -487,7 +487,7 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
-  args: { variant: 'error' },
+  args: { variant: 'error', error: 'Please select an option' },
   render: (args) => {
     const [value, setValue] = useState('');
     return (
@@ -501,6 +501,7 @@ export const Error: Story = {
           <Select.Item value="1" label="Option 1" />
           <Select.Item value="2" label="Option 2" />
         </Select.Content>
+        {args.error && <span style={{ color: 'var(--color-destructive)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{args.error}</span>}
       </Select>
     );
   },
@@ -940,7 +941,7 @@ export const Default: Story = {
 };
 
 export const Error: Story = {
-  args: { variant: 'error' },
+  args: { variant: 'error', error: 'Please select an option' },
   render: (args) => {
     const [value, setValue] = useState('');
     return (
@@ -954,6 +955,7 @@ export const Error: Story = {
           <Select.Item value="1" label="Option 1" />
           <Select.Item value="2" label="Option 2" />
         </Select.Content>
+        {args.error && <span style={{ color: 'var(--color-destructive)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{args.error}</span>}
       </Select>
     );
   },

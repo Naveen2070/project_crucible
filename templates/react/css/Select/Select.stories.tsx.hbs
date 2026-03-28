@@ -33,7 +33,11 @@ export const Default: Story = {
 {{#each variants}}
 {{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
+{{#if (eq this "error")}}
+  args: { variant: '{{this}}', error: 'Please select an option' },
+{{else}}
   args: { variant: '{{this}}' },
+{{/if}}
   render: (args) => {
     const [value, setValue] = useState('');
     return (
@@ -47,6 +51,9 @@ export const {{capitalize this}}: Story = {
           <Select.Item value="1" label="Option 1" />
           <Select.Item value="2" label="Option 2" />
         </Select.Content>
+        {{#if (eq this "error")}}
+        {args.error && <span style=\{{ color: 'var(--color-destructive)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{args.error}</span>}
+        {{/if}}
       </Select>
     );
   },
@@ -111,12 +118,22 @@ export const Default: Story = {
 {{#each variants}}
 {{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
+{{#if (eq this "error")}}
+  args: {
+    label: '{{capitalize this}} Variant',
+    variant: '{{this}}',
+    error: 'Please select an option',
+    options,
+    placeholder: 'Choose one...',
+  },
+{{else}}
   args: {
     label: '{{capitalize this}} Variant',
     variant: '{{this}}',
     options,
     placeholder: 'Choose one...',
   },
+{{/if}}
 };
 {{/unless}}
 {{/each}}
