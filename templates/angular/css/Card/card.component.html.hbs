@@ -6,14 +6,11 @@
   [class.card--hoverable]="variant === 'hoverable'"
   [class.card--clickable]="variant === 'clickable'"
   [attr.tabindex]="variant === 'clickable' ? 0 : null"
-  [attr.role]="variant === 'clickable' ? 'button' : null"
+  [attr.role]="variant === 'clickable' ? 'button' : article"
 >
   <header class="card-header">
     <ng-content select="[card-header]"></ng-content>
     <ng-content select="[card-title]"></ng-content>
-    @if (title) {
-      <h3 class="card-title">{{title}}</h3>
-    }
     <p class="card-description">
       <ng-content select="[card-description]"></ng-content>
     </p>

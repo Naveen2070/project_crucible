@@ -27,7 +27,7 @@ export const Default: Story = {
 {{#each variants}}
 {{#unless (eq this "default")}}
 export const {{capitalize this}}: Story = {
-  args: { variant: '{{this}}' },
+  args: { variant: '{{this}}', size: 'md' },
   render: (args) => ({
     props: args,
     template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">{{capitalize this}} Button</app-button>`,
@@ -38,7 +38,7 @@ export const {{capitalize this}}: Story = {
 
 {{#each sizes}}
 export const {{capitalize this}}: Story = {
-  args: { size: '{{this}}' },
+  args: { variant: 'default', size: '{{this}}' },
   render: (args) => ({
     props: args,
     template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">{{capitalize this}} Size</app-button>`,

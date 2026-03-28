@@ -1,4 +1,13 @@
-<div [class]="classes" [attr.tabindex]="variant === 'clickable' ? 0 : null" [attr.role]="variant === 'clickable' ? 'button' : 'article'">
+<div 
+  class="card"
+  [class.card--sm]="size === 'sm'"
+  [class.card--md]="size === 'md'"
+  [class.card--lg]="size === 'lg'"
+  [class.card--hoverable]="variant === 'hoverable'"
+  [class.card--clickable]="variant === 'clickable'"
+  [attr.tabindex]="variant === 'clickable' ? 0 : null"
+  [attr.role]="variant === 'clickable' ? 'button' : article"
+>
   <header class="p-6 border-b border-[var(--color-border)] empty:hidden flex items-start justify-between gap-4">
     <div>
       <ng-content select="[header]"></ng-content>

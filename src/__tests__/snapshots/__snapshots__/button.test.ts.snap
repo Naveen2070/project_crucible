@@ -154,7 +154,7 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Default: Story = {
-  args: { variant: 'primary', size: 'md' },
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Button {...args}>
       <Button.Label>Button</Button.Label>
@@ -390,7 +390,7 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Default: Story = {
-  args: { variant: 'primary', size: 'md' },
+  args: { variant: 'default', size: 'md' },
   render: (args) => (
     <Button {...args}>
       <Button.Label>Button</Button.Label>

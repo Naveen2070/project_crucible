@@ -6,19 +6,14 @@ import styles from './Card.module.css';
 export type CardVariant = 'default' | 'hoverable' | 'clickable';
 export type CardSize    = 'sm' | 'md' | 'lg';
 
-export interface Props {
-  variant?:   Variant;
-  size?:      Size;
-  
-  
-  
-  
-  
-  title?:    string;
-  
-  onClick?:  () => void;
-  href?:     string;
-  
+export interface CardProps {
+  variant?: CardVariant;
+  size?: CardSize;
+  title?: string;
+  children?: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  href?: string;
 }
 
 export const CardRoot = ({
@@ -94,7 +89,15 @@ export const Card = Object.assign(CardRoot, {
   Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
-});
+}) as typeof CardRoot & {
+  Header: typeof CardHeader;
+  Title: typeof CardTitle;
+  Description: typeof CardDescription;
+  Action: typeof CardAction;
+  Content: typeof CardContent;
+  Footer: typeof CardFooter;
+  displayName: string;
+};
 
 Card.displayName = 'Card';
 "
@@ -419,7 +422,15 @@ export const Card = Object.assign(CardRoot, {
   Action: CardAction,
   Content: CardContent,
   Footer: CardFooter,
-});
+}) as typeof CardRoot & {
+  Header: typeof CardHeader;
+  Title: typeof CardTitle;
+  Description: typeof CardDescription;
+  Action: typeof CardAction;
+  Content: typeof CardContent;
+  Footer: typeof CardFooter;
+  displayName: string;
+};
 
 Card.displayName = 'Card';
 
