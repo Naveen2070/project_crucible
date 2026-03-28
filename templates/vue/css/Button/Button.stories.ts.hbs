@@ -74,7 +74,7 @@ export const WithSlots: Story = {
     setup() { return { args }; },
     template: `
 <Button v-bind="args">
-  <template #icon><span>🔥</span></template>
+  <template #icon><span class="mr-2">★</span></template>
   With Custom Icon
 </Button>`,
   }),
@@ -87,7 +87,7 @@ export const LoadingSlot: Story = {
     setup() { return { args }; },
     template: `
 <Button v-bind="args">
-  <template #spinner><span>⏳</span></template>
+  <template #spinner><span class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span></template>
   Custom Spinner
 </Button>`,
   }),

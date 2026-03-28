@@ -18,7 +18,7 @@ export const Default: Story = {
   render: (args) => ({
     components: { Card },
     setup() { return { args }; },
-    template: `<Card v-bind="args">This is a default card with some content.</Card>`,
+    template: `<Card :title="args.title" :variant="args.variant" :size="args.size">This is a default card with some content.</Card>`,
   }),
 };
 
@@ -29,7 +29,7 @@ export const {{capitalize this}}: Story = {
   render: (args) => ({
     components: { Card },
     setup() { return { args }; },
-    template: `<Card v-bind="args">Card content with {{this}} variant.</Card>`,
+    template: `<Card :title="args.title" :variant="args.variant">Card content with {{this}} variant.</Card>`,
   }),
 };
 {{/unless}}
@@ -41,7 +41,7 @@ export const {{capitalize this}}: Story = {
   render: (args) => ({
     components: { Card },
     setup() { return { args }; },
-    template: `<Card v-bind="args">Card content with {{this}} size.</Card>`,
+    template: `<Card :title="args.title" :size="args.size">Card content with {{this}} size.</Card>`,
   }),
 };
 {{/each}}
