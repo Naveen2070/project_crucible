@@ -411,7 +411,7 @@ export const Select: React.FC<SelectProps> = ({
         className={[
           styles.combobox,
           styles[`combobox--${size}`],
-          error && styles['combobox--error'],
+          (error || variant === 'error') && styles['combobox--error'],
           disabled && styles['combobox--disabled'],
           isOpen && styles['combobox--open'],
         ].join(' ')}
