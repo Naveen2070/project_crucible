@@ -10,18 +10,25 @@
       aria-modal="true"
       [attr.aria-labelledby]="titleId"
       [attr.aria-describedby]="descriptionId"
+      (click)="$event.stopPropagation()"
     >
+      <ng-content select="[content]"></ng-content>
       <header class="dialog-header">
-        <h2 [id]="titleId" class="dialog-title">\{{ title }}</h2>
-        @if (description) {
-          <p [id]="descriptionId" class="dialog-description">{{ description }}</p>
-        }
+        <ng-content select="[header]"></ng-content>
+        <h2 [id]="titleId" class="dialog-title">
+          <ng-content select="[dialog-title]">\{{ title }}</ng-content>
+        </h2>
+        <ng-content select="[dialog-description]"></ng-content>
+        <p [id]="descriptionId" class="dialog-description">
+          <ng-content select="[description]"></ng-content>
+        </p>
         <button type="button" class="dialog-close" (click)="onClose()" aria-label="Close Dialog">
-          &times;
+          <ng-content select="[close]">&times;</ng-content>
         </button>
       </header>
       
       <div class="dialog-body">
+        <ng-content select="[body]"></ng-content>
         <ng-content></ng-content>
       </div>
       
