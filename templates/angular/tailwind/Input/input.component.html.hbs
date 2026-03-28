@@ -1,8 +1,12 @@
 <div [class]="containerClasses">
-  <label *ngIf="label" [attr.for]="id" class="block text-sm font-medium mb-1.5 text-[var(--color-text)]">
-    \{{ label }}
-    <span *ngIf="required" class="text-[var(--color-destructive)]" aria-hidden="true">*</span>
-  </label>
+  @if (label) {
+    <label [attr.for]="id" class="block text-sm font-medium mb-1.5 text-[var(--color-text)]">
+      \{{ label }}
+      @if (required) {
+        <span class="text-[var(--color-destructive)]" aria-hidden="true">*</span>
+      }
+    </label>
+  }
   <ng-content select="[label]"></ng-content>
   
   <div class="relative">
@@ -18,26 +22,31 @@
         [attr.aria-describedby]="describedBy"
       >
       
-      <button
-        *ngIf="type === 'password'"
-        type="button"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
-        (click)="togglePassword()"
-        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-        [attr.aria-pressed]="showPassword"
-      >
-        \{{ showPassword ? 'Hide' : 'Show' }}
-      </button>
+      @if (type === 'password') {
+        <button
+          type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          (click)="togglePassword()"
+          [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword"
+        >
+          \{{ showPassword ? 'Hide' : 'Show' }}
+        </button>
+      }
     </ng-content>
   </div>
 
-  <p *ngIf="hint && !error" [id]="hintId" class="mt-1.5 text-xs text-[var(--color-text-muted)]">
-    \{{ hint }}
-  </p>
+  @if (hint && !error) {
+    <p [id]="hintId" class="mt-1.5 text-xs text-[var(--color-text-muted)]">
+      \{{ hint }}
+    </p>
+  }
   <ng-content select="[hint]"></ng-content>
 
-  <p *ngIf="error" [id]="errorId" class="mt-1.5 text-xs text-[var(--color-destructive)]" role="alert">
-    \{{ error }}
-  </p>
+  @if (error) {
+    <p [id]="errorId" class="mt-1.5 text-xs text-[var(--color-destructive)]" role="alert">
+      \{{ error }}
+    </p>
+  }
   <ng-content select="[error]"></ng-content>
 </div>

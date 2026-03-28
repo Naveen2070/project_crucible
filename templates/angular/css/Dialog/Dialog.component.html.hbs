@@ -13,7 +13,9 @@
     >
       <header class="dialog-header">
         <h2 [id]="titleId" class="dialog-title">\{{ title }}</h2>
-        <p [id]="descriptionId" class="dialog-description" *ngIf="description">\{{ description }}</p>
+        @if (description) {
+          <p [id]="descriptionId" class="dialog-description">{{ description }}</p>
+        }
         <button type="button" class="dialog-close" (click)="onClose()" aria-label="Close Dialog">
           &times;
         </button>
