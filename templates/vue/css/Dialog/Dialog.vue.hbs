@@ -42,7 +42,7 @@ const descriptionId = `dialog-desc-${Math.floor(Math.random() * 1000000)}`;
           <slot name="header">
             <header class="dialog-header">
               <slot name="title">
-                <h2 :id="titleId" v-if="title" class="dialog-title">\{{ title }}</h2>
+                <h2 :id="titleId" v-if="title" class="dialog-title">{{hbs "title"}}</h2>
               </slot>
               <slot name="description">
                 <p :id="descriptionId" class="dialog-description">

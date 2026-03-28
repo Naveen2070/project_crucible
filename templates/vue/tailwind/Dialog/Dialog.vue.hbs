@@ -86,7 +86,7 @@ const descriptionId = `dialog-desc-${Math.floor(Math.random() * 1000000)}`;
             <slot name="header">
               <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
                 <slot name="title">
-                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">\{{ title }}</h2>
+                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">{{hbs "title"}}</h2>
                 </slot>
                 <slot name="description">
                   <p :id="descriptionId" class="text-sm text-[var(--color-text-muted)] mt-1">

@@ -16,6 +16,7 @@ Handlebars.registerHelper('kebab', (str: string) =>
     .toLowerCase()
     .replace(/^-/, ''),
 );
+Handlebars.registerHelper('hbs', (str: string) => `{{${str}}}`);
 
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
 const loadedFrameworks = new Set<string>();
