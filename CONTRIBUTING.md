@@ -582,6 +582,45 @@ export const CardFooter = ({ children, className }) => (
 }
 ```
 
+### Angular ng-content Slots
+
+When creating Angular component templates, follow these slot conventions:
+
+#### Slot Naming:
+
+- Use component-specific prefix: `{component}-{slotname}`
+- Examples: `card-title`, `dialog-close`, `input-field`, `btn-icon`
+
+#### Slot Placement:
+
+- Place slots inside container elements to customize **inner content**
+- Do NOT place slots that would replace entire container elements (header, footer, etc.)
+
+```html
+<!-- CORRECT — slot inside header -->
+<header class="card-header">
+  <ng-content select="[card-title]"></ng-content>
+</header>
+
+<!-- WRONG — slot that would replace entire header -->
+<header class="card-header">
+  <ng-content select="[card-header]"></ng-content>
+  <!-- Don't do this -->
+</header>
+```
+
+#### Always Include:
+
+- Default content fallback inside ng-content tags
+- Proper @if/@for control flow (Angular 17+)
+
+```html
+@if (title) {
+<h3 class="card-title">\{{ title }}</h3>
+}
+<ng-content select="[card-title]"></ng-content>
+```
+
 ### Tailwind Templates
 
 Use **CSS-in-Tailwind** approach — reference CSS variables via arbitrary value syntax:
@@ -608,13 +647,16 @@ class="bg-white rounded-lg"
 
 When adding a new component, verify:
 
-- [ ] All compound sub-components have corresponding CSS classes
+- [ ] All compound sub-components have corresponding CSS classes (React/Vue)
 - [ ] All padding/margin values use CSS variables (`var(--component-*)`)
 - [ ] Border radius uses CSS variables (`var(--radius-*)`)
 - [ ] Border width follows standard (1px CSS, 1.5px SCSS/Tailwind)
 - [ ] Focus ring uses `{{a11y.focusRingColor}}` consistently
 - [ ] Class names follow BEM convention
 - [ ] Tailwind templates use `[var(--token)]` syntax for design tokens
+- [ ] Angular uses @if/@for (not *ngIf/*ngFor)
+- [ ] Angular slots use component-specific prefix (`{component}-{slot}`)
+- [ ] Angular slots are inside containers (not replacing them)
 
 ### Quick Reference: Component Token Variables
 

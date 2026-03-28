@@ -148,15 +148,15 @@ interface CrucibleConfig {
 
 ### 3.2 Default Values
 
-| Key                           | Default     | Reason                                      |
-| ----------------------------- | ----------- | ------------------------------------------- |
-| `styleSystem`                 | `"css"`     | Backward compatible, no Tailwind assumption |
-| `theme`                       | `"minimal"` | Neutral starting point                      |
-| `darkMode`                    | `false`     | Opt-in, not imposed                         |
-| `features.hover`              | `true`      | Better default UX                           |
-| `features.focusRing`          | `true`      | Accessibility non-negotiable                |
-| `features.compoundComponents` | `true`      | React/Vue only, Angular excluded            |
-| `flags.stories`               | `false`     | Opt-in story generation                     |
+| Key                           | Default     | Reason                                            |
+| ----------------------------- | ----------- | ------------------------------------------------- |
+| `styleSystem`                 | `"css"`     | Backward compatible, no Tailwind assumption       |
+| `theme`                       | `"minimal"` | Neutral starting point                            |
+| `darkMode`                    | `false`     | Opt-in, not imposed                               |
+| `features.hover`              | `true`      | Better default UX                                 |
+| `features.focusRing`          | `true`      | Accessibility non-negotiable                      |
+| `features.compoundComponents` | `true`      | React/Vue only - Angular uses ng-content natively |
+| `flags.stories`               | `false`     | Opt-in story generation                           |
 
 ### 3.3 Config Processing Flow
 
@@ -334,7 +334,7 @@ interface ComponentModel {
   // Features
   features: {
     hover: boolean;
-    compoundComponents?: boolean; // Not available for Angular
+    compoundComponents?: boolean; // Angular uses ng-content natively - no flag needed
   };
   generateStories: boolean;
   prefix: string;
@@ -802,7 +802,81 @@ flowchart LR
 | Vue       | Named slots       | `<Button#primary>`                |
 | Angular   | `ng-content`      | `<ng-content select="[primary]">` |
 
-### 13.2 Compound File Output
+### 13.2 Angular Content Projection
+
+Angular uses `ng-content` for content projection, which **natively supports both monolithic and
+compound patterns** without requiring a feature flag:
+
+#### Monolithic (simple props):
+
+```html
+<app-card title="Hello">Content here</app-card>
+```
+
+#### Compound (content projection):
+
+```html
+<app-card>
+  <h3 card-title>Custom Title</h3>
+  <p card-description>Description here</p>
+  <div card-action>Action button</div>
+</app-card>
+```
+
+#### Available Slots by Component:
+
+**Card:**
+
+- `card-title` - Title content (inside header)
+- `card-description` - Description content (inside header)
+- `card-action` - Action buttons (inside header)
+- `card-content` - Main content area
+- `card-footer` - Footer content
+
+**Dialog:**
+
+- `dialog-title` - Title content (inside header)
+- `dialog-description` - Description content (inside header)
+- `dialog-close` - Close button (inside header)
+- `dialog-body` - Main body content
+- `dialog-footer` - Footer actions
+- `dialog-content` - Full content wrapper
+- `dialog-overlay` - Overlay customization
+
+**Input:**
+
+- `input-label` - Label content
+- `input-field` - Input field wrapper
+- `input-prefix` - Prefix content
+- `input-suffix` - Suffix content
+- `input-hint` - Hint message
+- `input-error` - Error message
+
+**Select:**
+
+- `select-label` - Label content
+- `select-trigger` - Trigger element
+- `select-value` - Selected value display
+- `select-icon` - Dropdown icon
+- `select-content` - Dropdown content
+- `select-item` - Item element
+- `select-item-text` - Item text
+- `select-error` - Error message
+- `select-prefix` / `select-suffix` - Prefix/suffix
+
+**Button:**
+
+- `btn-spinner` - Loading spinner
+- `btn-icon` - Icon content
+- `btn-label` - Label content
+
+#### Slot Naming Convention:
+
+- All slots use component-specific prefix: `{component}-{slotname}`
+- Slots customize **inner content**, not replace container elements
+- Default content shown when slot is not provided
+
+### 13.3 Compound File Output
 
 ```
 Button/
