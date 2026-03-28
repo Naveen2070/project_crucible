@@ -65,3 +65,25 @@ export const {{capitalize this}}: Story = {
   }),
 };
 {{/each}}
+
+export const CustomContent: Story = {
+  args: { isOpen: true, title: 'Custom Dialog' },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-Dialog [isOpen]="isOpen" [title]="title" [size]="size" [variant]="variant">
+        <div dialog-title>
+          <strong style="color: var(--color-primary)">Custom Title</strong>
+        </div>
+        <p dialog-description>This is a custom description.</p>
+        <div dialog-body>
+          <p>Main dialog body content goes here.</p>
+        </div>
+        <div dialog-footer>
+          <button style="padding: 8px 16px; margin-right: 8px;">Cancel</button>
+          <button style="padding: 8px 16px; background: var(--color-primary); color: white; border: none;">Confirm</button>
+        </div>
+      </app-Dialog>
+    `,
+  }),
+};

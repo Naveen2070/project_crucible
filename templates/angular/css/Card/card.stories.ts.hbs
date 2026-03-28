@@ -49,16 +49,20 @@ export const {{capitalize this}}: Story = {
 };
 {{/each}}
 
-export const CustomContent: Story = {
-  args: { title: 'Custom Content' },
+export const CustomTitle: Story = {
+  args: { title: 'Card with Custom Title' },
   render: (args) => ({
     props: args,
     template: `
-      <app-card [title]="title">
-        <div card-header>
-          <strong style="color: var(--color-primary)">Custom Header</strong>
+      <app-card>
+        <strong card-title style="color: var(--color-primary)">Custom Title</strong>
+        <p card-description>This is a custom description.</p>
+        <div card-action>
+          <button style="padding: 4px 8px;">Action</button>
         </div>
-        <p>Main card content goes here.</p>
+        <div card-content>
+          <p>Main card content goes here.</p>
+        </div>
         <div card-footer>
           <small>Posted 2 hours ago</small>
         </div>

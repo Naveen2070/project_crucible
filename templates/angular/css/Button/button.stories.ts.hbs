@@ -61,3 +61,16 @@ export const Disabled: Story = {
     template: `<app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">Disabled</app-button>`,
   }),
 };
+
+export const WithIcon: Story = {
+  args: { variant: 'primary', size: 'md' },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-button [variant]="variant" [size]="size" [loading]="loading" [disabled]="disabled">
+        <span btn-icon>★</span>
+        <span btn-label>Star</span>
+      </app-button>
+    `,
+  }),
+};
