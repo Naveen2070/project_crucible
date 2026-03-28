@@ -43,6 +43,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Focus Ring**: Standardized to `ring-2 ring-ring ring-offset-2` pattern
 - **Modal → Dialog**: Component renamed to Dialog across all templates
 - **DialogIn Animation**: Renamed to `dialog-open` for consistency
+- **Angular 17+ Control Flow**: All Angular templates use `@if`/`@for` instead of `*ngIf`/`*ngFor`
+- **Angular Slot Naming**: Consistent `{component}-{slotname}` convention across all components
+- **Error Variant Support**: Added `variant === 'error'` support for Input and Select across all
+  frameworks
+- **Vue Stories**: Updated to use explicit prop binding (`:variant`, `:size`) for slot compatibility
 
 ### Fixed
 

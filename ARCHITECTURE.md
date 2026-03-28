@@ -102,6 +102,10 @@ flowchart TD
 | Template engine | ComponentModel only            | Raw config, file system       |
 | Writer          | Rendered strings + output path | Config, tokens, components    |
 
+**Note on `--dev` flag:** When using `--dev`, output is written to `<cwd>/src/__generated__`. This
+lands in the playground folders only when the CLI is invoked from those directories (e.g.,
+`playground/vue/`).
+
 ### 2.3 Data Flow
 
 ```mermaid
@@ -202,8 +206,13 @@ interface ResolvedTokens {
   cssVars: Record<string, string>; // --color-primary: #7C3AED
   darkCssVars: Record<string, string>; // dark mode variants
   js: Record<string, string>; // colorPrimary: '#7C3AED'
+  componentTokens: Record<string, Record<string, string>>; // component-scoped tokens
 }
 ```
+
+The `componentTokens` field contains component-specific design tokens (e.g.,
+`--card-header-padding`, `--btn-height-md`) that are resolved from `src/tokens/component-deriver.ts`
+and can be overridden through `config.tokens.components`.
 
 ### 4.4 Semantic Color Tokens (Standard Pattern)
 
@@ -230,11 +239,14 @@ These tokens ensure proper text/background contrast for accessibility compliance
 
 ### 5.1 Available Themes
 
-| Theme     | Description                                   |
-| --------- | --------------------------------------------- |
-| `minimal` | Neutral, low-saturation, minimal shadows      |
-| `soft`    | Rounded corners, subtle shadows, pastel tints |
-| `custom`  | User-defined via `tokens` override            |
+| Theme     | Description                                                     |
+| --------- | --------------------------------------------------------------- |
+| `minimal` | Neutral, low-saturation, minimal shadows                        |
+| `soft`    | Rounded corners, subtle shadows, pastel tints                   |
+| `custom`  | User-defined via `tokens` override (set after `crucible eject`) |
+
+When running `crucible eject`, the active preset tokens are copied into `crucible.config.json` and
+`theme` is automatically set to `"custom"`, giving you full manual control over all token values.
 
 ### 5.2 Deep Merge Behavior
 
@@ -266,6 +278,15 @@ User gets soft radius + soft typography + soft background, but **only** the prim
   }
 }
 ```
+
+**Token Stylesheet Injection:** The CLI injects a `<link>` tag pointing to
+`__generated__/tokens.css` (relative path) into the project's `index.html`. The target path depends
+on the framework:
+
+- React/Vue: `index.html`
+- Angular: `src/index.html`
+
+If an existing tokens.css link has an incorrect path, it will be automatically updated.
 
 ### 6.2 Auto vs Manual
 
@@ -494,7 +515,43 @@ graph LR
 | Token values        |                                   |
 | Dark mode vars      |                                   |
 
-### 9.4 SCSS Support
+### 9.4 Error Variant Support
+
+All frameworks support `variant === 'error'` for styling components. This applies when either:
+
+- The `error` prop/message is provided
+- The `variant` prop is set to `'error'`
+
+**Pattern used:**
+
+```typescript
+// Pattern: (error || variant === 'error') && styles['error-class']
+className={cn(
+  baseStyles,
+  (error || variant === 'error') && styles.error
+)}
+```
+
+Supported on: Input, Select (React, Vue, Angular)
+
+### 9.5 Vue Story Guidelines
+
+Vue stories use explicit prop binding (`:variant`, `:size`, etc.) instead of `v-bind="args"` to
+ensure slots render correctly in Storybook.
+
+**Correct:**
+
+```typescript
+template: `<Card :title="args.title" :variant="args.variant" :size="args.size">Content</Card>`;
+```
+
+**Avoid:**
+
+```typescript
+template: `<Card v-bind="args">Content</Card>`; // Slots may not render properly in Storybook
+```
+
+### 9.6 SCSS Support
 
 SCSS uses `.module.scss` files with nested BEM structure. Templates reuse framework `.tsx.hbs` files
 (DRY fallback), with only the stylesheet being SCSS-specific.
@@ -524,13 +581,14 @@ templates/
 
 ### 10.2 Registered Helpers
 
-| Helper        | Signature    | Purpose                |
-| ------------- | ------------ | ---------------------- |
-| `eq`          | `(a, b)`     | Strict equality        |
-| `includes`    | `(arr, val)` | Array membership       |
-| `capitalize`  | `(str)`      | First char uppercase   |
-| `kebab`       | `(str)`      | camelCase → kebab-case |
-| `toLowerCase` | `(str)`      | String to lowercase    |
+| Helper        | Signature    | Purpose                                            |
+| ------------- | ------------ | -------------------------------------------------- |
+| `eq`          | `(a, b)`     | Strict equality                                    |
+| `includes`    | `(arr, val)` | Array membership                                   |
+| `capitalize`  | `(str)`      | First char uppercase                               |
+| `kebab`       | `(str)`      | camelCase → kebab-case                             |
+| `toLowerCase` | `(str)`      | String to lowercase                                |
+| `hbs`         | `(str)`      | Escape literal `{{str}}` for Vue/Angular templates |
 
 ### 10.3 Logic Enforcement Rules
 
@@ -564,7 +622,26 @@ export const PROHIBITED_PATTERNS: RegExp[] = [
 ];
 ```
 
-### 10.5 Template Style Conventions
+### 10.5 Angular 17+ Control Flow
+
+All Angular templates use the modern Angular 17+ control flow syntax (`@if`, `@for`) instead of the
+legacy `*ngIf`, `*ngFor`, `*ngSwitch` directives.
+
+**Audit Rules** (enforced by `npm run audit:templates`):
+
+- Prohibited: `/\*ngIf/`, `/\*ngFor/`, `/\*ngSwitch/`
+
+**Correct usage:**
+
+```html
+@if (title) {
+<h3 class="card-title">{{ title }}</h3>
+} @for (item of items; track item.id) {
+<option [value]="item.value">{{ item.label }}</option>
+}
+```
+
+### 10.6 Template Style Conventions
 
 #### Class Naming (BEM)
 
@@ -696,6 +773,8 @@ flowchart TD
 
 ### 11.4 Manifest File Format
 
+The hash system now uses `.crucible/manifest.json` as the storage format:
+
 ```json
 {
   "engineVersion": "1.0.0",
@@ -709,6 +788,9 @@ flowchart TD
   }
 }
 ```
+
+The writer contains legacy migration logic for older `.crucible-hashes.json` files, but
+`.crucible/manifest.json` is the current active storage format.
 
 ---
 
