@@ -20,7 +20,7 @@ export const Default: Story = {
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
-    template: `<Button v-bind="args">Button</Button>`,
+    template: `<Button :variant="args.variant" :size="args.size">Button</Button>`,
   }),
 };
 
@@ -31,7 +31,7 @@ export const {{capitalize this}}: Story = {
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
-    template: `<Button v-bind="args">{{capitalize this}} Button</Button>`,
+    template: `<Button :variant="args.variant">{{capitalize this}} Button</Button>`,
   }),
 };
 {{/unless}}
@@ -43,7 +43,7 @@ export const {{capitalize this}}: Story = {
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
-    template: `<Button v-bind="args">{{capitalize this}} Size</Button>`,
+    template: `<Button :size="args.size">{{capitalize this}} Size</Button>`,
   }),
 };
 {{/each}}
@@ -53,7 +53,7 @@ export const Loading: Story = {
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
-    template: `<Button v-bind="args">Loading</Button>`,
+    template: `<Button :variant="args.variant" :size="args.size" :loading="args.loading">Loading</Button>`,
   }),
 };
 
@@ -62,7 +62,7 @@ export const Disabled: Story = {
   render: (args) => ({
     components: { Button },
     setup() { return { args }; },
-    template: `<Button v-bind="args">Disabled</Button>`,
+    template: `<Button :variant="args.variant" :size="args.size" :disabled="args.disabled">Disabled</Button>`,
   }),
 };
 
@@ -73,7 +73,7 @@ export const WithSlots: Story = {
     components: { Button },
     setup() { return { args }; },
     template: `
-<Button v-bind="args">
+<Button :variant="args.variant" :size="args.size">
   <template #icon><span class="mr-2">★</span></template>
   With Custom Icon
 </Button>`,
@@ -86,8 +86,8 @@ export const LoadingSlot: Story = {
     components: { Button },
     setup() { return { args }; },
     template: `
-<Button v-bind="args">
-  <template #spinner><span class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span></template>
+<Button :variant="args.variant" :loading="args.loading">
+  <template #spinner><span class="spinner"></span></template>
   Custom Spinner
 </Button>`,
   }),
