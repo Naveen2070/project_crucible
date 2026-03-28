@@ -104,6 +104,12 @@ const SelectLabel: React.FC<{ children: React.ReactNode; className?: string }> =
   return <label id={labelId} className={["font-medium text-[var(--color-text)] text-sm", className].filter(Boolean).join(' ')}>{children}</label>;
 };
 
+const SelectError: React.FC<{ children?: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={["text-xs text-[var(--color-destructive)] mt-1", className].filter(Boolean).join(' ')} role="alert">{children || error}</span>;
+};
+
 const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
@@ -299,6 +305,7 @@ export const Select = Object.assign(SelectRoot, {
   Item: SelectItem,
   ItemText: SelectItemText,
   Label: SelectLabel,
+  Error: SelectError,
 });
 
 Select.displayName = 'Select';
@@ -310,6 +317,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectLabel.displayName = 'Select.Label';
+SelectError.displayName = 'Select.Error';
 {{else}}
 export interface SelectProps {
   options:   SelectOption[];

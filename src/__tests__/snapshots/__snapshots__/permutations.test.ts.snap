@@ -8622,6 +8622,8 @@ interface SelectContextValue {
   labelId: string;
   listboxId: string;
   size: SelectSize;
+  variant?: SelectVariant;
+  error?: string;
   disabled?: boolean;
   options: SelectOption[];
   setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
@@ -8639,7 +8641,9 @@ export const SelectRoot = ({
   children,
   value,
   onChange,
+  variant = 'default',
   size = 'md',
+  error,
   disabled,
 }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8663,7 +8667,7 @@ export const SelectRoot = ({
   return (
     <SelectContext.Provider value={{
       isOpen, setIsOpen, value, onChange, activeIndex, setActiveIndex,
-      id, labelId, listboxId, size, disabled, options, setOptions
+      id, labelId, listboxId, size, variant, error, disabled, options, setOptions
     }}>
       <div className={styles.container} ref={containerRef}>
         {children}
@@ -8675,7 +8679,7 @@ export const SelectRoot = ({
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange, size
+    value, options, disabled, id, onChange, size, variant, error
   } = useSelectContext();
   
   const searchString = useRef('');
@@ -8751,6 +8755,7 @@ export const SelectTrigger = ({ children, className }: { children: React.ReactNo
       className={[
         styles.combobox,
         styles[\`combobox--\${size}\`],
+        (error || variant === 'error') && styles['combobox--error'],
         disabled && styles['combobox--disabled'],
         isOpen && styles['combobox--open'],
         className,
@@ -8842,6 +8847,12 @@ export const SelectLabel = ({ children, className }: { children: React.ReactNode
   return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
 };
 
+export const SelectError = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={[styles.error, className].join(' ')} role="alert">{children || error}</span>;
+};
+
 export const SelectGroup = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles['select-group'], className].join(' ')} role="group">{children}</div>
 );
@@ -8860,6 +8871,7 @@ export const Select = Object.assign(SelectRoot, {
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
   Label: SelectLabel,
+  Error: SelectError,
   Group: SelectGroup,
 });
 
@@ -8872,6 +8884,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectItemIndicator.displayName = 'Select.ItemIndicator';
+SelectError.displayName = 'Select.Error';
 SelectLabel.displayName = 'Select.Label';
 SelectGroup.displayName = 'Select.Group';
 ",
@@ -10571,6 +10584,8 @@ interface SelectContextValue {
   labelId: string;
   listboxId: string;
   size: SelectSize;
+  variant?: SelectVariant;
+  error?: string;
   disabled?: boolean;
   options: SelectOption[];
   setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
@@ -10588,7 +10603,9 @@ export const SelectRoot = ({
   children,
   value,
   onChange,
+  variant = 'default',
   size = 'md',
+  error,
   disabled,
 }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10612,7 +10629,7 @@ export const SelectRoot = ({
   return (
     <SelectContext.Provider value={{
       isOpen, setIsOpen, value, onChange, activeIndex, setActiveIndex,
-      id, labelId, listboxId, size, disabled, options, setOptions
+      id, labelId, listboxId, size, variant, error, disabled, options, setOptions
     }}>
       <div className={styles.container} ref={containerRef}>
         {children}
@@ -10624,7 +10641,7 @@ export const SelectRoot = ({
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange, size
+    value, options, disabled, id, onChange, size, variant, error
   } = useSelectContext();
   
   const searchString = useRef('');
@@ -10700,6 +10717,7 @@ export const SelectTrigger = ({ children, className }: { children: React.ReactNo
       className={[
         styles.combobox,
         styles[\`combobox--\${size}\`],
+        (error || variant === 'error') && styles['combobox--error'],
         disabled && styles['combobox--disabled'],
         isOpen && styles['combobox--open'],
         className,
@@ -10791,6 +10809,12 @@ export const SelectLabel = ({ children, className }: { children: React.ReactNode
   return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
 };
 
+export const SelectError = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={[styles.error, className].join(' ')} role="alert">{children || error}</span>;
+};
+
 export const SelectGroup = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles['select-group'], className].join(' ')} role="group">{children}</div>
 );
@@ -10809,6 +10833,7 @@ export const Select = Object.assign(SelectRoot, {
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
   Label: SelectLabel,
+  Error: SelectError,
   Group: SelectGroup,
 });
 
@@ -10821,6 +10846,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectItemIndicator.displayName = 'Select.ItemIndicator';
+SelectError.displayName = 'Select.Error';
 SelectLabel.displayName = 'Select.Label';
 SelectGroup.displayName = 'Select.Group';
 ",
@@ -11932,6 +11958,12 @@ const SelectLabel: React.FC<{ children: React.ReactNode; className?: string }> =
   return <label id={labelId} className={["font-medium text-[var(--color-text)] text-sm", className].filter(Boolean).join(' ')}>{children}</label>;
 };
 
+const SelectError: React.FC<{ children?: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={["text-xs text-[var(--color-destructive)] mt-1", className].filter(Boolean).join(' ')} role="alert">{children || error}</span>;
+};
+
 const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
@@ -12127,6 +12159,7 @@ export const Select = Object.assign(SelectRoot, {
   Item: SelectItem,
   ItemText: SelectItemText,
   Label: SelectLabel,
+  Error: SelectError,
 });
 
 Select.displayName = 'Select';
@@ -12138,6 +12171,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectLabel.displayName = 'Select.Label';
+SelectError.displayName = 'Select.Error';
 ",
 }
 `;
@@ -13608,6 +13642,8 @@ interface SelectContextValue {
   labelId: string;
   listboxId: string;
   size: SelectSize;
+  variant?: SelectVariant;
+  error?: string;
   disabled?: boolean;
   options: SelectOption[];
   setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
@@ -13625,7 +13661,9 @@ export const SelectRoot = ({
   children,
   value,
   onChange,
+  variant = 'default',
   size = 'md',
+  error,
   disabled,
 }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13649,7 +13687,7 @@ export const SelectRoot = ({
   return (
     <SelectContext.Provider value={{
       isOpen, setIsOpen, value, onChange, activeIndex, setActiveIndex,
-      id, labelId, listboxId, size, disabled, options, setOptions
+      id, labelId, listboxId, size, variant, error, disabled, options, setOptions
     }}>
       <div className={styles.container} ref={containerRef}>
         {children}
@@ -13661,7 +13699,7 @@ export const SelectRoot = ({
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange, size
+    value, options, disabled, id, onChange, size, variant, error
   } = useSelectContext();
   
   const searchString = useRef('');
@@ -13737,6 +13775,7 @@ export const SelectTrigger = ({ children, className }: { children: React.ReactNo
       className={[
         styles.combobox,
         styles[\`combobox--\${size}\`],
+        (error || variant === 'error') && styles['combobox--error'],
         disabled && styles['combobox--disabled'],
         isOpen && styles['combobox--open'],
         className,
@@ -13828,6 +13867,12 @@ export const SelectLabel = ({ children, className }: { children: React.ReactNode
   return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
 };
 
+export const SelectError = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={[styles.error, className].join(' ')} role="alert">{children || error}</span>;
+};
+
 export const SelectGroup = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles['select-group'], className].join(' ')} role="group">{children}</div>
 );
@@ -13846,6 +13891,7 @@ export const Select = Object.assign(SelectRoot, {
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
   Label: SelectLabel,
+  Error: SelectError,
   Group: SelectGroup,
 });
 
@@ -13858,6 +13904,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectItemIndicator.displayName = 'Select.ItemIndicator';
+SelectError.displayName = 'Select.Error';
 SelectLabel.displayName = 'Select.Label';
 SelectGroup.displayName = 'Select.Group';
 ",
@@ -15557,6 +15604,8 @@ interface SelectContextValue {
   labelId: string;
   listboxId: string;
   size: SelectSize;
+  variant?: SelectVariant;
+  error?: string;
   disabled?: boolean;
   options: SelectOption[];
   setOptions: React.Dispatch<React.SetStateAction<SelectOption[]>>;
@@ -15574,7 +15623,9 @@ export const SelectRoot = ({
   children,
   value,
   onChange,
+  variant = 'default',
   size = 'md',
+  error,
   disabled,
 }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15598,7 +15649,7 @@ export const SelectRoot = ({
   return (
     <SelectContext.Provider value={{
       isOpen, setIsOpen, value, onChange, activeIndex, setActiveIndex,
-      id, labelId, listboxId, size, disabled, options, setOptions
+      id, labelId, listboxId, size, variant, error, disabled, options, setOptions
     }}>
       <div className={styles.container} ref={containerRef}>
         {children}
@@ -15610,7 +15661,7 @@ export const SelectRoot = ({
 export const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
-    value, options, disabled, id, onChange, size
+    value, options, disabled, id, onChange, size, variant, error
   } = useSelectContext();
   
   const searchString = useRef('');
@@ -15686,6 +15737,7 @@ export const SelectTrigger = ({ children, className }: { children: React.ReactNo
       className={[
         styles.combobox,
         styles[\`combobox--\${size}\`],
+        (error || variant === 'error') && styles['combobox--error'],
         disabled && styles['combobox--disabled'],
         isOpen && styles['combobox--open'],
         className,
@@ -15777,6 +15829,12 @@ export const SelectLabel = ({ children, className }: { children: React.ReactNode
   return <label id={labelId} className={[styles.label, className].join(' ')}>{children}</label>;
 };
 
+export const SelectError = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={[styles.error, className].join(' ')} role="alert">{children || error}</span>;
+};
+
 export const SelectGroup = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={[styles['select-group'], className].join(' ')} role="group">{children}</div>
 );
@@ -15795,6 +15853,7 @@ export const Select = Object.assign(SelectRoot, {
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
   Label: SelectLabel,
+  Error: SelectError,
   Group: SelectGroup,
 });
 
@@ -15807,6 +15866,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectItemIndicator.displayName = 'Select.ItemIndicator';
+SelectError.displayName = 'Select.Error';
 SelectLabel.displayName = 'Select.Label';
 SelectGroup.displayName = 'Select.Group';
 ",
@@ -16918,6 +16978,12 @@ const SelectLabel: React.FC<{ children: React.ReactNode; className?: string }> =
   return <label id={labelId} className={["font-medium text-[var(--color-text)] text-sm", className].filter(Boolean).join(' ')}>{children}</label>;
 };
 
+const SelectError: React.FC<{ children?: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const { error } = useSelectContext();
+  if (!error) return null;
+  return <span className={["text-xs text-[var(--color-destructive)] mt-1", className].filter(Boolean).join(' ')} role="alert">{children || error}</span>;
+};
+
 const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const { 
     isOpen, setIsOpen, labelId, listboxId, activeIndex, setActiveIndex, 
@@ -17113,6 +17179,7 @@ export const Select = Object.assign(SelectRoot, {
   Item: SelectItem,
   ItemText: SelectItemText,
   Label: SelectLabel,
+  Error: SelectError,
 });
 
 Select.displayName = 'Select';
@@ -17124,6 +17191,7 @@ SelectContent.displayName = 'Select.Content';
 SelectItem.displayName = 'Select.Item';
 SelectItemText.displayName = 'Select.ItemText';
 SelectLabel.displayName = 'Select.Label';
+SelectError.displayName = 'Select.Error';
 ",
 }
 `;
