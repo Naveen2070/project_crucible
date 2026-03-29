@@ -10,7 +10,7 @@
 **Crucible is not a component library** — it's a code generation engine. It produces source files
 that live in your project, not a package that sits in node_modules.
 
-[![npm version](https://img.shields.io/npm/v/crucible.svg)](https://www.npmjs.com/package/crucible)
+[![npm version](https://img.shields.io/npm/v/@cruciblelab/crucible.svg)](https://www.npmjs.com/package/@cruciblelab/crucible)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
