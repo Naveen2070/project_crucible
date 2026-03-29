@@ -1,6 +1,6 @@
 # ⚗️ Crucible — Code Generation Engine
 
-<img src="assets/logo.png" alt="Logo" width="200">
+<p align="center"><img src="assets/logo.png" alt="Logo" width="200"></p>
 
 > **Generated once. Yours forever.**
 >
@@ -56,7 +56,7 @@ npx crucible add Button
 | **Prettier Integration**  | Auto-format all generated code                          |
 | **Test Coverage**         | 230 unit tests + 19 E2E phases                          |
 
-<img src="assets/mascot.png" alt="Mascot" width="300">
+<p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
 
 ---
 
