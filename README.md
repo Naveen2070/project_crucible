@@ -31,7 +31,7 @@ that live in your project, not a package that sits in node_modules.
 # Generate a Button component
 npx crucible add Button
 
-# Output: Button/Button.tsx, Button/Button.module.css
+# Output: Button/Button.tsx, Button/Button.module.css, Button/README.md
 # That's it. No runtime dependencies. Pure code you own.
 ```
 
@@ -111,7 +111,7 @@ crucible add Button                    # Single component (alias: a)
 crucible add Button Input Card         # Multiple components
 crucible add -a                        # Add all components (alias: a -a)
 crucible add Button --stories          # With Storybook story
-crucible add Button --framework vue    # Vue framework (alias: -f vue)
+crucible add Button --framework vue    # Vue framework
 crucible add Button --dev             # Output to playground
 crucible add Button -s tailwind        # Override style (css, tailwind, scss)
 crucible add Button -t soft            # Override theme (minimal, soft)

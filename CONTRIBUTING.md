@@ -259,7 +259,7 @@ crucible add Button -s tailwind        # css, tailwind, scss
 crucible add Button -t soft            # minimal, soft
 
 # With framework
-crucible add Button --framework vue    # or: -f vue
+crucible add Button --framework vue
 
 # With stories
 crucible add Button --stories
