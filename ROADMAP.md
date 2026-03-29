@@ -73,11 +73,15 @@ gantt
     v1.2 Migration Engine (Build)  :2026-10-01, 2026-11-30
     v1.2 Stabilization & Release   :2026-12-01, 2026-12-31
 
+    v1.3 Studio (Design + Core UI) :2027-01-01, 2027-02-28
+    v1.3 Studio (Features + Integrations) :2027-03-01, 2027-05-15
+    v1.3 Stabilization & Release   :2027-05-16, 2027-06-15
+
     section v2.x
 
-    v2.0 Go Binary (R&D)       :2027-01-01, 2027-03-15
-    v2.0 Go Binary (Impl)      :2027-03-16, 2027-08-31
-    v2.0 Stabilization & Release:2027-09-01, 2027-10-31
+    v2.0 Go Binary (R&D)       :2027-06-16, 2027-08-15
+    v2.0 Go Binary (Impl)      :2027-08-16, 2028-01-31
+    v2.0 Stabilization & Release:2028-02-01, 2028-03-31
 ```
 
 ---
@@ -216,6 +220,7 @@ _Rust only if project scale demands sub-ms generation performance._
 | Version | Focus                     | Target        |
 | ------- | ------------------------- | ------------- |
 | 1.0.0   | Core engine               | ✅ March 2026 |
-| 1.1.0   | Plugin-ready architecture | Q3 2026       |
+| 1.1.0   | Plugin-ready architecture | ✅ Q3 2026    |
 | 1.2.0   | Migration engine          | Q4 2026       |
-| 2.0.0   | Go binary                 | 2027          |
+| 1.3.0   | Studio                    | Q2 2027       |
+| 2.0.0   | Go binary                 | 2028          |
