@@ -53,7 +53,27 @@ Crucible is a code generation engine, not a component library. The core philosop
 
 ---
 
-## Roadmap Timeline
+## Additional Components
+
+New components are added in parallel with version milestones. Each component requires:
+
+- Template creation (React, Vue, Angular)
+- Style system variants (CSS, Tailwind, SCSS)
+- Snapshot tests
+- Registry entry
+
+| Component | Target Version | Status  |
+| --------- | -------------- | ------- |
+| Textarea  | v1.1           | Planned |
+| Badge     | v1.1           | Planned |
+| Tabs      | v1.2           | Planned |
+| Tooltip   | v1.2           | Planned |
+| Dropdown  | v1.3           | Planned |
+| Checkbox  | v1.3           | Planned |
+| Radio     | Future         | Planned |
+| Switch    | Future         | Planned |
+
+Components are designed to work with existing token system and compound component patterns.
 
 ```mermaid
 gantt
@@ -63,11 +83,14 @@ gantt
 
     section v1.x
 
-    v1.0 Core Engine + QA       :done, 2026-02-01, 2026-03-31
+    v1.0 Core Engine           :done, 2026-02-01, 2026-03-31
+    v1.0 QA & Stabilization    :2026-04-01, 2026-04-25
 
     v1.1 Plugin-Ready (Registry):2026-04-01, 2026-06-15
     v1.1 Plugin-Ready (Loader)  :2026-06-16, 2026-08-01
     v1.1 Stabilization & Release:2026-08-02, 2026-08-31
+
+    Additional Components       :2026-04-01, 2028-03-31
 
     v1.2 Migration Engine (Design) :2026-09-01, 2026-09-30
     v1.2 Migration Engine (Build)  :2026-10-01, 2026-11-30
@@ -203,15 +226,15 @@ _Rust only if project scale demands sub-ms generation performance._
 
 ---
 
-## Future Components
+## Future Components (Long-term)
 
-| Component | Description       |
-| --------- | ----------------- |
-| Textarea  | Multi-line input  |
-| Dropdown  | Combobox variant  |
-| Badge     | Simple label      |
-| Tabs      | ARIA tablist      |
-| Tooltip   | Focus trap needed |
+| Component | Description          |
+| --------- | -------------------- |
+| Radio     | Radio group          |
+| Switch    | Toggle switch        |
+| Accordion | Collapsible sections |
+| Avatar    | User avatar          |
+| Alert     | Inline alerts        |
 
 ---
 
