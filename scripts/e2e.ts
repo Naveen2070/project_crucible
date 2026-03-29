@@ -15,10 +15,12 @@ interface E2EResult {
 
 function runCLI(args: string): string {
   try {
-    return execSync(`node "${CLI_PATH}" ${args}`, {
+    const output = execSync(`node "${CLI_PATH}" ${args}`, {
       cwd: TEST_DIR,
       encoding: 'utf-8',
     }) as string;
+    if (output) console.log(output);
+    return output;
   } catch (e: any) {
     if (e.stdout) {
       console.log(e.stdout);
