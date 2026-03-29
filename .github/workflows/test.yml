@@ -34,7 +34,7 @@ jobs:
         run: ls -la dist/cli/index.js
 
       - name: Generate playground
-        run: npm run pg
+        run: npm run pg -- --force
 
       - name: Debug Angular generation
         run: ls -la playground/angular/src/__generated__/Dialog/ || echo "Dialog dir not found"
