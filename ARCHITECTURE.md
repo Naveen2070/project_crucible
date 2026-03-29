@@ -65,16 +65,16 @@ Config → Tokens → Model (IR) → Templates → Writer
 flowchart TD
     A([crucible add Button]) --> B
     subgraph CONFIG ["Layer 1 — Config"]
-        B[config/reader.ts] --> C[config/validator.ts\najv schema check]
+        B[config/reader.ts] --> C[config/validator.ts<br/>ajv schema check]
     end
     subgraph TOKENS ["Layer 2 — Token Resolution"]
-        C --> D[themes/index.ts\nload preset]
-        D --> E[deep merge\npreset + user tokens]
-        E --> F[tokens/resolver.ts\nemit CSS vars]
-        F --> G[tokens/dark-resolver.ts\nOKLCH dark derivation]
+        C --> D[themes/index.ts<br/>load preset]
+        D --> E[deep merge<br/>preset + user tokens]
+        E --> F[tokens/resolver.ts<br/>emit CSS vars]
+        F --> G[tokens/dark-resolver.ts<br/>OKLCH dark derivation]
     end
     subgraph MODEL ["Layer 3 — Component Model IR"]
-        G --> H[components/model.ts\nbuild ComponentModel]
+        G --> H[components/model.ts<br/>build ComponentModel]
         I[registry/components.ts] --> H
         J[CLI flags] --> H
     end
@@ -83,10 +83,10 @@ flowchart TD
         K -->|css| L[templates/react/css/Button/]
         K -->|tailwind| M[templates/react/tailwind/Button/]
         K -->|scss| N[templates/react/scss/Button/]
-        L & M & N --> P[engine.ts\nHandlebars render]
+        L & M & N --> P[engine.ts<br/>Handlebars render]
     end
     subgraph WRITER ["Layer 5 — File Writer"]
-        P --> Q[writer.ts\nhash check]
+        P --> Q[writer.ts<br/>hash check]
         Q -->|match| R[write to subfolder]
         Q -->|user edited| S[warn + skip]
         R --> T[.crucible/manifest.json]
@@ -1052,10 +1052,10 @@ Adding a new framework is adding a template folder — **not modifying the engin
 
 ```mermaid
 graph BT
-    L1["Layer 1 — Vitest Unit Tests\n128 tests: resolver, model, registry"]
-    L2["Layer 2 — Vitest Snapshot Tests\n17 theme permutations + 62 component tests"]
-    L3["Layer 3 — E2E CLI Automation\n19 phases covering all commands"]
-    L4["Layer 4 — Storybook + Chromatic\nVisual regression on every PR"]
+    L1["Layer 1 — Vitest Unit Tests<br/>128 tests: resolver, model, registry"]
+    L2["Layer 2 — Vitest Snapshot Tests<br/>17 theme permutations + 62 component tests"]
+    L3["Layer 3 — E2E CLI Automation<br/>19 phases covering all commands"]
+    L4["Layer 4 — Storybook + Chromatic<br/>Visual regression on every PR"]
     L1 --> L2 --> L3 --> L4
 ```
 
