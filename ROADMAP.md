@@ -148,13 +148,6 @@ gantt
 | CLI plugin support   | `crucible list` and `crucible add` via runtime registry    |
 | Writer provenance    | Store plugin/component/template source in manifest         |
 
-### Non-Goals
-
-- Online plugin marketplace
-- npm-installed plugins
-- Remote registry fetching
-- Command plugins
-
 ---
 
 ## v1.2 — Migration Engine
