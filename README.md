@@ -1,4 +1,6 @@
-# ⚗ Crucible — Code Generation Engine
+# ⚗️ Crucible — Code Generation Engine
+
+![Logo](assets/logo.png)
 
 > **Generated once. Yours forever.**
 >
@@ -53,6 +55,8 @@ npx crucible add Button
 | **Interactive CLI**       | Guided setup with @inquirer/prompts                     |
 | **Prettier Integration**  | Auto-format all generated code                          |
 | **Test Coverage**         | 230 unit tests + 19 E2E phases                          |
+
+![Mascot](assets/mascot.png)
 
 ---
 
