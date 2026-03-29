@@ -100,6 +100,7 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 
 ## Documentation
 
+- [Documentation](https://crucible-docs.naveenr.in) — Official docs site
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — System design and data flow
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — Contribution guidelines
 - [ROADMAP.md](./ROADMAP.md) — Future plans
