@@ -108,6 +108,9 @@ Update `crucible.config.json` and regenerate, or edit generated files directly â
 
 ## CLI Reference
 
+> **Note:** Commands marked `[dev only]` are for Crucible development. They show a warning when used
+> in production installations.
+
 ### Generate Components
 
 ```bash
@@ -145,14 +148,14 @@ crucible tokens --force    # Force overwrite (alias: t -f)
 crucible tokens --dry-run  # Preview without writing
 ```
 
-### Playground
+### Playground (dev only)
 
 ```bash
-crucible pg:gen           # Generate all 3 framework playgrounds (alias: pg)
-crucible pg:gen --force   # Clean + regenerate (alias: pg -f)
-crucible pg:open          # Open Storybook (alias: po)
-crucible pg:dev           # Start dev server (alias: pd)
-crucible pg:clean         # Clean all playgrounds (alias: pcl)
+crucible pg:gen           # Generate all 3 framework playgrounds (alias: pg) [dev only]
+crucible pg:gen --force   # Clean + regenerate (alias: pg -f) [dev only]
+crucible pg:open          # Open Storybook (alias: po) [dev only]
+crucible pg:dev           # Start dev server (alias: pd) [dev only]
+crucible pg:clean         # Clean all playgrounds (alias: pcl) [dev only]
 ```
 
 ### Cleanup
