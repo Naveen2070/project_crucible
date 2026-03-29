@@ -183,15 +183,32 @@ async function runE2E() {
     );
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Input'));
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Card'));
+    console.log(chalk.gray('  Running: crucible add Dialog -y'));
     runCLI('add Dialog -y');
+    console.log(chalk.gray('  Checking files...'));
+    const componentsDir = path.join(TEST_DIR, 'src/components');
+    if (await fs.pathExists(componentsDir)) {
+      const dirs = await fs.readdir(componentsDir);
+      console.log(chalk.gray(`  Components dir contains: ${dirs.join(', ')}`));
+      for (const dir of dirs) {
+        const files = await fs.readdir(path.join(componentsDir, dir));
+        console.log(chalk.gray(`    ${dir}: ${files.join(', ')}`));
+      }
+    } else {
+      console.log(chalk.gray('  Components dir does not exist'));
+    }
     const angularCssFiles = [
       'Dialog/dialog.component.ts',
       'Dialog/dialog.component.html',
       'Dialog/dialog.component.css',
     ];
     for (const file of angularCssFiles) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+      const filePath = path.join(TEST_DIR, 'src/components', file);
+      if (!(await fs.pathExists(filePath))) {
+        console.log(chalk.red(`  Missing: ${file}`));
         throw new Error(`Missing: ${file}`);
+      } else {
+        console.log(chalk.green(`  Found: ${file}`));
       }
     }
     results.push({ phase: 'Angular + CSS + Dialog', passed: true });
