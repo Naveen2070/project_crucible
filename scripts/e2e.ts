@@ -183,8 +183,13 @@ async function runE2E() {
     );
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Input'));
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Card'));
-    console.log(chalk.gray('  Running: crucible add Dialog -y'));
-    runCLI('add Dialog -y');
+    console.log(chalk.gray('  Running: crucible add Dialog -y --verbose'));
+    try {
+      runCLI('add Dialog -y --verbose');
+    } catch (e: any) {
+      console.log(chalk.red('  CLI Error:'), e.message);
+      throw e;
+    }
     console.log(chalk.gray('  Checking files...'));
     const componentsDir = path.join(TEST_DIR, 'src/components');
     if (await fs.pathExists(componentsDir)) {
