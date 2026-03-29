@@ -17428,7 +17428,7 @@ const classes = computed(() => [
     <slot name="header">
       <div v-if="title || $slots.title || $slots.description || $slots.action" class="header">
         <slot name="title">
-          <h3 v-if="title" class="title"></h3>
+          <h3 v-if="title" class="title">{{title}}</h3>
         </slot>
         <slot name="description" />
         <slot name="action" />
@@ -17672,7 +17672,7 @@ const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
           <slot name="header">
             <header class="dialog-header">
               <slot name="title">
-                <h2 :id="titleId" v-if="title" class="dialog-title">{{ title }}</h2>
+                <h2 :id="titleId" v-if="title" class="dialog-title">{{title}}</h2>
               </slot>
               <slot name="description">
                 <p :id="descriptionId" class="dialog-description">
@@ -18930,7 +18930,7 @@ const classes = computed(() => [
     <slot name="header">
       <div v-if="title || $slots.title" class="header">
         <slot name="title">
-          <h3 v-if="title" class="title">{{ title }}</h3>
+          <h3 v-if="title" class="title">{{title}}</h3>
         </slot>
       </div>
     </slot>
@@ -19228,7 +19228,7 @@ const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
           <slot name="header">
             <header class="dialog-header">
               <slot name="title">
-                <h2 :id="titleId" v-if="title" class="dialog-title">{{ title }}</h2>
+                <h2 :id="titleId" v-if="title" class="dialog-title">{{title}}</h2>
               </slot>
               <slot name="description">
                 <p :id="descriptionId" class="dialog-description">
@@ -20435,7 +20435,7 @@ const classes = computed(() => [
         <div>
           <slot name="title">
             <h3 v-if="title" class="font-semibold text-lg text-[var(--color-text)]">
-              
+              {{title}}
             </h3>
           </slot>
           <slot name="description" />
@@ -20627,7 +20627,7 @@ const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
             <slot name="header">
               <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
                 <slot name="title">
-                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">{{ title }}</h2>
+                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">{{title}}</h2>
                 </slot>
                 <slot name="description">
                   <p :id="descriptionId" class="text-sm text-[var(--color-text-muted)] mt-1">
@@ -21478,7 +21478,7 @@ const classes = computed(() => [
     <slot name="header">
       <div v-if="title || $slots.title || $slots.description || $slots.action" class="header">
         <slot name="title">
-          <h3 v-if="title" class="title"></h3>
+          <h3 v-if="title" class="title">{{title}}</h3>
         </slot>
         <slot name="description" />
         <slot name="action" />
@@ -21722,7 +21722,7 @@ const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
           <slot name="header">
             <header class="dialog-header">
               <slot name="title">
-                <h2 :id="titleId" v-if="title" class="dialog-title">{{ title }}</h2>
+                <h2 :id="titleId" v-if="title" class="dialog-title">{{title}}</h2>
               </slot>
               <slot name="description">
                 <p :id="descriptionId" class="dialog-description">
@@ -22980,7 +22980,7 @@ const classes = computed(() => [
     <slot name="header">
       <div v-if="title || $slots.title" class="header">
         <slot name="title">
-          <h3 v-if="title" class="title">{{ title }}</h3>
+          <h3 v-if="title" class="title">{{title}}</h3>
         </slot>
       </div>
     </slot>
@@ -23278,7 +23278,7 @@ const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
           <slot name="header">
             <header class="dialog-header">
               <slot name="title">
-                <h2 :id="titleId" v-if="title" class="dialog-title">{{ title }}</h2>
+                <h2 :id="titleId" v-if="title" class="dialog-title">{{title}}</h2>
               </slot>
               <slot name="description">
                 <p :id="descriptionId" class="dialog-description">
@@ -24485,7 +24485,7 @@ const classes = computed(() => [
         <div>
           <slot name="title">
             <h3 v-if="title" class="font-semibold text-lg text-[var(--color-text)]">
-              
+              {{title}}
             </h3>
           </slot>
           <slot name="description" />
@@ -24677,7 +24677,7 @@ const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
             <slot name="header">
               <header class="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
                 <slot name="title">
-                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">{{ title }}</h2>
+                  <h2 :id="titleId" v-if="title" class="text-xl font-bold text-[var(--color-text)]">{{title}}</h2>
                 </slot>
                 <slot name="description">
                   <p :id="descriptionId" class="text-sm text-[var(--color-text-muted)] mt-1">

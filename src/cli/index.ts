@@ -11,6 +11,7 @@ import { runClean, runPgClean } from './commands/clean';
 import { runConfigShow } from './commands/config-show';
 import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './commands/playground';
 import { Framework } from '../core/enums';
+import { assertDevMode } from '../config/dev-mode';
 
 const program = new Command();
 
@@ -122,11 +123,12 @@ program
 program
   .command('pg:gen [framework]')
   .alias('pg')
-  .description('Generate playground components for frameworks')
+  .description('Generate playground components for frameworks (dev only)')
   .option('--stories', 'Include story files', true)
   .option('--no-stories', 'Exclude story files')
   .option('-f, --force', 'Clean up existing generated files before generating')
   .action(async (framework: string | undefined, opts: any) => {
+    assertDevMode('crucible pg:gen');
     if (opts.force) warnForce('crucible pg:gen');
     await runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
   });
@@ -134,16 +136,18 @@ program
 program
   .command('pg:open [framework]')
   .alias('po')
-  .description('Open Storybook for a framework playground')
+  .description('Open Storybook for a framework playground (dev only)')
   .action(async (framework: string | undefined, opts: any) => {
+    assertDevMode('crucible pg:open');
     await runPlaygroundOpen({ framework });
   });
 
 program
   .command('pg:dev [framework]')
   .alias('pd')
-  .description('Start dev server for a framework playground')
+  .description('Start dev server for a framework playground (dev only)')
   .action(async (framework: string | undefined, opts: any) => {
+    assertDevMode('crucible pg:dev');
     await runPlaygroundDev({ framework });
   });
 
@@ -162,8 +166,9 @@ program
 program
   .command('pg:clean')
   .alias('pcl')
-  .description('Clean all playground folders')
+  .description('Clean all playground folders (dev only)')
   .action(async () => {
+    assertDevMode('crucible pg:clean');
     await runPgClean();
   });
 
