@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ["24.x"]
+        node-version: ['24.x']
 
     steps:
       - name: Checkout code
@@ -35,6 +35,9 @@ jobs:
 
       - name: Generate playground
         run: npm run pg
+
+      - name: Debug Angular generation
+        run: ls -la playground/angular/src/__generated__/Dialog/ || echo "Dialog dir not found"
 
       - name: Run unit tests
         run: npm test -- --update
