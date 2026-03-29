@@ -185,9 +185,9 @@ async function runE2E() {
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Card'));
     runCLI('add Dialog -y');
     const angularCssFiles = [
-      'dialog/dialog.component.ts',
-      'dialog/dialog.component.html',
-      'dialog/dialog.component.css',
+      'Dialog/dialog.component.ts',
+      'Dialog/dialog.component.html',
+      'Dialog/dialog.component.css',
     ];
     for (const file of angularCssFiles) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
@@ -219,9 +219,9 @@ async function runE2E() {
     await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
     runCLI('add Dialog -y');
     const angularScssFiles = [
-      'dialog/dialog.component.ts',
-      'dialog/dialog.component.html',
-      'dialog/dialog.component.scss',
+      'Dialog/dialog.component.ts',
+      'Dialog/dialog.component.html',
+      'Dialog/dialog.component.scss',
     ];
     for (const file of angularScssFiles) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
@@ -252,7 +252,7 @@ async function runE2E() {
     );
     await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
     runCLI('add Dialog -y');
-    const angularTailwindFiles = ['dialog/dialog.component.ts', 'dialog/dialog.component.html'];
+    const angularTailwindFiles = ['Dialog/dialog.component.ts', 'Dialog/dialog.component.html'];
     for (const file of angularTailwindFiles) {
       if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
