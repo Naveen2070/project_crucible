@@ -55,4 +55,4 @@ jobs:
           ls -la .e2e-test-env/src/components/dialog/ || echo "dialog dir not found"
 
       - name: Run unit tests
-        run: npm test
+        run: npm test -- --update
