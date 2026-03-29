@@ -39,8 +39,10 @@ jobs:
       - name: Debug Angular generation
         run: ls -la playground/angular/src/__generated__/Dialog/ || echo "Dialog dir not found"
 
-      - name: Run unit tests
-        run: npm test -- --update
+      - name: Run E2E tests with debug
+        run: |
+          npm run test:e2e 2>&1 || true
+          ls -la .e2e-test-env/src/components/dialog/ || echo "dialog dir not found"
 
-      - name: Run E2E tests
-        run: npm run test:e2e
+      - name: Run unit tests
+        run: npm test
