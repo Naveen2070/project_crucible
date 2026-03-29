@@ -31,7 +31,7 @@ jobs:
         run: npm run pg -- --force
 
       - name: Run unit tests
-        run: npm test -- --update || true
+        run: npm test -- --update
 
       - name: Run E2E tests
-        run: npm run test:e2e || true
+        run: npm run test:e2e
