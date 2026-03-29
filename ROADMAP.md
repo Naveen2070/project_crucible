@@ -63,87 +63,68 @@ gantt
 
     section v1.x
 
-    v1.0 Core Engine            :done, 2026-02-01, 2026-03-31
-    v1.0 Stabilization & QA     :2026-04-01, 2026-04-25
+    v1.0 Core Engine + QA       :done, 2026-02-01, 2026-03-31
 
-    v1.1 Documentation & A11y   :2026-04-10, 2026-05-20
-    v1.1 Polish & Release       :2026-05-21, 2026-06-05
+    v1.1 Plugin-Ready (Registry):2026-04-01, 2026-06-15
+    v1.1 Plugin-Ready (Loader)  :2026-06-16, 2026-08-01
+    v1.1 Stabilization & Release:2026-08-02, 2026-08-31
 
-    v1.2 Migration Engine (Design) :2026-05-15, 2026-06-10
-    v1.2 Migration Engine (Build)  :2026-06-11, 2026-08-15
-    v1.2 Stabilization & Fixes     :2026-08-16, 2026-09-05
-
-    v1.3 Studio (Design + Core UI) :2026-08-20, 2026-10-31
-    v1.3 Studio (Features + Integrations) :2026-11-01, 2027-01-15
-    v1.3 Stabilization & Release   :2027-01-16, 2027-02-05
+    v1.2 Migration Engine (Design) :2026-09-01, 2026-09-30
+    v1.2 Migration Engine (Build)  :2026-10-01, 2026-11-30
+    v1.2 Stabilization & Release   :2026-12-01, 2026-12-31
 
     section v2.x
 
-    v2.0 Break + Feedback Collection  :2027-02-06, 2027-03-15
-    v2.0 Go Binary (R&D / Prototyping):2027-03-16, 2027-05-01
-    v2.0 Go Binary (Implementation)   :2027-05-02, 2027-09-15
-    v2.0 Stabilization & Release      :2027-09-16, 2027-11-01
+    v2.0 Go Binary (R&D)       :2027-01-01, 2027-03-15
+    v2.0 Go Binary (Impl)      :2027-03-16, 2027-08-31
+    v2.0 Stabilization & Release:2027-09-01, 2027-10-31
 ```
 
 ---
 
-## v1.1 — Documentation & A11y Testing ✅
+## v1.1 — Plugin-Ready Architecture
 
-> Note: All v1.1 features were included in the v1.0.0 stable release. The phases below represent the
-> development work that led to the stable release.
+> **Target: Q2 2026**
+>
+> Make Crucible genuinely extensible by converting built-in components to manifest-driven loading,
+> enabling local plugins, and preparing the writer for future upgrade tooling.
 
-### Phase 5: Template Enforcement ✅
+### Goals
 
-- Template audit script implemented ✅
-- CI integration (prebuild hook) ✅
+- Load components from runtime manifests, not hardcoded source maps
+- Enable local plugins via `.crucible/plugins/` discovery
+- Multi-root template resolution (core + plugin templates)
+- Declarative peer dependencies via manifests
+- CLI registry-driven discovery (list/add work with plugins)
+- Writer provenance for future upgrade/diff/audit commands
 
-### Phase 6: A11y Testing ✅
+### Key Bottlenecks v1.1 Solves
 
-**Goals:**
+| Bottleneck                       | Solution                             |
+| -------------------------------- | ------------------------------------ |
+| Hardcoded component registration | Runtime manifests + plugin loader    |
+| Framework enum rigidity          | String IDs with validation           |
+| Single template root             | Multi-root resolution                |
+| Hardcoded peer dependencies      | Declarative manifest deps            |
+| No upgrade path                  | Store provenance in manifest entries |
 
-- Programmatic accessibility verification for all components ✅
-- Theme permutation testing (90+ snapshots) ✅
-- Dark mode contrast validation ✅
+### Deliverables
 
-**Deliverables:**
+| Feature              | Description                                                |
+| -------------------- | ---------------------------------------------------------- |
+| Manifest types       | `ComponentManifest`, `FrameworkManifest`, `PluginManifest` |
+| Plugin loader        | `loadPlugins(cwd)` with validation + version checks        |
+| Multi-root templates | Template resolution from core + plugin roots               |
+| Declarative deps     | Per-component peerDependencies in manifests                |
+| CLI plugin support   | `crucible list` and `crucible add` via runtime registry    |
+| Writer provenance    | Store plugin/component/template source in manifest         |
 
-- vitest-axe integration ✅
-- Dialog focus trap tests ✅
-- Select keyboard navigation tests ✅
-- Theme permutation snapshots (90 tests) ✅
-- DialogDescription with aria-describedby ✅
-- Semantic color tokens (foreground variants) ✅
+### Non-Goals
 
-### All Test Phases Complete ✅
-
-| Phase     | Tests   | Status          |
-| --------- | ------- | --------------- |
-| Phase 1   | 1       | ✅ Done         |
-| Phase 2   | 11      | ✅ Done         |
-| Phase 3   | 24      | ✅ Done         |
-| Phase 4   | 108     | ✅ Done         |
-| Phase 5   | 16      | ✅ Done         |
-| Phase 6   | 11      | ✅ Done         |
-| Phase 7   | 17      | ✅ Done         |
-| Phase 8   | 3       | ✅ Done         |
-| Phase 9   | 5       | ✅ Done         |
-| Phase 10  | 3       | ✅ Done         |
-| Phase 11  | 2       | ✅ Done         |
-| **TOTAL** | **230** | ✅ **COMPLETE** |
-
-E2E Tests: **19 phases** ✅
-
-#### E2E Phase Coverage
-
-| Phase | Coverage                                  |
-| ----- | ----------------------------------------- |
-| 1-3   | React: CSS, SCSS, Tailwind                |
-| 4-6   | Angular: CSS, SCSS, Tailwind              |
-| 7-9   | Vue: CSS, SCSS, Tailwind                  |
-| 10-12 | Write protection (dry-run, force, hash)   |
-| 13-15 | Configuration (batch, themes, output dir) |
-| 16-18 | CLI commands (init, eject, list)          |
-| 19    | Error handling                            |
+- Online plugin marketplace
+- npm-installed plugins
+- Remote registry fetching
+- Command plugins
 
 ---
 
@@ -232,10 +213,9 @@ _Rust only if project scale demands sub-ms generation performance._
 
 ## Release Schedule
 
-| Version | Focus                | Target        |
-| ------- | -------------------- | ------------- |
-| 1.0.0   | Core engine          | ✅ March 2026 |
-| 1.1.0   | Documentation + A11y | ✅ March 2026 |
-| 1.2.0   | Migration engine     | Q3 2026       |
-| 1.3.0   | Studio               | Q4 2026       |
-| 2.0.0   | Go binary            | 2027          |
+| Version | Focus                     | Target        |
+| ------- | ------------------------- | ------------- |
+| 1.0.0   | Core engine               | ✅ March 2026 |
+| 1.1.0   | Plugin-ready architecture | Q3 2026       |
+| 1.2.0   | Migration engine          | Q4 2026       |
+| 2.0.0   | Go binary                 | 2027          |
