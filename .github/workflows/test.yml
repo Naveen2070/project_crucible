@@ -39,6 +39,16 @@ jobs:
       - name: Debug Angular generation
         run: ls -la playground/angular/src/__generated__/Dialog/ || echo "Dialog dir not found"
 
+      - name: Manual Angular Dialog test
+        run: |
+          mkdir -p test-manual
+          cd test-manual
+          echo '{"version":"1.0.0","framework":"angular","styleSystem":"css","theme":"minimal"}' > crucible.config.json
+          node ../dist/cli/index.js add Dialog -y 2>&1
+          echo "---Files in src/components---"
+          ls -la src/components/ || echo "no components dir"
+          ls -la src/components/dialog/ || echo "no dialog dir"
+
       - name: Run E2E tests with debug
         run: |
           npm run test:e2e 2>&1 || true
