@@ -48,6 +48,51 @@ function isGenerated(framework: Framework): boolean {
   return fs.existsSync(genPath) && fs.readdirSync(genPath).length > 0;
 }
 
+function checkPlaygroundDependencies(framework: Framework): boolean {
+  const playgroundPath = getPlaygroundPath(framework);
+  const pkgPath = path.join(playgroundPath, 'package.json');
+  if (!fs.existsSync(pkgPath)) return false;
+
+  try {
+    const pkg = fs.readJsonSync(pkgPath);
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    const hasStorybook = !!deps.storybook;
+    let hasFramework = false;
+    if (framework === 'react') hasFramework = !!deps.react;
+    else if (framework === 'vue') hasFramework = !!deps.vue;
+    else if (framework === 'angular') hasFramework = !!deps['@angular/core'];
+    return hasStorybook && hasFramework;
+  } catch {
+    return false;
+  }
+}
+
+async function scaffoldPlayground(framework: Framework): Promise<void> {
+  const playgroundPath = getPlaygroundPath(framework);
+  console.log(chalk.yellow(`  Missing dependencies or uninitialized playground for ${framework}. Scaffolding...`));
+  
+  const rootPlayground = path.join(ROOT_DIR, 'playground');
+  await fs.ensureDir(rootPlayground);
+
+  try {
+    if (framework === 'react') {
+      execSync(`npm create vite@latest ${framework} -- --template react-ts -y`, { cwd: rootPlayground, stdio: 'inherit' });
+      execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
+    } else if (framework === 'vue') {
+      execSync(`npm create vite@latest ${framework} -- --template vue-ts -y`, { cwd: rootPlayground, stdio: 'inherit' });
+      execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
+    } else if (framework === 'angular') {
+      execSync(`npx @angular/cli@latest new ${framework} --directory ${framework} --defaults --skip-git --style=css`, { cwd: rootPlayground, stdio: 'inherit' });
+      execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
+    }
+    
+    console.log(chalk.cyan(`  Initializing Storybook for ${framework}...`));
+    execSync(`npx storybook@latest init -y`, { cwd: playgroundPath, stdio: 'inherit' });
+  } catch (error: any) {
+    throw new Error(`Failed to scaffold ${framework} playground: ${error.message}`);
+  }
+}
+
 async function cleanupPlayground(framework: Framework): Promise<void> {
   const pgPath = getPlaygroundPath(framework);
   const pathsToDelete = [
@@ -149,9 +194,15 @@ async function generateFramework(
       await cleanupPlayground(framework);
     }
 
+    const isSetup = checkPlaygroundDependencies(framework);
+    if (!isSetup) {
+      await scaffoldPlayground(framework);
+    } else {
+      await installDependencies(framework);
+    }
+
     await fs.ensureDir(path.join(playgroundPath, 'src'));
     await createConfig(framework);
-    await installDependencies(framework);
 
     const shouldGenerate = options.force || !isGenerated(framework);
 
