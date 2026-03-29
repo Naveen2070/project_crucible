@@ -66,12 +66,14 @@ New components are added in parallel with version milestones. Each component req
 | --------- | -------------- | ------- |
 | Textarea  | v1.1           | Planned |
 | Badge     | v1.1           | Planned |
-| Tabs      | v1.2           | Planned |
+| Tabs      | v1.1           | Planned |
 | Tooltip   | v1.2           | Planned |
-| Dropdown  | v1.3           | Planned |
-| Checkbox  | v1.3           | Planned |
-| Radio     | Future         | Planned |
-| Switch    | Future         | Planned |
+| Checkbox  | v1.2           | Planned |
+| Radio     | v1.2           | Planned |
+| Switch    | v1.3           | Planned |
+| Alert     | v1.3           | Planned |
+| Accordion | Future         | Planned |
+| Avatar    | Future         | Planned |
 
 Components are designed to work with existing token system and compound component patterns.
 
@@ -228,13 +230,15 @@ _Rust only if project scale demands sub-ms generation performance._
 
 ## Future Components (Long-term)
 
-| Component | Description          |
-| --------- | -------------------- |
-| Radio     | Radio group          |
-| Switch    | Toggle switch        |
-| Accordion | Collapsible sections |
-| Avatar    | User avatar          |
-| Alert     | Inline alerts        |
+Additional components beyond the current roadmap timeline. Priority re-evaluated after v1.3.
+
+| Component  | Description        |
+| ---------- | ------------------ |
+| Tag        | Removable tag      |
+| Table      | Data table         |
+| Pagination | Page navigation    |
+| Breadcrumb | Navigation path    |
+| Progress   | Progress indicator |
 
 ---
 
