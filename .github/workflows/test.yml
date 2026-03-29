@@ -2,7 +2,7 @@ name: Test
 
 on:
   pull_request:
-    branches: [master, main, dev]
+    branches: [main, dev]
 
 jobs:
   test:
@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ['24.x']
+        node-version: ["24.x"]
 
     steps:
       - name: Checkout code
