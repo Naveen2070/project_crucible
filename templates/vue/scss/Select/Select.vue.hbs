@@ -176,11 +176,18 @@ const activeOptionId = computed(() =>
 }
 
 {{#if tokens.darkCssVars}}
+{{#if (eq tokens.darkModeStrategy 'manual')}}
+.dark {
+{{else}}
 @media (prefers-color-scheme: dark) {
-  :root {
+{{/if}}  :root {
 {{#each tokens.darkCssVars}}    {{@key}}: {{{this}}};
 {{/each}}  }
+{{#if (eq tokens.darkModeStrategy 'manual')}}
 }
+{{else}}
+}
+{{/if}}
 {{/if}}
 
 .container {
