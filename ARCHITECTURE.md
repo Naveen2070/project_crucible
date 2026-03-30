@@ -1,6 +1,6 @@
 # ⚗ Crucible — System Architecture
 
-**Version:** 1.0.0 | **Date:** March 2026
+**Version:** 1.0.3 | **Date:** March 2026
 
 ---
 
@@ -315,12 +315,29 @@ on the framework:
 
 If an existing tokens.css link has an incorrect path, it will be automatically updated.
 
-### 6.2 Auto vs Manual
+### 6.2 Auto vs Manual Strategy
 
-| Strategy | Behavior                                |
-| -------- | --------------------------------------- |
-| `auto`   | Uses `prefers-color-scheme` media query |
-| `manual` | User controls via `.dark` class         |
+Crucible supports two dark mode strategies:
+
+| Strategy | Config Value                                         | CSS Output                            | Control Method                             |
+| -------- | ---------------------------------------------------- | ------------------------------------- | ------------------------------------------ |
+| `auto`   | `darkMode: true` or `darkMode: { strategy: "auto" }` | `@media (prefers-color-scheme: dark)` | System preference (OS/ browser setting)    |
+| `manual` | `darkMode: { strategy: "manual" }`                   | `.dark { ... }`                       | JavaScript toggle on `<html class="dark">` |
+
+**Manual Mode Usage:**
+
+```html
+<!-- Enable dark mode -->
+<html class="dark">
+  <!-- Disable dark mode -->
+  <html></html>
+</html>
+```
+
+```javascript
+// Toggle via JavaScript
+document.documentElement.classList.toggle('dark');
+```
 
 ---
 

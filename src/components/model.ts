@@ -16,6 +16,7 @@ export interface ComponentModel {
   sizes: string[];
   states: string[];
   tokens: ResolvedTokens;
+  darkModeStrategy: 'auto' | 'manual';
   tailwindVariants?: Record<string, string>;
   a11y: {
     focusRing: boolean;
@@ -94,6 +95,7 @@ export function buildComponentModel(
     sizes: defaults.sizes,
     states: defaults.states,
     tokens,
+    darkModeStrategy: tokens.darkModeStrategy,
     tailwindVariants: TAILWIND_VARIANT_DEFAULTS[name],
     a11y: {
       focusRing: config.features.focusRing ?? true,

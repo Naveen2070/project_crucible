@@ -14,6 +14,7 @@ interface DoctorResult {
   typescript: boolean;
   tokens: boolean;
   componentsSync: boolean;
+  hashIntegrity: boolean;
 }
 
 interface CircularRef {
@@ -82,6 +83,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     typescript: true,
     tokens: true,
     componentsSync: true,
+    hashIntegrity: true,
   };
 
   const configPathRelative = path.relative(process.cwd(), path.join(cwd, 'crucible.config.json'));
@@ -303,13 +305,23 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
           console.log(chalk.yellow(`⚠ Some components are out of sync:`));
           const compArray = Array.from(componentsOnDisk);
           if (configStale) {
-            console.log(chalk.gray(`  - Config drifted. Regenerate with: npx crucible add ${compArray.join(' ')} --force`));
+            console.log(
+              chalk.gray(
+                `  - Config drifted. Regenerate with: npx crucible add ${compArray.join(' ')} --force`,
+              ),
+            );
           }
           if (engineStale) {
-            console.log(chalk.gray(`  - Engine updated (${manifest.engineVersion} -> ${pkgVersion}). Regenerate with: npx crucible add ${compArray.join(' ')} --force`));
+            console.log(
+              chalk.gray(
+                `  - Engine updated (${manifest.engineVersion} -> ${pkgVersion}). Regenerate with: npx crucible add ${compArray.join(' ')} --force`,
+              ),
+            );
           }
         } else {
-          console.log(chalk.green('✔ All generated components are up to date with config and engine.'));
+          console.log(
+            chalk.green('✔ All generated components are up to date with config and engine.'),
+          );
         }
       } else {
         console.log(chalk.gray('— Sync state check skipped (no generated files exist on disk).'));
@@ -317,6 +329,54 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     }
   } catch (e: any) {
     console.log(chalk.yellow(`⚠ Could not verify component sync state: ${e.message}`));
+  }
+
+  // 8. Check Hash Integrity
+  try {
+    const manifest = await loadHashes(cwd);
+    const outDir = path.join(cwd, config?.flags?.outputDir ?? 'src/components');
+
+    if (Object.keys(manifest.files).length === 0) {
+      console.log(chalk.gray('— Hash integrity check skipped (no generated components found).'));
+    } else {
+      const compromisedFiles: string[] = [];
+
+      for (const [hashKey, fileMeta] of Object.entries(manifest.files)) {
+        const filePath = path.join(outDir, hashKey);
+        if (await fs.pathExists(filePath)) {
+          const currentContent = await fs.readFile(filePath, 'utf-8');
+          const currentHash = hashContent(currentContent);
+          if (currentHash !== fileMeta.contentHash) {
+            compromisedFiles.push(hashKey);
+          }
+        }
+      }
+
+      if (compromisedFiles.length > 0) {
+        result.hashIntegrity = false;
+        console.log(
+          chalk.yellow(
+            `⚠ Hash integrity compromised (${compromisedFiles.length} file(s) modified externally):`,
+          ),
+        );
+        for (const file of compromisedFiles.slice(0, 10)) {
+          console.log(chalk.gray(`  - ${file}`));
+        }
+        if (compromisedFiles.length > 10) {
+          console.log(chalk.gray(`  ... and ${compromisedFiles.length - 10} more`));
+        }
+        const uniqueComps = [...new Set(compromisedFiles.map((f) => f.split('/')[0]))];
+        console.log(
+          chalk.gray(
+            `  Run with --force to sync: npx crucible add ${uniqueComps.join(' ')} --force`,
+          ),
+        );
+      } else {
+        console.log(chalk.green('✔ All generated files have valid hash integrity.'));
+      }
+    }
+  } catch (e: any) {
+    console.log(chalk.yellow(`⚠ Could not verify hash integrity: ${e.message}`));
   }
 
   console.log('\n');

@@ -219,7 +219,12 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version | Status    | Description                                                                     |
 | ------- | --------- | ------------------------------------------------------------------------------- |
+| v1.0.3  | ✅ Stable | Manual dark mode strategy, Vue SCSS template fixes                              |
 | v1.0.0  | ✅ Stable | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases |
+
+### v1.0.3 Features
+
+- **Manual dark mode strategy**: Add `.dark` class to `<html>` for manual dark mode toggle
 
 ### v1.0.0 Features
 

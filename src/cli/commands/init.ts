@@ -6,7 +6,7 @@ import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
 
 const DEFAULT_CONFIG = `{
-  "$schema": "https://raw.githubusercontent.com/crucible-ui/crucible/main/schema.json",
+  "$schema": "./node_modules/@cruciblelab/crucible/dist/config/schema.json",
   "version": "1",
   "framework": "react",
   "styleSystem": "css",

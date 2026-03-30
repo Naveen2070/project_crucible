@@ -6,11 +6,17 @@
 }
 
 {{#if tokens.darkCssVars}}
-@media (prefers-color-scheme: dark) {
-  :root {
-{{#each tokens.darkCssVars}}    {{@key}}: {{{this}}};
-{{/each}}  }
+{{#if (eq tokens.darkModeStrategy 'manual')}}
+.dark {
+{{#each tokens.darkCssVars}}  {{@key}}: {{{this}}};
+{{/each}}
 }
+{{else}}
+@media (prefers-color-scheme: dark) {
+{{#each tokens.darkCssVars}}  {{@key}}: {{{this}}};
+{{/each}}
+}
+{{/if}}
 {{/if}}
 
 .input-container {
@@ -19,79 +25,82 @@
   gap:            var(--spacing-unit);
   width:          100%;
 
-  .label {
-    font-family: var(--font-family);
-    font-size:   14px;
-    font-weight: 500;
-    color:       var(--color-text);
-  }
-
-  .required {
-    color:       var(--color-destructive);
-    margin-left: 2px;
-  }
-
   .input-wrapper {
     position: relative;
+    display:  flex;
     width:    100%;
   }
 
-  .input {
-    width:           100%;
-    font-family:     var(--font-family);
-    border: 1px solid var(--color-border);
-    border-radius:   var(--radius-md);
-    background:      var(--color-surface);
-    color:           var(--color-text);
-    transition:      border-color 0.15s ease, box-shadow 0.15s ease;
-    box-sizing:      border-box;
+  .input-field {
+    width:      100%;
+    padding:    0 var(--input-padding-x);
+    height:     var(--input-height);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    color:      var(--color-text);
+    background: var(--color-surface);
+    border:     1px solid var(--input-border-color);
+    border-radius: var(--input-border-radius);
+    transition: var(--input-transition);
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    &:focus {
+      outline:       none;
+      border-color:  var(--color-primary);
+      box-shadow:    0 0 0 3px var(--color-primary-foreground);
+    }
 
     {{#if a11y.focusRing}}
     &:focus-visible {
       outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
       outline-offset: {{a11y.focusRingOffset}};
-      border-color:   var(--color-primary);
     }
     {{/if}}
 
-    &--sm { padding: 6px 10px;  font-size: 13px; }
-    &--md { padding: 10px 14px; font-size: 15px; }
-    &--lg { padding: 14px 18px; font-size: 17px; }
+    {{#if a11y.reduceMotion}}
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+    {{/if}}
   }
 
-  &--error .input {
-    border-color: var(--color-destructive);
-  }
-
-  &--disabled .input {
-    background: var(--color-background);
-    cursor:     not-allowed;
-    opacity:    0.7;
-  }
-
-  .password-toggle {
-    position:   absolute;
-    right:      12px;
-    top:        50%;
-    transform:  translateY(-50%);
-    background: transparent;
-    border:     none;
-    padding:    0;
-    margin:     0;
-    font-family: var(--font-family);
-    font-size:  12px;
-    color:      var(--color-text-muted);
-    cursor:     pointer;
-
-    &:hover {
-      color: var(--color-text);
+  /* States */
+  &.input--disabled {
+    .input-field {
+      opacity:    0.45;
+      cursor:     not-allowed;
+      background: var(--color-background);
     }
   }
 
-  .error {
-    color:       var(--color-destructive);
-    font-family: var(--font-family);
-    font-size:   12px;
-    margin-top:  2px;
+  &.input--error {
+    .input-field {
+      border-color: var(--color-destructive);
+
+      &:focus {
+        box-shadow: 0 0 0 3px var(--color-destructive-foreground);
+      }
+    }
+  }
+
+  .input-label {
+    display:        block;
+    margin-bottom:  calc(var(--spacing-unit) * 1);
+    font-size:      0.875rem;
+    font-weight:    500;
+    color:          var(--color-text);
+  }
+
+  .input-hint {
+    margin-top:    calc(var(--spacing-unit) * 1);
+    font-size:    0.75rem;
+    color:        var(--color-text-muted);
+  }
+
+  &.input--error .input-hint {
+    color: var(--color-destructive);
   }
 }

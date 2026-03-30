@@ -6,11 +6,17 @@
 }
 
 {{#if tokens.darkCssVars}}
-@media (prefers-color-scheme: dark) {
-  :root {
-{{#each tokens.darkCssVars}}    {{@key}}: {{{this}}};
-{{/each}}  }
+{{#if (eq tokens.darkModeStrategy 'manual')}}
+.dark {
+{{#each tokens.darkCssVars}}  {{@key}}: {{{this}}};
+{{/each}}
 }
+{{else}}
+@media (prefers-color-scheme: dark) {
+{{#each tokens.darkCssVars}}  {{@key}}: {{{this}}};
+{{/each}}
+}
+{{/if}}
 {{/if}}
 
 {{> shared/components/button-base}}

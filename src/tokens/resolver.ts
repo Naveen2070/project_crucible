@@ -2,10 +2,12 @@ import { CrucibleConfig } from '../config/reader';
 import { loadPreset } from '../themes';
 import { normalizeDarkMode, deriveDarkTokens } from './dark-resolver';
 import { COMPONENT_TOKEN_DEFAULTS } from './component-deriver';
+import { DarkModeStrategy } from '../core/enums';
 
 export interface ResolvedTokens {
   cssVars: Record<string, string>;
   darkCssVars: Record<string, string> | null;
+  darkModeStrategy: 'auto' | 'manual';
   js: Record<string, string>;
   componentTokens: Record<string, Record<string, string>>;
 }
@@ -72,8 +74,10 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
 
   const darkConfig = normalizeDarkMode(config.darkMode);
   let darkCssVars: Record<string, string> | null = null;
+  let darkModeStrategy: 'auto' | 'manual' = DarkModeStrategy.Auto;
 
   if (darkConfig) {
+    darkModeStrategy = darkConfig.strategy;
     const darkColors = deriveDarkTokens(merged.color, darkConfig, config.theme);
     darkCssVars = {};
     for (const [key, value] of Object.entries(darkColors)) {
@@ -93,7 +97,7 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
     darkCssVars['--foreground'] = darkColors.text ?? '#f1f5f9';
   }
 
-  return { cssVars, darkCssVars, js, componentTokens };
+  return { cssVars, darkCssVars, darkModeStrategy, js, componentTokens };
 }
 
 function deepMerge(base: any, override: any): any {
