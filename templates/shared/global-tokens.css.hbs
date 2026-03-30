@@ -7,14 +7,13 @@
 {{#if tokens.darkCssVars}}
 {{#if (eq tokens.darkModeStrategy 'manual')}}
 .dark {
-{{else}}
-@media (prefers-color-scheme: dark) {
-{{/if}}  :root {
-{{#each tokens.darkCssVars}}    {{@key}}: {{{this}}};
-{{/each}}  }
-{{#if (eq tokens.darkModeStrategy 'manual')}}
+{{#each tokens.darkCssVars}}  {{@key}}: {{{this}}};
+{{/each}}
 }
 {{else}}
+@media (prefers-color-scheme: dark) {
+{{#each tokens.darkCssVars}}  {{@key}}: {{{this}}};
+{{/each}}
 }
 {{/if}}
 {{/if}}
