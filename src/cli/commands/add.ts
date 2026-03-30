@@ -6,7 +6,7 @@ import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
 import { buildComponentModel } from '../../components/model';
 import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../../templates/engine';
-import { writeFiles, loadHashes, saveHashes } from '../../scaffold/writer';
+import { writeFiles, loadHashes, saveHashes, hashContent } from '../../scaffold/writer';
 import { registry } from '../../registry/components';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
@@ -18,17 +18,22 @@ import {
 } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
 
+function capitalizeFirst(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export async function runAdd(components: string[], opts: any) {
   const cwd = path.resolve(process.cwd(), opts.cwd);
-  let componentsToAdd: string[] = components || [];
+  const inputComponents = components || [];
+  let normalizedComponents = inputComponents.map((c) => capitalizeFirst(c));
 
   // Handle --all flag
   if (opts.all) {
-    componentsToAdd = Object.keys(registry);
+    normalizedComponents = Object.keys(registry);
   }
 
-  if (componentsToAdd.length > 0) {
-    for (const comp of componentsToAdd) {
+  if (normalizedComponents.length > 0) {
+    for (const comp of normalizedComponents) {
       if (!registry[comp as keyof typeof registry]) {
         console.error(chalk.red(`✗ Unknown component: ${comp}`));
         if (!opts.quiet) console.log(`Available: ${Object.keys(registry).join(', ')}`);
@@ -48,7 +53,7 @@ export async function runAdd(components: string[], opts: any) {
       if (!opts.quiet) console.log(chalk.gray('No components selected.'));
       return;
     }
-    componentsToAdd = answers;
+    normalizedComponents = answers;
   }
 
   try {
@@ -109,10 +114,10 @@ export async function runAdd(components: string[], opts: any) {
       : path.join(cwd, config.flags?.outputDir ?? 'src/components');
 
     // Dependency resolution using registry
-    const resolvedComponents = new Set<string>(componentsToAdd);
+    const resolvedComponents = new Set<string>(normalizedComponents);
     const allPeerDeps: string[] = [];
 
-    for (const comp of componentsToAdd) {
+    for (const comp of normalizedComponents) {
       const def = getComponentDefinition(comp);
 
       // Check component dependencies (e.g., Dialog needs Button)
@@ -149,7 +154,7 @@ export async function runAdd(components: string[], opts: any) {
         });
       }
       if (shouldInstall) {
-        await installPeerDependenciesSmart(framework, componentsToAdd, cwd);
+        await installPeerDependenciesSmart(framework, normalizedComponents, cwd);
       }
     }
 
@@ -158,18 +163,35 @@ export async function runAdd(components: string[], opts: any) {
 
     const hashes = await loadHashes(cwd);
 
+    const configPath = path.join(cwd, 'crucible.config.json');
+    const currentConfigHash = (await fs.pathExists(configPath))
+      ? hashContent(await fs.readFile(configPath, 'utf-8'))
+      : '';
+    const configChanged = hashes.configHash && currentConfigHash !== hashes.configHash;
+
+    if (configChanged && !opts.quiet) {
+      console.warn(chalk.yellow(`⚠ Config file has changed since last generation.`));
+      console.warn(
+        chalk.yellow(`   Run with --force to regenerate all components with new config.`),
+      );
+    }
+
     await fs.ensureDir(outDir);
 
     const tokensOutDir = path.join(cwd, 'public/__generated__');
     await fs.ensureDir(tokensOutDir);
     const tokensPath = path.join(tokensOutDir, 'tokens.css');
 
-    if (!(await fs.pathExists(tokensPath))) {
+    if (!(await fs.pathExists(tokensPath)) || configChanged) {
       const model = buildComponentModel('Button', tokens, config, generateStories);
       const tokensContent = await renderGlobalTokens(model);
       await fs.writeFile(tokensPath, tokensContent);
       if (!opts.quiet) {
-        console.log(chalk.gray(`  Created tokens.css`));
+        console.log(
+          chalk.gray(
+            configChanged ? `  Updated tokens.css (config changed)` : `  Created tokens.css`,
+          ),
+        );
       }
     }
 

@@ -88,7 +88,8 @@
     "colorjs.io": "^0.6.1",
     "commander": "^13.1.0",
     "fs-extra": "^11.3.0",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.8",
+    "prettier": "^3.5.3"
   },
   "devDependencies": {
     "@storybook/addon-vitest": "^10.3.3",
@@ -106,7 +107,6 @@
     "eslint": "^9.21.0",
     "jsdom": "^29.0.1",
     "playwright": "^1.58.2",
-    "prettier": "^3.5.3",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vitest": "^3.0.7",
