@@ -1,6 +1,8 @@
 # Crucible Roadmap
 
 > **Crucible — Code Generation Engine that generates style system/spec-based components**
+>
+> **shadcn for multi-framework teams + automation**
 
 **Current Version:** 1.0.0 | **Last Updated:** March 2026
 
@@ -20,6 +22,32 @@ Crucible is a code generation engine, not a component library. The core philosop
 
 3. **A11y Regressions** — Focus traps, ARIA live regions, combobox keyboard navigation. A single
    regression destroys the core value. Testing pyramid catches these before release.
+
+---
+
+## Addressing Common Concerns
+
+### Migration & Updates
+
+The v1.2 Migration Engine addresses the "write-once" problem with 3-way merge:
+
+- `crucible upgrade` — Apply template improvements while preserving user edits
+- `crucible diff` — Preview what would change
+- `crucible audit` — Scan for out-of-sync files
+
+### Ownership Trade-off
+
+Full code ownership means you maintain what you edit. However:
+
+- Base components are battle-tested and accessible (WCAG 2.1 AA)
+- You choose what to customize vs. use as-is
+- No breaking changes from upstream library updates
+
+### Ecosystem & Adoption
+
+- Real-world examples and templates (v1.4)
+- Plugin system for community components (v1.1)
+- Multi-framework consistency across your entire organization
 
 ---
 
@@ -62,18 +90,22 @@ New components are added in parallel with version milestones. Each component req
 - Snapshot tests
 - Registry entry
 
-| Component | Target Version | Status  |
-| --------- | -------------- | ------- |
-| Textarea  | v1.1           | Planned |
-| Badge     | v1.1           | Planned |
-| Tabs      | v1.1           | Planned |
-| Tooltip   | v1.2           | Planned |
-| Checkbox  | v1.2           | Planned |
-| Radio     | v1.2           | Planned |
-| Switch    | v1.3           | Planned |
-| Alert     | v1.3           | Planned |
-| Accordion | Future         | Planned |
-| Avatar    | Future         | Planned |
+| Component         | Target Version | Status       |
+| ----------------- | -------------- | ------------ |
+| **Table**         | v1.1           | **Priority** |
+| **Dropdown Menu** | v1.1           | **Priority** |
+| **Toast**         | v1.1           | **Priority** |
+| **Form System**   | v1.1           | **Priority** |
+| Tabs              | v1.1           | Planned      |
+| Tooltip           | v1.1           | Planned      |
+| Textarea          | v1.1           | Planned      |
+| Badge             | v1.1           | Planned      |
+| Checkbox          | v1.2           | Planned      |
+| Radio             | v1.2           | Planned      |
+| Switch            | v1.3           | Planned      |
+| Alert             | v1.3           | Planned      |
+| Accordion         | Future         | Planned      |
+| Avatar            | Future         | Planned      |
 
 Components are designed to work with existing token system and compound component patterns.
 
@@ -223,12 +255,11 @@ _Rust only if project scale demands sub-ms generation performance._
 
 ## Future Components (Long-term)
 
-Additional components beyond the current roadmap timeline. Priority re-evaluated after v1.3.
+Additional components beyond the current roadmap timeline. Priority re-evaluated after v1.4.
 
 | Component  | Description        |
 | ---------- | ------------------ |
 | Tag        | Removable tag      |
-| Table      | Data table         |
 | Pagination | Page navigation    |
 | Breadcrumb | Navigation path    |
 | Progress   | Progress indicator |
@@ -243,4 +274,5 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 | 1.1.0   | Plugin-ready architecture | ✅ Q3 2026    |
 | 1.2.0   | Migration engine          | Q4 2026       |
 | 1.3.0   | Studio                    | Q2 2027       |
+| 1.4.0   | Ecosystem & examples      | Q3 2027       |
 | 2.0.0   | Go binary                 | 2028          |
