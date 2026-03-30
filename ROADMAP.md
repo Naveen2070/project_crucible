@@ -90,22 +90,22 @@ New components are added in parallel with version milestones. Each component req
 - Snapshot tests
 - Registry entry
 
-| Component         | Target Version | Status       |
-| ----------------- | -------------- | ------------ |
-| **Table**         | v1.1           | **Priority** |
-| **Dropdown Menu** | v1.1           | **Priority** |
-| **Toast**         | v1.1           | **Priority** |
-| **Form System**   | v1.1           | **Priority** |
-| Tabs              | v1.1           | Planned      |
-| Tooltip           | v1.1           | Planned      |
-| Textarea          | v1.1           | Planned      |
-| Badge             | v1.1           | Planned      |
-| Checkbox          | v1.2           | Planned      |
-| Radio             | v1.2           | Planned      |
-| Switch            | v1.3           | Planned      |
-| Alert             | v1.3           | Planned      |
-| Accordion         | Future         | Planned      |
-| Avatar            | Future         | Planned      |
+| Component       | Target Version | Status       |
+| --------------- | -------------- | ------------ |
+| **Table**       | v1.1           | **Priority** |
+| **Popover**     | v1.1           | **Priority** |
+| **Toast**       | v1.1           | **Priority** |
+| **Form System** | v1.1           | **Priority** |
+| Tabs            | v1.1           | Planned      |
+| Tooltip         | v1.1           | Planned      |
+| Textarea        | v1.1           | Planned      |
+| Badge           | v1.1           | Planned      |
+| Checkbox        | v1.2           | Planned      |
+| Radio           | v1.2           | Planned      |
+| Switch          | v1.3           | Planned      |
+| Alert           | v1.3           | Planned      |
+| Accordion       | Future         | Planned      |
+| Avatar          | Future         | Planned      |
 
 Components are designed to work with existing token system and compound component patterns.
 
