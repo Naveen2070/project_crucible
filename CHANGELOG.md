@@ -15,9 +15,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **Angular Dialog templates**: Renamed to lowercase for Linux compatibility
 - **Vue SCSS templates**: Fixed Handlebars parse errors in Button, Input, Card, and Select
   components
+
+## [1.0.2] - 2026-03-30
+
+### Fixed
+
+- **Angular Dialog templates**: Renamed to lowercase for Linux compatibility
 
 ### Testing
 
