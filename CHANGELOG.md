@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-03-30
+
+### Fixed
+
+- **Angular Dialog templates**: Renamed to lowercase for Linux compatibility
+
+### Testing
+
+- Add verbose flag and error handling for E2E tests
+- Add debug output to Angular Dialog E2E test
+- Show CLI output in E2E
+
+### CI/CD
+
+- Add workflow file for tests
+- Debug test failures
+- Clean up workflow to standard format
+
+## [1.0.1] - 2026-03-29
+
+### Added
+
+- **Official Documentation Site**: https://crucible-docs.naveenr.in
+- **Docs field in package.json**: Points to documentation site
+- **README updates**: Documentation link added
+
 ## [1.0.0] - 2026-03-27
 
 ### Added
