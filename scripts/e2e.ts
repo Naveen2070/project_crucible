@@ -1,7 +1,19 @@
-import fs from 'fs-extra';
+import * as fs from 'node:fs';
+import { readFile, writeFile, access, mkdir, rm, readdir } from 'node:fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
 import ansis from 'ansis';
+
+const pathExists = (p: string) =>
+  access(p).then(
+    () => true,
+    () => false,
+  );
+const readJson = (p: string) => readFile(p, 'utf-8').then(JSON.parse);
+const writeJson = (p: string, data: unknown, opts?: { spaces?: number }) =>
+  writeFile(p, JSON.stringify(data, null, opts?.spaces ?? 2));
+const remove = (p: string) => rm(p, { recursive: true, force: true });
+const ensureDir = (p: string) => mkdir(p, { recursive: true });
 
 const ROOT_DIR = process.cwd();
 const CLI_PATH = path.join(ROOT_DIR, 'dist/cli/index.js');
@@ -37,12 +49,12 @@ async function runE2E() {
   const results: E2EResult[] = [];
 
   // Cleanup previous test runs
-  await fs.remove(TEST_DIR);
-  await fs.ensureDir(TEST_DIR);
+  await remove(TEST_DIR);
+  await ensureDir(TEST_DIR);
 
   try {
     // Setup basic package.json
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'package.json'),
       { name: 'test-project', version: '1.0.0', type: 'module' },
       { spaces: 2 },
@@ -53,7 +65,7 @@ async function runE2E() {
 
     // React + CSS
     console.log(ansis.cyan('📦 Phase 1: React + CSS'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -78,7 +90,7 @@ async function runE2E() {
       'Button/Button.stories.tsx',
     ];
     for (const file of reactCssFiles) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
       }
     }
@@ -86,7 +98,7 @@ async function runE2E() {
 
     // React + SCSS
     console.log(ansis.cyan('📦 Phase 2: React + SCSS'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -104,10 +116,10 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Button'));
     runCLI('add Button -y');
     if (
-      !(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.module.scss')))
+      !(await pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.module.scss')))
     ) {
       throw new Error('Missing: Button/Button.module.scss');
     }
@@ -115,7 +127,7 @@ async function runE2E() {
 
     // React + Tailwind
     console.log(ansis.cyan('📦 Phase 3: React + Tailwind'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -133,14 +145,14 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Button'));
     runCLI('add Input Card -y');
     for (const comp of ['Input', 'Card']) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
         throw new Error(`Missing: ${comp}/${comp}.tsx`);
       }
       const cssPath = path.join(TEST_DIR, 'src/components', comp, `${comp}.module.css`);
-      if (await fs.pathExists(cssPath)) {
+      if (await pathExists(cssPath)) {
         throw new Error(`${comp} should not have CSS module in Tailwind mode`);
       }
     }
@@ -151,7 +163,7 @@ async function runE2E() {
 
     // Angular + CSS
     console.log(ansis.cyan('📦 Phase 4: Angular + CSS'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -169,7 +181,7 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'tsconfig.json'),
       {
         compilerOptions: {
@@ -183,8 +195,8 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Input'));
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Card'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Input'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Card'));
     console.log(ansis.gray('  Running: crucible add Dialog -y --verbose'));
     try {
       runCLI('add Dialog -y --verbose');
@@ -194,11 +206,11 @@ async function runE2E() {
     }
     console.log(ansis.gray('  Checking files...'));
     const componentsDir = path.join(TEST_DIR, 'src/components');
-    if (await fs.pathExists(componentsDir)) {
-      const dirs = await fs.readdir(componentsDir);
+    if (await pathExists(componentsDir)) {
+      const dirs = await readdir(componentsDir);
       console.log(ansis.gray(`  Components dir contains: ${dirs.join(', ')}`));
       for (const dir of dirs) {
-        const files = await fs.readdir(path.join(componentsDir, dir));
+        const files = await readdir(path.join(componentsDir, dir));
         console.log(ansis.gray(`    ${dir}: ${files.join(', ')}`));
       }
     } else {
@@ -211,7 +223,7 @@ async function runE2E() {
     ];
     for (const file of angularCssFiles) {
       const filePath = path.join(TEST_DIR, 'src/components', file);
-      if (!(await fs.pathExists(filePath))) {
+      if (!(await pathExists(filePath))) {
         console.log(ansis.red(`  Missing: ${file}`));
         throw new Error(`Missing: ${file}`);
       } else {
@@ -222,7 +234,7 @@ async function runE2E() {
 
     // Angular + SCSS
     console.log(ansis.cyan('📦 Phase 5: Angular + SCSS'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -240,7 +252,7 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
+    await remove(path.join(TEST_DIR, 'src/components', 'dialog'));
     runCLI('add Dialog -y');
     const angularScssFiles = [
       'Dialog/dialog.component.ts',
@@ -248,7 +260,7 @@ async function runE2E() {
       'Dialog/dialog.component.scss',
     ];
     for (const file of angularScssFiles) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
       }
     }
@@ -256,7 +268,7 @@ async function runE2E() {
 
     // Angular + Tailwind
     console.log(ansis.cyan('📦 Phase 6: Angular + Tailwind'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -274,15 +286,15 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'dialog'));
+    await remove(path.join(TEST_DIR, 'src/components', 'dialog'));
     runCLI('add Dialog -y');
     const angularTailwindFiles = ['Dialog/dialog.component.ts', 'Dialog/dialog.component.html'];
     for (const file of angularTailwindFiles) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
         throw new Error(`Missing: ${file}`);
       }
     }
-    const hasAngularTailwindCss = await fs.pathExists(
+    const hasAngularTailwindCss = await pathExists(
       path.join(TEST_DIR, 'src/components', 'dialog', 'dialog.component.css'),
     );
     if (hasAngularTailwindCss) {
@@ -295,7 +307,7 @@ async function runE2E() {
 
     // Vue + CSS
     console.log(ansis.cyan('📦 Phase 7: Vue + CSS'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -314,19 +326,17 @@ async function runE2E() {
       { spaces: 2 },
     );
     runCLI('add Select --stories -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.vue')))) {
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.vue')))) {
       throw new Error('Missing: Select/Select.vue');
     }
-    if (
-      !(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.stories.ts')))
-    ) {
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Select', 'Select.stories.ts')))) {
       throw new Error('Missing: Select/Select.stories.ts');
     }
     results.push({ phase: 'Vue + CSS + Select', passed: true });
 
     // Vue + SCSS
     console.log(ansis.cyan('📦 Phase 8: Vue + SCSS'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -344,16 +354,16 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Select'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Select'));
     runCLI('add Button -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
       throw new Error('Missing: Button/Button.vue');
     }
     results.push({ phase: 'Vue + SCSS + Button', passed: true });
 
     // Vue + Tailwind
     console.log(ansis.cyan('📦 Phase 9: Vue + Tailwind'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -371,12 +381,12 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Button'));
     runCLI('add Button -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Button', 'Button.vue')))) {
       throw new Error('Missing: Button/Button.vue');
     }
-    const hasVueTailwindCss = await fs.pathExists(
+    const hasVueTailwindCss = await pathExists(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.module.css'),
     );
     if (hasVueTailwindCss) {
@@ -389,7 +399,7 @@ async function runE2E() {
 
     // Dry Run
     console.log(ansis.cyan('📦 Phase 10: Dry Run Mode'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -407,14 +417,14 @@ async function runE2E() {
       },
       { spaces: 2 },
     );
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Button'));
     runCLI('add Button -y');
-    const originalButtonContent = await fs.readFile(
+    const originalButtonContent = await readFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       'utf-8',
     );
     runCLI('add Button --dry-run -y');
-    const afterDryRunContent = await fs.readFile(
+    const afterDryRunContent = await readFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       'utf-8',
     );
@@ -425,12 +435,12 @@ async function runE2E() {
 
     // Force Flag
     console.log(ansis.cyan('📦 Phase 11: Force Flag'));
-    await fs.writeFile(
+    await writeFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       '// Modified by user',
     );
     runCLI('add Button --force -y');
-    const afterForceContent = await fs.readFile(
+    const afterForceContent = await readFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       'utf-8',
     );
@@ -443,12 +453,12 @@ async function runE2E() {
     console.log(ansis.cyan('📦 Phase 12: Hash Protection'));
     // Generate Input component first for hash protection test
     runCLI('add Input -y');
-    await fs.writeFile(
+    await writeFile(
       path.join(TEST_DIR, 'src/components', 'Input', 'Input.tsx'),
       '// User modification that should be protected',
     );
     runCLI('add Input -y');
-    const inputContent = await fs.readFile(
+    const inputContent = await readFile(
       path.join(TEST_DIR, 'src/components', 'Input', 'Input.tsx'),
       'utf-8',
     );
@@ -459,17 +469,17 @@ async function runE2E() {
 
     // Multi-Component
     console.log(ansis.cyan('📦 Phase 13: Multi-Component Generation'));
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
-    await fs.remove(path.join(TEST_DIR, 'src/components', 'Select'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Select'));
     runCLI('add Button Input Card Dialog Select --no-stories -y');
     for (const comp of ['Button', 'Input', 'Card', 'Dialog', 'Select']) {
-      if (!(await fs.pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', comp, `${comp}.tsx`)))) {
         throw new Error(`Missing multi-component: ${comp}`);
       }
-      const hasStoriesTsx = await fs.pathExists(
+      const hasStoriesTsx = await pathExists(
         path.join(TEST_DIR, 'src/components', comp, `${comp}.stories.tsx`),
       );
-      const hasStoriesTs = await fs.pathExists(
+      const hasStoriesTs = await pathExists(
         path.join(TEST_DIR, 'src/components', comp, `${comp}.stories.ts`),
       );
       if (hasStoriesTsx || hasStoriesTs) {
@@ -480,8 +490,8 @@ async function runE2E() {
 
     // Theme Presets
     console.log(ansis.cyan('📦 Phase 14: Theme Presets'));
-    await fs.remove(path.join(TEST_DIR, 'public/__generated__/tokens.css'));
-    await fs.writeJson(
+    await remove(path.join(TEST_DIR, 'public/__generated__/tokens.css'));
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -500,7 +510,7 @@ async function runE2E() {
       { spaces: 2 },
     );
     runCLI('add Card --force -y');
-    const tokensContent = await fs.readFile(
+    const tokensContent = await readFile(
       path.join(TEST_DIR, 'public/__generated__/tokens.css'),
       'utf-8',
     );
@@ -511,7 +521,7 @@ async function runE2E() {
 
     // Custom Output Directory
     console.log(ansis.cyan('📦 Phase 15: Custom Output Directory'));
-    await fs.writeJson(
+    await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
         version: '1.0.0',
@@ -531,7 +541,7 @@ async function runE2E() {
       { spaces: 2 },
     );
     runCLI('add Button --force -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'custom/components', 'Button', 'Button.tsx')))) {
+    if (!(await pathExists(path.join(TEST_DIR, 'custom/components', 'Button', 'Button.tsx')))) {
       throw new Error('Custom output directory not used');
     }
     results.push({ phase: 'Custom Output Directory', passed: true });
@@ -541,9 +551,9 @@ async function runE2E() {
 
     // Init Command
     console.log(ansis.cyan('📦 Phase 16: Init Command'));
-    await fs.remove(path.join(TEST_DIR, 'crucible.config.json'));
+    await remove(path.join(TEST_DIR, 'crucible.config.json'));
     runCLI('init -y');
-    if (!(await fs.pathExists(path.join(TEST_DIR, 'crucible.config.json')))) {
+    if (!(await pathExists(path.join(TEST_DIR, 'crucible.config.json')))) {
       throw new Error('Init command failed');
     }
     results.push({ phase: 'Init Command', passed: true });
@@ -551,7 +561,7 @@ async function runE2E() {
     // Eject Command
     console.log(ansis.cyan('📦 Phase 17: Eject Command'));
     runCLI('eject');
-    const ejectedConfig = await fs.readJson(path.join(TEST_DIR, 'crucible.config.json'));
+    const ejectedConfig = await readJson(path.join(TEST_DIR, 'crucible.config.json'));
     if (ejectedConfig.theme !== 'custom') {
       throw new Error('Eject did not change theme to custom');
     }
@@ -585,7 +595,7 @@ async function runE2E() {
     process.exitCode = 1;
   } finally {
     console.log(ansis.gray('\n🧹 Cleaning up...'));
-    await fs.remove(TEST_DIR);
+    await remove(TEST_DIR);
   }
 
   console.log(ansis.bold('\n📊 Test Results Summary:\n'));

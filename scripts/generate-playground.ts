@@ -1,8 +1,23 @@
-import fs from 'fs-extra';
+import * as fs from 'node:fs';
+import { readFile, writeFile, access, mkdir, rm, readdir } from 'node:fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
 import ansis from 'ansis';
 import { confirm } from '@inquirer/prompts';
+
+const readdirSync = fs.readdirSync;
+const existsSync = fs.existsSync;
+
+const pathExists = (p: string) =>
+  access(p).then(
+    () => true,
+    () => false,
+  );
+const readJson = (p: string) => readFile(p, 'utf-8').then(JSON.parse);
+const writeJson = (p: string, data: unknown, opts?: { spaces?: number }) =>
+  writeFile(p, JSON.stringify(data, null, opts?.spaces ?? 2));
+const ensureDir = (p: string) => mkdir(p, { recursive: true });
+const remove = (p: string) => rm(p, { recursive: true, force: true });
 
 const ROOT_DIR = process.cwd();
 const CLI_PATH = path.join(ROOT_DIR, 'dist/cli/index.js');
@@ -45,16 +60,16 @@ function getCruciblePath(framework: Framework): string {
 
 function isGenerated(framework: Framework): boolean {
   const genPath = getGeneratedPath(framework);
-  return fs.existsSync(genPath) && fs.readdirSync(genPath).length > 0;
+  return existsSync(genPath) && fs.readdirSync(genPath).length > 0;
 }
 
 function checkPlaygroundDependencies(framework: Framework): boolean {
   const playgroundPath = getPlaygroundPath(framework);
   const pkgPath = path.join(playgroundPath, 'package.json');
-  if (!fs.existsSync(pkgPath)) return false;
+  if (!existsSync(pkgPath)) return false;
 
   try {
-    const pkg = fs.readJsonSync(pkgPath);
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     const hasStorybook = !!deps.storybook;
     let hasFramework = false;
@@ -69,23 +84,36 @@ function checkPlaygroundDependencies(framework: Framework): boolean {
 
 async function scaffoldPlayground(framework: Framework): Promise<void> {
   const playgroundPath = getPlaygroundPath(framework);
-  console.log(ansis.yellow(`  Missing dependencies or uninitialized playground for ${framework}. Scaffolding...`));
-  
+  console.log(
+    ansis.yellow(
+      `  Missing dependencies or uninitialized playground for ${framework}. Scaffolding...`,
+    ),
+  );
+
   const rootPlayground = path.join(ROOT_DIR, 'playground');
-  await fs.ensureDir(rootPlayground);
+  await ensureDir(rootPlayground);
 
   try {
     if (framework === 'react') {
-      execSync(`npm create vite@latest ${framework} -- --template react-ts -y`, { cwd: rootPlayground, stdio: 'inherit' });
+      execSync(`npm create vite@latest ${framework} -- --template react-ts -y`, {
+        cwd: rootPlayground,
+        stdio: 'inherit',
+      });
       execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
     } else if (framework === 'vue') {
-      execSync(`npm create vite@latest ${framework} -- --template vue-ts -y`, { cwd: rootPlayground, stdio: 'inherit' });
+      execSync(`npm create vite@latest ${framework} -- --template vue-ts -y`, {
+        cwd: rootPlayground,
+        stdio: 'inherit',
+      });
       execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
     } else if (framework === 'angular') {
-      execSync(`npx @angular/cli@latest new ${framework} --directory ${framework} --defaults --skip-git --style=css`, { cwd: rootPlayground, stdio: 'inherit' });
+      execSync(
+        `npx @angular/cli@latest new ${framework} --directory ${framework} --defaults --skip-git --style=css`,
+        { cwd: rootPlayground, stdio: 'inherit' },
+      );
       execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
     }
-    
+
     console.log(ansis.cyan(`  Initializing Storybook for ${framework}...`));
     execSync(`npx storybook@latest init -y`, { cwd: playgroundPath, stdio: 'inherit' });
   } catch (error: any) {
@@ -104,8 +132,8 @@ async function cleanupPlayground(framework: Framework): Promise<void> {
 
   console.log(ansis.gray(`  Cleaning up existing files...`));
   for (const p of pathsToDelete) {
-    if (fs.existsSync(p)) {
-      await fs.remove(p);
+    if (existsSync(p)) {
+      await remove(p);
       console.log(ansis.gray(`    Removed: ${path.relative(pgPath, p)}`));
     }
   }
@@ -162,7 +190,7 @@ async function createConfig(framework: Framework): Promise<void> {
     },
   };
 
-  await fs.writeJson(configPath, config, { spaces: 2 });
+  await writeJson(configPath, config, { spaces: 2 });
   console.log(ansis.gray(`  Created ${framework}/crucible.config.json`));
 }
 
@@ -201,7 +229,7 @@ async function generateFramework(
       await installDependencies(framework);
     }
 
-    await fs.ensureDir(path.join(playgroundPath, 'src'));
+    await ensureDir(path.join(playgroundPath, 'src'));
     await createConfig(framework);
 
     const shouldGenerate = options.force || !isGenerated(framework);
@@ -220,7 +248,7 @@ async function generateFramework(
       console.log(ansis.gray(`  Components already generated, skipping...`));
     }
 
-    const generatedCount = fs.existsSync(getGeneratedPath(framework))
+    const generatedCount = existsSync(getGeneratedPath(framework))
       ? fs.readdirSync(getGeneratedPath(framework)).length
       : 0;
     console.log(ansis.green(`  ✓ ${framework}: ${generatedCount} components ready`));
