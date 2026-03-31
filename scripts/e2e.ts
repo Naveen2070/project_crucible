@@ -1,4 +1,3 @@
-import * as fs from 'node:fs';
 import { readFile, writeFile, access, mkdir, rm, readdir } from 'node:fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
