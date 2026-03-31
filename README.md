@@ -176,8 +176,8 @@ crucible clean --all      # Also remove config (alias: c -a)
 │   Layer     │    │   Layer     │    │    (IR)     │    │   Engine    │    │             │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
      │                 │                 │                 │                   │
-  crucible.         Theme +            Component          Handlebars          File output
-  config.json      user tokens       spec + flags        rendering          + hash tracking
+   crucible.         Theme +            Component          Handlebars          File output
+   config.json      user tokens       spec + flags        rendering          + hash tracking
 ```
 
 1. **Config Layer** — User preferences in `crucible.config.json` with theme presets
@@ -219,25 +219,14 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version | Status    | Description                                                                     |
 | ------- | --------- | ------------------------------------------------------------------------------- |
+| v1.0.4  | ✅ Stable | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script  |
 | v1.0.3  | ✅ Stable | Manual dark mode strategy, Vue SCSS template fixes                              |
 | v1.0.0  | ✅ Stable | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases |
 
-### v1.0.3 Features
+### v1.0.4 Features
 
-- **Manual dark mode strategy**: Add `.dark` class to `<html>` for manual dark mode toggle
+- **Replaced chalk with ansis**: Modern terminal styling library
+- **Replaced fs-extra with native node:fs**: Zero runtime dependencies
+- **Added test:bun script**: Run tests with bun via `bun run test:bun`
 
-### v1.0.0 Features
-
-- **230 Unit Tests** across 24 test files
-- **19 E2E Phases** covering all CLI commands
-- **Multi-Framework**: React, Vue 3, Angular with full parity
-- **Style Systems**: CSS Modules, SCSS Modules, Tailwind CSS v4
-- **Theme Presets**: Minimal and Soft with deep merge
-- **Dark Mode**: OKLCH-based automatic derivation
-- **Compound Components**: Modern composition patterns
-- **Interactive CLI**: Guided setup with shorthand commands
-- **Hash Protection**: User edit detection
-- **Template Audit**: Logic enforcement
-
-See [ROADMAP.md](./ROADMAP.md) for future plans (v1.2 Migration Engine, v1.3 Studio, v2.0 Go
-Binary).
+See [ROADMAP.md](./ROADMAP.md) for future plans

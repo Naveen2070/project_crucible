@@ -1,6 +1,6 @@
 # ⚗ Crucible — System Architecture
 
-**Version:** 1.0.3 | **Date:** March 2026
+**Version:** 1.0.4 | **Date:** March 2026
 
 ---
 
@@ -1264,3 +1264,4 @@ hidden bugs.
 | @inquirer/prompts | Interactive CLI    |
 | chokidar          | File watching      |
 | prettier          | Code formatting    |
+| ansis             | Terminal styling   |

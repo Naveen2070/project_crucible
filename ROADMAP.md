@@ -4,7 +4,7 @@
 >
 > **shadcn for multi-framework teams + automation**
 
-**Current Version:** 1.0.0 | **Last Updated:** March 2026
+**Current Version:** 1.0.4 | **Last Updated:** March 2026
 
 ---
 
