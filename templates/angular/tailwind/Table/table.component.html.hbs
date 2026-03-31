@@ -1,0 +1,171 @@
+<div [ngClass]="getWrapperClasses()">
+  <div
+    #container
+    [ngClass]="shouldVirtualize() ? 'overflow-auto' : ''"
+    [style.height]="shouldVirtualize() ? containerHeight() + 'px' : ''"
+    [style.overflow]="shouldVirtualize() ? 'auto' : 'auto'"
+    [style.overflow]="shouldVirtualize() ? '' : ''"
+    (scroll)="onScroll($event)"
+  >
+    @if (shouldVirtualize() && virtualState()) {
+      <div [style.height]="virtualState()!.totalHeight + 'px'" [style.position]="'relative'">
+        <table [ngClass]="getTableClasses()" role="grid">
+          <thead class="sticky top-0 z-10 bg-[var(--color-surface)]">
+            <tr class="border-b border-[var(--color-border)]">
+              @if (selectionMode !== 'none') {
+                <th class="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    [checked]="internalSelected().length === displayData().length && displayData().length > 0"
+                    (change)="handleSelectAll()"
+                    class="rounded border-[var(--color-border)]"
+                  />
+                </th>
+              }
+              @for (col of columns; track col.key) {
+                <th
+                  [ngClass]="getHeaderCellClasses(col)"
+                  [style.width]="col.width"
+                  (click)="handleSort(col)"
+                  [attr.role]="col.sortable ? 'columnheader' : null"
+                  [attr.aria-sort]="internalSortKey() === col.key ? (internalSortDir() === 'asc' ? 'ascending' : 'descending') : null"
+                >
+                  {{ col.label }}
+                  @if (col.sortable && internalSortKey() === col.key) {
+                    <span class="ml-1">{{ internalSortDir() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody [style.transform]="'translateY(' + virtualState()!.offsetY + 'px)'">
+            @for (item of virtualState()!.virtualItems; track $index) {
+              @let row = displayData()[item.index];
+              <tr [ngClass]="getRowClasses(row, item.index)">
+                @if (selectionMode !== 'none') {
+                  <td class="px-4 py-2">
+                    <input
+                      type="checkbox"
+                      [checked]="internalSelected().includes(String(row[rowKey]))"
+                      (change)="handleSelect(row)"
+                      class="rounded border-[var(--color-border)]"
+                    />
+                  </td>
+                }
+                @for (col of columns; track col.key) {
+                  <td
+                    [ngClass]="getCellClasses(col)"
+                    [style.width]="col.width"
+                  >
+                    {{ row[col.key] }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <table [ngClass]="getTableClasses()" role="grid">
+        <thead class="bg-[var(--color-surface)]">
+          <tr class="border-b border-[var(--color-border)]">
+            @if (selectionMode !== 'none') {
+              <th class="px-4 py-3">
+                <input
+                  type="checkbox"
+                  [checked]="internalSelected().length === displayData().length && displayData().length > 0"
+                  (change)="handleSelectAll()"
+                  class="rounded border-[var(--color-border)]"
+                />
+              </th>
+            }
+            @for (col of columns; track col.key) {
+              <th
+                [ngClass]="getHeaderCellClasses(col)"
+                [style.width]="col.width"
+                (click)="handleSort(col)"
+                [attr.role]="col.sortable ? 'columnheader' : null"
+                  [attr.aria-sort]="internalSortKey() === col.key ? (internalSortDir() === 'asc' ? 'ascending' : 'descending') : null"
+              >
+                {{ col.label }}
+                @if (col.sortable && internalSortKey() === col.key) {
+                  <span class="ml-1">{{ internalSortDir() === 'asc' ? '↑' : '↓' }}</span>
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @if (displayData().length === 0 && !loading) {
+            <tr>
+              <td
+                [attr.colspan]="columns.length + (selectionMode !== 'none' ? 1 : 0)"
+                class="px-4 py-8 text-center text-[var(--color-text-muted)]"
+              >
+                {{ emptyMessage }}
+              </td>
+            </tr>
+          } @else {
+            @for (row of displayData(); track $index) {
+              <tr [ngClass]="getRowClasses(row, $index)">
+                @if (selectionMode !== 'none') {
+                  <td class="px-4 py-2">
+                    <input
+                      type="checkbox"
+                      [checked]="internalSelected().includes(String(row[rowKey]))"
+                      (change)="handleSelect(row)"
+                      class="rounded border-[var(--color-border)]"
+                    />
+                  </td>
+                }
+                @for (col of columns; track col.key) {
+                  <td
+                    [ngClass]="getCellClasses(col)"
+                    [style.width]="col.width"
+                  >
+                    {{ row[col.key] }}
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  @if (paginationMode === 'client' && pageInfo().totalPages > 1) {
+    <div class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div class="text-sm text-[var(--color-text-muted)]">
+        Showing {{ pageInfo().startIndex + 1 }} to {{ pageInfo().endIndex }} of {{ pageInfo().totalItems }} results
+      </div>
+      <div class="flex items-center gap-1">
+        <button
+          (click)="onPageChange(internalPage() - 1)"
+          [disabled]="!pageInfo().hasPrevPage"
+          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        @for (p of pageNumbers(); track p) {
+          <button
+            (click)="onPageChange(p)"
+            class="px-3 py-1 text-sm rounded border"
+            [ngClass]="p === internalPage() 
+              ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' 
+              : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]'"
+          >
+            {{ p }}
+          </button>
+        }
+        <button
+          (click)="onPageChange(internalPage() + 1)"
+          [disabled]="!pageInfo().hasNextPage"
+          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+</div>

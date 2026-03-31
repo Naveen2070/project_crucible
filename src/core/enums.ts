@@ -27,4 +27,5 @@ export enum ComponentName {
   Card = 'Card',
   Dialog = 'Dialog',
   Select = 'Select',
+  Table = 'Table',
 }

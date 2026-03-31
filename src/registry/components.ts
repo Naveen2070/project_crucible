@@ -9,4 +9,5 @@ export const registry: Record<ComponentName, ComponentDef> = {
   [ComponentName.Card]: generateComponentFiles('Card'),
   [ComponentName.Dialog]: generateComponentFiles('Dialog', ['Button']),
   [ComponentName.Select]: generateComponentFiles('Select', ['Button']),
+  [ComponentName.Table]: generateComponentFiles('Table', ['Button']),
 };

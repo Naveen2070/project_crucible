@@ -27,6 +27,7 @@ export interface ComponentModel {
     role?: string;
     focusTrap?: boolean;
     keyboardNav?: boolean;
+    dynamicRowCount?: boolean;
   };
   features: {
     hover: boolean;
@@ -51,6 +52,10 @@ export interface ComponentModel {
   hasPlaceholder: boolean;
   hasOnClick: boolean;
   hasHref: boolean;
+  hasPagination: boolean;
+  hasSorting: boolean;
+  hasSelection: boolean;
+  hasVirtualization: boolean;
 }
 
 export function buildComponentModel(
@@ -131,5 +136,9 @@ export function buildComponentModel(
     hasPlaceholder,
     hasOnClick,
     hasHref,
+    hasPagination: defaults.states.includes('pagable'),
+    hasSorting: defaults.states.includes('sortable'),
+    hasSelection: defaults.states.includes('selectable'),
+    hasVirtualization: defaults.states.includes('virtualizable'),
   };
 }

@@ -38,6 +38,12 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
     error:
       'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
   },
+  [ComponentName.Table]: {
+    default: 'bg-[var(--color-surface)] border-[var(--color-border)]',
+    striped: 'bg-[var(--color-surface)] border-[var(--color-border)]',
+    bordered: 'bg-[var(--color-surface)] border-[var(--color-border)]',
+    compact: 'bg-[var(--color-surface)] border-[var(--color-border)]',
+  },
 };
 
 export interface ComponentMeta {
@@ -68,6 +74,7 @@ export interface ComponentMeta {
     focusTrap?: boolean;
     keyboardNav?: boolean;
     passwordToggle?: boolean;
+    dynamicRowCount?: boolean;
   };
 }
 
@@ -114,5 +121,26 @@ export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
     prefix: 'select',
     behaviours: ['closeable'],
     a11y: { role: 'combobox', keyboardNav: true },
+  },
+  [ComponentName.Table]: {
+    variants: ['default', 'striped', 'bordered', 'compact'],
+    sizes: ['sm', 'md', 'lg'],
+    states: ['loading', 'empty', 'selectable', 'sortable', 'virtualizable', 'pagable'],
+    props: [
+      'columns',
+      'data',
+      'rowKey',
+      'pageSize',
+      'page',
+      'onSort',
+      'onSelect',
+      'onPageChange',
+      'virtualize',
+      'itemHeight',
+    ],
+    prefix: 'table',
+    noClassName: true,
+    behaviours: [],
+    a11y: { role: 'table', keyboardNav: true, dynamicRowCount: true },
   },
 };

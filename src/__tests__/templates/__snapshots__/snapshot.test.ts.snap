@@ -104,6 +104,14 @@ exports[`6. Template and Snapshot Tests > 6.7: SCSS nested BEM > generates neste
   --select-option-padding: calc(var(--spacing-unit) * 2.5);
   --select-dropdown-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
   --select-z-index: 900;
+  --table-row-height: calc(var(--spacing-unit) * 10);
+  --table-header-height: calc(var(--spacing-unit) * 10);
+  --table-border-radius: var(--radius-md);
+  --table-pagination-height: calc(var(--spacing-unit) * 8);
+  --table-virtual-overscan: 5;
+  --table-cell-padding: calc(var(--spacing-unit) * 3);
+  --table-row-hover-bg: var(--color-secondary);
+  --table-striped-bg: var(--color-muted);
   --color-primary: #6C63FF;
   --color-secondary: #F3F2FF;
   --color-surface: #FFFFFF;
