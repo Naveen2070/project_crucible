@@ -1,6 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import fs from 'fs-extra';
+import { readFile, writeFile, access, mkdir, rm, chmod } from 'node:fs/promises';
 import path from 'path';
+
+const pathExists = (p: string) =>
+  access(p).then(
+    () => true,
+    () => false,
+  );
+const readJson = (p: string) => readFile(p, 'utf-8').then(JSON.parse);
+const writeJson = (p: string, data: unknown, opts?: { spaces?: number }) =>
+  writeFile(p, JSON.stringify(data, null, opts?.spaces ?? 2));
+const ensureDir = (p: string) => mkdir(p, { recursive: true });
+const remove = (p: string) => rm(p, { recursive: true, force: true });
 import {
   loadHashes,
   saveHashes,
@@ -13,11 +24,11 @@ const TEST_DIR = path.join(__dirname, '../../.writer-test-temp');
 
 describe('loadHashes', () => {
   beforeEach(async () => {
-    await fs.ensureDir(TEST_DIR);
+    await ensureDir(TEST_DIR);
   });
 
   afterEach(async () => {
-    await fs.remove(TEST_DIR);
+    await remove(TEST_DIR);
   });
 
   it('returns default manifest when file does not exist', async () => {
@@ -29,7 +40,7 @@ describe('loadHashes', () => {
 
   it('returns parsed manifest when file exists', async () => {
     const manifestPath = path.join(TEST_DIR, HASH_FILE);
-    await fs.ensureDir(path.dirname(manifestPath));
+    await ensureDir(path.dirname(manifestPath));
     const mockManifest = {
       engineVersion: '1.0.0',
       configHash: 'abc',
@@ -38,14 +49,14 @@ describe('loadHashes', () => {
         'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' },
       },
     };
-    await fs.writeJson(manifestPath, mockManifest);
+    await writeJson(manifestPath, mockManifest);
     const result = await loadHashes(TEST_DIR);
     expect(result).toEqual(mockManifest);
   });
 
   it('migrates legacy hash file when manifest does not exist', async () => {
     const legacyPath = path.join(TEST_DIR, LEGACY_HASH_FILE);
-    await fs.writeJson(legacyPath, { 'Button/Button.tsx': 'legacyHash123' });
+    await writeJson(legacyPath, { 'Button/Button.tsx': 'legacyHash123' });
 
     const result = await loadHashes(TEST_DIR);
     expect(result.files['Button/Button.tsx'].contentHash).toBe('legacyHash123');
@@ -54,11 +65,11 @@ describe('loadHashes', () => {
 
 describe('saveHashes', () => {
   beforeEach(async () => {
-    await fs.ensureDir(TEST_DIR);
+    await ensureDir(TEST_DIR);
   });
 
   afterEach(async () => {
-    await fs.remove(TEST_DIR);
+    await remove(TEST_DIR);
   });
 
   it('writes manifest to file', async () => {
@@ -72,7 +83,7 @@ describe('saveHashes', () => {
       },
     };
     await saveHashes(manifest, TEST_DIR);
-    const result = await fs.readJson(manifestPath);
+    const result = await readJson(manifestPath);
     expect(result).toEqual(manifest);
   });
 });
@@ -82,17 +93,17 @@ describe('writeFiles', () => {
   const componentName = 'Button';
 
   beforeEach(async () => {
-    await fs.ensureDir(TEST_DIR);
+    await ensureDir(TEST_DIR);
   });
 
   afterEach(async () => {
-    await fs.remove(TEST_DIR);
+    await remove(TEST_DIR);
   });
 
   it('creates component directory', async () => {
     const files = { 'Button.tsx': 'export const Button = () => {};' };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
-    const dirExists = await fs.pathExists(path.join(outputDir, componentName));
+    const dirExists = await pathExists(path.join(outputDir, componentName));
     expect(dirExists).toBe(true);
   });
 
@@ -100,14 +111,14 @@ describe('writeFiles', () => {
     const content = 'export const Button = () => {};';
     const files = { 'Button.tsx': content };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
-    const written = await fs.readFile(path.join(outputDir, 'Button', 'Button.tsx'), 'utf-8');
+    const written = await readFile(path.join(outputDir, 'Button', 'Button.tsx'), 'utf-8');
     expect(written).toContain(content);
   });
 
   it('does not write in dry-run mode', async () => {
     const files = { 'Button.tsx': 'export const Button = () => {};' };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, dryRun: true, quiet: true });
-    const fileExists = await fs.pathExists(path.join(outputDir, 'Button', 'Button.tsx'));
+    const fileExists = await pathExists(path.join(outputDir, 'Button', 'Button.tsx'));
     expect(fileExists).toBe(false);
   });
 
@@ -119,10 +130,10 @@ describe('writeFiles', () => {
     const hashes = await loadHashes(TEST_DIR);
     const originalHash = hashes.files['Button/Button.tsx'].contentHash;
 
-    await fs.writeFile(path.join(outputDir, 'Button', 'Button.tsx'), '// modified');
+    await writeFile(path.join(outputDir, 'Button', 'Button.tsx'), '// modified');
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
-    const currentContent = await fs.readFile(path.join(outputDir, 'Button', 'Button.tsx'), 'utf-8');
+    const currentContent = await readFile(path.join(outputDir, 'Button', 'Button.tsx'), 'utf-8');
     expect(currentContent).toBe('// modified');
   });
 
@@ -131,7 +142,7 @@ describe('writeFiles', () => {
     const files = { 'Button.tsx': content };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
-    await fs.writeFile(path.join(outputDir, 'Button', 'Button.tsx'), '// modified');
+    await writeFile(path.join(outputDir, 'Button', 'Button.tsx'), '// modified');
     const hashes = await loadHashes(TEST_DIR);
 
     await writeFiles(files, outputDir, componentName, {
@@ -141,7 +152,7 @@ describe('writeFiles', () => {
       hashes,
     });
 
-    const currentContent = await fs.readFile(path.join(outputDir, 'Button', 'Button.tsx'), 'utf-8');
+    const currentContent = await readFile(path.join(outputDir, 'Button', 'Button.tsx'), 'utf-8');
     expect(currentContent).toContain(content);
   });
 
@@ -159,8 +170,8 @@ describe('writeFiles', () => {
     };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
-    expect(await fs.pathExists(path.join(outputDir, 'Button', 'Button.tsx'))).toBe(true);
-    expect(await fs.pathExists(path.join(outputDir, 'Button', 'Button.module.css'))).toBe(true);
+    expect(await pathExists(path.join(outputDir, 'Button', 'Button.tsx'))).toBe(true);
+    expect(await pathExists(path.join(outputDir, 'Button', 'Button.module.css'))).toBe(true);
   });
 
   it('saves hashes after writing', async () => {
@@ -176,44 +187,44 @@ describe('writeFiles', () => {
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, dryRun: true, quiet: true });
 
     const manifestPath = path.join(TEST_DIR, HASH_FILE);
-    const manifestExists = await fs.pathExists(manifestPath);
+    const manifestExists = await pathExists(manifestPath);
     expect(manifestExists).toBe(false);
   });
 
   it('5.3: does not modify existing files in dry-run mode', async () => {
-    await fs.ensureDir(path.join(outputDir, componentName));
-    await fs.writeFile(path.join(outputDir, componentName, 'Button.tsx'), '// original');
+    await ensureDir(path.join(outputDir, componentName));
+    await writeFile(path.join(outputDir, componentName, 'Button.tsx'), '// original');
 
     const files = { 'Button.tsx': '// new content' };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, dryRun: true, quiet: true });
 
-    const content = await fs.readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
+    const content = await readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
     expect(content).toBe('// original');
   });
 
   it('5.8: handles files without manifest entry', async () => {
-    await fs.ensureDir(path.join(outputDir, componentName));
-    await fs.writeFile(path.join(outputDir, componentName, 'Button.tsx'), '// existing file');
+    await ensureDir(path.join(outputDir, componentName));
+    await writeFile(path.join(outputDir, componentName, 'Button.tsx'), '// existing file');
 
     const files = { 'Button.tsx': '// new content' };
     await writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true });
 
-    const content = await fs.readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
+    const content = await readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
     expect(content).toContain('// new content');
   });
 
   it('5.11: throws on read-only file write', async () => {
-    await fs.ensureDir(path.join(outputDir, componentName));
+    await ensureDir(path.join(outputDir, componentName));
     const filePath = path.join(outputDir, componentName, 'Button.tsx');
-    await fs.writeFile(filePath, '// existing');
+    await writeFile(filePath, '// existing');
 
-    await fs.chmod(filePath, 0o444);
+    await chmod(filePath, 0o444);
 
     const files = { 'Button.tsx': '// new content' };
     await expect(
       writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true }),
     ).rejects.toThrow();
 
-    await fs.chmod(filePath, 0o644);
+    await chmod(filePath, 0o644);
   });
 });

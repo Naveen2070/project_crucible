@@ -1,6 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import fs from 'fs-extra';
+import { readFile, writeFile, access, mkdir, rm } from 'node:fs/promises';
 import path from 'path';
+
+const pathExists = (p: string) =>
+  access(p).then(
+    () => true,
+    () => false,
+  );
+const readJson = (p: string) => readFile(p, 'utf-8').then(JSON.parse);
+const writeJson = (p: string, data: unknown, opts?: { spaces?: number }) =>
+  writeFile(p, JSON.stringify(data, null, opts?.spaces ?? 2));
+const ensureDir = (p: string) => mkdir(p, { recursive: true });
+const remove = (p: string) => rm(p, { recursive: true, force: true });
 import { runInit } from '../cli/commands/init';
 import { runAdd } from '../cli/commands/add';
 import { runEject } from '../cli/commands/eject';
@@ -10,9 +21,11 @@ import { runConfigShow } from '../cli/commands/config-show';
 import { registry } from '../registry/components';
 
 // Mock process.exit
-const mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null | undefined) => {
-  throw new Error(`Process exited with code ${code}`);
-});
+const mockExit = vi
+  .spyOn(process, 'exit')
+  .mockImplementation((code?: string | number | null | undefined) => {
+    throw new Error(`Process exited with code ${code}`);
+  });
 
 // Mock console
 const mockLog = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -23,65 +36,93 @@ const TEST_DIR = path.resolve(__dirname, '../../.cli-test-temp');
 
 describe('CLI Commands', () => {
   beforeEach(async () => {
-    await fs.ensureDir(TEST_DIR);
+    await ensureDir(TEST_DIR);
     vi.clearAllMocks();
   });
 
   afterEach(async () => {
-    await fs.remove(TEST_DIR);
+    await remove(TEST_DIR);
   });
 
   describe('Missing config file', () => {
     it('fails with clear error and exit code 1 when crucible.config.json is missing', async () => {
-      await expect(runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', quiet: true }))
-        .rejects.toThrow('Process exited with code 1');
-      
+      await expect(
+        runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', quiet: true }),
+      ).rejects.toThrow('Process exited with code 1');
+
       expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Config not found'));
     });
   });
 
   describe('No components in non-interactive mode', () => {
     it('fails when no components are specified with --yes', async () => {
-      await expect(runAdd([], { cwd: TEST_DIR, yes: true }))
-        .rejects.toThrow('Process exited with code 1');
-      
-      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Cannot use --yes without specifying components'));
+      await expect(runAdd([], { cwd: TEST_DIR, yes: true })).rejects.toThrow(
+        'Process exited with code 1',
+      );
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('Cannot use --yes without specifying components'),
+      );
     });
   });
 
   describe('Duplicate component names', () => {
     it('does not generate duplicates or corrupt manifest', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         styleSystem: 'css',
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
         },
         features: { hover: true, focusRing: true, motionSafe: true },
-        a11y: { focusRingStyle: 'solid', focusRingColor: '#000', focusRingWidth: '1px', focusRingOffset: '0px', reduceMotion: true }
+        a11y: {
+          focusRingStyle: 'solid',
+          focusRingColor: '#000',
+          focusRingWidth: '1px',
+          focusRingOffset: '0px',
+          reduceMotion: true,
+        },
       });
 
-      await runAdd(['Button', 'Button'], { cwd: TEST_DIR, config: 'crucible.config.json', quiet: true, yes: true });
-      
+      await runAdd(['Button', 'Button'], {
+        cwd: TEST_DIR,
+        config: 'crucible.config.json',
+        quiet: true,
+        yes: true,
+      });
+
       const manifestPath = path.join(TEST_DIR, '.crucible', 'manifest.json');
-      const manifest = await fs.readJson(manifestPath);
-      
-      const buttonFiles = Object.keys(manifest.files).filter(f => f.startsWith('Button/'));
+      const manifest = await readJson(manifestPath);
+
+      const buttonFiles = Object.keys(manifest.files).filter((f) => f.startsWith('Button/'));
       expect(buttonFiles.length).toBeGreaterThan(0);
     });
   });
 
   describe('Unknown component fails', () => {
     it('fails with useful message and exit 1', async () => {
-      await expect(runAdd(['UnknownComp'], { cwd: TEST_DIR, quiet: true }))
-        .rejects.toThrow('Process exited with code 1');
-      
-      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Unknown component: UnknownComp'));
+      await expect(runAdd(['UnknownComp'], { cwd: TEST_DIR, quiet: true })).rejects.toThrow(
+        'Process exited with code 1',
+      );
+
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown component: UnknownComp'),
+      );
     });
   });
 
@@ -99,11 +140,11 @@ describe('CLI Commands', () => {
     it('is idempotent when config already exists and --yes is used', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
       await runInit({ yes: true, cwd: TEST_DIR });
-      const firstConfig = await fs.readFile(configPath, 'utf-8');
-      
+      const firstConfig = await readFile(configPath, 'utf-8');
+
       await runInit({ yes: true, cwd: TEST_DIR });
-      const secondConfig = await fs.readFile(configPath, 'utf-8');
-      
+      const secondConfig = await readFile(configPath, 'utf-8');
+
       expect(secondConfig).toBe(firstConfig);
     });
   });
@@ -111,36 +152,46 @@ describe('CLI Commands', () => {
   describe('Eject command', () => {
     it('sets theme to custom and injects tokens', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, { 
-        version: '1', 
-        framework: 'react', 
+      await writeJson(configPath, {
+        version: '1',
+        framework: 'react',
         theme: 'minimal',
-        tokens: { color: { primary: '#custom' }, radius: { sm: '1px' }, spacing: { unit: '1px' }, typography: { fontFamily: 'serif', scaleBase: '1px' } }
+        tokens: {
+          color: { primary: '#custom' },
+          radius: { sm: '1px' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
+        },
       });
-      
+
       await runEject({ config: 'crucible.config.json', cwd: TEST_DIR });
-      
-      const config = await fs.readJson(configPath);
+
+      const config = await readJson(configPath);
       expect(config.theme).toBe('custom');
       expect(config.tokens).toBeDefined();
-      expect(config.tokens.color.primary).toBe('#custom'); 
+      expect(config.tokens.color.primary).toBe('#custom');
     });
 
     it('is idempotent when run twice', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, { 
-        version: '1', 
-        framework: 'react', 
+      await writeJson(configPath, {
+        version: '1',
+        framework: 'react',
         theme: 'minimal',
-        tokens: { color: { primary: '#000' }, radius: { sm: '1px' }, spacing: { unit: '1px' }, typography: { fontFamily: 'serif', scaleBase: '1px' } }
+        tokens: {
+          color: { primary: '#000' },
+          radius: { sm: '1px' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
+        },
       });
-      
+
       await runEject({ config: 'crucible.config.json', cwd: TEST_DIR });
-      const firstRunConfig = await fs.readJson(configPath);
-      
+      const firstRunConfig = await readJson(configPath);
+
       await runEject({ config: 'crucible.config.json', cwd: TEST_DIR });
-      const secondRunConfig = await fs.readJson(configPath);
-      
+      const secondRunConfig = await readJson(configPath);
+
       expect(secondRunConfig).toEqual(firstRunConfig);
     });
   });
@@ -148,115 +199,207 @@ describe('CLI Commands', () => {
   describe('Tokens command', () => {
     it('updates only token output, not component files', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         styleSystem: 'css',
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
         },
         features: { hover: true, focusRing: true, motionSafe: true },
-        a11y: { focusRingStyle: 'solid', focusRingColor: '#000', focusRingWidth: '1px', focusRingOffset: '0px', reduceMotion: true }
+        a11y: {
+          focusRingStyle: 'solid',
+          focusRingColor: '#000',
+          focusRingWidth: '1px',
+          focusRingOffset: '0px',
+          reduceMotion: true,
+        },
       });
-      
+
       await runTokens({ cwd: TEST_DIR });
       const tokensPath = path.join(TEST_DIR, 'public/__generated__', 'tokens.css');
-      expect(await fs.pathExists(tokensPath)).toBe(true);
-      
-      expect(await fs.pathExists(path.join(TEST_DIR, 'src/components'))).toBe(false);
+      expect(await pathExists(tokensPath)).toBe(true);
+
+      expect(await pathExists(path.join(TEST_DIR, 'src/components'))).toBe(false);
     });
   });
 
   describe('CLI flags override config', () => {
     it('overrides style system from CLI flag', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         styleSystem: 'css',
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
         },
         features: { hover: true, focusRing: true, motionSafe: true },
-        a11y: { focusRingStyle: 'solid', focusRingColor: '#000', focusRingWidth: '1px', focusRingOffset: '0px', reduceMotion: true }
+        a11y: {
+          focusRingStyle: 'solid',
+          focusRingColor: '#000',
+          focusRingWidth: '1px',
+          focusRingOffset: '0px',
+          reduceMotion: true,
+        },
       });
-      
-      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', style: 'tailwind', quiet: true, yes: true });
-      
+
+      await runAdd(['Button'], {
+        cwd: TEST_DIR,
+        config: 'crucible.config.json',
+        style: 'tailwind',
+        quiet: true,
+        yes: true,
+      });
+
       const manifestPath = path.join(TEST_DIR, '.crucible', 'manifest.json');
-      const manifest = await fs.readJson(manifestPath);
-      const hasCss = Object.keys(manifest.files).some(f => f.endsWith('.css'));
+      const manifest = await readJson(manifestPath);
+      const hasCss = Object.keys(manifest.files).some((f) => f.endsWith('.css'));
       expect(hasCss).toBe(false);
     });
 
     it('overrides theme from CLI flag', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         styleSystem: 'css',
         theme: 'minimal',
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
         },
         features: { hover: true, focusRing: true, motionSafe: true },
-        a11y: { focusRingStyle: 'solid', focusRingColor: '#000', focusRingWidth: '1px', focusRingOffset: '0px', reduceMotion: true }
+        a11y: {
+          focusRingStyle: 'solid',
+          focusRingColor: '#000',
+          focusRingWidth: '1px',
+          focusRingOffset: '0px',
+          reduceMotion: true,
+        },
       });
-      
-      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', theme: 'soft', quiet: false, yes: true });
+
+      await runAdd(['Button'], {
+        cwd: TEST_DIR,
+        config: 'crucible.config.json',
+        theme: 'soft',
+        quiet: false,
+        yes: true,
+      });
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Theme: soft (CLI override)'));
     });
 
     it('CLI --stories flag overrides config set to false', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         flags: { stories: false },
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
-        }
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
+        },
       });
-      
-      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', stories: true, quiet: true, yes: true });
-      
+
+      await runAdd(['Button'], {
+        cwd: TEST_DIR,
+        config: 'crucible.config.json',
+        stories: true,
+        quiet: true,
+        yes: true,
+      });
+
       const manifestPath = path.join(TEST_DIR, '.crucible', 'manifest.json');
-      const manifest = await fs.readJson(manifestPath);
-      const hasStory = Object.keys(manifest.files).some(f => f.endsWith('.stories.tsx'));
+      const manifest = await readJson(manifestPath);
+      const hasStory = Object.keys(manifest.files).some((f) => f.endsWith('.stories.tsx'));
       expect(hasStory).toBe(true);
     });
 
     it('CLI --no-stories flag overrides config set to true', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         flags: { stories: true },
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
-        }
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
+        },
       });
-      
-      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', stories: false, quiet: true, yes: true });
-      
+
+      await runAdd(['Button'], {
+        cwd: TEST_DIR,
+        config: 'crucible.config.json',
+        stories: false,
+        quiet: true,
+        yes: true,
+      });
+
       const manifestPath = path.join(TEST_DIR, '.crucible', 'manifest.json');
-      const manifest = await fs.readJson(manifestPath);
-      const hasStory = Object.keys(manifest.files).some(f => f.endsWith('.stories.tsx'));
+      const manifest = await readJson(manifestPath);
+      const hasStory = Object.keys(manifest.files).some((f) => f.endsWith('.stories.tsx'));
       expect(hasStory).toBe(false);
     });
   });
@@ -265,15 +408,14 @@ describe('CLI Commands', () => {
     it('outputs config as JSON', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
       const config = { version: '1', framework: 'react' };
-      await fs.writeJson(configPath, config);
-      
+      await writeJson(configPath, config);
+
       await runConfigShow({ cwd: TEST_DIR, json: true });
       expect(mockLog).toHaveBeenCalledWith(JSON.stringify(config));
     });
 
     it('fails if config not found', async () => {
-      await expect(runConfigShow({ cwd: TEST_DIR }))
-        .rejects.toThrow('Process exited with code 1');
+      await expect(runConfigShow({ cwd: TEST_DIR })).rejects.toThrow('Process exited with code 1');
       expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Config file not found'));
     });
   });
@@ -281,22 +423,43 @@ describe('CLI Commands', () => {
   describe('Config with unknown keys', () => {
     it('handles unknown keys without failing', async () => {
       const configPath = path.join(TEST_DIR, 'crucible.config.json');
-      await fs.writeJson(configPath, {
+      await writeJson(configPath, {
         version: '1',
         framework: 'react',
         styleSystem: 'css',
         unknownKey: 'shouldBeIgnored',
-        tokens: { 
-          color: { primary: '#000', secondary: '#fff', surface: '#fff', background: '#fff', border: '#fff', text: '#000', textMuted: '#666', destructive: '#f00', success: '#0f0' }, 
-          radius: { sm: '0', md: '0', lg: '0' }, 
-          spacing: { unit: '1px' }, 
-          typography: { fontFamily: 'serif', scaleBase: '1px' } 
+        tokens: {
+          color: {
+            primary: '#000',
+            secondary: '#fff',
+            surface: '#fff',
+            background: '#fff',
+            border: '#fff',
+            text: '#000',
+            textMuted: '#666',
+            destructive: '#f00',
+            success: '#0f0',
+          },
+          radius: { sm: '0', md: '0', lg: '0' },
+          spacing: { unit: '1px' },
+          typography: { fontFamily: 'serif', scaleBase: '1px' },
         },
         features: { hover: true, focusRing: true, motionSafe: true },
-        a11y: { focusRingStyle: 'solid', focusRingColor: '#000', focusRingWidth: '1px', focusRingOffset: '0px', reduceMotion: true }
+        a11y: {
+          focusRingStyle: 'solid',
+          focusRingColor: '#000',
+          focusRingWidth: '1px',
+          focusRingOffset: '0px',
+          reduceMotion: true,
+        },
       });
-      
-      await runAdd(['Button'], { cwd: TEST_DIR, config: 'crucible.config.json', quiet: true, yes: true });
+
+      await runAdd(['Button'], {
+        cwd: TEST_DIR,
+        config: 'crucible.config.json',
+        quiet: true,
+        yes: true,
+      });
       expect(mockError).not.toHaveBeenCalled();
     });
   });
