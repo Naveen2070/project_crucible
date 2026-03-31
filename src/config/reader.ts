@@ -1,7 +1,8 @@
-import fs from 'fs-extra';
+import { readFile } from 'node:fs/promises';
 import path from 'path';
 import { validateConfig } from './validator';
 import { Framework, StyleSystem, ThemePreset, DarkModeStrategy } from '../core/enums';
+import { pathExists, readJson } from '../utils/fs';
 
 export interface DarkModeConfig {
   strategy: `${DarkModeStrategy}`;
@@ -52,10 +53,10 @@ export async function readConfig(configPath: string): Promise<CrucibleConfig> {
     throw new Error('Security error: Only .json configuration files are allowed.');
   }
 
-  if (!(await fs.pathExists(resolved))) {
+  if (!(await pathExists(resolved))) {
     throw new Error(`Config not found: ${resolved}\nRun: crucible init`);
   }
-  const raw = await fs.readJson(resolved);
+  const raw = await readJson(resolved);
   return validateConfig({
     styleSystem: StyleSystem.CSS, // default
     theme: ThemePreset.Minimal, // default

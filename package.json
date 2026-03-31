@@ -83,11 +83,10 @@
   "dependencies": {
     "@inquirer/prompts": "^8.3.2",
     "ajv": "^8.18.0",
-    "chalk": "^4.1.2",
+    "ansis": "^3.0.0",
     "chokidar": "^5.0.0",
     "colorjs.io": "^0.6.1",
     "commander": "^13.1.0",
-    "fs-extra": "^11.3.4",
     "handlebars": "^4.7.9",
     "prettier": "^3.8.1"
   },
@@ -96,9 +95,9 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/fs-extra": "^11.0.4",
+    "@types/bun": "latest",
     "@types/jsdom": "^28.0.1",
-    "@types/node": "^22.19.15",
+    "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitest/browser": "^3.2.4",
@@ -110,8 +109,7 @@
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vitest": "^3.2.4",
-    "vitest-axe": "^0.1.0",
-    "@types/bun": "latest"
+    "vitest-axe": "^0.1.0"
   },
   "engines": {
     "node": ">=24.13.1"

@@ -1,8 +1,8 @@
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { registry } from '../../registry/components';
 
 export function runList() {
-  console.log(chalk.cyan('Available components:'));
+  console.log(ansis.cyan('Available components:'));
   for (const [name, def] of Object.entries(registry)) {
     console.log(`  ${name}  [${def.frameworks.join(', ')}]  [${def.styleSystems.join(', ')}]`);
   }

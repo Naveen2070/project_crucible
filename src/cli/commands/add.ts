@@ -1,6 +1,6 @@
 import path from 'path';
-import chalk from 'chalk';
-import fs from 'fs-extra';
+import ansis from 'ansis';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
@@ -17,6 +17,7 @@ import {
   installPeerDependenciesSmart,
 } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
+import { pathExists } from '../../utils/fs';
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -35,14 +36,14 @@ export async function runAdd(components: string[], opts: any) {
   if (normalizedComponents.length > 0) {
     for (const comp of normalizedComponents) {
       if (!registry[comp as keyof typeof registry]) {
-        console.error(chalk.red(`✗ Unknown component: ${comp}`));
+        console.error(ansis.red(`✗ Unknown component: ${comp}`));
         if (!opts.quiet) console.log(`Available: ${Object.keys(registry).join(', ')}`);
         process.exit(1);
       }
     }
   } else {
     if (opts.yes) {
-      console.error(chalk.red(`✗ Cannot use --yes without specifying components to add.`));
+      console.error(ansis.red(`✗ Cannot use --yes without specifying components to add.`));
       process.exit(1);
     }
     const answers = await checkbox({
@@ -50,14 +51,14 @@ export async function runAdd(components: string[], opts: any) {
       choices: Object.keys(registry).map((name) => ({ name, value: name })),
     });
     if (answers.length === 0) {
-      if (!opts.quiet) console.log(chalk.gray('No components selected.'));
+      if (!opts.quiet) console.log(ansis.gray('No components selected.'));
       return;
     }
     normalizedComponents = answers;
   }
 
   try {
-    if (opts.verbose) console.log(chalk.blue(`Reading config from ${opts.config} in ${cwd}...`));
+    if (opts.verbose) console.log(ansis.blue(`Reading config from ${opts.config} in ${cwd}...`));
 
     const configPathRelative = path.relative(process.cwd(), path.resolve(cwd, opts.config));
     const config = await readConfig(configPathRelative);
@@ -68,10 +69,10 @@ export async function runAdd(components: string[], opts: any) {
       if (validStyles.includes(opts.style as StyleSystem)) {
         config.styleSystem = opts.style as StyleSystem;
         if (!opts.quiet)
-          console.log(chalk.gray(`  Style system: ${config.styleSystem} (CLI override)`));
+          console.log(ansis.gray(`  Style system: ${config.styleSystem} (CLI override)`));
       } else {
         console.error(
-          chalk.red(`✗ Invalid style system: ${opts.style}. Use css, tailwind, or scss.`),
+          ansis.red(`✗ Invalid style system: ${opts.style}. Use css, tailwind, or scss.`),
         );
         process.exit(1);
       }
@@ -82,9 +83,9 @@ export async function runAdd(components: string[], opts: any) {
       const validThemes = ['minimal', 'soft'];
       if (validThemes.includes(opts.theme)) {
         config.theme = opts.theme;
-        if (!opts.quiet) console.log(chalk.gray(`  Theme: ${config.theme} (CLI override)`));
+        if (!opts.quiet) console.log(ansis.gray(`  Theme: ${config.theme} (CLI override)`));
       } else {
-        console.error(chalk.red(`✗ Invalid theme: ${opts.theme}. Use minimal or soft.`));
+        console.error(ansis.red(`✗ Invalid theme: ${opts.theme}. Use minimal or soft.`));
         process.exit(1);
       }
     }
@@ -92,20 +93,20 @@ export async function runAdd(components: string[], opts: any) {
     const framework =
       opts.framework !== Framework.React ? opts.framework : config.framework || Framework.React;
     if (framework === Framework.Angular && !opts.quiet) {
-      console.log(chalk.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
+      console.log(ansis.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
       console.log(
-        chalk.cyan('  Generating output that relies on native content projection (ng-content).\n'),
+        ansis.cyan('  Generating output that relies on native content projection (ng-content).\n'),
       );
     }
 
     // Pre-generation token validation (Linting pass)
     const tokens = resolveTokens(config);
     if (!tokens.cssVars['--color-primary'] && !opts.quiet) {
-      console.warn(chalk.yellow('⚠ Warning: --color-primary is missing from tokens.'));
+      console.warn(ansis.yellow('⚠ Warning: --color-primary is missing from tokens.'));
     }
 
     if (config.styleSystem === StyleSystem.Tailwind) {
-      if (opts.verbose) console.log(chalk.blue(`Checking Tailwind setup...`));
+      if (opts.verbose) console.log(ansis.blue(`Checking Tailwind setup...`));
       await checkAndSetupTailwind({ yes: opts.yes, cwd });
     }
 
@@ -164,31 +165,31 @@ export async function runAdd(components: string[], opts: any) {
     const hashes = await loadHashes(cwd);
 
     const configPath = path.join(cwd, 'crucible.config.json');
-    const currentConfigHash = (await fs.pathExists(configPath))
-      ? hashContent(await fs.readFile(configPath, 'utf-8'))
+    const currentConfigHash = (await pathExists(configPath))
+      ? hashContent(await readFile(configPath, 'utf-8'))
       : '';
     const configChanged = hashes.configHash && currentConfigHash !== hashes.configHash;
 
     if (configChanged && !opts.quiet) {
-      console.warn(chalk.yellow(`⚠ Config file has changed since last generation.`));
+      console.warn(ansis.yellow(`⚠ Config file has changed since last generation.`));
       console.warn(
-        chalk.yellow(`   Run with --force to regenerate all components with new config.`),
+        ansis.yellow(`   Run with --force to regenerate all components with new config.`),
       );
     }
 
-    await fs.ensureDir(outDir);
+    await mkdir(outDir, { recursive: true });
 
     const tokensOutDir = path.join(cwd, 'public/__generated__');
-    await fs.ensureDir(tokensOutDir);
+    await mkdir(tokensOutDir, { recursive: true });
     const tokensPath = path.join(tokensOutDir, 'tokens.css');
 
-    if (!(await fs.pathExists(tokensPath)) || configChanged) {
+    if (!(await pathExists(tokensPath)) || configChanged) {
       const model = buildComponentModel('Button', tokens, config, generateStories);
       const tokensContent = await renderGlobalTokens(model);
-      await fs.writeFile(tokensPath, tokensContent);
+      await writeFile(tokensPath, tokensContent);
       if (!opts.quiet) {
         console.log(
-          chalk.gray(
+          ansis.gray(
             configChanged ? `  Updated tokens.css (config changed)` : `  Created tokens.css`,
           ),
         );
@@ -200,7 +201,7 @@ export async function runAdd(components: string[], opts: any) {
 
     await Promise.all(
       Array.from(resolvedComponents).map(async (comp) => {
-        if (opts.verbose) console.log(chalk.blue(`Generating ${comp}...`));
+        if (opts.verbose) console.log(ansis.blue(`Generating ${comp}...`));
         const model = buildComponentModel(comp, tokens, config, generateStories);
         const files = await renderComponent(model);
 
@@ -213,11 +214,11 @@ export async function runAdd(components: string[], opts: any) {
         });
 
         const storiesNote = generateStories ? ' + story' : '';
-        const dryRunNote = opts.dryRun ? chalk.yellow(' (dry-run)') : '';
+        const dryRunNote = opts.dryRun ? ansis.yellow(' (dry-run)') : '';
 
         if (!opts.quiet) {
           console.log(
-            chalk.cyan(
+            ansis.cyan(
               `\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`,
             ) + dryRunNote,
           );
@@ -230,7 +231,7 @@ export async function runAdd(components: string[], opts: any) {
     }
     await cleanupWatchers();
   } catch (err: any) {
-    console.error(chalk.red(`✗ Error: ${err.message}`));
+    console.error(ansis.red(`✗ Error: ${err.message}`));
     await cleanupWatchers();
     process.exit(1);
   }
