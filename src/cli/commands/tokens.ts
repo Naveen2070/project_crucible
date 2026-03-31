@@ -1,10 +1,11 @@
-import fs from 'fs-extra';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
 import { buildComponentModel } from '../../components/model';
 import { renderGlobalTokens } from '../../templates/engine';
+import { pathExists } from '../../utils/fs';
 
 export interface TokensOptions {
   force?: boolean;
@@ -23,7 +24,7 @@ export async function runTokens(opts: TokensOptions = {}) {
     const tokensOutDir = path.join(cwd, 'public/__generated__');
     const tokensPath = path.join(tokensOutDir, 'tokens.css');
 
-    const exists = await fs.pathExists(tokensPath);
+    const exists = await pathExists(tokensPath);
 
     if (exists && !opts.force) {
       console.log(chalk.yellow(`⚠  ${tokensPath} already exists.`));
@@ -42,8 +43,8 @@ export async function runTokens(opts: TokensOptions = {}) {
       return;
     }
 
-    await fs.ensureDir(tokensOutDir);
-    await fs.writeFile(tokensPath, tokensContent);
+    await mkdir(tokensOutDir, { recursive: true });
+    await writeFile(tokensPath, tokensContent);
     console.log(chalk.green(`✔  Generated ${tokensPath}`));
     console.log(chalk.gray(`   Theme: ${config.theme} | Dark mode: ${!!config.darkMode}`));
   } catch (error: any) {

@@ -1,7 +1,8 @@
-import fs from 'fs-extra';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import { Framework } from '../core/enums';
+import { pathExists } from '../utils/fs';
 
 export async function importTokensInIndexHtml(framework: string, cwd: string): Promise<void> {
   const indexPaths: Record<string, { index: string; href: string }> = {
@@ -14,9 +15,9 @@ export async function importTokensInIndexHtml(framework: string, cwd: string): P
   if (!config) return;
 
   const indexPath = path.join(cwd, config.index);
-  if (!(await fs.pathExists(indexPath))) return;
+  if (!(await pathExists(indexPath))) return;
 
-  let content = await fs.readFile(indexPath, 'utf-8');
+  let content = await readFile(indexPath, 'utf-8');
 
   const hasCorrectPath = content.includes(`href="${config.href}"`);
   if (hasCorrectPath) {
@@ -25,13 +26,13 @@ export async function importTokensInIndexHtml(framework: string, cwd: string): P
 
   if (content.includes('tokens.css')) {
     content = content.replace(/href="[^"]*tokens\.css"/, `href="${config.href}"`);
-    await fs.writeFile(indexPath, content);
+    await writeFile(indexPath, content);
     console.log(chalk.gray(`  Updated tokens.css path in index.html`));
     return;
   }
 
   const linkTag = `\n  <link rel="stylesheet" href="${config.href}">\n`;
   content = content.replace('</head>', `${linkTag}</head>`);
-  await fs.writeFile(indexPath, content);
+  await writeFile(indexPath, content);
   console.log(chalk.gray(`  Added tokens.css to index.html`));
 }

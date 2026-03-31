@@ -1,6 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
-import fs from 'fs-extra';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
@@ -17,6 +17,7 @@ import {
   installPeerDependenciesSmart,
 } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
+import { pathExists } from '../../utils/fs';
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -164,8 +165,8 @@ export async function runAdd(components: string[], opts: any) {
     const hashes = await loadHashes(cwd);
 
     const configPath = path.join(cwd, 'crucible.config.json');
-    const currentConfigHash = (await fs.pathExists(configPath))
-      ? hashContent(await fs.readFile(configPath, 'utf-8'))
+    const currentConfigHash = (await pathExists(configPath))
+      ? hashContent(await readFile(configPath, 'utf-8'))
       : '';
     const configChanged = hashes.configHash && currentConfigHash !== hashes.configHash;
 
@@ -176,16 +177,16 @@ export async function runAdd(components: string[], opts: any) {
       );
     }
 
-    await fs.ensureDir(outDir);
+    await mkdir(outDir, { recursive: true });
 
     const tokensOutDir = path.join(cwd, 'public/__generated__');
-    await fs.ensureDir(tokensOutDir);
+    await mkdir(tokensOutDir, { recursive: true });
     const tokensPath = path.join(tokensOutDir, 'tokens.css');
 
-    if (!(await fs.pathExists(tokensPath)) || configChanged) {
+    if (!(await pathExists(tokensPath)) || configChanged) {
       const model = buildComponentModel('Button', tokens, config, generateStories);
       const tokensContent = await renderGlobalTokens(model);
-      await fs.writeFile(tokensPath, tokensContent);
+      await writeFile(tokensPath, tokensContent);
       if (!opts.quiet) {
         console.log(
           chalk.gray(

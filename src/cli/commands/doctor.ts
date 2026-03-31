@@ -1,10 +1,12 @@
-import fs from 'fs-extra';
+import * as fs from 'node:fs';
+import { readFile, writeFile, mkdir, rm, stat } from 'node:fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import { readConfig } from '../../config/reader';
 import { StyleSystem, Framework } from '../../core/enums';
 import { PEER_DEPENDENCIES } from '../../registry/peer-deps';
 import { loadHashes, hashContent } from '../../scaffold/writer';
+import { pathExists, readJson } from '../../utils/fs';
 
 interface DoctorResult {
   config: boolean;
@@ -93,7 +95,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
 
   // 1. Check Config
   try {
-    configContent = await fs.readFile(configPathAbsolute, 'utf-8');
+    configContent = await readFile(configPathAbsolute, 'utf-8');
     config = await readConfig(configPathRelative);
     console.log(chalk.green('✔ Config file loaded and validated successfully.'));
     result.config = true;
@@ -107,8 +109,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
   if (config?.styleSystem === StyleSystem.Tailwind) {
     try {
       const packageJsonPath = path.join(cwd, 'package.json');
-      if (await fs.pathExists(packageJsonPath)) {
-        const pkg = await fs.readJson(packageJsonPath);
+      if (await pathExists(packageJsonPath)) {
+        const pkg = await readJson(packageJsonPath);
         const hasTailwindDeps = pkg.dependencies?.tailwindcss || pkg.devDependencies?.tailwindcss;
 
         let hasTailwindImport = false;
@@ -123,8 +125,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
 
         for (const file of cssFiles) {
           const fullPath = path.join(cwd, file);
-          if (await fs.pathExists(fullPath)) {
-            const content = await fs.readFile(fullPath, 'utf-8');
+          if (await pathExists(fullPath)) {
+            const content = await readFile(fullPath, 'utf-8');
             if (content.includes('@import "tailwindcss"') || content.includes('@tailwind base')) {
               hasTailwindImport = true;
               break;
@@ -156,10 +158,10 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
   // 3. Check Output Directory permissions
   try {
     const outDir = path.join(cwd, config?.flags?.outputDir ?? 'src/components');
-    await fs.ensureDir(outDir);
+    await mkdir(outDir, { recursive: true });
     const testFile = path.join(outDir, '.crucible-test-write');
-    await fs.writeFile(testFile, '');
-    await fs.remove(testFile);
+    await writeFile(testFile, '');
+    await rm(testFile, { force: true });
     console.log(
       chalk.green(
         `✔ Output directory (${config?.flags?.outputDir ?? 'src/components'}) is writable.`,
@@ -175,8 +177,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
   // 4. Check Peer Dependencies
   try {
     const packageJsonPath = path.join(cwd, 'package.json');
-    if (await fs.pathExists(packageJsonPath)) {
-      const pkg = await fs.readJson(packageJsonPath);
+    if (await pathExists(packageJsonPath)) {
+      const pkg = await readJson(packageJsonPath);
       const installedDeps = {
         ...pkg.dependencies,
         ...pkg.devDependencies,
@@ -211,8 +213,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
   // 5. Check TypeScript Configuration
   try {
     const tsconfigPath = path.join(cwd, 'tsconfig.json');
-    if (await fs.pathExists(tsconfigPath)) {
-      const tsconfig = await fs.readJson(tsconfigPath);
+    if (await pathExists(tsconfigPath)) {
+      const tsconfig = await readJson(tsconfigPath);
       const issues: string[] = [];
 
       if (config?.framework === Framework.React) {
@@ -277,7 +279,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     const manifest = await loadHashes(cwd);
     let pkgVersion = '1.0.0';
     try {
-      const pkg = await fs.readJson(path.join(__dirname, '../../../package.json'));
+      const pkg = await readJson(path.join(__dirname, '../../../package.json'));
       pkgVersion = pkg.version || '1.0.0';
     } catch {}
 
@@ -294,7 +296,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       for (const [hashKey, fileMeta] of Object.entries(manifest.files)) {
         const compName = hashKey.split('/')[0];
         const filePath = path.join(outDir, hashKey);
-        if (await fs.pathExists(filePath)) {
+        if (await pathExists(filePath)) {
           componentsOnDisk.add(compName);
         }
       }
@@ -343,8 +345,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
 
       for (const [hashKey, fileMeta] of Object.entries(manifest.files)) {
         const filePath = path.join(outDir, hashKey);
-        if (await fs.pathExists(filePath)) {
-          const currentContent = await fs.readFile(filePath, 'utf-8');
+        if (await pathExists(filePath)) {
+          const currentContent = await readFile(filePath, 'utf-8');
           const currentHash = hashContent(currentContent);
           if (currentHash !== fileMeta.contentHash) {
             compromisedFiles.push(hashKey);

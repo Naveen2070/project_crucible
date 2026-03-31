@@ -1,10 +1,12 @@
 import Handlebars from 'handlebars';
-import fs from 'fs-extra';
+import * as fs from 'node:fs';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'path';
 import chokidar from 'chokidar';
 import { ComponentModel } from '../components/model';
 import { Framework, StyleSystem } from '../core/enums';
 import { FRAMEWORK_TARGETS } from '../registry/frameworks';
+import { pathExists } from '../utils/fs';
 
 Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
 Handlebars.registerHelper('includes', (arr: any[], val: any) => arr?.includes(val));
@@ -37,12 +39,12 @@ async function registerPartials(framework: string) {
   const root = getTemplatesRoot();
 
   const globalShared = path.join(root, 'shared');
-  if (await fs.pathExists(globalShared)) {
+  if (await pathExists(globalShared)) {
     await registerPartialsFromDir(globalShared, 'shared');
   }
 
   const frameworkShared = path.join(root, framework, 'shared');
-  if (await fs.pathExists(frameworkShared)) {
+  if (await pathExists(frameworkShared)) {
     await registerPartialsFromDir(frameworkShared, framework);
   }
 
@@ -54,16 +56,16 @@ async function registerPartials(framework: string) {
 }
 
 async function registerPartialsFromDir(dir: string, prefix: string) {
-  const files = await fs.readdir(dir);
+  const files = await readdir(dir);
   for (const file of files) {
     const filePath = path.join(dir, file);
-    const stat = await fs.stat(filePath);
-    if (stat.isDirectory()) {
+    const fileStat = await stat(filePath);
+    if (fileStat.isDirectory()) {
       await registerPartialsFromDir(filePath, prefix ? `${prefix}/${file}` : file);
     } else if (file.endsWith('.hbs')) {
       const baseName = path.basename(file, '.hbs');
       const name = prefix ? `${prefix}/${baseName}` : baseName;
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await readFile(filePath, 'utf-8');
       Handlebars.registerPartial(name, content);
     }
   }
@@ -151,7 +153,7 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 
     if (
       (model.styleSystem === StyleSystem.SCSS || model.styleSystem === StyleSystem.Tailwind) &&
-      !(await fs.pathExists(tplPath))
+      !(await pathExists(tplPath))
     ) {
       const fallbackDir = path.join(
         getTemplatesRoot(),
@@ -160,16 +162,16 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
         model.name,
       );
       const fallbackPath = path.join(fallbackDir, tpl);
-      if (await fs.pathExists(fallbackPath)) {
+      if (await pathExists(fallbackPath)) {
         tplPath = fallbackPath;
       }
     }
 
-    if (!(await fs.pathExists(tplPath))) continue;
+    if (!(await pathExists(tplPath))) continue;
 
     let compiled = templateCache.get(tplPath);
     if (!compiled) {
-      const source = await fs.readFile(tplPath, 'utf-8');
+      const source = await readFile(tplPath, 'utf-8');
       compiled = Handlebars.compile(source);
       templateCache.set(tplPath, compiled);
     }
@@ -179,10 +181,10 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 
   // Generate README.md
   const readmePath = path.join(getTemplatesRoot(), 'shared', 'component-readme.hbs');
-  if (await fs.pathExists(readmePath)) {
+  if (await pathExists(readmePath)) {
     let compiled = templateCache.get(readmePath);
     if (!compiled) {
-      const source = await fs.readFile(readmePath, 'utf-8');
+      const source = await readFile(readmePath, 'utf-8');
       compiled = Handlebars.compile(source);
       templateCache.set(readmePath, compiled);
     }
@@ -196,11 +198,11 @@ export async function renderGlobalTokens(model: ComponentModel): Promise<string>
   await registerPartials(model.framework);
   const tplPath = path.join(getTemplatesRoot(), 'shared', 'global-tokens.css.hbs');
 
-  if (!(await fs.pathExists(tplPath))) {
+  if (!(await pathExists(tplPath))) {
     throw new Error(`Global tokens template not found: ${tplPath}`);
   }
 
-  const source = await fs.readFile(tplPath, 'utf-8');
+  const source = await readFile(tplPath, 'utf-8');
   const compiled = Handlebars.compile(source);
   return compiled(model);
 }

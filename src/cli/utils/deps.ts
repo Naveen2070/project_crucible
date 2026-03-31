@@ -1,11 +1,12 @@
 import chalk from 'chalk';
-import fs from 'fs-extra';
+import { readFile } from 'node:fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
 import { confirm } from '@inquirer/prompts';
 import { registry, ComponentDef } from '../../registry/components';
 import { getPeerDependencies } from '../../registry/peer-deps';
 import { Framework } from '../../core/enums';
+import { pathExists, readJson } from '../../utils/fs';
 
 export interface DependencyCheck {
   missingComponents: string[];
@@ -51,18 +52,18 @@ export async function checkComponentExists(
   framework: Framework,
 ): Promise<boolean> {
   const compDir = path.join(outputDir, component);
-  if (!(await fs.pathExists(compDir))) {
+  if (!(await pathExists(compDir))) {
     return false;
   }
 
   const extensions = getComponentExtensions(framework);
   for (const ext of extensions) {
     const mainFile = path.join(compDir, `${component}${ext}`);
-    if (await fs.pathExists(mainFile)) {
+    if (await pathExists(mainFile)) {
       return true;
     }
     const kebabFile = path.join(compDir, `${component.toLowerCase()}${ext}`);
-    if (await fs.pathExists(kebabFile)) {
+    if (await pathExists(kebabFile)) {
       return true;
     }
   }
@@ -85,10 +86,10 @@ function getComponentExtensions(framework: Framework): string[] {
 
 async function checkPeerDependencyInstalled(pkg: string, projectDir: string): Promise<boolean> {
   const packageJsonPath = path.join(projectDir, 'package.json');
-  if (!(await fs.pathExists(packageJsonPath))) {
+  if (!(await pathExists(packageJsonPath))) {
     return false;
   }
-  const pkgJson = await fs.readJson(packageJsonPath);
+  const pkgJson = await readJson(packageJsonPath);
   const deps = { ...pkgJson.dependencies, ...pkgJson.devDependencies };
   return pkg in deps;
 }
@@ -180,9 +181,9 @@ export async function installPeerDependenciesSmart(
   cwd: string,
 ): Promise<void> {
   const pkgPath = path.join(cwd, 'package.json');
-  if (!(await fs.pathExists(pkgPath))) return;
+  if (!(await pathExists(pkgPath))) return;
 
-  const pkg = await fs.readJson(pkgPath);
+  const pkg = await readJson(pkgPath);
   const installed = { ...pkg.dependencies, ...pkg.devDependencies };
 
   const toInstall: string[] = [];

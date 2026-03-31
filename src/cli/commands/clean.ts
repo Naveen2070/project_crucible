@@ -1,6 +1,7 @@
-import fs from 'fs-extra';
+import { rm } from 'node:fs/promises';
 import path from 'path';
 import chalk from 'chalk';
+import { pathExists } from '../../utils/fs';
 
 export interface CleanOptions {
   all?: boolean;
@@ -20,8 +21,8 @@ export async function runClean(opts: CleanOptions = {}) {
 
   console.log(chalk.blue('\n🧹 Cleaning generated files...\n'));
   for (const p of pathsToDelete) {
-    if (await fs.pathExists(p)) {
-      await fs.remove(p);
+    if (await pathExists(p)) {
+      await rm(p, { recursive: true, force: true });
       console.log(chalk.green(`✔ Removed: ${path.relative(cwd, p)}`));
     }
   }
@@ -42,8 +43,8 @@ export async function runPgClean() {
     ];
 
     for (const p of pathsToDelete) {
-      if (await fs.pathExists(p)) {
-        await fs.remove(p);
+      if (await pathExists(p)) {
+        await rm(p, { recursive: true, force: true });
         console.log(chalk.green(`✔ Removed: playground/${fw}/${path.relative(basePath, p)}`));
       }
     }

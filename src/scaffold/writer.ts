@@ -1,8 +1,9 @@
-import fs from 'fs-extra';
+import { readFile, writeFile, mkdir, readdir, stat } from 'node:fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import chalk from 'chalk';
 import * as prettier from 'prettier';
+import { pathExists, readJson } from '../utils/fs';
 
 export const HASH_FILE = '.crucible/manifest.json';
 export const LEGACY_HASH_FILE = '.crucible-hashes.json';
@@ -31,12 +32,11 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
   const legacyPath = path.join(cwd, LEGACY_HASH_FILE);
 
   try {
-    if (await fs.pathExists(manifestPath)) {
-      const content = await fs.readFile(manifestPath, 'utf-8');
+    if (await pathExists(manifestPath)) {
+      const content = await readFile(manifestPath, 'utf-8');
       return JSON.parse(content);
-    } else if (await fs.pathExists(legacyPath)) {
-      // Migrate legacy hashes to manifest
-      const legacyContent = await fs.readFile(legacyPath, 'utf-8');
+    } else if (await pathExists(legacyPath)) {
+      const legacyContent = await readFile(legacyPath, 'utf-8');
       const legacyHashes: Record<string, string> = JSON.parse(legacyContent);
 
       const files: Record<string, FileHashMeta> = {};
@@ -50,7 +50,7 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
 
       let pkgVersion = '1.0.0';
       try {
-        const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+        const pkg = await readJson(path.join(__dirname, '../../package.json'));
         pkgVersion = pkg.version || '1.0.0';
       } catch {}
 
@@ -67,7 +67,7 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
 
   let pkgVersion = '1.0.0';
   try {
-    const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+    const pkg = await readJson(path.join(__dirname, '../../package.json'));
     pkgVersion = pkg.version || '1.0.0';
   } catch {}
 
@@ -81,8 +81,8 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
 
 export async function saveHashes(manifest: Manifest, cwd: string): Promise<void> {
   const manifestPath = path.join(cwd, HASH_FILE);
-  await fs.ensureDir(path.dirname(manifestPath));
-  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
+  await mkdir(path.dirname(manifestPath), { recursive: true });
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
 }
 
 export async function writeFiles(
@@ -101,7 +101,7 @@ export async function writeFiles(
   const componentDir = path.join(outputDir, componentName);
 
   if (!opts.dryRun) {
-    await fs.ensureDir(componentDir);
+    await mkdir(componentDir, { recursive: true });
   }
 
   const manifest = opts.hashes || (await loadHashes(cwd));
@@ -115,7 +115,7 @@ export async function writeFiles(
 
   let pkgVersion = '1.0.0';
   try {
-    const pkg = await fs.readJson(path.join(__dirname, '../../package.json'));
+    const pkg = await readJson(path.join(__dirname, '../../package.json'));
     pkgVersion = pkg.version || '1.0.0';
   } catch {
     // ignore
@@ -125,8 +125,8 @@ export async function writeFiles(
   // Try to get config hash
   try {
     const configPath = path.join(cwd, 'crucible.config.json');
-    if (await fs.pathExists(configPath)) {
-      const configContent = await fs.readFile(configPath, 'utf-8');
+    if (await pathExists(configPath)) {
+      const configContent = await readFile(configPath, 'utf-8');
       manifest.configHash = hashContent(configContent);
     }
   } catch {
@@ -160,8 +160,8 @@ export async function writeFiles(
 
       const newHash = hashContent(formattedContent);
 
-      if ((await fs.pathExists(outPath)) && !opts.force) {
-        const currentContent = await fs.readFile(outPath, 'utf-8');
+      if ((await pathExists(outPath)) && !opts.force) {
+        const currentContent = await readFile(outPath, 'utf-8');
         const currentHash = hashContent(currentContent);
         const storedFileMeta = manifest.files[hashKey];
 
@@ -183,7 +183,7 @@ export async function writeFiles(
         return;
       }
 
-      await fs.writeFile(outPath, formattedContent, 'utf-8');
+      await writeFile(outPath, formattedContent, 'utf-8');
       manifest.files[hashKey] = {
         contentHash: newHash,
         generatedAt: now,
