@@ -6,7 +6,7 @@
     "moduleResolution": "nodenext",
     "jsx": "react-jsx",
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
@@ -14,6 +14,6 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*", "scripts/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "playground", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"]
 }
