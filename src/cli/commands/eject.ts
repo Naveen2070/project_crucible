@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { loadPreset } from '../../themes';
 import { ThemePreset } from '../../core/enums';
 import { pathExists, readJson, writeJson } from '../../utils/fs';
@@ -15,7 +15,7 @@ export async function runEject(opts: EjectOptions) {
     const cwd = opts.cwd || process.cwd();
     const configPath = path.resolve(cwd, opts.config);
     if (!(await pathExists(configPath))) {
-      console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
+      console.error(ansis.red('✗ Config file not found. Run "crucible init" first.'));
       process.exit(1);
     }
     const raw = await readJson(configPath);
@@ -26,9 +26,9 @@ export async function runEject(opts: EjectOptions) {
     raw.theme = ThemePreset.Custom;
 
     await writeJson(configPath, raw);
-    console.log(chalk.green(`✔ Ejected ${theme} theme into ${opts.config}`));
+    console.log(ansis.green(`✔ Ejected ${theme} theme into ${opts.config}`));
   } catch (e: any) {
-    console.error(chalk.red(`✗ Error: ${e.message}`));
+    console.error(ansis.red(`✗ Error: ${e.message}`));
     process.exit(1);
   }
 }

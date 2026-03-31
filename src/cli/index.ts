@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { runInit } from './commands/init';
 import { runDoctor } from './commands/doctor';
 import { runTokens } from './commands/tokens';
@@ -16,8 +16,8 @@ import { assertDevMode } from '../config/dev-mode';
 const program = new Command();
 
 function warnForce(cmd: string): void {
-  console.log(chalk.yellow(`\n⚠  --force flag is active for: ${cmd}`));
-  console.log(chalk.gray('   This will overwrite user-edited files and bypass hash protection.\n'));
+  console.log(ansis.yellow(`\n⚠  --force flag is active for: ${cmd}`));
+  console.log(ansis.gray('   This will overwrite user-edited files and bypass hash protection.\n'));
 }
 
 program

@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { select } from '@inquirer/prompts';
 import {
   FRAMEWORKS,
@@ -27,7 +27,7 @@ async function openStorybook(framework: Framework): Promise<void> {
   const playgroundPath = path.join(process.cwd(), 'playground', framework);
   const port = getStorybookPort(framework);
 
-  console.log(chalk.cyan(`\n📖 Opening Storybook for ${framework} on port ${port}...`));
+  console.log(ansis.cyan(`\n📖 Opening Storybook for ${framework} on port ${port}...`));
 
   let command: string;
   let args: string[];
@@ -49,7 +49,7 @@ async function openStorybook(framework: Framework): Promise<void> {
     });
 
     child.on('error', (err) => {
-      console.error(chalk.red(`\n✗ Failed to start Storybook: ${err.message}`));
+      console.error(ansis.red(`\n✗ Failed to start Storybook: ${err.message}`));
       reject(err);
     });
 
@@ -71,7 +71,7 @@ export async function openPlayground(framework?: Framework): Promise<void> {
 
   const generated = await promptGenerateIfNeeded(selectedFramework);
   if (!generated) {
-    console.log(chalk.yellow('Cannot open Storybook without generated playground.'));
+    console.log(ansis.yellow('Cannot open Storybook without generated playground.'));
     return;
   }
 
@@ -89,7 +89,7 @@ export async function devPlayground(framework?: Framework): Promise<void> {
 
   const generated = await promptGenerateIfNeeded(selectedFramework);
   if (!generated) {
-    console.log(chalk.yellow('Cannot start dev server without generated playground.'));
+    console.log(ansis.yellow('Cannot start dev server without generated playground.'));
     return;
   }
 
@@ -97,28 +97,28 @@ export async function devPlayground(framework?: Framework): Promise<void> {
   const hasDevScript = selectedFramework === 'react' || selectedFramework === 'vue';
 
   if (hasDevScript) {
-    console.log(chalk.cyan(`\n🚀 Starting dev server for ${selectedFramework}...`));
+    console.log(ansis.cyan(`\n🚀 Starting dev server for ${selectedFramework}...`));
     const child = spawn('npm', ['run', 'dev'], {
       cwd: playgroundPath,
       stdio: 'inherit',
       shell: true,
     });
     child.on('error', (err) => {
-      console.error(chalk.red(`\n✗ Failed to start dev server: ${err.message}`));
+      console.error(ansis.red(`\n✗ Failed to start dev server: ${err.message}`));
     });
   } else if (selectedFramework === 'angular') {
-    console.log(chalk.cyan(`\n🚀 Starting Angular dev server...`));
+    console.log(ansis.cyan(`\n🚀 Starting Angular dev server...`));
     const child = spawn('npx', ['ng', 'serve', '--port', '4200'], {
       cwd: playgroundPath,
       stdio: 'inherit',
       shell: true,
     });
     child.on('error', (err) => {
-      console.error(chalk.red(`\n✗ Failed to start Angular dev server: ${err.message}`));
+      console.error(ansis.red(`\n✗ Failed to start Angular dev server: ${err.message}`));
     });
   } else {
-    console.log(chalk.yellow(`\n⚠  ${selectedFramework} does not have a dev script.`));
-    console.log(chalk.gray('  Use Storybook instead: npx crucible pg:open'));
+    console.log(ansis.yellow(`\n⚠  ${selectedFramework} does not have a dev script.`));
+    console.log(ansis.gray('  Use Storybook instead: npx crucible pg:open'));
   }
 }
 

@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir, readdir, stat } from 'node:fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import * as prettier from 'prettier';
 import { pathExists, readJson } from '../utils/fs';
 
@@ -154,7 +154,7 @@ export async function writeFiles(
         const errorMessage = err instanceof Error ? err.message : String(err);
         if (!opts.quiet)
           console.warn(
-            chalk.yellow(`⚠  Could not format ${hashKey} with Prettier: ${errorMessage}`),
+            ansis.yellow(`⚠  Could not format ${hashKey} with Prettier: ${errorMessage}`),
           );
       }
 
@@ -168,10 +168,10 @@ export async function writeFiles(
         if (storedFileMeta && currentHash !== storedFileMeta.contentHash) {
           if (!opts.quiet) {
             console.log(
-              chalk.yellow(`⚠  User edits detected in ${hashKey}. Your changes are preserved.`),
+              ansis.yellow(`⚠  User edits detected in ${hashKey}. Your changes are preserved.`),
             );
             console.log(
-              chalk.yellow(`   Use --force to overwrite, or manually merge your changes.`),
+              ansis.yellow(`   Use --force to overwrite, or manually merge your changes.`),
             );
           }
           return;
@@ -179,7 +179,7 @@ export async function writeFiles(
       }
 
       if (opts.dryRun) {
-        if (!opts.quiet) console.log(chalk.green(`~  ${hashKey} (would be written)`));
+        if (!opts.quiet) console.log(ansis.green(`~  ${hashKey} (would be written)`));
         return;
       }
 
@@ -188,7 +188,7 @@ export async function writeFiles(
         contentHash: newHash,
         generatedAt: now,
       };
-      if (!opts.quiet) console.log(chalk.green(`✓  ${hashKey}`));
+      if (!opts.quiet) console.log(ansis.green(`✓  ${hashKey}`));
     }),
   );
 

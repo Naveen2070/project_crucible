@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { execSync } from 'child_process';
-import chalk from 'chalk';
+import ansis from 'ansis';
 
 const ROOT_DIR = process.cwd();
 const CLI_PATH = path.join(ROOT_DIR, 'dist/cli/index.js');
@@ -33,7 +33,7 @@ function runCLI(args: string): string {
 }
 
 async function runE2E() {
-  console.log(chalk.blue('\n🚀 Starting Comprehensive E2E Test Suite...\n'));
+  console.log(ansis.blue('\n🚀 Starting Comprehensive E2E Test Suite...\n'));
   const results: E2EResult[] = [];
 
   // Cleanup previous test runs
@@ -49,10 +49,10 @@ async function runE2E() {
     );
 
     // ==================== REACT TESTS ====================
-    console.log(chalk.cyan('\n�️ REACT FRAMEWORK'));
+    console.log(ansis.cyan('\n�️ REACT FRAMEWORK'));
 
     // React + CSS
-    console.log(chalk.cyan('📦 Phase 1: React + CSS'));
+    console.log(ansis.cyan('📦 Phase 1: React + CSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -85,7 +85,7 @@ async function runE2E() {
     results.push({ phase: 'React + CSS + Button', passed: true });
 
     // React + SCSS
-    console.log(chalk.cyan('📦 Phase 2: React + SCSS'));
+    console.log(ansis.cyan('📦 Phase 2: React + SCSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -114,7 +114,7 @@ async function runE2E() {
     results.push({ phase: 'React + SCSS + Button', passed: true });
 
     // React + Tailwind
-    console.log(chalk.cyan('📦 Phase 3: React + Tailwind'));
+    console.log(ansis.cyan('📦 Phase 3: React + Tailwind'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -147,10 +147,10 @@ async function runE2E() {
     results.push({ phase: 'React + Tailwind + Input/Card', passed: true });
 
     // ==================== ANGULAR TESTS ====================
-    console.log(chalk.cyan('\n🅰️ ANGULAR FRAMEWORK'));
+    console.log(ansis.cyan('\n🅰️ ANGULAR FRAMEWORK'));
 
     // Angular + CSS
-    console.log(chalk.cyan('📦 Phase 4: Angular + CSS'));
+    console.log(ansis.cyan('📦 Phase 4: Angular + CSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -185,24 +185,24 @@ async function runE2E() {
     );
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Input'));
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Card'));
-    console.log(chalk.gray('  Running: crucible add Dialog -y --verbose'));
+    console.log(ansis.gray('  Running: crucible add Dialog -y --verbose'));
     try {
       runCLI('add Dialog -y --verbose');
     } catch (e: any) {
-      console.log(chalk.red('  CLI Error:'), e.message);
+      console.log(ansis.red('  CLI Error:'), e.message);
       throw e;
     }
-    console.log(chalk.gray('  Checking files...'));
+    console.log(ansis.gray('  Checking files...'));
     const componentsDir = path.join(TEST_DIR, 'src/components');
     if (await fs.pathExists(componentsDir)) {
       const dirs = await fs.readdir(componentsDir);
-      console.log(chalk.gray(`  Components dir contains: ${dirs.join(', ')}`));
+      console.log(ansis.gray(`  Components dir contains: ${dirs.join(', ')}`));
       for (const dir of dirs) {
         const files = await fs.readdir(path.join(componentsDir, dir));
-        console.log(chalk.gray(`    ${dir}: ${files.join(', ')}`));
+        console.log(ansis.gray(`    ${dir}: ${files.join(', ')}`));
       }
     } else {
-      console.log(chalk.gray('  Components dir does not exist'));
+      console.log(ansis.gray('  Components dir does not exist'));
     }
     const angularCssFiles = [
       'Dialog/dialog.component.ts',
@@ -212,16 +212,16 @@ async function runE2E() {
     for (const file of angularCssFiles) {
       const filePath = path.join(TEST_DIR, 'src/components', file);
       if (!(await fs.pathExists(filePath))) {
-        console.log(chalk.red(`  Missing: ${file}`));
+        console.log(ansis.red(`  Missing: ${file}`));
         throw new Error(`Missing: ${file}`);
       } else {
-        console.log(chalk.green(`  Found: ${file}`));
+        console.log(ansis.green(`  Found: ${file}`));
       }
     }
     results.push({ phase: 'Angular + CSS + Dialog', passed: true });
 
     // Angular + SCSS
-    console.log(chalk.cyan('📦 Phase 5: Angular + SCSS'));
+    console.log(ansis.cyan('📦 Phase 5: Angular + SCSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -255,7 +255,7 @@ async function runE2E() {
     results.push({ phase: 'Angular + SCSS + Dialog', passed: true });
 
     // Angular + Tailwind
-    console.log(chalk.cyan('📦 Phase 6: Angular + Tailwind'));
+    console.log(ansis.cyan('📦 Phase 6: Angular + Tailwind'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -291,10 +291,10 @@ async function runE2E() {
     results.push({ phase: 'Angular + Tailwind + Dialog', passed: true });
 
     // ==================== VUE TESTS ====================
-    console.log(chalk.cyan('\n💚 VUE FRAMEWORK'));
+    console.log(ansis.cyan('\n💚 VUE FRAMEWORK'));
 
     // Vue + CSS
-    console.log(chalk.cyan('📦 Phase 7: Vue + CSS'));
+    console.log(ansis.cyan('📦 Phase 7: Vue + CSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -325,7 +325,7 @@ async function runE2E() {
     results.push({ phase: 'Vue + CSS + Select', passed: true });
 
     // Vue + SCSS
-    console.log(chalk.cyan('📦 Phase 8: Vue + SCSS'));
+    console.log(ansis.cyan('📦 Phase 8: Vue + SCSS'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -352,7 +352,7 @@ async function runE2E() {
     results.push({ phase: 'Vue + SCSS + Button', passed: true });
 
     // Vue + Tailwind
-    console.log(chalk.cyan('📦 Phase 9: Vue + Tailwind'));
+    console.log(ansis.cyan('📦 Phase 9: Vue + Tailwind'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -385,10 +385,10 @@ async function runE2E() {
     results.push({ phase: 'Vue + Tailwind + Button', passed: true });
 
     // ==================== FEATURE TESTS ====================
-    console.log(chalk.cyan('\n⚙️ FEATURE TESTS'));
+    console.log(ansis.cyan('\n⚙️ FEATURE TESTS'));
 
     // Dry Run
-    console.log(chalk.cyan('📦 Phase 10: Dry Run Mode'));
+    console.log(ansis.cyan('📦 Phase 10: Dry Run Mode'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -424,7 +424,7 @@ async function runE2E() {
     results.push({ phase: 'Dry Run Mode', passed: true });
 
     // Force Flag
-    console.log(chalk.cyan('📦 Phase 11: Force Flag'));
+    console.log(ansis.cyan('📦 Phase 11: Force Flag'));
     await fs.writeFile(
       path.join(TEST_DIR, 'src/components', 'Button', 'Button.tsx'),
       '// Modified by user',
@@ -440,7 +440,7 @@ async function runE2E() {
     results.push({ phase: 'Force Flag', passed: true });
 
     // Hash Protection
-    console.log(chalk.cyan('📦 Phase 12: Hash Protection'));
+    console.log(ansis.cyan('📦 Phase 12: Hash Protection'));
     // Generate Input component first for hash protection test
     runCLI('add Input -y');
     await fs.writeFile(
@@ -458,7 +458,7 @@ async function runE2E() {
     results.push({ phase: 'Hash Protection', passed: true });
 
     // Multi-Component
-    console.log(chalk.cyan('📦 Phase 13: Multi-Component Generation'));
+    console.log(ansis.cyan('📦 Phase 13: Multi-Component Generation'));
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Button'));
     await fs.remove(path.join(TEST_DIR, 'src/components', 'Select'));
     runCLI('add Button Input Card Dialog Select --no-stories -y');
@@ -479,7 +479,7 @@ async function runE2E() {
     results.push({ phase: 'Multi-Component Generation', passed: true });
 
     // Theme Presets
-    console.log(chalk.cyan('📦 Phase 14: Theme Presets'));
+    console.log(ansis.cyan('📦 Phase 14: Theme Presets'));
     await fs.remove(path.join(TEST_DIR, 'public/__generated__/tokens.css'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
@@ -510,7 +510,7 @@ async function runE2E() {
     results.push({ phase: 'Soft Theme Preset', passed: true });
 
     // Custom Output Directory
-    console.log(chalk.cyan('📦 Phase 15: Custom Output Directory'));
+    console.log(ansis.cyan('📦 Phase 15: Custom Output Directory'));
     await fs.writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -537,10 +537,10 @@ async function runE2E() {
     results.push({ phase: 'Custom Output Directory', passed: true });
 
     // ==================== CLI COMMAND TESTS ====================
-    console.log(chalk.cyan('\n🖥️ CLI COMMANDS'));
+    console.log(ansis.cyan('\n🖥️ CLI COMMANDS'));
 
     // Init Command
-    console.log(chalk.cyan('📦 Phase 16: Init Command'));
+    console.log(ansis.cyan('📦 Phase 16: Init Command'));
     await fs.remove(path.join(TEST_DIR, 'crucible.config.json'));
     runCLI('init -y');
     if (!(await fs.pathExists(path.join(TEST_DIR, 'crucible.config.json')))) {
@@ -549,7 +549,7 @@ async function runE2E() {
     results.push({ phase: 'Init Command', passed: true });
 
     // Eject Command
-    console.log(chalk.cyan('📦 Phase 17: Eject Command'));
+    console.log(ansis.cyan('📦 Phase 17: Eject Command'));
     runCLI('eject');
     const ejectedConfig = await fs.readJson(path.join(TEST_DIR, 'crucible.config.json'));
     if (ejectedConfig.theme !== 'custom') {
@@ -561,7 +561,7 @@ async function runE2E() {
     results.push({ phase: 'Eject Command', passed: true });
 
     // List Command
-    console.log(chalk.cyan('📦 Phase 18: List Command'));
+    console.log(ansis.cyan('📦 Phase 18: List Command'));
     const listOutput = runCLI('list');
     if (!listOutput.includes('Button') || !listOutput.includes('react')) {
       throw new Error('List command did not show components');
@@ -569,7 +569,7 @@ async function runE2E() {
     results.push({ phase: 'List Command', passed: true });
 
     // Error Handling
-    console.log(chalk.cyan('📦 Phase 19: Error Handling'));
+    console.log(ansis.cyan('📦 Phase 19: Error Handling'));
     try {
       runCLI('add UnknownComponent -y');
       throw new Error('Should have failed for unknown component');
@@ -580,32 +580,32 @@ async function runE2E() {
     }
     results.push({ phase: 'Error Handling (Unknown Component)', passed: true });
   } catch (error: any) {
-    console.error(chalk.red(`\n❌ Test Failed: ${error.message}`));
+    console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
     process.exitCode = 1;
   } finally {
-    console.log(chalk.gray('\n🧹 Cleaning up...'));
+    console.log(ansis.gray('\n🧹 Cleaning up...'));
     await fs.remove(TEST_DIR);
   }
 
-  console.log(chalk.bold('\n📊 Test Results Summary:\n'));
+  console.log(ansis.bold('\n📊 Test Results Summary:\n'));
   let passed = 0;
   let failed = 0;
   for (const result of results) {
     if (result.passed) {
-      console.log(chalk.green(`  ✓ ${result.phase}`));
+      console.log(ansis.green(`  ✓ ${result.phase}`));
       passed++;
     } else {
-      console.log(chalk.red(`  ✗ ${result.phase}: ${result.error}`));
+      console.log(ansis.red(`  ✗ ${result.phase}: ${result.error}`));
       failed++;
     }
   }
-  console.log(chalk.bold(`\n  Total: ${passed} passed, ${failed} failed\n`));
+  console.log(ansis.bold(`\n  Total: ${passed} passed, ${failed} failed\n`));
 
   if (failed === 0) {
-    console.log(chalk.green.bold('🎉 All E2E tests passed!\n'));
+    console.log(ansis.green.bold('🎉 All E2E tests passed!\n'));
   } else {
-    console.log(chalk.red.bold(`❌ ${failed} test(s) failed.\n`));
+    console.log(ansis.red.bold(`❌ ${failed} test(s) failed.\n`));
     process.exitCode = 1;
   }
 }

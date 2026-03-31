@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { select, input, confirm } from '@inquirer/prompts';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
@@ -77,7 +77,7 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
         default: false,
       });
       if (!overwrite) {
-        console.log(chalk.gray('Init cancelled.'));
+        console.log(ansis.gray('Init cancelled.'));
         return;
       }
     }
@@ -140,5 +140,5 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
     .replace('"stories": false', `"stories": ${generateStories}`);
 
   await writeFile(configPath, configContent, 'utf-8');
-  console.log(chalk.green('✔ Created crucible.config.json with minimal setup.'));
+  console.log(ansis.green('✔ Created crucible.config.json with minimal setup.'));
 }

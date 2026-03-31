@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { readFile } from 'node:fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -107,7 +107,7 @@ export async function resolveDependencies(
   if (check.missingComponents.length > 0) {
     for (const missing of check.missingComponents) {
       if (options.verbose) {
-        console.log(chalk.cyan(`📦 ${component} depends on ${missing} — adding...`));
+        console.log(ansis.cyan(`📦 ${component} depends on ${missing} — adding...`));
       }
       resolvedComponents.push(missing);
     }
@@ -117,7 +117,7 @@ export async function resolveDependencies(
     for (const peerDep of check.missingPeerDeps) {
       if (options.yes) {
         if (!options.quiet) {
-          console.log(chalk.cyan(`📦 Installing peer dependency: ${peerDep}...`));
+          console.log(ansis.cyan(`📦 Installing peer dependency: ${peerDep}...`));
         }
         try {
           execSync(`npm install ${peerDep}`, {
@@ -128,7 +128,7 @@ export async function resolveDependencies(
         } catch (err) {
           if (!options.quiet) {
             console.warn(
-              chalk.yellow(`⚠ Failed to install ${peerDep}. You may need to install it manually.`),
+              ansis.yellow(`⚠ Failed to install ${peerDep}. You may need to install it manually.`),
             );
           }
         }
@@ -147,7 +147,7 @@ export async function resolveDependencies(
           } catch (err) {
             if (!options.quiet) {
               console.warn(
-                chalk.yellow(
+                ansis.yellow(
                   `⚠ Failed to install ${peerDep}. You may need to install it manually.`,
                 ),
               );
@@ -164,9 +164,9 @@ export async function resolveDependencies(
 export function formatDependencyMessage(component: string, deps: string[]): string {
   if (deps.length === 0) return '';
   if (deps.length === 1) {
-    return chalk.cyan(`📦 ${component} uses ${deps[0]} — will be generated`);
+    return ansis.cyan(`📦 ${component} uses ${deps[0]} — will be generated`);
   }
-  return chalk.cyan(
+  return ansis.cyan(
     `📦 ${component} uses ${deps.slice(0, -1).join(', ')} and ${deps[deps.length - 1]} — will be generated`,
   );
 }
@@ -199,14 +199,14 @@ export async function installPeerDependenciesSmart(
   if (toInstall.length > 0) {
     const unique = [...new Set(toInstall)];
     const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
-    console.log(chalk.cyan(`📦 Installing: ${unique.join(', ')}`));
+    console.log(ansis.cyan(`📦 Installing: ${unique.join(', ')}`));
     try {
       execSync(`npm install ${unique.join(' ')} ${legacyFlag}`.trim(), {
         cwd,
         stdio: 'inherit',
       });
     } catch {
-      console.warn(chalk.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
+      console.warn(ansis.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
     }
   }
 }

@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { Framework } from '../core/enums';
 import { pathExists } from '../utils/fs';
 
@@ -27,12 +27,12 @@ export async function importTokensInIndexHtml(framework: string, cwd: string): P
   if (content.includes('tokens.css')) {
     content = content.replace(/href="[^"]*tokens\.css"/, `href="${config.href}"`);
     await writeFile(indexPath, content);
-    console.log(chalk.gray(`  Updated tokens.css path in index.html`));
+    console.log(ansis.gray(`  Updated tokens.css path in index.html`));
     return;
   }
 
   const linkTag = `\n  <link rel="stylesheet" href="${config.href}">\n`;
   content = content.replace('</head>', `${linkTag}</head>`);
   await writeFile(indexPath, content);
-  console.log(chalk.gray(`  Added tokens.css to index.html`));
+  console.log(ansis.gray(`  Added tokens.css to index.html`));
 }

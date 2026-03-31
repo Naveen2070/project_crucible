@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { pathExists, readJson } from '../../utils/fs';
 
 export interface ConfigShowOptions {
@@ -13,7 +13,7 @@ export async function runConfigShow(opts: ConfigShowOptions = {}) {
   const configPath = path.join(cwd, 'crucible.config.json');
 
   if (!(await pathExists(configPath))) {
-    console.error(chalk.red('✗ Config file not found. Run "crucible init" first.'));
+    console.error(ansis.red('✗ Config file not found. Run "crucible init" first.'));
     process.exit(1);
   }
 

@@ -83,7 +83,7 @@
   "dependencies": {
     "@inquirer/prompts": "^8.3.2",
     "ajv": "^8.18.0",
-    "chalk": "^4.1.2",
+    "ansis": "^3.0.0",
     "chokidar": "^5.0.0",
     "colorjs.io": "^0.6.1",
     "commander": "^13.1.0",
