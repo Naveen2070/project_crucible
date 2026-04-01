@@ -588,6 +588,277 @@ async function runE2E() {
       }
     }
     results.push({ phase: 'Error Handling (Unknown Component)', passed: true });
+
+    // ==================== TABLE COMPONENT TESTS ====================
+    console.log(ansis.cyan('\n📊 TABLE COMPONENT'));
+
+    // Table + React + CSS
+    console.log(ansis.cyan('📦 Phase 20: Table + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Input'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Card'));
+    await remove(path.join(TEST_DIR, 'src/components', 'Button'));
+    runCLI('add Table -y');
+    const tableReactFiles = ['Table/Table.tsx', 'Table/Table.module.css'];
+    for (const file of tableReactFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tableUtilsExist = await pathExists(
+      path.join(TEST_DIR, 'src/components', 'Table', 'utils', 'virtualizer.ts'),
+    );
+    if (!tableUtilsExist) {
+      throw new Error('Missing: Table/utils/virtualizer.ts');
+    }
+    results.push({ phase: 'Table + React + CSS', passed: true });
+
+    // Table + React + SCSS
+    console.log(ansis.cyan('📦 Phase 21: Table + React + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    const tableReactScssFiles = ['Table/Table.tsx', 'Table/Table.module.scss'];
+    for (const file of tableReactScssFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    results.push({ phase: 'Table + React + SCSS', passed: true });
+
+    // Table + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 22: Table + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    const tableReactTwFiles = ['Table/Table.tsx'];
+    for (const file of tableReactTwFiles) {
+      const filePath = path.join(TEST_DIR, 'src/components', file);
+      if (!(await pathExists(filePath))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tableHasCssModule = await pathExists(
+      path.join(TEST_DIR, 'src/components', 'Table', 'Table.module.css'),
+    );
+    if (tableHasCssModule) {
+      throw new Error('React + Tailwind should not create CSS module for Table');
+    }
+    const tableComponentContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Table', 'Table.tsx'),
+      'utf-8',
+    );
+    if (!tableComponentContent.includes('customVirtualState')) {
+      throw new Error('Table missing customVirtualState prop');
+    }
+    results.push({ phase: 'Table + React + Tailwind', passed: true });
+
+    // Table + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 23: Table + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    const tableVueFiles = ['Table/Table.vue'];
+    for (const file of tableVueFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tableVueContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Table', 'Table.vue'),
+      'utf-8',
+    );
+    if (!tableVueContent.includes('customVirtualState')) {
+      throw new Error('Vue Table missing customVirtualState prop');
+    }
+    results.push({ phase: 'Table + Vue + CSS', passed: true });
+
+    // Table + Vue + Tailwind
+    console.log(ansis.cyan('📦 Phase 24: Table + Vue + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    const tableVueTwFiles = ['Table/Table.vue'];
+    for (const file of tableVueTwFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tableVueTwContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Table', 'Table.vue'),
+      'utf-8',
+    );
+    if (!tableVueTwContent.includes('customVirtualState')) {
+      throw new Error('Vue Table missing customVirtualState prop');
+    }
+    results.push({ phase: 'Table + Vue + Tailwind', passed: true });
+
+    // Table + Angular + CSS
+    console.log(ansis.cyan('📦 Phase 25: Table + Angular + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    const tableAngularCssFiles = [
+      'Table/table.component.ts',
+      'Table/table.component.html',
+      'Table/table.component.css',
+    ];
+    for (const file of tableAngularCssFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tableAngularCssContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Table', 'table.component.ts'),
+      'utf-8',
+    );
+    if (!tableAngularCssContent.includes('customVirtualState')) {
+      throw new Error('Angular Table missing customVirtualState input');
+    }
+    results.push({ phase: 'Table + Angular + CSS', passed: true });
+
+    // Table + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 26: Table + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    const tableAngularScssFiles = [
+      'Table/table.component.ts',
+      'Table/table.component.html',
+      'Table/table.component.scss',
+    ];
+    for (const file of tableAngularScssFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tableAngularScssContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Table', 'table.component.ts'),
+      'utf-8',
+    );
+    if (!tableAngularScssContent.includes('customVirtualState')) {
+      throw new Error('Angular Table missing customVirtualState input');
+    }
+    results.push({ phase: 'Table + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

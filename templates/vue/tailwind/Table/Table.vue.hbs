@@ -298,7 +298,7 @@ const isCompact = computed(() => props.variant === 'compact');
                   ]"
                   :style="{ width: col.width }"
                 >
-                  {{ row[col.key] }}
+                  <span v-text="row[col.key]" />
                 </td>
               </tr>
             </tbody>
@@ -377,7 +377,7 @@ const isCompact = computed(() => props.variant === 'compact');
                 ]"
                 :style="{ width: col.width }"
               >
-                {{ row[col.key] }}
+                <span v-text="row[col.key]" />
               </td>
             </tr>
           </tbody>

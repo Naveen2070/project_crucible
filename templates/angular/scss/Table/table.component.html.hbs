@@ -51,8 +51,8 @@
             <ng-container *ngFor="let col of columns; trackBy: trackByKey">
               <td
                 [ngClass]="getCellClasses(col)"
-                [style.width]="col.width">
-                {{ getCellValue(row, col.key) }}
+                [style.width]="col.width"
+                [textContent]="getCellValue(row, col.key)">
               </td>
             </ng-container>
           </tr>

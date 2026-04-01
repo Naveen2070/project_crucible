@@ -13,6 +13,7 @@ const COMPONENTS = [
   ComponentName.Card,
   ComponentName.Dialog,
   ComponentName.Select,
+  ComponentName.Table,
 ];
 
 describe('Framework x Style-System Permutation Snapshots', () => {

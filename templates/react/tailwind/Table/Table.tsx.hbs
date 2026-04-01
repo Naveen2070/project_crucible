@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { sort, SortDirection } from '../../utils/table-sorter';
 import { getPageData, getPageNumbers } from '../../utils/table-paginator';
+import { VirtualState, HeadlessVirtualizer } from '../../utils/virtualizer';
 
 export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -22,6 +23,7 @@ export interface TableProps<T = unknown> {
   virtualize?: boolean;
   virtualizationThreshold?: number;
   itemHeight?: number;
+  customVirtualState?: VirtualState;
   paginationMode?: 'client' | 'server';
   pageSize?: number;
   page?: number;
@@ -58,6 +60,10 @@ export const TableRoot = <T extends Record<string, unknown>>({
   rowKey,
   variant = 'default',
   size = 'md',
+  virtualize = false,
+  virtualizationThreshold = 100,
+  itemHeight = 44,
+  customVirtualState,
   paginationMode = 'client',
   pageSize = 10,
   page = 1,
@@ -79,6 +85,11 @@ export const TableRoot = <T extends Record<string, unknown>>({
   const [internalSortKey, setInternalSortKey] = useState(sortKey);
   const [internalSortDir, setInternalSortDir] = useState<SortDirection>(sortDirection || 'asc');
   const [internalSelected, setInternalSelected] = useState<string[]>(selectedRows);
+
+  const shouldVirtualize = virtualize && customVirtualState !== undefined;
+  const virtualItems = customVirtualState?.virtualItems || [];
+  const totalHeight = customVirtualState?.totalHeight || 0;
+  const offsetY = customVirtualState?.offsetY || 0;
 
   const processedData = useMemo(() => {
     let result = [...data];

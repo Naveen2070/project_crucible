@@ -83,7 +83,7 @@
                 [attr.aria-sort]="getAriaSort(col.key)">
                 {{ col.label }}
                 <ng-container *ngIf="col.sortable && shouldShowSortIcon(col.key)">
-                  <span class="ml-1">{{ getSortIcon() }}</span>
+                  <span class="ml-1" [textContent]="getSortIcon()"></span>
                 </ng-container>
               </th>
             </ng-container>

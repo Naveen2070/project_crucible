@@ -306,7 +306,7 @@ const headerCellClasses = (col: TableColumn) => [
                   ].filter(Boolean).join(' ')"
                   :style="{ width: col.width }"
                 >
-                  {{ row[col.key] }}
+                  <span v-text="row[col.key]" />
                 </td>
               </tr>
             </tbody>
@@ -379,7 +379,7 @@ const headerCellClasses = (col: TableColumn) => [
                 ].filter(Boolean).join(' ')"
                 :style="{ width: col.width }"
               >
-                {{ row[col.key] }}
+                <span v-text="row[col.key]" />
               </td>
             </tr>
           </tbody>
