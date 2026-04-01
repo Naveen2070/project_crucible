@@ -1,12 +1,20 @@
 import { glob } from 'glob';
 import { readFile } from 'fs/promises';
-import { PROHIBITED_PATTERNS } from '../src/__tests__/templates/audit';
+import { PROHIBITED_PATTERNS, AUDIT_EXCLUDES } from '../src/__tests__/templates/audit';
+
+function shouldExclude(filePath: string): boolean {
+  return AUDIT_EXCLUDES.some((pattern) => pattern.test(filePath));
+}
 
 async function auditTemplates() {
   const templates = await glob('templates/**/*.hbs');
   const errors: Array<{ file: string; pattern: string; line: string }> = [];
 
   for (const template of templates) {
+    if (shouldExclude(template)) {
+      continue;
+    }
+
     const content = await readFile(template, 'utf-8');
     const lines = content.split('\n');
 

@@ -7,165 +7,152 @@
     [style.overflow]="shouldVirtualize() ? '' : ''"
     (scroll)="onScroll($event)"
   >
-    @if (shouldVirtualize() && virtualState()) {
+    <ng-container *ngIf="shouldVirtualize() && virtualState()">
       <div [style.height]="virtualState()!.totalHeight + 'px'" [style.position]="'relative'">
         <table [ngClass]="getTableClasses()" role="grid">
           <thead class="sticky top-0 z-10 bg-[var(--color-surface)]">
             <tr class="border-b border-[var(--color-border)]">
-              @if (selectionMode !== 'none') {
+              <ng-container *ngIf="selectionMode !== 'none'">
                 <th class="px-4 py-3">
                   <input
                     type="checkbox"
                     [checked]="internalSelected().length === displayData().length && displayData().length > 0"
                     (change)="handleSelectAll()"
-                    class="rounded border-[var(--color-border)]"
-                  />
+                    class="rounded border-[var(--color-border)]" />
                 </th>
-              }
-              @for (col of columns; track col.key) {
+              </ng-container>
+              <ng-container *ngFor="let col of columns; trackBy: trackByKey">
                 <th
                   [ngClass]="getHeaderCellClasses(col)"
                   [style.width]="col.width"
                   (click)="handleSort(col)"
                   [attr.role]="col.sortable ? 'columnheader' : null"
-                  [attr.aria-sort]="internalSortKey() === col.key ? (internalSortDir() === 'asc' ? 'ascending' : 'descending') : null"
-                >
+                  [attr.aria-sort]="getAriaSort(col.key)">
                   {{ col.label }}
-                  @if (col.sortable && internalSortKey() === col.key) {
-                    <span class="ml-1">{{ internalSortDir() === 'asc' ? '↑' : '↓' }}</span>
-                  }
+                  <ng-container *ngIf="col.sortable && shouldShowSortIcon(col.key)">
+                    <span class="sort-icon">{{ sortIcon }}</span>
+                  </ng-container>
                 </th>
-              }
+              </ng-container>
             </tr>
           </thead>
           <tbody [style.transform]="'translateY(' + virtualState()!.offsetY + 'px)'">
-            @for (item of virtualState()!.virtualItems; track $index) {
-              @let row = displayData()[item.index];
-              <tr [ngClass]="getRowClasses(row, item.index)">
-                @if (selectionMode !== 'none') {
+            <ng-container *ngFor="let item of virtualState()!.virtualItems; trackBy: trackByIndex; let idx = index">
+              <tr [ngClass]="getRowClasses(displayData()[item.index], idx)">
+                <ng-container *ngIf="selectionMode !== 'none'">
                   <td class="px-4 py-2">
                     <input
                       type="checkbox"
-                      [checked]="internalSelected().includes(String(row[rowKey]))"
-                      (change)="handleSelect(row)"
-                      class="rounded border-[var(--color-border)]"
-                    />
+                      [checked]="internalSelected().includes(String(displayData()[item.index][rowKey]))"
+                      (change)="handleSelect(displayData()[item.index])"
+                      class="rounded border-[var(--color-border)]" />
                   </td>
-                }
-                @for (col of columns; track col.key) {
+                </ng-container>
+                <ng-container *ngFor="let col of columns; trackBy: trackByKey">
                   <td
                     [ngClass]="getCellClasses(col)"
-                    [style.width]="col.width"
-                  >
-                    {{ row[col.key] }}
+                    [style.width]="col.width">
+                    <span [textContent]="getCellValue(displayData()[item.index], col.key)"></span>
                   </td>
-                }
+                </ng-container>
               </tr>
-            }
+            </ng-container>
           </tbody>
         </table>
       </div>
-    } @else {
+    </ng-container>
+    <ng-container *ngIf="!shouldVirtualize() || !virtualState()">
       <table [ngClass]="getTableClasses()" role="grid">
         <thead class="bg-[var(--color-surface)]">
           <tr class="border-b border-[var(--color-border)]">
-            @if (selectionMode !== 'none') {
+            <ng-container *ngIf="selectionMode !== 'none'">
               <th class="px-4 py-3">
                 <input
                   type="checkbox"
                   [checked]="internalSelected().length === displayData().length && displayData().length > 0"
                   (change)="handleSelectAll()"
-                  class="rounded border-[var(--color-border)]"
-                />
+                  class="rounded border-[var(--color-border)]" />
               </th>
-            }
-            @for (col of columns; track col.key) {
+            </ng-container>
+            <ng-container *ngFor="let col of columns; trackBy: trackByKey">
               <th
                 [ngClass]="getHeaderCellClasses(col)"
                 [style.width]="col.width"
                 (click)="handleSort(col)"
                 [attr.role]="col.sortable ? 'columnheader' : null"
-                  [attr.aria-sort]="internalSortKey() === col.key ? (internalSortDir() === 'asc' ? 'ascending' : 'descending') : null"
-              >
+                [attr.aria-sort]="getAriaSort(col.key)">
                 {{ col.label }}
-                @if (col.sortable && internalSortKey() === col.key) {
-                  <span class="ml-1">{{ internalSortDir() === 'asc' ? '↑' : '↓' }}</span>
-                }
+                <ng-container *ngIf="col.sortable && shouldShowSortIcon(col.key)">
+                  <span class="ml-1">{{ getSortIcon() }}</span>
+                </ng-container>
               </th>
-            }
+            </ng-container>
           </tr>
         </thead>
         <tbody>
-          @if (displayData().length === 0 && !loading) {
+          <ng-container *ngIf="displayData().length === 0 && !loading">
             <tr>
               <td
                 [attr.colspan]="columns.length + (selectionMode !== 'none' ? 1 : 0)"
-                class="px-4 py-8 text-center text-[var(--color-text-muted)]"
-              >
+                class="px-4 py-8 text-center text-[var(--color-text-muted)]">
                 {{ emptyMessage }}
               </td>
             </tr>
-          } @else {
-            @for (row of displayData(); track $index) {
-              <tr [ngClass]="getRowClasses(row, $index)">
-                @if (selectionMode !== 'none') {
-                  <td class="px-4 py-2">
-                    <input
-                      type="checkbox"
-                      [checked]="internalSelected().includes(String(row[rowKey]))"
-                      (change)="handleSelect(row)"
-                      class="rounded border-[var(--color-border)]"
-                    />
-                  </td>
-                }
-                @for (col of columns; track col.key) {
-                  <td
-                    [ngClass]="getCellClasses(col)"
-                    [style.width]="col.width"
-                  >
-                    {{ row[col.key] }}
-                  </td>
-                }
-              </tr>
-            }
-          }
+          </ng-container>
+          <ng-container *ngFor="let row of displayData(); trackBy: trackByIndex; let idx = index">
+            <tr [ngClass]="getRowClasses(row, idx)">
+              <ng-container *ngIf="selectionMode !== 'none'">
+                <td class="px-4 py-2">
+                  <input
+                    type="checkbox"
+                    [checked]="internalSelected().includes(String(row[rowKey]))"
+                    (change)="handleSelect(row)"
+                    class="rounded border-[var(--color-border)]" />
+                </td>
+              </ng-container>
+              <ng-container *ngFor="let col of columns; trackBy: trackByKey">
+                <td
+                  [ngClass]="getCellClasses(col)"
+                  [style.width]="col.width">
+                  <span [textContent]="getCellValue(row, col.key)"></span>
+                </td>
+              </ng-container>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
-    }
+    </ng-container>
   </div>
 
-  @if (paginationMode === 'client' && pageInfo().totalPages > 1) {
-    <div class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+  <ng-container *ngIf="paginationMode === 'client' && pageInfo() as info">
+    <div *ngIf="info.totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
       <div class="text-sm text-[var(--color-text-muted)]">
-        Showing {{ pageInfo().startIndex + 1 }} to {{ pageInfo().endIndex }} of {{ pageInfo().totalItems }} results
+        Showing {{ pageStart }} to {{ pageEnd }} of {{ totalItems }} results
       </div>
       <div class="flex items-center gap-1">
         <button
           (click)="onPageChange(internalPage() - 1)"
-          [disabled]="!pageInfo().hasPrevPage"
-          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          [disabled]="!info.hasPrevPage"
+          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed">
           Previous
         </button>
-        @for (p of pageNumbers(); track p) {
+        <ng-container *ngFor="let p of pageNumbers(); trackBy: trackByPage">
           <button
             (click)="onPageChange(p)"
             class="px-3 py-1 text-sm rounded border"
             [ngClass]="p === internalPage() 
               ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' 
-              : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]'"
-          >
+              : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]'">
             {{ p }}
           </button>
-        }
+        </ng-container>
         <button
           (click)="onPageChange(internalPage() + 1)"
-          [disabled]="!pageInfo().hasNextPage"
-          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          [disabled]="!info.hasNextPage"
+          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed">
           Next
         </button>
       </div>
     </div>
-  }
+  </ng-container>
 </div>

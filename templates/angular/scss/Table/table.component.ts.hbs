@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HeadlessVirtualizer } from '../../utils/virtualizer';
-import { sort, SortDirection } from '../../utils/table-sorter';
-import { getPageData, getPageNumbers } from '../../utils/table-paginator';
+import { HeadlessVirtualizer, VirtualState } from './utils/virtualizer';
+import { sort, SortDirection } from './utils/table-sorter';
+import { getPageData, getPageNumbers } from './utils/table-paginator';
 
 export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -32,6 +32,7 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   @Input() virtualize = false;
   @Input() virtualizationThreshold = 100;
   @Input() itemHeight = 44;
+  @Input() customVirtualState?: VirtualState;
   @Input() paginationMode: 'client' | 'server' = 'client';
   @Input() pageSize = 10;
   @Input() page = 1;
@@ -73,11 +74,37 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
     right: 'cellRight',
   };
 
+  tableContainer = 'tableContainer';
+  thead = 'thead';
+  tbody = 'tbody';
+  headerRow = 'headerRow';
+  emptyRow = 'emptyRow';
+  pagination = 'pagination';
+  paginationInfo = 'paginationInfo';
+  paginationButtons = 'paginationButtons';
+  paginationBtn = 'paginationBtn';
+  paginationBtnActive = 'paginationBtnActive';
+  checkbox = 'checkbox';
+  sortIcon = 'sortIcon';
+
+  getAriaSort(colKey: string): string | null {
+    if (this.internalSortKey() !== colKey) return null;
+    return this.internalSortDir() === 'asc' ? 'ascending' : 'descending';
+  }
+
+  shouldShowSortIcon(colKey: string): boolean {
+    return this.internalSortKey() === colKey;
+  }
+
   shouldVirtualize = computed(() => this.virtualize && this.data.length >= this.virtualizationThreshold);
 
   virtualState = computed(() => {
     if (!this.shouldVirtualize() || !this.virtualizer) return null;
     return this.virtualizer.getState();
+  });
+
+  effectiveVirtualState = computed(() => {
+    return this.customVirtualState || this.virtualState();
   });
 
   processedData = computed(() => {
@@ -110,6 +137,11 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   displayData = computed(() => this.paginationResult().data);
   pageInfo = computed(() => this.paginationResult().pageInfo);
   pageNumbers = computed(() => getPageNumbers(this.pageInfo().page, this.pageInfo().totalPages));
+
+  getPaginationInfo(): string {
+    const info = this.pageInfo();
+    return `Showing ${info.startIndex + 1} to ${info.endIndex} of ${info.totalItems} results`;
+  }
 
   isStriped = computed(() => this.variant === 'striped');
   isBordered = computed(() => this.variant === 'bordered');
@@ -249,5 +281,21 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
       classes.push('cellBordered');
     }
     return classes.join(' ');
+  }
+
+  getCellValue(row: T, colKey: string): string {
+    return String(row[colKey as keyof T] ?? '');
+  }
+
+  trackByKey(index: number, col: TableColumn<T>): string {
+    return col.key;
+  }
+
+  trackByIndex(index: number, item: T): number {
+    return index;
+  }
+
+  trackByPage(index: number, page: number): number {
+    return page;
   }
 }

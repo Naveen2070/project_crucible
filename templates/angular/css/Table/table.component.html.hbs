@@ -1,0 +1,92 @@
+<div [ngClass]="getWrapperClasses()">
+  <div [ngClass]="tableContainer">
+    <table [ngClass]="getTableClasses()" role="grid">
+      <thead [ngClass]="thead">
+        <tr [ngClass]="headerRow">
+          <ng-container *ngIf="selectionMode !== 'none'">
+            <th [ngClass]="[headerCell, sizeClasses[size]]">
+              <input
+                type="checkbox"
+                [checked]="internalSelected().length === displayData().length && displayData().length > 0"
+                (change)="handleSelectAll()"
+                [ngClass]="checkbox" />
+            </th>
+          </ng-container>
+          <ng-container *ngFor="let col of columns; trackBy: trackByKey">
+            <th
+              [ngClass]="getHeaderCellClasses(col)"
+              [style.width]="col.width"
+              (click)="handleSort(col)"
+              [attr.role]="col.sortable ? 'columnheader' : null"
+              [attr.aria-sort]="getAriaSort(col.key)">
+              {{ col.label }}
+              <ng-container *ngIf="col.sortable && shouldShowSortIcon(col.key)">
+                <span class="sort-icon">{{ sortIcon }}</span>
+              </ng-container>
+            </th>
+          </ng-container>
+        </tr>
+      </thead>
+      <tbody [ngClass]="tbody">
+        <ng-container *ngIf="displayData().length === 0 && !loading">
+          <tr>
+            <td
+              [colSpan]="columns.length + (selectionMode !== 'none' ? 1 : 0)"
+              [ngClass]="emptyRow">
+              {{ emptyMessage }}
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngFor="let row of displayData(); trackBy: trackByIndex; let idx = index">
+          <tr [ngClass]="getRowClasses(row, idx)">
+            <ng-container *ngIf="selectionMode !== 'none'">
+              <td [ngClass]="cell">
+                <input
+                  type="checkbox"
+                  [checked]="internalSelected().includes(String(row[rowKey]))"
+                  (change)="handleSelect(row)"
+                  [ngClass]="checkbox" />
+              </td>
+            </ng-container>
+            <ng-container *ngFor="let col of columns; trackBy: trackByKey">
+              <td
+                [ngClass]="getCellClasses(col)"
+                [style.width]="col.width"
+                [textContent]="getCellValue(row, col.key)">
+              </td>
+            </ng-container>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-container *ngIf="paginationMode === 'client' && pageInfo() as info">
+    <div *ngIf="info.totalPages > 1" [ngClass]="pagination">
+      <div [ngClass]="paginationInfo">
+        Showing {{ pageStart }} to {{ pageEnd }} of {{ totalItems }} results
+      </div>
+      <div [ngClass]="paginationButtons">
+        <button
+          (click)="onPageChange(internalPage() - 1)"
+          [disabled]="!info.hasPrevPage"
+          [ngClass]="paginationBtn">
+          Previous
+        </button>
+        <ng-container *ngFor="let p of pageNumbers(); trackBy: trackByPage">
+          <button
+            (click)="onPageChange(p)"
+            [ngClass]="[paginationBtn, p === internalPage() ? paginationBtnActive : '']">
+            {{ p }}
+          </button>
+        </ng-container>
+        <button
+          (click)="onPageChange(internalPage() + 1)"
+          [disabled]="!info.hasNextPage"
+          [ngClass]="paginationBtn">
+          Next
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

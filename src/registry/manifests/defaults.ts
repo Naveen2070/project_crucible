@@ -76,6 +76,9 @@ export interface ComponentMeta {
     passwordToggle?: boolean;
     dynamicRowCount?: boolean;
   };
+
+  /** Utils files to copy to generated output (e.g., ['virtualizer', 'table-sorter']) */
+  utils?: string[];
 }
 
 export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
@@ -142,5 +145,6 @@ export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
     noClassName: true,
     behaviours: [],
     a11y: { role: 'table', keyboardNav: true, dynamicRowCount: true },
+    utils: ['virtualizer', 'table-sorter', 'table-paginator'],
   },
 };

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { HeadlessVirtualizer } from '../../utils/virtualizer';
+import { HeadlessVirtualizer, VirtualState } from '../../utils/virtualizer';
 import { sort, SortDirection } from '../../utils/table-sorter';
 import { getPageData, getPageNumbers } from '../../utils/table-paginator';
 import styles from './Table.module.scss';
@@ -25,6 +25,7 @@ interface Props {
   virtualize?: boolean;
   virtualizationThreshold?: number;
   itemHeight?: number;
+  customVirtualState?: VirtualState;
   paginationMode?: 'client' | 'server';
   pageSize?: number;
   page?: number;
@@ -108,6 +109,10 @@ const virtualState = computed(() => {
   return virtualizerRef.value.getState();
 });
 
+const effectiveVirtualState = computed(() => 
+  props.customVirtualState || virtualState.value
+);
+
 const processedData = computed(() => {
   let result = [...props.data];
   if (internalSortKey.value) {
@@ -139,6 +144,10 @@ const displayData = computed(() => paginationResult.value.data);
 const pageInfo = computed(() => paginationResult.value.pageInfo);
 const pageNumbers = computed(() => getPageNumbers(pageInfo.value.page, pageInfo.value.totalPages));
 
+const paginationStart = computed(() => pageInfo.value.startIndex + 1);
+const paginationEnd = computed(() => pageInfo.value.endIndex);
+const paginationTotal = computed(() => pageInfo.value.totalItems);
+
 const sizeClasses: Record<string, string> = {
   sm: styles.cellSm,
   md: styles.cellMd,
@@ -150,6 +159,8 @@ const alignClasses: Record<string, string> = {
   center: styles.cellCenter,
   right: styles.cellRight,
 };
+
+const sortIcon = computed(() => internalSortDir.value === 'asc' ? '↑' : '↓');
 
 const handleSort = (column: TableColumn) => {
   if (!column.sortable) return;
@@ -236,8 +247,8 @@ const headerCellClasses = (col: TableColumn) => [
       :style="shouldVirtualize ? { height: containerHeight + 'px', overflow: 'auto' } : { overflow: 'auto' }"
       @scroll="shouldVirtualize ? handleScroll : undefined"
     >
-      <template v-if="shouldVirtualize && virtualState">
-        <div :style="{ height: virtualState.totalHeight + 'px', position: 'relative' }">
+      <template v-if="shouldVirtualize && effectiveVirtualState">
+        <div :style="{ height: effectiveVirtualState.totalHeight + 'px', position: 'relative' }">
           <table :class="tableClasses" role="grid">
             <thead :class="styles.thead">
               <tr :class="styles.headerRow">
@@ -260,18 +271,18 @@ const headerCellClasses = (col: TableColumn) => [
                 >
                   {{ col.label }}
                   <span v-if="col.sortable && internalSortKey === col.key" :class="styles.sortIcon">
-                    {{ internalSortDir === 'asc' ? '↑' : '↓' }}
+                    {{ sortIcon }}
                   </span>
                 </th>
               </tr>
             </thead>
-            <tbody :class="styles.tbody" :style="{ transform: `translateY(${virtualState.offsetY}px)` }">
+            <tbody :class="styles.tbody" :style="{ transform: `translateY(${effectiveVirtualState.offsetY}px)` }">
               <tr
-                v-for="(row, idx) in virtualState.virtualItems.map(v => displayData[v.index])"
+                v-for="(row, idx) in effectiveVirtualState.virtualItems.map(v => displayData[v.index])"
                 :key="String(row[rowKey])"
                 :class="[
                   styles.row,
-                  isStriped && (virtualState.virtualItems[idx]?.index ?? idx) % 2 === 1 ? styles.rowStriped : '',
+                  isStriped && (effectiveVirtualState.virtualItems[idx]?.index ?? idx) % 2 === 1 ? styles.rowStriped : '',
                   !isStriped && !isCompact ? styles.rowHover : '',
                   internalSelected.includes(String(row[rowKey])) ? styles.rowSelected : '',
                 ].filter(Boolean).join(' ')"
@@ -324,8 +335,8 @@ const headerCellClasses = (col: TableColumn) => [
                 :aria-sort="internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined"
               >
                 {{ col.label }}
-                <span v-if="col.sortable && internalSortKey === col.key" :class="styles.sortIcon">
-                  {{ internalSortDir === 'asc' ? '↑' : '↓' }}
+                  <span v-if="col.sortable && internalSortKey === col.key" :class="styles.sortIcon">
+                    {{ sortIcon }}
                 </span>
               </th>
             </tr>
@@ -381,7 +392,7 @@ const headerCellClasses = (col: TableColumn) => [
       :class="styles.pagination"
     >
       <div :class="styles.paginationInfo">
-        Showing {{ pageInfo.startIndex + 1 }} to {{ pageInfo.endIndex }} of {{ pageInfo.totalItems }} results
+        Showing {{ paginationStart }} to {{ paginationEnd }} of {{ paginationTotal }} results
       </div>
       <div :class="styles.paginationButtons">
         <button

@@ -56,6 +56,7 @@ export interface ComponentModel {
   hasSorting: boolean;
   hasSelection: boolean;
   hasVirtualization: boolean;
+  utils?: string[];
 }
 
 export function buildComponentModel(
@@ -140,5 +141,6 @@ export function buildComponentModel(
     hasSorting: defaults.states.includes('sortable'),
     hasSelection: defaults.states.includes('selectable'),
     hasVirtualization: defaults.states.includes('virtualizable'),
+    utils: defaults.utils,
   };
 }

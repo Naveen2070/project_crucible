@@ -22,7 +22,7 @@ const remove = (p: string) => rm(p, { recursive: true, force: true });
 const ROOT_DIR = process.cwd();
 const CLI_PATH = path.join(ROOT_DIR, 'dist/cli/index.js');
 const FRAMEWORKS = ['react', 'angular', 'vue'] as const;
-const COMPONENTS = ['Button', 'Input', 'Card', 'Dialog', 'Select'];
+const COMPONENTS = ['Button', 'Input', 'Card', 'Dialog', 'Select', 'Table'];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,
   angular: 6007,

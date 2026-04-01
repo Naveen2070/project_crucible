@@ -191,6 +191,24 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     result['README.md'] = compiled(model);
   }
 
+  // Generate virtualization-adapters-guide.md for Table component
+  if (model.name === 'Table') {
+    const guidePath = path.join(
+      getTemplatesRoot(),
+      'shared',
+      'virtualization-adapters-guide.md.hbs',
+    );
+    if (await pathExists(guidePath)) {
+      let compiled = templateCache.get(guidePath);
+      if (!compiled) {
+        const source = await readFile(guidePath, 'utf-8');
+        compiled = Handlebars.compile(source);
+        templateCache.set(guidePath, compiled);
+      }
+      result['virtualization-adapters-guide.md'] = compiled(model);
+    }
+  }
+
   return result;
 }
 

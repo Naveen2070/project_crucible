@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { HeadlessVirtualizer } from '../../utils/virtualizer';
+import { HeadlessVirtualizer, VirtualState } from '../../utils/virtualizer';
 import { sort, SortDirection } from '../../utils/table-sorter';
 import { getPageData, getPageNumbers } from '../../utils/table-paginator';
 
@@ -24,6 +24,7 @@ interface Props {
   virtualize?: boolean;
   virtualizationThreshold?: number;
   itemHeight?: number;
+  customVirtualState?: VirtualState;
   paginationMode?: 'client' | 'server';
   pageSize?: number;
   page?: number;
@@ -107,6 +108,10 @@ const virtualState = computed(() => {
   return virtualizerRef.value.getState();
 });
 
+const effectiveVirtualState = computed(() => 
+  props.customVirtualState || virtualState.value
+);
+
 const processedData = computed(() => {
   let result = [...props.data];
   if (internalSortKey.value) {
@@ -138,11 +143,17 @@ const displayData = computed(() => paginationResult.value.data);
 const pageInfo = computed(() => paginationResult.value.pageInfo);
 const pageNumbers = computed(() => getPageNumbers(pageInfo.value.page, pageInfo.value.totalPages));
 
+const paginationStart = computed(() => pageInfo.value.startIndex + 1);
+const paginationEnd = computed(() => pageInfo.value.endIndex);
+const paginationTotal = computed(() => pageInfo.value.totalItems);
+
 const sizeClasses: Record<string, string> = {
   sm: 'text-sm py-2',
   md: 'text-base py-3',
   lg: 'text-lg py-4',
 };
+
+const sortIcon = computed(() => internalSortDir.value === 'asc' ? '↑' : '↓');
 
 const alignClasses: Record<string, string> = {
   left: 'text-left',
@@ -222,8 +233,8 @@ const isCompact = computed(() => props.variant === 'compact');
       :style="shouldVirtualize ? { height: containerHeight + 'px', overflow: 'auto' } : { overflow: 'auto' }"
       @scroll="shouldVirtualize ? handleScroll : undefined"
     >
-      <template v-if="shouldVirtualize && virtualState">
-        <div :style="{ height: virtualState.totalHeight + 'px', position: 'relative' }">
+      <template v-if="shouldVirtualize && effectiveVirtualState">
+        <div :style="{ height: effectiveVirtualState.totalHeight + 'px', position: 'relative' }">
           <table class="w-full border-collapse" role="grid" :class="{ 'opacity-50 pointer-events-none': loading }">
             <thead class="sticky top-0 z-10 bg-[var(--color-surface)]">
               <tr class="border-b border-[var(--color-border)]">
@@ -252,18 +263,18 @@ const isCompact = computed(() => props.variant === 'compact');
                 >
                   {{ col.label }}
                   <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">
-                    {{ internalSortDir === 'asc' ? '↑' : '↓' }}
+                    {{ sortIcon }}
                   </span>
                 </th>
               </tr>
             </thead>
-            <tbody :style="{ transform: `translateY(${virtualState.offsetY}px)` }">
+            <tbody :style="{ transform: `translateY(${effectiveVirtualState.offsetY}px)` }">
               <tr
-                v-for="(row, idx) in virtualState.virtualItems.map(v => displayData[v.index])"
+                v-for="(row, idx) in effectiveVirtualState.virtualItems.map(v => displayData[v.index])"
                 :key="String(row[rowKey])"
                 class="transition-colors"
                 :class="[
-                  isStriped && (virtualState.virtualItems[idx]?.index ?? idx) % 2 === 1 ? 'bg-[var(--color-muted)]' : '',
+                  isStriped && (effectiveVirtualState.virtualItems[idx]?.index ?? idx) % 2 === 1 ? 'bg-[var(--color-muted)]' : '',
                   !isStriped && !isCompact ? 'hover:bg-[var(--color-secondary)]' : '',
                   internalSelected.includes(String(row[rowKey])) ? 'bg-[var(--color-primary)]/10' : '',
                 ]"
@@ -322,8 +333,8 @@ const isCompact = computed(() => props.variant === 'compact');
                 :aria-sort="internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined"
               >
                 {{ col.label }}
-                <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">
-                  {{ internalSortDir === 'asc' ? '↑' : '↓' }}
+                  <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">
+                    {{ sortIcon }}
                 </span>
               </th>
             </tr>
@@ -379,7 +390,7 @@ const isCompact = computed(() => props.variant === 'compact');
       class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]"
     >
       <div class="text-sm text-[var(--color-text-muted)]">
-        Showing {{ pageInfo.startIndex + 1 }} to {{ pageInfo.endIndex }} of {{ pageInfo.totalItems }} results
+        Showing {{ paginationStart }} to {{ paginationEnd }} of {{ paginationTotal }} results
       </div>
       <div class="flex items-center gap-1">
         <button

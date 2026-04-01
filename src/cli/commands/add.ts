@@ -1,6 +1,7 @@
 import path from 'path';
 import ansis from 'ansis';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
@@ -21,6 +22,24 @@ import { pathExists } from '../../utils/fs';
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+async function copyUtilsFiles(utils: string[], outDir: string, componentName: string) {
+  if (!utils || utils.length === 0) return;
+
+  const utilsDir = path.join(outDir, componentName, 'utils');
+  await mkdir(utilsDir, { recursive: true });
+
+  const templateUtilsDir = path.join(__dirname, '../../../templates/shared/utils');
+
+  for (const util of utils) {
+    const src = path.join(templateUtilsDir, `${util}.ts`);
+    const dest = path.join(utilsDir, `${util}.ts`);
+
+    if (existsSync(src)) {
+      await copyFile(src, dest);
+    }
+  }
 }
 
 export async function runAdd(components: string[], opts: any) {
@@ -212,6 +231,10 @@ export async function runAdd(components: string[], opts: any) {
           cwd,
           hashes,
         });
+
+        if (model.utils && model.utils.length > 0) {
+          await copyUtilsFiles(model.utils, outDir, comp);
+        }
 
         const storiesNote = generateStories ? ' + story' : '';
         const dryRunNote = opts.dryRun ? ansis.yellow(' (dry-run)') : '';
