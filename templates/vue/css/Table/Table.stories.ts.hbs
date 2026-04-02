@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/vue';
-import { ref } from 'vue';
 import Table from './Table.vue';
 
 const meta: Meta<typeof Table> = {
@@ -41,6 +40,11 @@ export const Default: Story = {
     data: generateData(20),
     rowKey: 'id',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" />`,
+  }),
 };
 
 export const Striped: Story = {
@@ -50,6 +54,11 @@ export const Striped: Story = {
     rowKey: 'id',
     variant: 'striped',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" />`,
+  }),
 };
 
 export const Bordered: Story = {
@@ -59,6 +68,11 @@ export const Bordered: Story = {
     rowKey: 'id',
     variant: 'bordered',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" />`,
+  }),
 };
 
 export const Compact: Story = {
@@ -68,6 +82,11 @@ export const Compact: Story = {
     rowKey: 'id',
     variant: 'compact',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" />`,
+  }),
 };
 
 export const WithPagination: Story = {
@@ -78,6 +97,11 @@ export const WithPagination: Story = {
     paginationMode: 'client',
     pageSize: 10,
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :paginationMode="args.paginationMode" :pageSize="args.pageSize" />`,
+  }),
 };
 
 export const WithSorting: Story = {
@@ -88,6 +112,11 @@ export const WithSorting: Story = {
     sortKey: 'name',
     sortDirection: 'asc',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :sortKey="args.sortKey" :sortDirection="args.sortDirection" />`,
+  }),
 };
 
 export const WithSelection: Story = {
@@ -97,6 +126,11 @@ export const WithSelection: Story = {
     rowKey: 'id',
     selectionMode: 'multiple',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :selectionMode="args.selectionMode" />`,
+  }),
 };
 
 export const Loading: Story = {
@@ -106,6 +140,11 @@ export const Loading: Story = {
     rowKey: 'id',
     loading: true,
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :loading="args.loading" />`,
+  }),
 };
 
 export const Empty: Story = {
@@ -115,6 +154,11 @@ export const Empty: Story = {
     rowKey: 'id',
     emptyMessage: 'No users found',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :emptyMessage="args.emptyMessage" />`,
+  }),
 };
 
 export const Virtualized5k: Story = {
@@ -125,6 +169,11 @@ export const Virtualized5k: Story = {
     virtualize: true,
     virtualizationThreshold: 50,
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :virtualize="args.virtualize" :virtualizationThreshold="args.virtualizationThreshold" />`,
+  }),
 };
 
 export const AllFeatures: Story = {
@@ -139,4 +188,9 @@ export const AllFeatures: Story = {
     pageSize: 10,
     selectionMode: 'multiple',
   },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" :size="args.size" :virtualize="args.virtualize" :paginationMode="args.paginationMode" :pageSize="args.pageSize" :selectionMode="args.selectionMode" />`,
+  }),
 };

@@ -1,22 +1,21 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
-import { Table } from './Table';
+import { Meta, StoryObj } from '@storybook/angular';
+import { TableComponent } from './table.component';
 
-const meta: Meta<typeof Table> = {
+const meta: Meta<TableComponent> = {
   title: 'Crucible/Table',
-  component: Table,
-  parameters: { layout: 'fullscreen' },
+  component: TableComponent,
+  tags: ['autodocs'],
   argTypes: {
     variant: { control: 'select', options: ['default', 'striped', 'bordered', 'compact'] },
     size: { control: 'select', options: ['sm', 'md', 'lg'] },
-    virtualize: { control: 'boolean' },
     paginationMode: { control: 'select', options: ['client', 'server'] },
     selectionMode: { control: 'select', options: ['none', 'single', 'multiple'] },
+    loading: { control: 'boolean' },
   },
 };
 
 export default meta;
-type Story = StoryObj<typeof Table>;
+type Story = StoryObj<TableComponent>;
 
 const columns = [
   { key: 'id', label: 'ID', sortable: true, width: '60px' },
@@ -41,7 +40,10 @@ export const Default: Story = {
     data: generateData(20),
     rowKey: 'id',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey"></app-table>`,
+  }),
 };
 
 export const Striped: Story = {
@@ -51,7 +53,10 @@ export const Striped: Story = {
     rowKey: 'id',
     variant: 'striped',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [variant]="variant"></app-table>`,
+  }),
 };
 
 export const Bordered: Story = {
@@ -61,7 +66,10 @@ export const Bordered: Story = {
     rowKey: 'id',
     variant: 'bordered',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [variant]="variant"></app-table>`,
+  }),
 };
 
 export const Compact: Story = {
@@ -71,7 +79,10 @@ export const Compact: Story = {
     rowKey: 'id',
     variant: 'compact',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [variant]="variant"></app-table>`,
+  }),
 };
 
 export const WithPagination: Story = {
@@ -82,7 +93,10 @@ export const WithPagination: Story = {
     paginationMode: 'client',
     pageSize: 10,
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [paginationMode]="paginationMode" [pageSize]="pageSize"></app-table>`,
+  }),
 };
 
 export const WithSorting: Story = {
@@ -90,10 +104,11 @@ export const WithSorting: Story = {
     columns,
     data: generateData(20),
     rowKey: 'id',
-    sortKey: 'name',
-    sortDirection: 'asc',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey"></app-table>`,
+  }),
 };
 
 export const WithSelection: Story = {
@@ -103,7 +118,10 @@ export const WithSelection: Story = {
     rowKey: 'id',
     selectionMode: 'multiple',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [selectionMode]="selectionMode"></app-table>`,
+  }),
 };
 
 export const Loading: Story = {
@@ -113,7 +131,10 @@ export const Loading: Story = {
     rowKey: 'id',
     loading: true,
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [loading]="loading"></app-table>`,
+  }),
 };
 
 export const Empty: Story = {
@@ -123,18 +144,10 @@ export const Empty: Story = {
     rowKey: 'id',
     emptyMessage: 'No users found',
   },
-  render: (args) => <Table {...args} />,
-};
-
-export const Virtualized5k: Story = {
-  args: {
-    columns,
-    data: generateData(5000),
-    rowKey: 'id',
-    virtualize: true,
-    virtualizationThreshold: 50,
-  },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [emptyMessage]="emptyMessage"></app-table>`,
+  }),
 };
 
 export const AllFeatures: Story = {
@@ -144,10 +157,12 @@ export const AllFeatures: Story = {
     rowKey: 'id',
     variant: 'striped',
     size: 'md',
-    virtualize: true,
     paginationMode: 'client',
     pageSize: 10,
     selectionMode: 'multiple',
   },
-  render: (args) => <Table {...args} />,
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [variant]="variant" [size]="size" [paginationMode]="paginationMode" [pageSize]="pageSize" [selectionMode]="selectionMode"></app-table>`,
+  }),
 };

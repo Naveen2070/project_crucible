@@ -3,7 +3,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { sort, SortDirection } from './utils/table-sorter';
 import { getPageData, getPageNumbers } from './utils/table-paginator';
 import { VirtualState, HeadlessVirtualizer } from './utils/virtualizer';
-import styles from './Table.module.css';
 
 export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -105,15 +104,15 @@ const paginationEnd = computed(() => pageInfo.value.endIndex);
 const paginationTotal = computed(() => pageInfo.value.totalItems);
 
 const sizeClasses: Record<string, string> = {
-  sm: styles.cellSm,
-  md: styles.cellMd,
-  lg: styles.cellLg,
+  sm: 'cellSm',
+  md: 'cellMd',
+  lg: 'cellLg',
 };
 
 const alignClasses: Record<string, string> = {
-  left: styles.cellLeft,
-  center: styles.cellCenter,
-  right: styles.cellRight,
+  left: 'cellLeft',
+  center: 'cellCenter',
+  right: 'cellRight',
 };
 
 const handleSort = (column: TableColumn) => {
@@ -202,19 +201,19 @@ onUnmounted(() => {
 });
 
 const wrapperClasses = computed(() => [
-  styles.tableWrapper,
-  isBordered.value ? styles.tableWrapperBordered : '',
+  'tableWrapper',
+  isBordered.value ? 'tableWrapperBordered' : '',
 ]);
 
 const tableClasses = computed(() => [
-  styles.table,
-  props.loading ? styles.tableLoading : '',
+  'table',
+  props.loading ? 'tableLoading' : '',
 ]);
 
 const headerCellClasses = (col: TableColumn) => [
-  styles.headerCell,
+  'headerCell',
   sizeClasses[props.size],
-  col.sortable ? styles.headerCellSortable : '',
+  col.sortable ? 'headerCellSortable' : '',
   alignClasses[col.align || 'left'],
 ].filter(Boolean).join(' ');
 
@@ -224,10 +223,10 @@ const getSortAriaSort = (colKey: string) => {
 };
 
 const getCellClass = (col: TableColumn) => [
-  styles.cell,
+  'cell',
   sizeClasses[props.size],
   alignClasses[col.align || 'left'],
-  isBordered.value ? styles.cellBordered : '',
+  isBordered.value ? 'cellBordered' : '',
 ].filter(Boolean).join(' ');
 
 const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.includes(String(row[props.rowKey]));
@@ -237,20 +236,20 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   <div :class="wrapperClasses">
     <div 
       ref="containerRef" 
-      :class="showVirtualContainer ? styles.tableContainer : undefined"
+      :class="showVirtualContainer ? 'tableContainer' : undefined"
       :style="showVirtualContainer ? { height: containerHeight + 'px', overflow: 'auto' } : {}"
       @scroll="showVirtualContainer ? handleScroll : undefined"
     >
       <div v-if="showVirtualContainer" :style="{ height: totalHeight + 'px', position: 'relative' }">
         <table :class="tableClasses" role="grid" style="position: sticky; top: 0;">
-          <thead :class="styles.thead">
-            <tr :class="styles.headerRow">
-              <th v-if="selectionMode !== 'none'" :class="[styles.headerCell, sizeClasses[size]]">
+          <thead class="thead">
+            <tr class="headerRow">
+              <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size]]">
                 <input
                   type="checkbox"
                   :checked="internalSelected.length === displayData.length && displayData.length > 0"
                   @change="handleSelectAll"
-                  :class="styles.checkbox"
+                  class="checkbox"
                 />
               </th>
               <th
@@ -263,29 +262,29 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
                 :aria-sort="getSortAriaSort(col.key)"
               >
                 {{ col.label }}
-                <span v-if="col.sortable && internalSortKey === col.key" :class="styles.sortIcon">
+                <span v-if="col.sortable && internalSortKey === col.key" class="sortIcon">
                   {{ sortIcon }}
                 </span>
               </th>
             </tr>
           </thead>
-          <tbody :class="styles.tbody" :style="{ transform: 'translateY(' + offsetY + 'px)' }">
+          <tbody class="tbody" :style="{ transform: 'translateY(' + offsetY + 'px)' }">
             <tr
               v-for="item in virtualItems"
               :key="item.index"
               :class="[
-                styles.row,
-                isStriped && item.index % 2 === 1 ? styles.rowStriped : '',
-                !isStriped && !isCompact ? styles.rowHover : '',
+                'row',
+                isStriped && item.index % 2 === 1 ? 'rowStriped' : '',
+                !isStriped && !isCompact ? 'rowHover' : '',
               ].filter(Boolean).join(' ')"
               :style="{ position: 'absolute', top: item.start, width: '100%' }"
             >
-              <td v-if="selectionMode !== 'none'" :class="styles.cell">
+              <td v-if="selectionMode !== 'none'" class="cell">
                 <input
                   type="checkbox"
                   :checked="isRowSelected(displayData[item.index])"
                   @change="handleSelect(displayData[item.index])"
-                  :class="styles.checkbox"
+                  class="checkbox"
                 />
               </td>
               <td
@@ -301,14 +300,14 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
         </table>
       </div>
       <table v-else :class="tableClasses" role="grid">
-        <thead :class="styles.thead">
-          <tr :class="styles.headerRow">
-            <th v-if="selectionMode !== 'none'" :class="[styles.headerCell, sizeClasses[size]]">
+        <thead class="thead">
+          <tr class="headerRow">
+            <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size]]">
               <input
                 type="checkbox"
                 :checked="internalSelected.length === displayData.length && displayData.length > 0"
                 @change="handleSelectAll"
-                :class="styles.checkbox"
+                class="checkbox"
               />
             </th>
             <th
@@ -321,17 +320,17 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               :aria-sort="getSortAriaSort(col.key)"
             >
               {{ col.label }}
-              <span v-if="col.sortable && internalSortKey === col.key" :class="styles.sortIcon">
+              <span v-if="col.sortable && internalSortKey === col.key" class="sortIcon">
                 {{ sortIcon }}
               </span>
             </th>
           </tr>
         </thead>
-        <tbody :class="styles.tbody">
+        <tbody class="tbody">
           <tr v-if="displayData.length === 0 && !loading">
             <td
               :colspan="columns.length + (selectionMode !== 'none' ? 1 : 0)"
-              :class="styles.emptyRow"
+              class="emptyRow"
             >
               {{ emptyMessage }}
             </td>
@@ -340,18 +339,18 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
             v-for="(row, idx) in displayData"
             :key="String(row[rowKey])"
             :class="[
-              styles.row,
-              isStriped && idx % 2 === 1 ? styles.rowStriped : '',
-              !isStriped && !isCompact ? styles.rowHover : '',
-              isRowSelected(row) ? styles.rowSelected : '',
+              'row',
+              isStriped && idx % 2 === 1 ? 'rowStriped' : '',
+              !isStriped && !isCompact ? 'rowHover' : '',
+              isRowSelected(row) ? 'rowSelected' : '',
             ].filter(Boolean).join(' ')"
           >
-            <td v-if="selectionMode !== 'none'" :class="styles.cell">
+            <td v-if="selectionMode !== 'none'" class="cell">
               <input
                 type="checkbox"
                 :checked="isRowSelected(row)"
                 @change="handleSelect(row)"
-                :class="styles.checkbox"
+                class="checkbox"
               />
             </td>
             <td
@@ -369,16 +368,16 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
 
     <div
       v-if="paginationMode === 'client' && pageInfo.totalPages > 1"
-      :class="styles.pagination"
+      class="pagination"
     >
-      <div :class="styles.paginationInfo">
+      <div class="paginationInfo">
         Showing {{ paginationStart }} to {{ paginationEnd }} of {{ paginationTotal }} results
       </div>
-      <div :class="styles.paginationButtons">
+      <div class="paginationButtons">
         <button
           @click="() => { internalPage--; emit('pageChange', internalPage, pageSize); }"
           :disabled="!pageInfo.hasPrevPage"
-          :class="styles.paginationBtn"
+          class="paginationBtn"
         >
           Previous
         </button>
@@ -387,8 +386,8 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
           :key="p"
           @click="() => { internalPage = p; emit('pageChange', p, pageSize); }"
           :class="[
-            styles.paginationBtn,
-            p === internalPage ? styles.paginationBtnActive : '',
+            'paginationBtn',
+            p === internalPage ? 'paginationBtnActive' : '',
           ].filter(Boolean).join(' ')"
         >
           {{ p }}
@@ -396,7 +395,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
         <button
           @click="() => { internalPage++; emit('pageChange', internalPage, pageSize); }"
           :disabled="!pageInfo.hasNextPage"
-          :class="styles.paginationBtn"
+          class="paginationBtn"
         >
           Next
         </button>
@@ -404,3 +403,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
     </div>
   </div>
 </template>
+
+<style scoped>
+{{> shared/components/table-base}}
+</style>
