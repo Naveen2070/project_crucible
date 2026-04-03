@@ -3,6 +3,10 @@
   overflow: hidden;
   border-radius: var(--table-border-radius, var(--radius-md));
   border: 1px solid var(--color-border);
+
+  &Bordered {
+    border: 1px solid var(--color-border);
+  }
 }
 
 .tableContainer {
@@ -123,6 +127,10 @@
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .pagination {

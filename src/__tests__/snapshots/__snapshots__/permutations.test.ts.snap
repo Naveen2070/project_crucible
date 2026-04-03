@@ -1372,6 +1372,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -1490,6 +1494,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .pagination {
@@ -3792,6 +3800,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   overflow: hidden;
   border-radius: var(--table-border-radius, var(--radius-md));
   border: 1px solid var(--color-border);
+
+  &Bordered {
+    border: 1px solid var(--color-border);
+  }
 }
 
 .tableContainer {
@@ -3912,6 +3924,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .pagination {
@@ -7862,6 +7878,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -7980,6 +8000,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .pagination {
@@ -10282,6 +10306,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   overflow: hidden;
   border-radius: var(--table-border-radius, var(--radius-md));
   border: 1px solid var(--color-border);
+
+  &Bordered {
+    border: 1px solid var(--color-border);
+  }
 }
 
 .tableContainer {
@@ -10402,6 +10430,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .pagination {
@@ -14849,6 +14881,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -15148,6 +15184,8 @@ export interface TableContextValue<T = unknown> {
   onSelect?: (keys: string[]) => void;
   onSelectAll?: (selected: boolean) => void;
   onPageChange?: (page: number, pageSize: number) => void;
+  loading?: boolean;
+  emptyMessage?: string;
 }
 
 const TableContext = React.createContext<TableContextValue | null>(null);
@@ -15278,15 +15316,164 @@ export const TableRoot = <T extends Record<string, unknown>>({
     onSelect: handleSelect,
     onSelectAll: handleSelectAll,
     onPageChange: handlePageChange,
+    loading,
+    emptyMessage,
   };
 
   const isBordered = variant === 'bordered';
   const wrapperClasses = [styles.tableWrapper, isBordered ? styles.tableWrapperBordered : '', className].filter(Boolean).join(' ');
 
+  const pageNumbers = pageInfo ? getPageNumbers(pageInfo.page, pageInfo.totalPages) : [];
+
+  const renderDefaultContent = () => {
+    const isStriped = variant === 'striped';
+    const isCompact = variant === 'compact';
+
+    const renderRows = () => {
+      if (displayData.length === 0 && !loading) {
+        return (
+          <tr>
+            <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
+              {emptyMessage}
+            </td>
+          </tr>
+        );
+      }
+
+      return displayData.map((row, idx) => {
+        const key = String(row[rowKey]);
+        const isSelected = internalSelected.includes(key);
+        return (
+          <tr
+            key={key}
+            className={[
+              styles.row,
+              isStriped && idx % 2 === 1 ? styles.rowStriped : '',
+              !isStriped && !isCompact ? styles.rowHover : '',
+              isSelected ? styles.rowSelected : '',
+            ].filter(Boolean).join(' ')}
+          >
+            {selectionMode !== 'none' && (
+              <td className={styles.cell}>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => handleSelect(row)}
+                  className={styles.checkbox}
+                />
+              </td>
+            )}
+            {columns.map(col => (
+              <td
+                key={col.key}
+                className={[
+                  styles.cell,
+                  sizeClasses[size],
+                  alignClasses[col.align || 'left'],
+                ].filter(Boolean).join(' ')}
+                style={col.width ? { width: col.width } : undefined}
+              >
+                {String(row[col.key] ?? '')}
+              </td>
+            ))}
+          </tr>
+        );
+      });
+    };
+
+    const renderHeader = () => (
+      <thead className={styles.thead}>
+        <tr className={styles.headerRow}>
+          {selectionMode !== 'none' && (
+            <th className={[styles.headerCell, sizeClasses[size]].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={internalSelected.length === displayData.length && displayData.length > 0}
+                onChange={() => {
+                  const allKeys = displayData.map(r => String(r[rowKey]));
+                  const newSelected = internalSelected.length === displayData.length ? [] : allKeys;
+                  setInternalSelected(newSelected);
+                  onSelectAll?.(newSelected.length > 0);
+                }}
+                className={styles.checkbox}
+              />
+            </th>
+          )}
+          {columns.map(col => (
+            <th
+              key={col.key}
+              className={[
+                styles.headerCell,
+                sizeClasses[size],
+                col.sortable ? styles.headerCellSortable : '',
+                alignClasses[col.align || 'left'],
+              ].filter(Boolean).join(' ')}
+              style={col.width ? { width: col.width } : undefined}
+              onClick={() => col.sortable && handleSort(col.key)}
+              role={col.sortable ? 'columnheader' : undefined}
+              aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+            >
+              {col.label}
+              {col.sortable && internalSortKey === col.key && (
+                <span className={styles.sortIcon}>{internalSortDir === 'asc' ? '↑' : '↓'}</span>
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+    );
+
+    const renderPagination = () => {
+      if (paginationMode !== 'client' || !pageInfo || pageInfo.totalPages <= 1) return null;
+      return (
+        <div className={styles.pagination}>
+          <div className={styles.paginationInfo}>
+            Showing {pageInfo.startIndex + 1} to {pageInfo.endIndex} of {pageInfo.totalItems} results
+          </div>
+          <div className={styles.paginationButtons}>
+            <button
+              onClick={() => handlePageChange(pageInfo.page - 1)}
+              disabled={!pageInfo.hasPrevPage}
+              className={styles.paginationBtn}
+            >
+              Previous
+            </button>
+            {pageNumbers.map(p => (
+              <button
+                key={p}
+                onClick={() => handlePageChange(p)}
+                className={[styles.paginationBtn, p === pageInfo.page ? styles.paginationBtnActive : ''].filter(Boolean).join(' ')}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(pageInfo.page + 1)}
+              disabled={!pageInfo.hasNextPage}
+              className={styles.paginationBtn}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <>
+        <table className={[styles.table, loading && styles.tableLoading].filter(Boolean).join(' ')} role="grid">
+          {renderHeader()}
+          <tbody className={styles.tbody}>{renderRows()}</tbody>
+        </table>
+        {renderPagination()}
+      </>
+    );
+  };
+
   return (
     <TableContext.Provider value={contextValue}>
       <div className={wrapperClasses}>
-        {children}
+        {children ? children : renderDefaultContent()}
       </div>
     </TableContext.Provider>
   );
@@ -15342,25 +15529,63 @@ export const TableHeader = ({ children, className }: { children?: React.ReactNod
 };
 
 export const TableBody = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
-  const { data: displayData, loading, emptyMessage, columns, selectionMode } = useTable();
+  const { data: displayData, loading, emptyMessage, columns, selectionMode, rowKey, variant, selectedRows, onSelect } = useTable();
 
   if (children) {
     return <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>{children}</tbody>;
   }
 
-  return (
-    <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>
-      {displayData.length === 0 && !loading ? (
+  const isStriped = variant === 'striped';
+  const isCompact = variant === 'compact';
+
+  const renderRows = () => {
+    if (displayData.length === 0 && !loading) {
+      return (
         <tr>
           <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
             {emptyMessage}
           </td>
         </tr>
-      ) : (
-        <></>
-      )}
-    </tbody>
-  );
+      );
+    }
+
+    return displayData.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = selectedRows.includes(key);
+      return (
+        <tr
+          key={key}
+          className={[
+            styles.row,
+            isStriped && idx % 2 === 1 ? styles.rowStriped : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {selectionMode !== 'none' && (
+            <td className={styles.cell}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onSelect?.([key])}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
+            <td
+              key={col.key}
+              className={styles.cell}
+            >
+              {String(row[col.key] ?? '')}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  return <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>{renderRows()}</tbody>;
 };
 
 export const TableRow = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
@@ -17832,6 +18057,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   overflow: hidden;
   border-radius: var(--table-border-radius, var(--radius-md));
   border: 1px solid var(--color-border);
+
+  &Bordered {
+    border: 1px solid var(--color-border);
+  }
 }
 
 .tableContainer {
@@ -22467,6 +22696,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -22766,6 +22999,8 @@ export interface TableContextValue<T = unknown> {
   onSelect?: (keys: string[]) => void;
   onSelectAll?: (selected: boolean) => void;
   onPageChange?: (page: number, pageSize: number) => void;
+  loading?: boolean;
+  emptyMessage?: string;
 }
 
 const TableContext = React.createContext<TableContextValue | null>(null);
@@ -22896,15 +23131,164 @@ export const TableRoot = <T extends Record<string, unknown>>({
     onSelect: handleSelect,
     onSelectAll: handleSelectAll,
     onPageChange: handlePageChange,
+    loading,
+    emptyMessage,
   };
 
   const isBordered = variant === 'bordered';
   const wrapperClasses = [styles.tableWrapper, isBordered ? styles.tableWrapperBordered : '', className].filter(Boolean).join(' ');
 
+  const pageNumbers = pageInfo ? getPageNumbers(pageInfo.page, pageInfo.totalPages) : [];
+
+  const renderDefaultContent = () => {
+    const isStriped = variant === 'striped';
+    const isCompact = variant === 'compact';
+
+    const renderRows = () => {
+      if (displayData.length === 0 && !loading) {
+        return (
+          <tr>
+            <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
+              {emptyMessage}
+            </td>
+          </tr>
+        );
+      }
+
+      return displayData.map((row, idx) => {
+        const key = String(row[rowKey]);
+        const isSelected = internalSelected.includes(key);
+        return (
+          <tr
+            key={key}
+            className={[
+              styles.row,
+              isStriped && idx % 2 === 1 ? styles.rowStriped : '',
+              !isStriped && !isCompact ? styles.rowHover : '',
+              isSelected ? styles.rowSelected : '',
+            ].filter(Boolean).join(' ')}
+          >
+            {selectionMode !== 'none' && (
+              <td className={styles.cell}>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => handleSelect(row)}
+                  className={styles.checkbox}
+                />
+              </td>
+            )}
+            {columns.map(col => (
+              <td
+                key={col.key}
+                className={[
+                  styles.cell,
+                  sizeClasses[size],
+                  alignClasses[col.align || 'left'],
+                ].filter(Boolean).join(' ')}
+                style={col.width ? { width: col.width } : undefined}
+              >
+                {String(row[col.key] ?? '')}
+              </td>
+            ))}
+          </tr>
+        );
+      });
+    };
+
+    const renderHeader = () => (
+      <thead className={styles.thead}>
+        <tr className={styles.headerRow}>
+          {selectionMode !== 'none' && (
+            <th className={[styles.headerCell, sizeClasses[size]].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={internalSelected.length === displayData.length && displayData.length > 0}
+                onChange={() => {
+                  const allKeys = displayData.map(r => String(r[rowKey]));
+                  const newSelected = internalSelected.length === displayData.length ? [] : allKeys;
+                  setInternalSelected(newSelected);
+                  onSelectAll?.(newSelected.length > 0);
+                }}
+                className={styles.checkbox}
+              />
+            </th>
+          )}
+          {columns.map(col => (
+            <th
+              key={col.key}
+              className={[
+                styles.headerCell,
+                sizeClasses[size],
+                col.sortable ? styles.headerCellSortable : '',
+                alignClasses[col.align || 'left'],
+              ].filter(Boolean).join(' ')}
+              style={col.width ? { width: col.width } : undefined}
+              onClick={() => col.sortable && handleSort(col.key)}
+              role={col.sortable ? 'columnheader' : undefined}
+              aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+            >
+              {col.label}
+              {col.sortable && internalSortKey === col.key && (
+                <span className={styles.sortIcon}>{internalSortDir === 'asc' ? '↑' : '↓'}</span>
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+    );
+
+    const renderPagination = () => {
+      if (paginationMode !== 'client' || !pageInfo || pageInfo.totalPages <= 1) return null;
+      return (
+        <div className={styles.pagination}>
+          <div className={styles.paginationInfo}>
+            Showing {pageInfo.startIndex + 1} to {pageInfo.endIndex} of {pageInfo.totalItems} results
+          </div>
+          <div className={styles.paginationButtons}>
+            <button
+              onClick={() => handlePageChange(pageInfo.page - 1)}
+              disabled={!pageInfo.hasPrevPage}
+              className={styles.paginationBtn}
+            >
+              Previous
+            </button>
+            {pageNumbers.map(p => (
+              <button
+                key={p}
+                onClick={() => handlePageChange(p)}
+                className={[styles.paginationBtn, p === pageInfo.page ? styles.paginationBtnActive : ''].filter(Boolean).join(' ')}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(pageInfo.page + 1)}
+              disabled={!pageInfo.hasNextPage}
+              className={styles.paginationBtn}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <>
+        <table className={[styles.table, loading && styles.tableLoading].filter(Boolean).join(' ')} role="grid">
+          {renderHeader()}
+          <tbody className={styles.tbody}>{renderRows()}</tbody>
+        </table>
+        {renderPagination()}
+      </>
+    );
+  };
+
   return (
     <TableContext.Provider value={contextValue}>
       <div className={wrapperClasses}>
-        {children}
+        {children ? children : renderDefaultContent()}
       </div>
     </TableContext.Provider>
   );
@@ -22960,25 +23344,63 @@ export const TableHeader = ({ children, className }: { children?: React.ReactNod
 };
 
 export const TableBody = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
-  const { data: displayData, loading, emptyMessage, columns, selectionMode } = useTable();
+  const { data: displayData, loading, emptyMessage, columns, selectionMode, rowKey, variant, selectedRows, onSelect } = useTable();
 
   if (children) {
     return <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>{children}</tbody>;
   }
 
-  return (
-    <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>
-      {displayData.length === 0 && !loading ? (
+  const isStriped = variant === 'striped';
+  const isCompact = variant === 'compact';
+
+  const renderRows = () => {
+    if (displayData.length === 0 && !loading) {
+      return (
         <tr>
           <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
             {emptyMessage}
           </td>
         </tr>
-      ) : (
-        <></>
-      )}
-    </tbody>
-  );
+      );
+    }
+
+    return displayData.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = selectedRows.includes(key);
+      return (
+        <tr
+          key={key}
+          className={[
+            styles.row,
+            isStriped && idx % 2 === 1 ? styles.rowStriped : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {selectionMode !== 'none' && (
+            <td className={styles.cell}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onSelect?.([key])}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
+            <td
+              key={col.key}
+              className={styles.cell}
+            >
+              {String(row[col.key] ?? '')}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  return <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>{renderRows()}</tbody>;
 };
 
 export const TableRow = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
@@ -25450,6 +25872,10 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   overflow: hidden;
   border-radius: var(--table-border-radius, var(--radius-md));
   border: 1px solid var(--color-border);
+
+  &Bordered {
+    border: 1px solid var(--color-border);
+  }
 }
 
 .tableContainer {
@@ -30218,6 +30644,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -30336,6 +30766,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .virtualSpacer {
@@ -32829,6 +33263,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -32947,6 +33385,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .virtualSpacer {
@@ -37172,6 +37614,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -37290,6 +37736,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .virtualSpacer {
@@ -39783,6 +40233,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   border: 1px solid var(--color-border);
 }
 
+.tableWrapperBordered {
+  border: 1px solid var(--color-border);
+}
+
 .tableContainer {
   overflow: auto;
 }
@@ -39901,6 +40355,10 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
   padding: calc(var(--spacing-unit) * 8);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.virtualSpacer {
+  position: relative;
 }
 
 .virtualSpacer {

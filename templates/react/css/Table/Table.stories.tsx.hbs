@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Table } from './Table';
 
 const meta: Meta<typeof Table> = {
@@ -35,6 +35,166 @@ const generateData = (count: number) =>
     status: i % 4 === 0 ? 'Inactive' : 'Active',
   }));
 
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+      <Table.Pagination />
+    </Table>
+  ),
+};
+
+export const Striped: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    variant: 'striped',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+      <Table.Pagination />
+    </Table>
+  ),
+};
+
+export const Bordered: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    variant: 'bordered',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+    </Table>
+  ),
+};
+
+export const Compact: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    variant: 'compact',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+    </Table>
+  ),
+};
+
+export const WithPagination: Story = {
+  args: {
+    columns,
+    data: generateData(50),
+    rowKey: 'id',
+    paginationMode: 'client',
+    pageSize: 10,
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+      <Table.Pagination />
+    </Table>
+  ),
+};
+
+export const WithSorting: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    sortKey: 'name',
+    sortDirection: 'asc',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+    </Table>
+  ),
+};
+
+export const WithSelection: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    selectionMode: 'multiple',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+    </Table>
+  ),
+};
+
+export const Loading: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    loading: true,
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+    </Table>
+  ),
+};
+
+export const Empty: Story = {
+  args: {
+    columns,
+    data: [],
+    rowKey: 'id',
+    emptyMessage: 'No users found',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+    </Table>
+  ),
+};
+
+export const AllFeatures: Story = {
+  args: {
+    columns,
+    data: generateData(100),
+    rowKey: 'id',
+    variant: 'striped',
+    size: 'md',
+    paginationMode: 'client',
+    pageSize: 10,
+    selectionMode: 'multiple',
+  },
+  render: (args) => (
+    <Table {...args}>
+      <Table.Header />
+      <Table.Body />
+      <Table.Pagination />
+    </Table>
+  ),
+};
+{{else}}
 export const Default: Story = {
   args: {
     columns,
@@ -151,3 +311,4 @@ export const AllFeatures: Story = {
   },
   render: (args) => <Table {...args} />,
 };
+{{/if}}
