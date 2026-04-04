@@ -68,9 +68,20 @@
 
 .row {
   transition: background-color 0.2s ease;
+  background-color: transparent;
 
-  &-striped:nth-child(odd) {
-    background-color: var(--table-striped-bg, var(--color-muted));
+  &-striped {
+    background-color: #F8F9FA !important;
+  }
+
+  &-compact {
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  &-compact td {
+    padding: calc(var(--spacing-unit) * 1.5) !important;
+    font-size: 0.875rem !important;
   }
 
   &-hover:hover {
@@ -88,6 +99,11 @@
 
   &-bordered {
     border: 1px solid var(--color-border);
+  }
+
+  &-compact {
+    padding: calc(var(--spacing-unit) * 1.5) !important;
+    font-size: 0.875rem !important;
   }
 
   &-sm {

@@ -49,6 +49,6 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     virtualOverscan: '5',
     cellPadding: 'calc(var(--spacing-unit) * 3)',
     rowHoverBg: 'var(--color-secondary)',
-    stripedBg: 'var(--color-muted)',
+    stripedBg: 'var(--color-background)',
   },
 };

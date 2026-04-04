@@ -286,21 +286,23 @@ export const TableRoot = <T extends Record<string, unknown>>({
         );
       }
 
-      return displayData.map((row, idx) => {
-        const key = String(row[rowKey]);
-        const isSelected = internalSelected.includes(key);
-        return (
-          <tr
-            key={key}
-            className={[
-              styles.row,
-              isStriped && idx % 2 === 1 ? styles.rowStriped : '',
-              !isStriped && !isCompact ? styles.rowHover : '',
-              isSelected ? styles.rowSelected : '',
-            ].filter(Boolean).join(' ')}
-          >
+    return displayData.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = internalSelected.includes(key);
+      const isOdd = idx % 2 === 1;
+      return (
+        <tr
+          key={key}
+          className={[
+            styles.row,
+            isStriped && isOdd ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+        >
             {selectionMode !== 'none' && (
-              <td className={styles.cell}>
+              <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
                 <input
                   type="checkbox"
                   checked={isSelected}
@@ -314,6 +316,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                 key={col.key}
                 className={[
                   styles.cell,
+                  isCompact ? styles.cellCompact : '',
                   sizeClasses[size],
                   alignClasses[col.align || 'left'],
                 ].filter(Boolean).join(' ')}
@@ -498,18 +501,20 @@ export const TableBody = ({ children, className }: { children?: React.ReactNode;
     return displayData.map((row, idx) => {
       const key = String(row[rowKey]);
       const isSelected = selectedRows.includes(key);
+      const isOdd = idx % 2 === 1;
       return (
         <tr
           key={key}
           className={[
             styles.row,
-            isStriped && idx % 2 === 1 ? styles.rowStriped : '',
+            isStriped && isOdd ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
             !isStriped && !isCompact ? styles.rowHover : '',
             isSelected ? styles.rowSelected : '',
           ].filter(Boolean).join(' ')}
         >
           {selectionMode !== 'none' && (
-            <td className={styles.cell}>
+            <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={isSelected}
@@ -768,12 +773,13 @@ export const Table = <T extends Record<string, unknown>>({
           className={[
             styles.row,
             isStriped && actualIndex % 2 === 1 ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
             !isStriped && !isCompact ? styles.rowHover : '',
             isSelected ? styles.rowSelected : '',
           ].filter(Boolean).join(' ')}
         >
           {selectionMode !== 'none' && (
-            <td className={styles.cell}>
+            <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={isSelected}
@@ -787,6 +793,7 @@ export const Table = <T extends Record<string, unknown>>({
               key={col.key}
               className={[
                 styles.cell,
+                isCompact ? styles.cellCompact : '',
                 sizeClasses[size],
                 alignClasses[col.align || 'left'],
                 isBordered ? styles.cellBordered : '',
@@ -807,21 +814,25 @@ export const Table = <T extends Record<string, unknown>>({
       if (!row) return null;
       const key = String(row[rowKey]);
       const isSelected = internalSelected.includes(key);
-      const rowStyle = { position: 'absolute' as const, top: item.start, width: '100%' };
-
+      const rowStyle = {
+        position: 'absolute' as const,
+        top: item.start,
+        width: '100%',
+      };
       return (
         <tr
           key={`${key}-${item.index}`}
           className={[
             styles.row,
             isStriped && item.index % 2 === 1 ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
             !isStriped && !isCompact ? styles.rowHover : '',
             isSelected ? styles.rowSelected : '',
           ].filter(Boolean).join(' ')}
           style={rowStyle}
         >
           {selectionMode !== 'none' && (
-            <td className={styles.cell}>
+            <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={isSelected}
@@ -835,6 +846,7 @@ export const Table = <T extends Record<string, unknown>>({
               key={col.key}
               className={[
                 styles.cell,
+                isCompact ? styles.cellCompact : '',
                 sizeClasses[size],
                 alignClasses[col.align || 'left'],
                 isBordered ? styles.cellBordered : '',

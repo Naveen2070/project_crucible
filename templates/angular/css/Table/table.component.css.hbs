@@ -68,10 +68,26 @@
 
 .row {
   transition: background-color 0.2s ease;
+  background-color: transparent;
 }
 
-.rowStriped:nth-child(odd) {
-  background-color: var(--table-striped-bg, var(--color-muted));
+.rowStriped {
+  background-color: #F8F9FA !important;
+}
+
+.rowCompact {
+  height: auto !important;
+  padding: 0 !important;
+}
+
+.rowCompact td {
+  padding: calc(var(--spacing-unit) * 1.5) !important;
+  font-size: 0.875rem !important;
+}
+
+.cellCompact {
+  padding: calc(var(--spacing-unit) * 1.5) !important;
+  font-size: 0.875rem !important;
 }
 
 .rowHover:hover {

@@ -111,7 +111,7 @@ exports[`6. Template and Snapshot Tests > 6.7: SCSS nested BEM > generates neste
   --table-virtual-overscan: 5;
   --table-cell-padding: calc(var(--spacing-unit) * 3);
   --table-row-hover-bg: var(--color-secondary);
-  --table-striped-bg: var(--color-muted);
+  --table-striped-bg: var(--color-background);
   --color-primary: #6C63FF;
   --color-secondary: #F3F2FF;
   --color-surface: #FFFFFF;
