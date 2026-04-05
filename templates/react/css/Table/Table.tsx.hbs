@@ -273,6 +273,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
 
   const renderDefaultContent = () => {
     const isStriped = variant === 'striped';
+    const isBordered = variant === 'bordered';
     const isCompact = variant === 'compact';
 
     const renderRows = () => {
@@ -301,17 +302,17 @@ export const TableRoot = <T extends Record<string, unknown>>({
             isSelected ? styles.rowSelected : '',
           ].filter(Boolean).join(' ')}
         >
-            {selectionMode !== 'none' && (
-              <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => handleSelect(row)}
-                  className={styles.checkbox}
-                />
-              </td>
-            )}
-            {columns.map(col => (
+          {selectionMode !== 'none' && (
+            <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleSelect(row)}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
               <td
                 key={col.key}
                 className={[
@@ -319,6 +320,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                   isCompact ? styles.cellCompact : '',
                   sizeClasses[size],
                   alignClasses[col.align || 'left'],
+                  isBordered ? styles.cellBordered : '',
                 ].filter(Boolean).join(' ')}
                 style={col.width ? { width: col.width } : undefined}
               >
@@ -334,7 +336,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
       <thead className={styles.thead}>
         <tr className={styles.headerRow}>
           {selectionMode !== 'none' && (
-            <th className={[styles.headerCell, sizeClasses[size]].filter(Boolean).join(' ')}>
+            <th className={[styles.headerCell, sizeClasses[size], isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={internalSelected.length === displayData.length && displayData.length > 0}
@@ -356,6 +358,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                 sizeClasses[size],
                 col.sortable ? styles.headerCellSortable : '',
                 alignClasses[col.align || 'left'],
+                isBordered ? styles.headerCellBordered : '',
               ].filter(Boolean).join(' ')}
               style={col.width ? { width: col.width } : undefined}
               onClick={() => col.sortable && handleSort(col.key)}
@@ -429,14 +432,16 @@ export const TableRoot = <T extends Record<string, unknown>>({
 };
 
 export const TableHeader = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
-  const { columns, selectionMode, sortKey, sortDirection, onSort } = useTable();
+  const { columns, selectionMode, sortKey, sortDirection, onSort, variant } = useTable();
   const { size } = useTable();
+  const isBordered = variant === 'bordered';
 
   const headerCellClasses = (col: TableColumn) => [
     styles.headerCell,
     sizeClasses[size],
     col.sortable ? styles.headerCellSortable : '',
     alignClasses[col.align || 'left'],
+    isBordered ? styles.headerCellBordered : '',
   ].filter(Boolean).join(' ');
 
   const handleSortClick = (col: TableColumn) => {
@@ -453,7 +458,7 @@ export const TableHeader = ({ children, className }: { children?: React.ReactNod
     <thead className={[styles.thead, className].filter(Boolean).join(' ')}>
       <tr className={styles.headerRow}>
         {selectionMode !== 'none' && (
-          <th className={[styles.headerCell, sizeClasses[size]].filter(Boolean).join(' ')}>
+          <th className={[styles.headerCell, sizeClasses[size], isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
             <input type="checkbox" className={styles.checkbox} />
           </th>
         )}
@@ -485,6 +490,7 @@ export const TableBody = ({ children, className }: { children?: React.ReactNode;
   }
 
   const isStriped = variant === 'striped';
+  const isBordered = variant === 'bordered';
   const isCompact = variant === 'compact';
 
   const renderRows = () => {
@@ -514,7 +520,7 @@ export const TableBody = ({ children, className }: { children?: React.ReactNode;
           ].filter(Boolean).join(' ')}
         >
           {selectionMode !== 'none' && (
-            <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
+            <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={isSelected}
@@ -526,7 +532,7 @@ export const TableBody = ({ children, className }: { children?: React.ReactNode;
           {columns.map(col => (
             <td
               key={col.key}
-              className={styles.cell}
+              className={[styles.cell, isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}
             >
               {String(row[col.key] ?? '')}
             </td>
@@ -866,6 +872,7 @@ export const Table = <T extends Record<string, unknown>>({
     sizeClasses[size],
     col.sortable ? styles.headerCellSortable : '',
     alignClasses[col.align || 'left'],
+    isBordered ? styles.headerCellBordered : '',
   ].filter(Boolean).join(' ');
 
   return (
@@ -877,7 +884,7 @@ export const Table = <T extends Record<string, unknown>>({
               <thead className={styles.thead}>
                 <tr className={styles.headerRow}>
                   {selectionMode !== 'none' && (
-                    <th className={styles.headerCell}>
+                    <th className={[styles.headerCell, isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
                       <input
                         type="checkbox"
                         checked={internalSelected.length === displayData.length && displayData.length > 0}
@@ -912,8 +919,8 @@ export const Table = <T extends Record<string, unknown>>({
           <table className={tableClasses} role="grid">
             <thead className={styles.thead}>
               <tr className={styles.headerRow}>
-                {selectionMode !== 'none' && (
-                  <th className={styles.headerCell}>
+                  {selectionMode !== 'none' && (
+                    <th className={[styles.headerCell, isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
                     <input
                       type="checkbox"
                       checked={internalSelected.length === displayData.length && displayData.length > 0}

@@ -44,6 +44,11 @@
   text-align: left;
   cursor: pointer;
   user-select: none;
+  border: none;
+
+  &-bordered {
+    border: 1px solid var(--color-border) !important;
+  }
 
   &-sortable:hover {
     background-color: var(--color-secondary);
@@ -98,7 +103,7 @@
   border: none;
 
   &-bordered {
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border) !important;
   }
 
   &-compact {

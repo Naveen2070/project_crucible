@@ -175,7 +175,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
           ].filter(Boolean).join(' ')}
         >
           {selectionMode !== 'none' && (
-            <td className={styles.cell}>
+            <td className={[styles.cell, isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={isSelected}
@@ -207,6 +207,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
     styles.headerCell,
     col.sortable ? styles.headerCellSortable : '',
     alignClasses[col.align || 'left'],
+    isBordered ? styles.headerCellBordered : '',
   ].filter(Boolean).join(' ');
 
   return (
@@ -216,7 +217,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
           <thead className={styles.thead}>
             <tr className={styles.headerRow}>
               {selectionMode !== 'none' && (
-                <th className={styles.headerCell}>
+                <th className={[styles.headerCell, isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
                   <input
                     type="checkbox"
                     checked={internalSelected.length === displayData.length && displayData.length > 0}

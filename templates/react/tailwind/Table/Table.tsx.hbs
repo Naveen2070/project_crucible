@@ -185,7 +185,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
           ].filter(Boolean).join(' ')}
         >
           {selectionMode !== 'none' && (
-            <td className="px-4 py-2">
+            <td className={['px-4 py-2', isBordered ? 'border ! border-[var(--color-border)]' : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
                 checked={isSelected}
@@ -201,7 +201,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                 'px-4',
                 sizeClasses[size],
                 alignClasses[col.align || 'left'],
-                isBordered ? 'border border-[var(--color-border)]' : '',
+                isBordered ? 'border ! border-[var(--color-border)]' : '',
               ].filter(Boolean).join(' ')}
               style={col.width ? { width: col.width } : undefined}
             >
@@ -218,7 +218,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
     sizeClasses[size],
     alignClasses[col.align || 'left'],
     col.sortable ? 'cursor-pointer select-none hover:bg-[var(--color-secondary)]' : '',
-    isBordered ? 'border border-[var(--color-border)]' : '',
+    isBordered ? 'border ! border-[var(--color-border)]' : '',
   ].filter(Boolean).join(' ');
 
   return (

@@ -137,6 +137,22 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   isBordered = computed(() => this.variant === 'bordered');
   isCompact = computed(() => this.variant === 'compact');
 
+  getSelectionCellClass(): string {
+    const classes = ['px-4', 'py-2'];
+    if (this.isBordered()) {
+      classes.push('border', '!', 'border-[var(--color-border)]');
+    }
+    return classes.join(' ');
+  }
+
+  getSelectionHeaderCellClass(): string {
+    const classes = ['px-4', 'py-3'];
+    if (this.isBordered()) {
+      classes.push('border', '!', 'border-[var(--color-border)]');
+    }
+    return classes.join(' ');
+  }
+
   ngOnInit() {
     this.internalPage.set(this.page);
     this.internalSortKey.set(this.sortKey);
@@ -245,7 +261,7 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
       classes.push('cursor-pointer', 'select-none', 'hover:bg-[var(--color-secondary)]');
     }
     if (this.isBordered()) {
-      classes.push('border', 'border-[var(--color-border)]');
+      classes.push('border', '!', 'border-[var(--color-border)]');
     }
     return classes.join(' ');
   }

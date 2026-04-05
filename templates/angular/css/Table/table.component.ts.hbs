@@ -120,6 +120,14 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   isBordered = computed(() => this.variant === 'bordered');
   isCompact = computed(() => this.variant === 'compact');
 
+  getCellClass(): string {
+    const classes = ['cell', this.sizeClasses[this.size]];
+    if (this.isBordered()) {
+      classes.push('cellBordered');
+    }
+    return classes.join(' ');
+  }
+
   ngOnInit() {
     this.internalPage.set(this.page);
     this.internalSortKey.set(this.sortKey);
@@ -227,7 +235,7 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
       classes.push('headerCellSortable');
     }
     if (this.isBordered()) {
-      classes.push('cellBordered');
+      classes.push('headerCellBordered');
     }
     return classes.join(' ');
   }

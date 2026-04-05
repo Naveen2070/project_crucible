@@ -215,6 +215,7 @@ const headerCellClasses = (col: TableColumn) => [
   sizeClasses[props.size],
   col.sortable ? 'headerCellSortable' : '',
   alignClasses[col.align || 'left'],
+  isBordered.value ? 'headerCellBordered' : '',
 ].filter(Boolean).join(' ');
 
 const getSortAriaSort = (colKey: string) => {
@@ -244,7 +245,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
         <table :class="tableClasses" role="grid" style="position: sticky; top: 0;">
           <thead class="thead">
             <tr class="headerRow">
-              <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size]]">
+              <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size], isBordered ? 'headerCellBordered' : '']">
                 <input
                   type="checkbox"
                   :checked="internalSelected.length === displayData.length && displayData.length > 0"
@@ -279,7 +280,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               ].filter(Boolean).join(' ')"
               :style="{ position: 'absolute', top: item.start, width: '100%' }"
             >
-              <td v-if="selectionMode !== 'none'" class="cell">
+              <td v-if="selectionMode !== 'none'" :class="['cell', isBordered ? 'cellBordered' : '']">
                 <input
                   type="checkbox"
                   :checked="isRowSelected(displayData[item.index])"
@@ -302,7 +303,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
       <table v-else :class="tableClasses" role="grid">
         <thead class="thead">
           <tr class="headerRow">
-            <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size]]">
+            <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size], isBordered ? 'headerCellBordered' : '']">
               <input
                 type="checkbox"
                 :checked="internalSelected.length === displayData.length && displayData.length > 0"
