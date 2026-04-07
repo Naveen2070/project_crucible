@@ -44,6 +44,10 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
     bordered: 'bg-[var(--color-surface)] border-[var(--color-border)]',
     compact: 'bg-[var(--color-surface)] border-[var(--color-border)]',
   },
+  [ComponentName.Popover]: {
+    default: 'bg-[var(--color-surface)] border-[var(--color-border)] shadow-lg',
+    minimal: 'bg-[var(--color-surface)] shadow-md',
+  },
 };
 
 export interface ComponentMeta {
@@ -146,5 +150,14 @@ export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
     behaviours: [],
     a11y: { role: 'table', keyboardNav: true, dynamicRowCount: true },
     utils: ['virtualizer', 'table-sorter', 'table-paginator'],
+  },
+  [ComponentName.Popover]: {
+    variants: ['default', 'minimal'],
+    sizes: ['sm', 'md', 'lg'],
+    states: ['open', 'closed'],
+    props: ['isOpen', 'onOpenChange', 'placement', 'alignment', 'trigger', 'closeOnClickOutside', 'closeOnEscape'],
+    prefix: 'popover',
+    behaviours: ['closeable'],
+    a11y: { role: 'dialog' },
   },
 };

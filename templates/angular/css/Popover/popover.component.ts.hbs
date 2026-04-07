@@ -1,0 +1,64 @@
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-popover',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './popover.component.html',
+  styleUrls: ['./popover.component.css']
+})
+export class PopoverComponent {
+  @Input() isOpen = false;
+  @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
+  @Input() alignment: 'start' | 'center' | 'end' = 'center';
+  @Input() variant: 'default' | 'minimal' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() className = '';
+
+  @Output() isOpenChange = new EventEmitter<boolean>();
+
+  @ViewChild('contentRef') contentRef?: ElementRef;
+  @ViewChild('triggerRef') triggerRef?: ElementRef;
+
+  toggle() {
+    this.isOpen = !this.isOpen;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  close() {
+    this.isOpen = false;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  handleClickOutside(event: MouseEvent) {
+    if (
+      this.isOpen &&
+      this.contentRef &&
+      !this.contentRef.nativeElement.contains(event.target) &&
+      this.triggerRef &&
+      !this.triggerRef.nativeElement.contains(event.target)
+    ) {
+      this.close();
+    }
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscape() {
+    if (this.isOpen) {
+      this.close();
+    }
+  }
+
+  getContentClasses() {
+    return {
+      'popover-content': true,
+      ['placement-' + this.placement]: true,
+      ['alignment-' + this.alignment]: true,
+      ['variant-' + this.variant]: true,
+      ['size-' + this.size]: true,
+      'content-open': this.isOpen
+    };
+  }
+}

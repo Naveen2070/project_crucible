@@ -51,4 +51,12 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     rowHoverBg: 'var(--color-secondary)',
     stripedBg: 'var(--color-background)',
   },
+  popover: {
+    background: 'var(--color-surface)',
+    border: 'var(--color-border)',
+    shadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+    radius: 'var(--radius-md)',
+    padding: 'calc(var(--spacing-unit) * 2)',
+    zIndex: '50',
+  },
 };

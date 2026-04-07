@@ -859,6 +859,76 @@ async function runE2E() {
       throw new Error('Angular Table missing customVirtualState input');
     }
     results.push({ phase: 'Table + Angular + SCSS', passed: true });
+
+    // ==================== POPOVER COMPONENT TESTS ====================
+    console.log(ansis.cyan('\n🎈 POPOVER COMPONENT'));
+
+    // Popover + React + CSS (Compound)
+    console.log(ansis.cyan('📦 Phase 27: Popover + React + CSS (Compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    runCLI('add Popover -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.tsx')))) {
+      throw new Error('Missing: Popover/Popover.tsx');
+    }
+    const popoverCompoundContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.tsx'),
+      'utf-8',
+    );
+    if (!popoverCompoundContent.includes('PopoverRoot')) {
+      throw new Error('Popover missing compound component PopoverRoot');
+    }
+    results.push({ phase: 'Popover + React + CSS (Compound)', passed: true });
+
+    // Popover + Vue + Tailwind
+    console.log(ansis.cyan('📦 Phase 28: Popover + Vue + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Popover'));
+    runCLI('add Popover -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.vue')))) {
+      throw new Error('Missing: Popover/Popover.vue');
+    }
+    const popoverVueTwContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.vue'),
+      'utf-8',
+    );
+    if (!popoverVueTwContent.includes('placementClasses')) {
+      throw new Error('Vue Popover missing placementClasses');
+    }
+    results.push({ phase: 'Popover + Vue + Tailwind', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

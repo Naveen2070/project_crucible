@@ -28,4 +28,5 @@ export enum ComponentName {
   Dialog = 'Dialog',
   Select = 'Select',
   Table = 'Table',
+  Popover = 'Popover',
 }

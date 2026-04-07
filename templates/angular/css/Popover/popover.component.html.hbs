@@ -1,0 +1,14 @@
+<div [class]="'popover-root ' + className">
+  <div #triggerRef class="popover-trigger" (click)="toggle()">
+    <ng-content select="[trigger]"></ng-content>
+    @if (!hasTriggerContent) {
+      <button type="button">Trigger</button>
+    }
+  </div>
+
+  @if (isOpen) {
+    <div #contentRef [ngClass]="getContentClasses()">
+      <ng-content></ng-content>
+    </div>
+  }
+</div>

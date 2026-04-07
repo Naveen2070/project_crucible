@@ -1,0 +1,138 @@
+.popover {
+  position: relative;
+  display: inline-block;
+}
+
+.content {
+  position: absolute;
+  z-index: var(--popover-z-index, {{tokens.componentTokens.popover.zIndex}});
+  background: var(--popover-background, {{tokens.componentTokens.popover.background}});
+  border: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-radius: var(--popover-radius, {{tokens.componentTokens.popover.radius}});
+  box-shadow: var(--popover-shadow, {{tokens.componentTokens.popover.shadow}});
+  padding: var(--popover-padding, {{tokens.componentTokens.popover.padding}});
+  min-width: 180px;
+  overflow: hidden;
+}
+
+/* Placement */
+.placement-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
+.placement-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+}
+
+.placement-left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 8px;
+}
+
+.placement-right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+}
+
+/* Alignment */
+.alignment-start.placement-top,
+.alignment-start.placement-bottom {
+  left: 0;
+  transform: translateX(0);
+}
+
+.alignment-end.placement-top,
+.alignment-end.placement-bottom {
+  left: auto;
+  right: 0;
+  transform: translateX(0);
+}
+
+.alignment-start.placement-left,
+.alignment-start.placement-right {
+  top: 0;
+  transform: translateY(0);
+}
+
+.alignment-end.placement-left,
+.alignment-end.placement-right {
+  top: auto;
+  bottom: 0;
+  transform: translateY(0);
+}
+
+/* Variants */
+.variant-minimal {
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Sizes */
+.size-sm {
+  font-size: 0.875rem;
+  padding: calc(var(--popover-padding) * 0.75);
+}
+
+.size-md {
+  font-size: 1rem;
+}
+
+.size-lg {
+  font-size: 1.125rem;
+  padding: calc(var(--popover-padding) * 1.5);
+}
+
+/* Animation */
+.content-open {
+  animation: popover-fade-in 0.2s ease-out;
+}
+
+@keyframes popover-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Submenu */
+.sub {
+  position: relative;
+}
+
+.subContent {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 4px;
+}
+
+.item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.item:hover {
+  background-color: var(--color-accent, #f3f4f6);
+}
+
+.separator {
+  height: 1px;
+  background-color: var(--color-border, #e5e7eb);
+  margin: 4px 0;
+}

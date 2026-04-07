@@ -1,0 +1,50 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { PopoverComponent } from './popover.component';
+
+const meta: Meta<PopoverComponent> = {
+  title: 'Components/Popover',
+  component: PopoverComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'minimal'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<PopoverComponent>;
+
+export const Default: Story = {
+  args: {
+    placement: 'bottom',
+    alignment: 'center',
+  },
+  render: (args) => ({
+    props: args,
+    template: `
+      <div style="height: 300px; display: flex; align-items: center; justify-content: center;">
+        <app-popover [placement]="placement" [alignment]="alignment" [variant]="variant" [size]="size">
+          <button trigger type="button">Open Popover</button>
+          <div style="padding: 16px;">
+            <p style="margin: 0;">Popover Content</p>
+            <p style="margin: 8px 0 0; color: var(--color-text-muted);">This is an Angular popover</p>
+          </div>
+        </app-popover>
+      </div>
+    `,
+  }),
+};

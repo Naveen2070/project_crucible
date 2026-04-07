@@ -1,0 +1,86 @@
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-popover',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './popover.component.html'
+})
+export class PopoverComponent {
+  @Input() isOpen = false;
+  @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
+  @Input() alignment: 'start' | 'center' | 'end' = 'center';
+  @Input() variant: 'default' | 'minimal' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() className = '';
+
+  @Output() isOpenChange = new EventEmitter<boolean>();
+
+  @ViewChild('contentRef') contentRef?: ElementRef;
+  @ViewChild('triggerRef') triggerRef?: ElementRef;
+
+  toggle() {
+    this.isOpen = !this.isOpen;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  close() {
+    this.isOpen = false;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  handleClickOutside(event: MouseEvent) {
+    if (
+      this.isOpen &&
+      this.contentRef &&
+      !this.contentRef.nativeElement.contains(event.target) &&
+      this.triggerRef &&
+      !this.triggerRef.nativeElement.contains(event.target)
+    ) {
+      this.close();
+    }
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscape() {
+    if (this.isOpen) {
+      this.close();
+    }
+  }
+
+  getTailwindClasses() {
+    const placementClasses = {
+      top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+      bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+      left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+      right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+    };
+
+    const alignmentClasses = {
+      start: (this.placement === 'top' || this.placement === 'bottom') ? 'left-0 translate-x-0' : 'top-0 translate-y-0',
+      center: '',
+      end: (this.placement === 'top' || this.placement === 'bottom') ? 'left-auto right-0 translate-x-0' : 'top-auto bottom-0 translate-y-0',
+    };
+
+    const variantClasses = {
+      default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-lg',
+      minimal: 'bg-[var(--color-surface)] shadow-md',
+    };
+
+    const sizeClasses = {
+      sm: 'text-sm p-[calc(var(--popover-padding)*0.75)]',
+      md: 'text-base p-[var(--popover-padding)]',
+      lg: 'text-lg p-[calc(var(--popover-padding)*1.5)]',
+    };
+
+    return `
+      ${placementClasses[this.placement]}
+      ${alignmentClasses[this.alignment]}
+      ${variantClasses[this.variant]}
+      ${sizeClasses[this.size]}
+      animate-in fade-in zoom-in-95 duration-200
+    `;
+  }
+}
