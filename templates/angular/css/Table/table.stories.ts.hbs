@@ -150,6 +150,20 @@ export const Empty: Story = {
   }),
 };
 
+export const Virtualized5k: Story = {
+  args: {
+    columns,
+    data: generateData(5000),
+    rowKey: 'id',
+    virtualize: true,
+    virtualizationThreshold: 50,
+  },
+  render: (args) => ({
+    props: args,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [virtualize]="virtualize" [virtualizationThreshold]="virtualizationThreshold"></app-table>`,
+  }),
+};
+
 export const AllFeatures: Story = {
   args: {
     columns,
