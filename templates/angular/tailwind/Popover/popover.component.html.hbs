@@ -1,5 +1,5 @@
-<div [class]="'relative inline-block ' + className">
-  <div #triggerRef class="cursor-pointer" (click)="toggle()">
+<div [class]="'relative inline-block ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div #triggerRef class="cursor-pointer inline-block" (click)="toggle()">
     <ng-content select="[trigger]"></ng-content>
   </div>
 

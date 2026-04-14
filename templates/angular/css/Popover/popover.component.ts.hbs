@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, Placement } from '@floating-ui/dom';
 
 @Component({
   selector: 'app-popover',
@@ -8,22 +9,80 @@ import { CommonModule } from '@angular/common';
   templateUrl: './popover.component.html',
   styleUrls: ['./popover.component.css']
 })
-export class PopoverComponent {
+export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() isOpen = false;
   @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
   @Input() alignment: 'start' | 'center' | 'end' = 'center';
   @Input() variant: 'default' | 'minimal' = 'default';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() trigger: 'click' | 'hover' = 'click';
+  @Input() closeOnClickOutside = true;
+  @Input() closeOnEscape = true;
   @Input() className = '';
 
   @Output() isOpenChange = new EventEmitter<boolean>();
 
-  @ViewChild('contentRef') contentRef?: ElementRef;
-  @ViewChild('triggerRef') triggerRef?: ElementRef;
+  @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
+  @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+
+  private cleanupFloating?: () => void;
+
+  ngAfterViewInit() {
+    if (this.isOpen) {
+      this.initFloating();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen']) {
+      if (this.isOpen) {
+        // use setTimeout to ensure view is updated before initializing floating-ui
+        setTimeout(() => this.initFloating(), 0);
+      } else {
+        this.destroyFloating();
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroyFloating();
+  }
+
+  private initFloating() {
+    if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
+    
+    this.destroyFloating();
+    
+    const triggerEl = this.triggerRef.nativeElement;
+    const contentEl = this.contentRef.nativeElement;
+    
+    const floatingPlacement = `${this.placement}${this.alignment === 'center' ? '' : '-' + this.alignment}` as Placement;
+    
+    this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      computePosition(triggerEl, contentEl, {
+        placement: floatingPlacement,
+        middleware: [offset(8), flip(), shift({ padding: 8 })],
+      }).then(({ x, y }) => {
+        Object.assign(contentEl.style, {
+          left: `${x}px`,
+          top: `${y}px`,
+        });
+      });
+    });
+  }
+
+  private destroyFloating() {
+    if (this.cleanupFloating) {
+      this.cleanupFloating();
+      this.cleanupFloating = undefined;
+    }
+  }
 
   toggle() {
-    this.isOpen = !this.isOpen;
-    this.isOpenChange.emit(this.isOpen);
+    if (this.trigger === 'click') {
+      this.isOpen = !this.isOpen;
+      this.isOpenChange.emit(this.isOpen);
+    }
   }
 
   close() {
@@ -31,14 +90,29 @@ export class PopoverComponent {
     this.isOpenChange.emit(this.isOpen);
   }
 
+  onMouseEnter() {
+    if (this.trigger === 'hover') {
+      this.isOpen = true;
+      this.isOpenChange.emit(this.isOpen);
+    }
+  }
+
+  onMouseLeave() {
+    if (this.trigger === 'hover') {
+      this.isOpen = false;
+      this.isOpenChange.emit(this.isOpen);
+    }
+  }
+
   @HostListener('document:mousedown', ['$event'])
   handleClickOutside(event: MouseEvent) {
+    if (!this.closeOnClickOutside) return;
     if (
       this.isOpen &&
       this.contentRef &&
-      !this.contentRef.nativeElement.contains(event.target) &&
+      !this.contentRef.nativeElement.contains(event.target as Node) &&
       this.triggerRef &&
-      !this.triggerRef.nativeElement.contains(event.target)
+      !this.triggerRef.nativeElement.contains(event.target as Node)
     ) {
       this.close();
     }
@@ -46,6 +120,7 @@ export class PopoverComponent {
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscape() {
+    if (!this.closeOnEscape) return;
     if (this.isOpen) {
       this.close();
     }
@@ -54,8 +129,6 @@ export class PopoverComponent {
   getContentClasses() {
     return {
       'popover-content': true,
-      ['placement-' + this.placement]: true,
-      ['alignment-' + this.alignment]: true,
       ['variant-' + this.variant]: true,
       ['size-' + this.size]: true,
       'content-open': this.isOpen

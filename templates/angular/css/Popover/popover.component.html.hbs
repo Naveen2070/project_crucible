@@ -1,9 +1,6 @@
-<div [class]="'popover-root ' + className">
+<div [class]="'popover-root ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <div #triggerRef class="popover-trigger" (click)="toggle()">
     <ng-content select="[trigger]"></ng-content>
-    @if (!hasTriggerContent) {
-      <button type="button">Trigger</button>
-    }
   </div>
 
   @if (isOpen) {

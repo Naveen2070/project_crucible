@@ -1,4 +1,18 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useClick,
+  useHover,
+  useDismiss,
+  useRole,
+  useInteractions,
+  safePolygon,
+  Placement,
+} from '@floating-ui/react';
 {{> react/styles-import}}
 
 {{#if features.compoundComponents}}
@@ -7,8 +21,10 @@ type PopoverContextType = {
   setIsOpen: (open: boolean) => void;
   variant: string;
   size: string;
-  placement: string;
-  alignment: string;
+  refs: ReturnType<typeof useFloating>['refs'];
+  floatingStyles: React.CSSProperties;
+  getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
+  getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -23,56 +39,27 @@ const usePopover = () => {
 {{/if}}
 
 export interface PopoverProps {
-  /**
-   * Controlled open state
-   */
+  /** Controlled open state */
   isOpen?: boolean;
-  /**
-   * Callback for open state changes
-   */
+  /** Callback for open state changes */
   onOpenChange?: (open: boolean) => void;
-  /**
-   * Placement relative to trigger
-   * @default 'bottom'
-   */
+  /** Placement relative to trigger @default 'bottom' */
   placement?: 'top' | 'bottom' | 'left' | 'right';
-  /**
-   * Alignment relative to trigger
-   * @default 'center'
-   */
+  /** Alignment relative to trigger @default 'center' */
   alignment?: 'start' | 'center' | 'end';
-  /**
-   * Trigger type
-   * @default 'click'
-   */
+  /** Trigger type @default 'click' */
   trigger?: 'click' | 'hover';
-  /**
-   * Whether to close when clicking outside
-   * @default true
-   */
+  /** Whether to close when clicking outside @default true */
   closeOnClickOutside?: boolean;
-  /**
-   * Whether to close when pressing Escape
-   * @default true
-   */
+  /** Whether to close when pressing Escape @default true */
   closeOnEscape?: boolean;
-  /**
-   * Visual variant
-   * @default 'default'
-   */
+  /** Visual variant @default 'default' */
   variant?: 'default' | 'minimal';
-  /**
-   * Size
-   * @default 'md'
-   */
+  /** Size @default 'md' */
   size?: 'sm' | 'md' | 'lg';
-  /**
-   * Additional class name
-   */
+  /** Additional class name */
   className?: string;
-  /**
-   * Content
-   */
+  /** Content */
   children?: React.ReactNode;
 }
 
@@ -85,10 +72,12 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   onOpenChange,
   placement = 'bottom',
   alignment = 'center',
+  trigger = 'click',
+  closeOnClickOutside = true,
+  closeOnEscape = true,
   variant = 'default',
   size = 'md',
   children,
-  className = '',
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -100,9 +89,31 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
     onOpenChange?.(open);
   };
 
+  const floatingPlacement = `${placement}${alignment === 'center' ? '' : '-' + alignment}` as Placement;
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    placement: floatingPlacement,
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const click = useClick(context, { enabled: trigger === 'click' });
+  const hover = useHover(context, { enabled: trigger === 'hover', handleClose: safePolygon() });
+  const dismiss = useDismiss(context, { escapeKey: closeOnEscape, outsidePress: closeOnClickOutside });
+  const role = useRole(context);
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    hover,
+    dismiss,
+    role,
+  ]);
+
   return (
-    <PopoverContext.Provider value=\{{ isOpen, setIsOpen, variant, size, placement, alignment }}>
-      <div className={`${styles.popover} ${className}`}>{children}</div>
+    <PopoverContext.Provider value=\{{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+      {children}
     </PopoverContext.Provider>
   );
 };
@@ -114,14 +125,13 @@ export const PopoverTrigger: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, setIsOpen } = usePopover();
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const { refs, getReferenceProps } = usePopover();
 
   return (
     <div
-      ref={triggerRef}
+      ref={refs.setReference}
       className={`${styles.trigger} ${className}`}
-      onClick={() => setIsOpen(!isOpen)}
+      {...getReferenceProps()}
     >
       {children}
     </div>
@@ -135,46 +145,22 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, setIsOpen, variant, size, placement, alignment } = usePopover();
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen, setIsOpen]);
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
 
   if (!isOpen) return null;
 
   return (
     <div
-      ref={contentRef}
+      ref={refs.setFloating}
+      style={floatingStyles}
       className={`
         ${styles.content}
-        ${styles[`placement-${placement}`]}
-        ${styles[`alignment-${alignment}`]}
         ${styles[`variant-${variant}`]}
         ${styles[`size-${size}`]}
         ${isOpen ? styles['content-open'] : ''}
         ${className}
       `}
+      {...getFloatingProps()}
     >
       {children}
     </div>
@@ -296,6 +282,9 @@ export const Popover: React.FC<PopoverProps> & {
     onOpenChange,
     placement = 'bottom',
     alignment = 'center',
+    trigger = 'click',
+    closeOnClickOutside = true,
+    closeOnEscape = true,
     variant = 'default',
     size = 'md',
     children,
@@ -304,7 +293,6 @@ export const Popover: React.FC<PopoverProps> & {
 
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  const contentRef = useRef<HTMLDivElement>(null);
 
   const setIsOpen = (open: boolean) => {
     if (controlledOpen === undefined) {
@@ -313,49 +301,48 @@ export const Popover: React.FC<PopoverProps> & {
     onOpenChange?.(open);
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const floatingPlacement = `${placement}${alignment === 'center' ? '' : '-' + alignment}` as Placement;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
+  const { refs, floatingStyles, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    placement: floatingPlacement,
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
+  const click = useClick(context, { enabled: trigger === 'click' });
+  const hover = useHover(context, { enabled: trigger === 'hover', handleClose: safePolygon() });
+  const dismiss = useDismiss(context, { escapeKey: closeOnEscape, outsidePress: closeOnClickOutside });
+  const role = useRole(context);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    hover,
+    dismiss,
+    role,
+  ]);
 
-  // For monolithic version, we assume children contains [trigger, content]
-  // In a real implementation we might use React.Children.map to identify components
-  // But for this scaffold we'll keep it simple
   return (
-    <div className={`${styles.popover} ${className}`}>
-      <div onClick={() => setIsOpen(!isOpen)}>
-        {/* Assume first child is trigger */}
+    <div className={className}>
+      <div
+        ref={refs.setReference}
+        {...getReferenceProps()}
+        className={styles.trigger}
+      >
         {Array.isArray(children) ? children[0] : 'Trigger'}
       </div>
       {isOpen && (
         <div
-          ref={contentRef}
+          ref={refs.setFloating}
+          style={floatingStyles}
           className={`
             ${styles.content}
-            ${styles[`placement-${placement}`]}
-            ${styles[`alignment-${alignment}`]}
             ${styles[`variant-${variant}`]}
             ${styles[`size-${size}`]}
             ${styles['content-open']}
           `}
+          {...getFloatingProps()}
         >
           {Array.isArray(children) ? children.slice(1) : children}
         </div>

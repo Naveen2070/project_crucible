@@ -10,6 +10,11 @@ export const PEER_DEPENDENCIES: PeerDependencyMap = {
   [ComponentName.Dialog]: {
     [Framework.React]: ['focus-trap-react'],
   },
+  [ComponentName.Popover]: {
+    [Framework.React]: ['@floating-ui/react'],
+    [Framework.Vue]: ['@floating-ui/vue'],
+    [Framework.Angular]: ['@floating-ui/dom'],
+  },
 };
 
 export function getPeerDependencies(component: ComponentName, framework: Framework): string[] {

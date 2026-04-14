@@ -3,6 +3,11 @@
   display: inline-block;
 }
 
+.trigger {
+  cursor: pointer;
+  display: inline-block;
+}
+
 .content {
   position: absolute;
   z-index: var(--popover-z-index, {{tokens.componentTokens.popover.zIndex}});
@@ -13,78 +18,6 @@
   padding: var(--popover-padding, {{tokens.componentTokens.popover.padding}});
   min-width: 180px;
   overflow: hidden;
-
-  &.placement-top {
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 8px;
-
-    &.alignment-start {
-      left: 0;
-      transform: translateX(0);
-    }
-
-    &.alignment-end {
-      left: auto;
-      right: 0;
-      transform: translateX(0);
-    }
-  }
-
-  &.placement-bottom {
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 8px;
-
-    &.alignment-start {
-      left: 0;
-      transform: translateX(0);
-    }
-
-    &.alignment-end {
-      left: auto;
-      right: 0;
-      transform: translateX(0);
-    }
-  }
-
-  &.placement-left {
-    right: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-right: 8px;
-
-    &.alignment-start {
-      top: 0;
-      transform: translateY(0);
-    }
-
-    &.alignment-end {
-      top: auto;
-      bottom: 0;
-      transform: translateY(0);
-    }
-  }
-
-  &.placement-right {
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 8px;
-
-    &.alignment-start {
-      top: 0;
-      transform: translateY(0);
-    }
-
-    &.alignment-end {
-      top: auto;
-      bottom: 0;
-      transform: translateY(0);
-    }
-  }
 
   &.variant-minimal {
     border: none;
