@@ -106,6 +106,24 @@ export const Placements: Story = {
   ],
   render: () => (
     <>
+      {{#if features.compoundComponents}}
+      <Popover.Root placement="top">
+        <Popover.Trigger><Button>Top</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Top Content</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root placement="bottom">
+        <Popover.Trigger><Button>Bottom</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Bottom Content</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root placement="left">
+        <Popover.Trigger><Button>Left</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Left Content</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root placement="right">
+        <Popover.Trigger><Button>Right</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Right Content</div></Popover.Content>
+      </Popover.Root>
+      {{else}}
       <Popover placement="top">
         <Button>Top</Button>
         <div style=\{{ padding: '10px' }}>Top Content</div>
@@ -122,6 +140,7 @@ export const Placements: Story = {
         <Button>Right</Button>
         <div style=\{{ padding: '10px' }}>Right Content</div>
       </Popover>
+      {{/if}}
     </>
   ),
 };
@@ -136,6 +155,20 @@ export const Alignments: Story = {
   ],
   render: () => (
     <>
+      {{#if features.compoundComponents}}
+      <Popover.Root alignment="start">
+        <Popover.Trigger><Button>Start Alignment</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Aligned to Start</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root alignment="center">
+        <Popover.Trigger><Button>Center Alignment</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Aligned to Center</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root alignment="end">
+        <Popover.Trigger><Button>End Alignment</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Aligned to End</div></Popover.Content>
+      </Popover.Root>
+      {{else}}
       <Popover alignment="start">
         <Button>Start Alignment</Button>
         <div style=\{{ padding: '10px' }}>Aligned to Start</div>
@@ -148,6 +181,7 @@ export const Alignments: Story = {
         <Button>End Alignment</Button>
         <div style=\{{ padding: '10px' }}>Aligned to End</div>
       </Popover>
+      {{/if}}
     </>
   ),
 };

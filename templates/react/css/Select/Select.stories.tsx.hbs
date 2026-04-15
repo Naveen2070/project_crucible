@@ -4,6 +4,13 @@
     size:     { control: 'select', options: {{> shared/size-options}} },
     disabled: { control: 'boolean' },
   },
+  decorators: [
+    (Story) => (
+      <div style=\{{ minHeight: '300px' }}>
+        <Story />
+      </div>
+    ),
+  ],
 {{> react/stories-footer}}
 
 

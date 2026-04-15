@@ -5,11 +5,17 @@ import Select from './Select.vue';
 const meta: Meta<typeof Select> = {
   title: 'Crucible/{{name}}',
   component: Select,
+  tags: ['autodocs'],
   argTypes: {
     variant:  { control: 'select', options: {{> shared/variant-options}} },
     size:     { control: 'select', options: {{> shared/size-options}} },
     disabled: { control: 'boolean' },
   },
+  decorators: [
+    () => ({
+      template: '<div style="min-height: 300px;"><story /></div>',
+    }),
+  ],
 };
 
 export default meta;

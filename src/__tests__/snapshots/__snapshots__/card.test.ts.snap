@@ -209,6 +209,7 @@ import { Card } from './Card';
 const meta: Meta<typeof Card> = {
   title: 'Crucible/Card',
   component: Card,
+  tags: ['autodocs'],
   parameters: { layout: 'centered' },
   argTypes: {
     variant: { control: 'select', options: ['default', 'hoverable', 'clickable'] },
@@ -497,6 +498,7 @@ import { Card } from './Card';
 const meta: Meta<typeof Card> = {
   title: 'Crucible/Card',
   component: Card,
+  tags: ['autodocs'],
   parameters: { layout: 'centered' },
   argTypes: {
     variant: { control: 'select', options: ['default', 'hoverable', 'clickable'] },
