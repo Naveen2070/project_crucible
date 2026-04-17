@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import * as matchers from 'vitest-axe/matchers';
 import { expect } from 'vitest';
+import { initRegistry } from '../../plugins/loader';
 
 expect.extend(matchers);
 
@@ -9,3 +10,6 @@ declare module 'vitest' {
     toHaveNoViolations(): T;
   }
 }
+
+// Initialize registry for tests
+await initRegistry(process.cwd());

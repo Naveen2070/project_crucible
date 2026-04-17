@@ -1,27 +1,24 @@
-import { ComponentName } from '../core/enums';
-import { generateComponentFiles, ComponentDef } from './path-generator';
-import buttonManifest from './manifests/components/button.json';
-import inputManifest from './manifests/components/input.json';
-import cardManifest from './manifests/components/card.json';
-import dialogManifest from './manifests/components/dialog.json';
-import selectManifest from './manifests/components/select.json';
-import tableManifest from './manifests/components/table.json';
-import popoverManifest from './manifests/components/popover.json';
+import { ComponentDef } from './path-generator';
+import { pluginRegistry } from '../plugins/registry';
 
+// Re-export ComponentDef for backward compatibility
 export type { ComponentDef };
 
-const manifests: Record<string, any> = {
-  [ComponentName.Button]: buttonManifest,
-  [ComponentName.Input]: inputManifest,
-  [ComponentName.Card]: cardManifest,
-  [ComponentName.Dialog]: dialogManifest,
-  [ComponentName.Select]: selectManifest,
-  [ComponentName.Table]: tableManifest,
-  [ComponentName.Popover]: popoverManifest,
-};
-
-export const registry: Record<ComponentName, ComponentDef> = {} as any;
-
-for (const [name, manifest] of Object.entries(manifests)) {
-  registry[name as ComponentName] = generateComponentFiles(manifest.name, manifest.dependencies);
-}
+/**
+ * The component registry.
+ * In v1.1, this is a proxy to the pluginRegistry to support dynamic loading.
+ */
+export const registry: Record<string, ComponentDef> = new Proxy({}, {
+  get(_, prop: string) {
+    return pluginRegistry.getComponentDef(prop);
+  },
+  ownKeys() {
+    return pluginRegistry.getAllComponentIds();
+  },
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
+});

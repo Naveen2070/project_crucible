@@ -1,11 +1,4 @@
-import { ComponentName } from '../../core/enums';
-import buttonManifest from './components/button.json';
-import inputManifest from './components/input.json';
-import cardManifest from './components/card.json';
-import dialogManifest from './components/dialog.json';
-import selectManifest from './components/select.json';
-import tableManifest from './components/table.json';
-import popoverManifest from './components/popover.json';
+import { pluginRegistry } from '../../plugins/registry';
 
 export interface ComponentMeta {
   /** Visual variants (e.g., primary, secondary, ghost) */
@@ -42,23 +35,42 @@ export interface ComponentMeta {
   utils?: string[];
 }
 
-const manifests: Record<string, any> = {
-  [ComponentName.Button]: buttonManifest,
-  [ComponentName.Input]: inputManifest,
-  [ComponentName.Card]: cardManifest,
-  [ComponentName.Dialog]: dialogManifest,
-  [ComponentName.Select]: selectManifest,
-  [ComponentName.Table]: tableManifest,
-  [ComponentName.Popover]: popoverManifest,
-};
+/**
+ * Component defaults.
+ * In v1.1, these are proxied to the pluginRegistry.
+ */
+export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = new Proxy({}, {
+  get(_, prop: string) {
+    const manifest = pluginRegistry.getComponentManifest(prop);
+    if (!manifest) return undefined;
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { tailwindDefaults, ...meta } = manifest;
+    return meta as ComponentMeta;
+  },
+  ownKeys() {
+    return pluginRegistry.getAllComponentIds();
+  },
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
+});
 
-export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {};
-export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {};
-
-for (const [name, manifest] of Object.entries(manifests)) {
-  TAILWIND_VARIANT_DEFAULTS[name] = manifest.tailwindDefaults || {};
-  
-  const { tailwindDefaults, ...meta } = manifest;
-  COMPONENT_DEFAULTS[name] = meta as ComponentMeta;
-}
-
+export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = new Proxy({}, {
+  get(_, prop: string) {
+    const manifest = pluginRegistry.getComponentManifest(prop);
+    return manifest?.tailwindDefaults || {};
+  },
+  ownKeys() {
+    return pluginRegistry.getAllComponentIds();
+  },
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
+});

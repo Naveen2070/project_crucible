@@ -1,0 +1,15 @@
+{
+  "id": "core",
+  "name": "Crucible Core",
+  "version": "1.0.0",
+  "description": "Built-in components for Crucible",
+  "components": [
+    "components/button.json",
+    "components/input.json",
+    "components/card.json",
+    "components/dialog.json",
+    "components/select.json",
+    "components/table.json",
+    "components/popover.json"
+  ]
+}
