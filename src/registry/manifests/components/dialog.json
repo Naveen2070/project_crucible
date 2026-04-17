@@ -1,0 +1,20 @@
+{
+  "id": "Dialog",
+  "name": "Dialog",
+  "description": "Modal dialog component",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "confirm"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["open", "closed"],
+  "props": ["title"],
+  "prefix": "Dialog",
+  "noClassName": true,
+  "behaviours": ["closeable", "focusTrap", "scrollLock"],
+  "a11y": { "role": "dialog", "focusTrap": true },
+  "dependencies": ["Button"],
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)]",
+    "confirm": "bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]"
+  }
+}
