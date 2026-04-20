@@ -3,8 +3,9 @@ import { readFile, writeFile, mkdir, rm, stat } from 'node:fs/promises';
 import path from 'path';
 import ansis from 'ansis';
 import { readConfig } from '../../config/reader';
-import { StyleSystem, Framework } from '../../core/enums';
-import { PEER_DEPENDENCIES } from '../../registry/peer-deps';
+import { Framework } from '../../core/enums';
+import { getPeerDependencies } from '../../registry/peer-deps';
+import { pluginRegistry } from '../../plugins/registry';
 import { loadHashes, hashContent } from '../../scaffold/writer';
 import { pathExists, readJson } from '../../utils/fs';
 
@@ -187,8 +188,8 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       const framework = config?.framework as Framework;
       const missingDeps: string[] = [];
 
-      for (const [component, deps] of Object.entries(PEER_DEPENDENCIES)) {
-        const frameworkDeps = (deps as any)[framework] || [];
+      for (const component of pluginRegistry.getAllComponentIds()) {
+        const frameworkDeps = getPeerDependencies(component, framework);
         for (const dep of frameworkDeps) {
           if (!installedDeps[dep]) {
             missingDeps.push(`${dep} (for ${component})`);

@@ -13,6 +13,9 @@
   "behaviours": ["closeable", "focusTrap", "scrollLock"],
   "a11y": { "role": "dialog", "focusTrap": true },
   "dependencies": ["Button"],
+  "peerDependencies": {
+    "react": ["focus-trap-react"]
+  },
   "tailwindDefaults": {
     "default": "bg-[var(--color-surface)]",
     "confirm": "bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]"

@@ -35,7 +35,7 @@ export async function checkComponentDependencies(
     }
   }
 
-  const peerDeps = getPeerDependencies(component as any, framework);
+  const peerDeps = getPeerDependencies(component, framework);
   for (const peerDep of peerDeps) {
     const installed = await checkPeerDependencyInstalled(peerDep, outputDir);
     if (!installed) {

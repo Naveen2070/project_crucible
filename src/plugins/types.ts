@@ -22,6 +22,7 @@ export interface ComponentManifest {
   };
   utils?: string[];
   dependencies?: string[];
+  peerDependencies?: Record<string, string[]>;
   tailwindDefaults?: Record<string, string>;
 }
 
