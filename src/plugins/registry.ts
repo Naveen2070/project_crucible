@@ -7,6 +7,7 @@ export class PluginRegistry {
   private components: Map<string, ComponentManifest> = new Map();
   private registry: Map<string, ComponentDef> = new Map();
   private componentToTemplatesDir: Map<string, string> = new Map();
+  private componentToPluginId: Map<string, string> = new Map();
   private plugins: LoadedPlugin[] = [];
 
   private constructor() {}
@@ -27,6 +28,7 @@ export class PluginRegistry {
       this.components.set(comp.id, comp);
       this.registry.set(comp.id, generateComponentFiles(comp.name, comp.dependencies));
       this.componentToTemplatesDir.set(comp.id, templatesDir);
+      this.componentToPluginId.set(comp.id, plugin.manifest.id);
     }
   }
 
@@ -40,6 +42,10 @@ export class PluginRegistry {
 
   public getComponentTemplatesDir(id: string): string | undefined {
     return this.componentToTemplatesDir.get(id);
+  }
+
+  public getComponentPluginId(id: string): string | undefined {
+    return this.componentToPluginId.get(id);
   }
 
   public getAllComponentIds(): string[] {

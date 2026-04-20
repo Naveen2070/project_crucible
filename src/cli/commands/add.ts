@@ -9,6 +9,7 @@ import { buildComponentModel } from '../../components/model';
 import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../../templates/engine';
 import { writeFiles, loadHashes, saveHashes, hashContent } from '../../scaffold/writer';
 import { registry } from '../../registry/components';
+import { pluginRegistry } from '../../plugins/registry';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
 import {
@@ -67,7 +68,10 @@ export async function runAdd(components: string[], opts: any) {
     }
     const answers = await checkbox({
       message: 'Select components to scaffold:',
-      choices: Object.keys(registry).map((name) => ({ name, value: name })),
+      choices: Object.keys(registry).map((name) => {
+        const pluginId = pluginRegistry.getComponentPluginId(name) || 'core';
+        return { name: `${ansis.gray(pluginId + '/')}${name}`, value: name };
+      }),
     });
     if (answers.length === 0) {
       if (!opts.quiet) console.log(ansis.gray('No components selected.'));
@@ -238,11 +242,12 @@ export async function runAdd(components: string[], opts: any) {
 
         const storiesNote = generateStories ? ' + story' : '';
         const dryRunNote = opts.dryRun ? ansis.yellow(' (dry-run)') : '';
+        const pluginId = pluginRegistry.getComponentPluginId(comp) || 'core';
 
         if (!opts.quiet) {
           console.log(
             ansis.cyan(
-              `\n⚗  ${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`,
+              `\n⚗  ${pluginId}/${comp}/ [${config.styleSystem}/${config.theme}${storiesNote}] → ${outDir}`,
             ) + dryRunNote,
           );
         }
