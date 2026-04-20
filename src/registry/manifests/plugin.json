@@ -3,6 +3,7 @@
   "name": "Crucible Core",
   "version": "1.0.0",
   "description": "Built-in components for Crucible",
+  "templatesDir": "../../../templates",
   "components": [
     "components/button.json",
     "components/input.json",

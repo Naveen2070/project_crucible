@@ -7,6 +7,7 @@ import { ComponentModel } from '../components/model';
 import { Framework, StyleSystem } from '../core/enums';
 import { FRAMEWORK_TARGETS } from '../registry/frameworks';
 import { pathExists } from '../utils/fs';
+import { pluginRegistry } from '../plugins/registry';
 
 Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
 Handlebars.registerHelper('includes', (arr: any[], val: any) => arr?.includes(val));
@@ -21,37 +22,50 @@ Handlebars.registerHelper('kebab', (str: string) =>
 Handlebars.registerHelper('hbs', (str: string) => `{{${str}}}`);
 
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
-const loadedFrameworks = new Set<string>();
+const loadedRoots = new Set<string>();
 let globalWatcher: ReturnType<typeof chokidar.watch> | null = null;
 const frameworkWatchers = new Map<string, ReturnType<typeof chokidar.watch>>();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-function getTemplatesRoot(): string {
+function getCoreTemplatesRoot(): string {
   return path.join(__dirname, '../../templates');
 }
 
-async function registerPartials(framework: string) {
-  if (loadedFrameworks.has(framework)) {
-    return;
+async function registerPartials(framework: string, templatesRoot: string) {
+  const coreRoot = getCoreTemplatesRoot();
+
+  // 1. Core shared partials
+  const coreShared = path.join(coreRoot, 'shared');
+  if (!loadedRoots.has(coreShared) && await pathExists(coreShared)) {
+    await registerPartialsFromDir(coreShared, 'shared');
+    loadedRoots.add(coreShared);
   }
 
-  const root = getTemplatesRoot();
-
-  const globalShared = path.join(root, 'shared');
-  if (await pathExists(globalShared)) {
-    await registerPartialsFromDir(globalShared, 'shared');
+  // 2. Core framework shared partials
+  const coreFrameworkShared = path.join(coreRoot, framework, 'shared');
+  if (!loadedRoots.has(coreFrameworkShared) && await pathExists(coreFrameworkShared)) {
+    await registerPartialsFromDir(coreFrameworkShared, framework);
+    loadedRoots.add(coreFrameworkShared);
   }
 
-  const frameworkShared = path.join(root, framework, 'shared');
-  if (await pathExists(frameworkShared)) {
-    await registerPartialsFromDir(frameworkShared, framework);
-  }
+  // 3. Plugin shared partials (if different from core)
+  if (templatesRoot && path.resolve(templatesRoot) !== path.resolve(coreRoot)) {
+    const pluginShared = path.join(templatesRoot, 'shared');
+    if (!loadedRoots.has(pluginShared) && await pathExists(pluginShared)) {
+      await registerPartialsFromDir(pluginShared, 'shared');
+      loadedRoots.add(pluginShared);
+    }
 
-  loadedFrameworks.add(framework);
+    const pluginFrameworkShared = path.join(templatesRoot, framework, 'shared');
+    if (!loadedRoots.has(pluginFrameworkShared) && await pathExists(pluginFrameworkShared)) {
+      await registerPartialsFromDir(pluginFrameworkShared, framework);
+      loadedRoots.add(pluginFrameworkShared);
+    }
+  }
 
   if (!isProduction) {
-    setupFrameworkWatcher(framework);
+    setupFrameworkWatcher(framework, templatesRoot);
   }
 }
 
@@ -71,20 +85,20 @@ async function registerPartialsFromDir(dir: string, prefix: string) {
   }
 }
 
-function invalidateCache(framework?: string) {
+function invalidateCache(frameworkRoot?: string) {
   templateCache.clear();
 
-  if (framework) {
-    loadedFrameworks.delete(framework);
+  if (frameworkRoot) {
+    loadedRoots.delete(frameworkRoot);
   } else {
-    loadedFrameworks.clear();
+    loadedRoots.clear();
   }
 }
 
 function setupGlobalWatcher() {
   if (globalWatcher || isProduction) return;
 
-  const root = getTemplatesRoot();
+  const root = getCoreTemplatesRoot();
   const sharedPath = path.join(root, 'shared');
   if (!fs.existsSync(sharedPath)) return;
 
@@ -101,11 +115,12 @@ function setupGlobalWatcher() {
   });
 }
 
-function setupFrameworkWatcher(framework: string) {
-  if (frameworkWatchers.has(framework) || isProduction) return;
+function setupFrameworkWatcher(framework: string, templatesRoot: string) {
+  const frameworkShared = path.join(templatesRoot, framework, 'shared');
+  const watcherKey = frameworkShared;
+  
+  if (frameworkWatchers.has(watcherKey) || isProduction) return;
 
-  const root = getTemplatesRoot();
-  const frameworkShared = path.join(root, framework, 'shared');
   if (!fs.existsSync(frameworkShared)) return;
 
   const watcher = chokidar.watch(frameworkShared, {
@@ -117,10 +132,10 @@ function setupFrameworkWatcher(framework: string) {
   });
 
   watcher.on('change', () => {
-    invalidateCache(framework);
+    invalidateCache(frameworkShared);
   });
 
-  frameworkWatchers.set(framework, watcher);
+  frameworkWatchers.set(watcherKey, watcher);
 }
 
 async function cleanupWatchers() {
@@ -138,8 +153,11 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   if (!isProduction) {
     setupGlobalWatcher();
   }
-  await registerPartials(model.framework);
-  const tplDir = path.join(getTemplatesRoot(), model.framework, model.styleSystem, model.name);
+
+  const templatesRoot = pluginRegistry.getComponentTemplatesDir(model.name) || getCoreTemplatesRoot();
+  await registerPartials(model.framework, templatesRoot);
+  
+  const tplDir = path.join(templatesRoot, model.framework, model.styleSystem, model.name);
   const result: Record<string, string> = {};
 
   const resolver = FRAMEWORK_TARGETS[model.framework];
@@ -151,12 +169,13 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   for (const { tpl, out } of targets) {
     let tplPath = path.join(tplDir, tpl);
 
+    // Fallback to CSS styles if SCSS/Tailwind templates are missing in the current templatesRoot
     if (
       (model.styleSystem === StyleSystem.SCSS || model.styleSystem === StyleSystem.Tailwind) &&
       !(await pathExists(tplPath))
     ) {
       const fallbackDir = path.join(
-        getTemplatesRoot(),
+        templatesRoot,
         model.framework,
         StyleSystem.CSS,
         model.name,
@@ -179,8 +198,12 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     result[out] = compiled(model);
   }
 
-  // Generate README.md
-  const readmePath = path.join(getTemplatesRoot(), 'shared', 'component-readme.hbs');
+  // Generate README.md with core fallback
+  let readmePath = path.join(templatesRoot, 'shared', 'component-readme.hbs');
+  if (!(await pathExists(readmePath))) {
+    readmePath = path.join(getCoreTemplatesRoot(), 'shared', 'component-readme.hbs');
+  }
+
   if (await pathExists(readmePath)) {
     let compiled = templateCache.get(readmePath);
     if (!compiled) {
@@ -191,13 +214,17 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
     result['README.md'] = compiled(model);
   }
 
-  // Generate virtualization-adapters-guide.md for Table component
+  // Generate virtualization-adapters-guide.md for Table component with core fallback
   if (model.name === 'Table') {
-    const guidePath = path.join(
-      getTemplatesRoot(),
+    let guidePath = path.join(
+      templatesRoot,
       'shared',
       'virtualization-adapters-guide.md.hbs',
     );
+    if (!(await pathExists(guidePath))) {
+      guidePath = path.join(getCoreTemplatesRoot(), 'shared', 'virtualization-adapters-guide.md.hbs');
+    }
+
     if (await pathExists(guidePath)) {
       let compiled = templateCache.get(guidePath);
       if (!compiled) {
@@ -213,8 +240,13 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 }
 
 export async function renderGlobalTokens(model: ComponentModel): Promise<string> {
-  await registerPartials(model.framework);
-  const tplPath = path.join(getTemplatesRoot(), 'shared', 'global-tokens.css.hbs');
+  const templatesRoot = pluginRegistry.getComponentTemplatesDir(model.name) || getCoreTemplatesRoot();
+  await registerPartials(model.framework, templatesRoot);
+  
+  let tplPath = path.join(templatesRoot, 'shared', 'global-tokens.css.hbs');
+  if (!(await pathExists(tplPath))) {
+    tplPath = path.join(getCoreTemplatesRoot(), 'shared', 'global-tokens.css.hbs');
+  }
 
   if (!(await pathExists(tplPath))) {
     throw new Error(`Global tokens template not found: ${tplPath}`);

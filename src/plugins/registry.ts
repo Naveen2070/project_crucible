@@ -1,3 +1,4 @@
+import path from 'path';
 import { ComponentManifest, LoadedPlugin } from './types';
 import { ComponentDef, generateComponentFiles } from '../registry/path-generator';
 
@@ -5,6 +6,7 @@ export class PluginRegistry {
   private static instance: PluginRegistry;
   private components: Map<string, ComponentManifest> = new Map();
   private registry: Map<string, ComponentDef> = new Map();
+  private componentToTemplatesDir: Map<string, string> = new Map();
   private plugins: LoadedPlugin[] = [];
 
   private constructor() {}
@@ -18,9 +20,13 @@ export class PluginRegistry {
 
   public registerPlugin(plugin: LoadedPlugin) {
     this.plugins.push(plugin);
+    
+    const templatesDir = path.resolve(plugin.root, plugin.manifest.templatesDir || './templates');
+
     for (const comp of plugin.components) {
       this.components.set(comp.id, comp);
       this.registry.set(comp.id, generateComponentFiles(comp.name, comp.dependencies));
+      this.componentToTemplatesDir.set(comp.id, templatesDir);
     }
   }
 
@@ -30,6 +36,10 @@ export class PluginRegistry {
 
   public getComponentDef(id: string): ComponentDef | undefined {
     return this.registry.get(id);
+  }
+
+  public getComponentTemplatesDir(id: string): string | undefined {
+    return this.componentToTemplatesDir.get(id);
   }
 
   public getAllComponentIds(): string[] {

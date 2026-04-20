@@ -38,4 +38,5 @@ export interface PluginManifest {
   version: string;
   description?: string;
   components: string[]; // IDs of components provided by this plugin
+  templatesDir?: string; // Optional: relative path to templates, defaults to './templates'
 }
