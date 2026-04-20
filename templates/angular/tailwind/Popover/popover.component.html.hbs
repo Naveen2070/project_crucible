@@ -1,0 +1,15 @@
+<div [class]="'relative inline-block ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div #triggerRef class="cursor-pointer inline-block" (click)="toggle()">
+    <ng-content select="[trigger]"></ng-content>
+  </div>
+
+  @if (isOpen) {
+    <div 
+      #contentRef 
+      class="absolute z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden"
+      [ngClass]="getTailwindClasses()"
+    >
+      <ng-content></ng-content>
+    </div>
+  }
+</div>

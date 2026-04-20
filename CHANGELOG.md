@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-03-31
+
+### Changed
+
+- **Replace `chalk` with `ansis`**: Updated terminal styling library from chalk to ansis for better
+  performance and modern API
+- **Replace `fs-extra` with native `node:fs`**: Removed fs-extra dependency in favor of native
+  Node.js fs modules for better performance and zero runtime dependencies
+- **Shared fs utility module**: Created `src/utils/fs.ts` with reusable helpers (`pathExists`,
+  `readJson`, `writeJson`, `ensureDir`, `remove`)
+
+### Dependencies
+
+- **Removed**: `chalk`, `fs-extra`, `@types/fs-extra`
+- **Added**: `ansis`
+
+### Testing
+
+- Added `test:bun` script for running tests with bun via `bunx vitest`
+
+### Fixed
+
+- **tsconfig.json**: Updated rootDir and include paths to correctly compile CLI and scripts
+
 ## [1.0.3] - 2026-03-30
 
 ### Added

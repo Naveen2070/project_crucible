@@ -1,0 +1,187 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Popover } from './Popover';
+import { Button } from '../Button/Button';
+
+const meta: Meta<typeof Popover> = {
+  title: 'Crucible/Popover',
+  component: Popover,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'minimal'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Popover>;
+
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: (args) => (
+    <Popover.Root {...args}>
+      <Popover.Trigger>
+        <Button>Open Popover</Button>
+      </Popover.Trigger>
+      <Popover.Content>
+        <Popover.Item>Action 1</Popover.Item>
+        <Popover.Item>Action 2</Popover.Item>
+        <Popover.Separator />
+        <Popover.Item closeOnClick={false}>I stay open</Popover.Item>
+      </Popover.Content>
+    </Popover.Root>
+  ),
+};
+
+export const Submenu: Story = {
+  decorators: [
+    (Story) => (
+      <div style=\{{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  render: (args) => (
+    <Popover.Root {...args}>
+      <Popover.Trigger>
+        <Button>Open Menu</Button>
+      </Popover.Trigger>
+      <Popover.Content>
+        <Popover.Item>Action 1</Popover.Item>
+        <Popover.Sub>
+          <Popover.SubTrigger>More Options →</Popover.SubTrigger>
+          <Popover.SubContent>
+            <Popover.Item>Sub Item 1</Popover.Item>
+            <Popover.Item>Sub Item 2</Popover.Item>
+          </Popover.SubContent>
+        </Popover.Sub>
+        <Popover.Separator />
+        <Popover.Item>Exit</Popover.Item>
+      </Popover.Content>
+    </Popover.Root>
+  ),
+};
+{{else}}
+export const Default: Story = {
+  render: (args) => (
+    <Popover {...args}>
+      <Button>Open Popover</Button>
+      <div style=\{{ display: 'flex', flexDirection: 'column' }}>
+        <div style=\{{ padding: '8px' }}>Action 1</div>
+        <div style=\{{ padding: '8px' }}>Action 2</div>
+      </div>
+    </Popover>
+  ),
+};
+{{/if}}
+
+export const Placements: Story = {
+  decorators: [
+    (Story) => (
+      <div style=\{{ height: '400px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', alignItems: 'center', justifyItems: 'center' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <>
+      {{#if features.compoundComponents}}
+      <Popover.Root placement="top">
+        <Popover.Trigger><Button>Top</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Top Content</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root placement="bottom">
+        <Popover.Trigger><Button>Bottom</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Bottom Content</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root placement="left">
+        <Popover.Trigger><Button>Left</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Left Content</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root placement="right">
+        <Popover.Trigger><Button>Right</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Right Content</div></Popover.Content>
+      </Popover.Root>
+      {{else}}
+      <Popover placement="top">
+        <Button>Top</Button>
+        <div style=\{{ padding: '10px' }}>Top Content</div>
+      </Popover>
+      <Popover placement="bottom">
+        <Button>Bottom</Button>
+        <div style=\{{ padding: '10px' }}>Bottom Content</div>
+      </Popover>
+      <Popover placement="left">
+        <Button>Left</Button>
+        <div style=\{{ padding: '10px' }}>Left Content</div>
+      </Popover>
+      <Popover placement="right">
+        <Button>Right</Button>
+        <div style=\{{ padding: '10px' }}>Right Content</div>
+      </Popover>
+      {{/if}}
+    </>
+  ),
+};
+
+export const Alignments: Story = {
+  decorators: [
+    (Story) => (
+      <div style=\{{ height: '400px', display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center', justifyContent: 'center' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <>
+      {{#if features.compoundComponents}}
+      <Popover.Root alignment="start">
+        <Popover.Trigger><Button>Start Alignment</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Aligned to Start</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root alignment="center">
+        <Popover.Trigger><Button>Center Alignment</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Aligned to Center</div></Popover.Content>
+      </Popover.Root>
+      <Popover.Root alignment="end">
+        <Popover.Trigger><Button>End Alignment</Button></Popover.Trigger>
+        <Popover.Content><div style=\{{ padding: '10px' }}>Aligned to End</div></Popover.Content>
+      </Popover.Root>
+      {{else}}
+      <Popover alignment="start">
+        <Button>Start Alignment</Button>
+        <div style=\{{ padding: '10px' }}>Aligned to Start</div>
+      </Popover>
+      <Popover alignment="center">
+        <Button>Center Alignment</Button>
+        <div style=\{{ padding: '10px' }}>Aligned to Center</div>
+      </Popover>
+      <Popover alignment="end">
+        <Button>End Alignment</Button>
+        <div style=\{{ padding: '10px' }}>Aligned to End</div>
+      </Popover>
+      {{/if}}
+    </>
+  ),
+};

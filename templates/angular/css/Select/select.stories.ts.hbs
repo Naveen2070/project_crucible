@@ -19,6 +19,11 @@ const meta: Meta<SelectComponent> = {
     error:       { control: 'text' },
     disabled:    { control: 'boolean' },
   },
+  decorators: [
+    (Story) => ({
+      template: '<div style="min-height: 300px;"><story /></div>',
+    }),
+  ],
 };
 
 export default meta;

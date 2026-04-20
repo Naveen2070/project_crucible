@@ -1,0 +1,100 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { componentWrapperDecorator } from '@storybook/angular';
+import { PopoverComponent } from './popover.component';
+
+const meta: Meta<PopoverComponent> = {
+  title: 'Crucible/Popover',
+  component: PopoverComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'minimal'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+  },
+  decorators: [
+    componentWrapperDecorator((story) => `<div style="height: 300px; display: flex; align-items: center; justify-content: center;">${story}</div>`),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<PopoverComponent>;
+
+export const Default: Story = {
+  args: {
+    placement: 'bottom',
+    alignment: 'center',
+  },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-popover [placement]="placement" [alignment]="alignment" [variant]="variant" [size]="size">
+        <button trigger type="button">Open Popover</button>
+        <div style="padding: 16px;">
+          <p style="margin: 0;">Popover Content</p>
+          <p style="margin: 8px 0 0; color: var(--color-text-muted);">This is an Angular popover</p>
+        </div>
+      </app-popover>
+    `,
+  }),
+};
+
+export const Placements: Story = {
+  decorators: [
+    componentWrapperDecorator((story) => `<div style="height: 400px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; align-items: center; justify-items: center;">${story}</div>`),
+  ],
+  render: () => ({
+    template: `
+      <app-popover placement="top">
+        <button trigger type="button">Top</button>
+        <div style="padding: 10px;">Top Content</div>
+      </app-popover>
+      <app-popover placement="bottom">
+        <button trigger type="button">Bottom</button>
+        <div style="padding: 10px;">Bottom Content</div>
+      </app-popover>
+      <app-popover placement="left">
+        <button trigger type="button">Left</button>
+        <div style="padding: 10px;">Left Content</div>
+      </app-popover>
+      <app-popover placement="right">
+        <button trigger type="button">Right</button>
+        <div style="padding: 10px;">Right Content</div>
+      </app-popover>
+    `,
+  }),
+};
+
+export const Alignments: Story = {
+  decorators: [
+    componentWrapperDecorator((story) => `<div style="height: 400px; display: flex; flex-direction: column; gap: 40px; align-items: center; justify-content: center;">${story}</div>`),
+  ],
+  render: () => ({
+    template: `
+      <app-popover alignment="start">
+        <button trigger type="button">Start Alignment</button>
+        <div style="padding: 10px;">Aligned to Start</div>
+      </app-popover>
+      <app-popover alignment="center">
+        <button trigger type="button">Center Alignment</button>
+        <div style="padding: 10px;">Aligned to Center</div>
+      </app-popover>
+      <app-popover alignment="end">
+        <button trigger type="button">End Alignment</button>
+        <div style="padding: 10px;">Aligned to End</div>
+      </app-popover>
+    `,
+  }),
+};

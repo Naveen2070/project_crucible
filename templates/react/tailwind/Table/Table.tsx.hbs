@@ -1,0 +1,327 @@
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { sort, SortDirection } from '../../utils/table-sorter';
+import { getPageData, getPageNumbers } from '../../utils/table-paginator';
+import { VirtualState, HeadlessVirtualizer } from '../../utils/virtualizer';
+
+export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface TableColumn<T = unknown> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+export interface TableProps<T = unknown> {
+  columns: TableColumn<T>[];
+  data: T[];
+  rowKey: keyof T;
+  variant?: TableVariant;
+  size?: TableSize;
+  virtualize?: boolean;
+  virtualizationThreshold?: number;
+  itemHeight?: number;
+  customVirtualState?: VirtualState;
+  paginationMode?: 'client' | 'server';
+  pageSize?: number;
+  page?: number;
+  totalPages?: number;
+  totalCount?: number;
+  onPageChange?: (page: number, pageSize: number) => void;
+  sortKey?: string;
+  sortDirection?: SortDirection;
+  onSort?: (key: string, direction: SortDirection) => void;
+  selectionMode?: 'single' | 'multiple' | 'none';
+  selectedRows?: string[];
+  onSelect?: (keys: string[]) => void;
+  onSelectAll?: (selected: boolean) => void;
+  loading?: boolean;
+  emptyMessage?: string;
+  className?: string;
+}
+
+const sizeClasses: Record<string, string> = {
+  sm: 'text-sm py-2',
+  md: 'text-base py-3',
+  lg: 'text-lg py-4',
+};
+
+const alignClasses: Record<string, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
+
+export const TableRoot = <T extends Record<string, unknown>>({
+  columns,
+  data,
+  rowKey,
+  variant = 'default',
+  size = 'md',
+  virtualize = false,
+  virtualizationThreshold = 100,
+  itemHeight = 44,
+  customVirtualState,
+  paginationMode = 'client',
+  pageSize = 10,
+  page = 1,
+  totalPages: totalPagesProp,
+  totalCount,
+  onPageChange,
+  sortKey,
+  sortDirection,
+  onSort,
+  selectionMode = 'none',
+  selectedRows = [],
+  onSelect,
+  onSelectAll,
+  loading = false,
+  emptyMessage = 'No data available',
+  className,
+}: TableProps<T>) => {
+  const [internalPage, setInternalPage] = useState(page);
+  const [internalSortKey, setInternalSortKey] = useState(sortKey);
+  const [internalSortDir, setInternalSortDir] = useState<SortDirection>(sortDirection || 'asc');
+  const [internalSelected, setInternalSelected] = useState<string[]>(selectedRows);
+
+  const shouldVirtualize = virtualize && customVirtualState !== undefined;
+  const virtualItems = customVirtualState?.virtualItems || [];
+  const totalHeight = customVirtualState?.totalHeight || 0;
+  const offsetY = customVirtualState?.offsetY || 0;
+
+  const processedData = useMemo(() => {
+    let result = [...data];
+    if (internalSortKey && onSort) {
+      result = sort(result, internalSortKey, internalSortDir);
+    }
+    return result;
+  }, [data, internalSortKey, internalSortDir, onSort]);
+
+  const paginationResult = useMemo(() => {
+    if (paginationMode === 'server') {
+      return {
+        data: processedData,
+        pageInfo: {
+          page,
+          pageSize,
+          totalItems: totalCount || 0,
+          totalPages: totalPagesProp || 0,
+          startIndex: 0,
+          endIndex: processedData.length,
+          hasNextPage: page < (totalPagesProp || 0),
+          hasPrevPage: page > 1,
+        },
+      };
+    }
+    return getPageData(processedData, internalPage, pageSize);
+  }, [processedData, paginationMode, page, pageSize, internalPage, totalPagesProp, totalCount]);
+
+  const { data: displayData, pageInfo } = paginationResult;
+  const pageNumbers = getPageNumbers(pageInfo.page, pageInfo.totalPages);
+
+  const handleSort = useCallback((column: TableColumn) => {
+    if (!column.sortable) return;
+    const newDir = internalSortKey === column.key
+      ? (internalSortDir === 'asc' ? 'desc' : 'asc')
+      : 'asc';
+    setInternalSortKey(column.key);
+    setInternalSortDir(newDir);
+    onSort?.(column.key, newDir);
+  }, [internalSortKey, internalSortDir, onSort]);
+
+  const handleSelect = useCallback((row: T) => {
+    const key = String(row[rowKey]);
+    let newSelected: string[];
+    if (selectionMode === 'single') {
+      newSelected = internalSelected.includes(key) ? [] : [key];
+    } else {
+      newSelected = internalSelected.includes(key)
+        ? internalSelected.filter(k => k !== key)
+        : [...internalSelected, key];
+    }
+    setInternalSelected(newSelected);
+    onSelect?.(newSelected);
+  }, [internalSelected, onSelect, selectionMode, rowKey]);
+
+  const handleSelectAll = useCallback(() => {
+    const allKeys = displayData.map(row => String(row[rowKey]));
+    const newSelected = internalSelected.length === displayData.length
+      ? []
+      : allKeys;
+    setInternalSelected(newSelected);
+    onSelectAll?.(newSelected.length > 0);
+  }, [displayData, internalSelected, onSelectAll, rowKey]);
+
+  const isStriped = variant === 'striped';
+  const isBordered = variant === 'bordered';
+  const isCompact = variant === 'compact';
+
+  const wrapperClasses = [
+    'w-full overflow-hidden rounded-[var(--radius-md)] border',
+    isBordered ? 'border-[var(--color-border)]' : 'border-transparent',
+    className,
+  ].filter(Boolean).join(' ');
+
+  const tableClasses = [
+    'w-full border-collapse',
+    loading && 'opacity-50 pointer-events-none',
+  ].filter(Boolean).join(' ');
+
+  const renderRows = () => {
+    return displayData.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = internalSelected.includes(key);
+
+      return (
+        <tr
+          key={key}
+          className={[
+            'transition-colors',
+            isStriped && idx % 2 === 1 ? 'bg-[var(--color-muted)]' : '',
+            !isStriped && !isCompact ? 'hover:bg-[var(--color-secondary)]' : '',
+            isSelected ? 'bg-[var(--color-primary)]/10' : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {selectionMode !== 'none' && (
+            <td className={['px-4 py-2', isBordered ? 'border ! border-[var(--color-border)]' : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleSelect(row)}
+                className="rounded border-[var(--color-border)]"
+              />
+            </td>
+          )}
+          {columns.map(col => (
+            <td
+              key={col.key}
+              className={[
+                'px-4',
+                sizeClasses[size],
+                alignClasses[col.align || 'left'],
+                isBordered ? 'border ! border-[var(--color-border)]' : '',
+              ].filter(Boolean).join(' ')}
+              style={col.width ? { width: col.width } : undefined}
+            >
+              {String(row[col.key] ?? '')}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  const headerCellClasses = (col: TableColumn) => [
+    'px-4 py-3 font-semibold text-left',
+    sizeClasses[size],
+    alignClasses[col.align || 'left'],
+    col.sortable ? 'cursor-pointer select-none hover:bg-[var(--color-secondary)]' : '',
+    isBordered ? 'border ! border-[var(--color-border)]' : '',
+  ].filter(Boolean).join(' ');
+
+  return (
+    <div className={wrapperClasses}>
+      <div className="overflow-auto">
+        <table className={tableClasses} role="grid">
+          <thead className="bg-[var(--color-surface)]">
+            <tr className="border-b border-[var(--color-border)]">
+              {selectionMode !== 'none' && (
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={internalSelected.length === displayData.length && displayData.length > 0}
+                    onChange={handleSelectAll}
+                    className="rounded border-[var(--color-border)]"
+                  />
+                </th>
+              )}
+              {columns.map(col => (
+                <th
+                  key={col.key}
+                  className={headerCellClasses(col)}
+                  style={col.width ? { width: col.width } : undefined}
+                  onClick={() => handleSort(col)}
+                  role={col.sortable ? 'columnheader' : undefined}
+                  aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                >
+                  {col.label}
+                  {col.sortable && internalSortKey === col.key && (
+                    <span className="ml-1">{internalSortDir === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {displayData.length === 0 && !loading ? (
+              <tr>
+                <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className="px-4 py-8 text-center text-[var(--color-text-muted)]">
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              renderRows()
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {paginationMode === 'client' && pageInfo.totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+          <div className="text-sm text-[var(--color-text-muted)]">
+            Showing {pageInfo.startIndex + 1} to {pageInfo.endIndex} of {pageInfo.totalItems} results
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                const newPage = internalPage - 1;
+                setInternalPage(newPage);
+                onPageChange?.(newPage, pageSize);
+              }}
+              disabled={!pageInfo.hasPrevPage}
+              className="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            {pageNumbers.map(p => (
+              <button
+                key={p}
+                onClick={() => {
+                  setInternalPage(p);
+                  onPageChange?.(p, pageSize);
+                }}
+                className={[
+                  'px-3 py-1 text-sm rounded border',
+                  p === internalPage
+                    ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
+                    : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]',
+                ].filter(Boolean).join(' ')}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                const newPage = internalPage + 1;
+                setInternalPage(newPage);
+                onPageChange?.(newPage, pageSize);
+              }}
+              disabled={!pageInfo.hasNextPage}
+              className="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+TableRoot.displayName = 'Table';
+
+export const Table = Object.assign(TableRoot, {
+  displayName: 'Table',
+});

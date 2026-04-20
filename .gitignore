@@ -55,3 +55,4 @@ __generated__/
 /planning
 crucible.config.json
 .crucible
+AGENTS.md

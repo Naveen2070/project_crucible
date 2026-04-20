@@ -1,0 +1,205 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useFloating, offset, flip, shift, autoUpdate, Placement } from '@floating-ui/vue';
+
+interface PopoverProps {
+  /** Controlled open state */
+  isOpen?: boolean;
+  /** Placement relative to trigger */
+  placement?: 'top' | 'bottom' | 'left' | 'right';
+  /** Alignment relative to trigger */
+  alignment?: 'start' | 'center' | 'end';
+  /** Visual variant */
+  variant?: 'default' | 'minimal';
+  /** Size */
+  size?: 'sm' | 'md' | 'lg';
+  /** Additional class name */
+  className?: string;
+  /** Trigger event type */
+  trigger?: 'click' | 'hover';
+  /** Whether to close when clicking outside */
+  closeOnClickOutside?: boolean;
+  /** Whether to close when pressing Escape */
+  closeOnEscape?: boolean;
+}
+
+const props = withDefaults(defineProps<PopoverProps>(), {
+  placement: 'bottom',
+  alignment: 'center',
+  variant: 'default',
+  size: 'md',
+  className: '',
+  trigger: 'click',
+  closeOnClickOutside: true,
+  closeOnEscape: true,
+});
+
+const emit = defineEmits<{
+  (e: 'update:isOpen', value: boolean): void;
+}>();
+
+const internalOpen = ref(false);
+const isOpen = computed({
+  get: () => props.isOpen !== undefined ? props.isOpen : internalOpen.value,
+  set: (val) => {
+    internalOpen.value = val;
+    emit('update:isOpen', val);
+  }
+});
+
+const contentRef = ref<HTMLElement | null>(null);
+const triggerRef = ref<HTMLElement | null>(null);
+
+const toggle = () => {
+  if (props.trigger === 'click') {
+    isOpen.value = !isOpen.value;
+  }
+};
+
+const close = () => {
+  isOpen.value = false;
+};
+
+const handleMouseEnter = () => {
+  if (props.trigger === 'hover') {
+    isOpen.value = true;
+  }
+};
+
+const handleMouseLeave = () => {
+  if (props.trigger === 'hover') {
+    isOpen.value = false;
+  }
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (!props.closeOnClickOutside) return;
+  if (
+    isOpen.value &&
+    contentRef.value &&
+    !contentRef.value.contains(event.target as Node) &&
+    triggerRef.value &&
+    !triggerRef.value.contains(event.target as Node)
+  ) {
+    close();
+  }
+};
+
+const handleEscape = (event: KeyboardEvent) => {
+  if (!props.closeOnEscape) return;
+  if (event.key === 'Escape' && isOpen.value) {
+    close();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside);
+  document.addEventListener('keydown', handleEscape);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('keydown', handleEscape);
+});
+
+const floatingPlacement = computed<Placement>(() => 
+  `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement
+);
+
+const { floatingStyles } = useFloating(triggerRef, contentRef, {
+  placement: floatingPlacement,
+  open: isOpen,
+  middleware: [offset(8), flip(), shift({ padding: 8 })],
+  whileElementsMounted: autoUpdate,
+});
+
+const contentClasses = computed(() => {
+  return [
+    'popover-content',
+    `variant-${props.variant}`,
+    `size-${props.size}`,
+    { 'content-open': isOpen.value },
+    props.className
+  ];
+});
+</script>
+
+<template>
+  <div class="popover-root" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+    <div ref="triggerRef" class="popover-trigger" @click="toggle">
+      <slot name="trigger">
+        <button type="button">Trigger</button>
+      </slot>
+    </div>
+
+    <Transition name="popover-fade">
+      <div
+        v-if="isOpen"
+        ref="contentRef"
+        :class="contentClasses"
+        :style="floatingStyles"
+      >
+        <slot></slot>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<style scoped {{#if (eq styleSystem "scss")}}lang="scss"{{/if}}>
+.popover-root {
+  display: inline-block;
+}
+
+.popover-trigger {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.popover-content {
+  position: absolute;
+  z-index: var(--popover-z-index, {{tokens.componentTokens.popover.zIndex}});
+  background: var(--popover-background, {{tokens.componentTokens.popover.background}});
+  border: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-radius: var(--popover-radius, {{tokens.componentTokens.popover.radius}});
+  box-shadow: var(--popover-shadow, {{tokens.componentTokens.popover.shadow}});
+  padding: var(--popover-padding, {{tokens.componentTokens.popover.padding}});
+  min-width: 180px;
+  overflow: hidden;
+}
+
+/* Variants */
+.variant-minimal {
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Sizes */
+.size-sm {
+  font-size: 0.875rem;
+  padding: calc(var(--popover-padding) * 0.75);
+}
+
+.size-md {
+  font-size: 1rem;
+}
+
+.size-lg {
+  font-size: 1.125rem;
+  padding: calc(var(--popover-padding) * 1.5);
+}
+
+/* Animation */
+.popover-fade-enter-active {
+  transition: all 0.2s ease-out;
+}
+
+.popover-fade-leave-active {
+  transition: all 0.1s ease-in;
+}
+
+.popover-fade-enter-from,
+.popover-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+</style>

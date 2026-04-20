@@ -286,6 +286,7 @@ import { Dialog } from './Dialog';
 const meta: Meta<typeof Dialog> = {
   title: 'Crucible/Dialog',
   component: Dialog,
+  tags: ['autodocs'],
   parameters: { layout: 'centered' },
   argTypes: {
     variant:  { control: 'select', options: ['default', 'confirm'] },
@@ -611,6 +612,7 @@ import { Dialog } from './Dialog';
 const meta: Meta<typeof Dialog> = {
   title: 'Crucible/Dialog',
   component: Dialog,
+  tags: ['autodocs'],
   parameters: { layout: 'centered' },
   argTypes: {
     variant:  { control: 'select', options: ['default', 'confirm'] },

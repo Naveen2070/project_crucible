@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { runInit } from './commands/init';
 import { runDoctor } from './commands/doctor';
 import { runTokens } from './commands/tokens';
@@ -12,24 +12,31 @@ import { runConfigShow } from './commands/config-show';
 import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './commands/playground';
 import { Framework } from '../core/enums';
 import { assertDevMode } from '../config/dev-mode';
+import { initRegistry } from '../plugins/loader';
 
 const program = new Command();
 
-function warnForce(cmd: string): void {
-  console.log(chalk.yellow(`\n⚠  --force flag is active for: ${cmd}`));
-  console.log(chalk.gray('   This will overwrite user-edited files and bypass hash protection.\n'));
-}
+async function bootstrap() {
+  // Initialize registry with core and local plugins
+  const cwdArgIndex = process.argv.indexOf('--cwd');
+  const cwd = cwdArgIndex !== -1 ? path.resolve(process.cwd(), process.argv[cwdArgIndex + 1]) : process.cwd();
+  await initRegistry(cwd);
 
-program
-  .name('crucible')
-  .description(
-    'Design system engine — scaffolds native, fully-owned components directly into your project',
-  )
-  .version('1.0.0');
+  function warnForce(cmd: string): void {
+    console.log(ansis.yellow(`\n⚠  --force flag is active for: ${cmd}`));
+    console.log(ansis.gray('   This will overwrite user-edited files and bypass hash protection.\n'));
+  }
 
-program.addHelpText(
-  'after',
-  `
+  program
+    .name('crucible')
+    .description(
+      'Design system engine — scaffolds native, fully-owned components directly into your project',
+    )
+    .version('1.0.0');
+
+  program.addHelpText(
+    'after',
+    `
 Examples:
   $ npx crucible init
   $ npx crucible add Button
@@ -43,144 +50,147 @@ Examples:
 
 For more details, visit: https://github.com/Naveen2070/project_crucible
 `,
-);
+  );
 
-program
-  .command('init')
-  .alias('i')
-  .description('Scaffold a default crucible.config.json')
-  .option('-y, --yes', 'Skip prompts and use defaults')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .action((opts) => runInit({ yes: opts.yes, cwd: path.resolve(process.cwd(), opts.cwd) }));
+  program
+    .command('init')
+    .alias('i')
+    .description('Scaffold a default crucible.config.json')
+    .option('-y, --yes', 'Skip prompts and use defaults')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((opts) => runInit({ yes: opts.yes, cwd: path.resolve(process.cwd(), opts.cwd) }));
 
-program
-  .command('doctor')
-  .alias('d')
-  .description('Proactively validate your Crucible configuration and environment setup')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .action((opts) => runDoctor({ cwd: path.resolve(process.cwd(), opts.cwd) }));
+  program
+    .command('doctor')
+    .alias('d')
+    .description('Proactively validate your Crucible configuration and environment setup')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((opts) => runDoctor({ cwd: path.resolve(process.cwd(), opts.cwd) }));
 
-program
-  .command('tokens')
-  .alias('t')
-  .description('Regenerate the global tokens.css file')
-  .option('-f, --force', 'Overwrite existing tokens.css')
-  .option('--dry-run', 'Show what would be generated without writing')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .action((opts) => {
-    if (opts.force) warnForce('crucible tokens');
-    runTokens({
-      force: opts.force,
-      dryRun: opts.dryRun,
-      cwd: path.resolve(process.cwd(), opts.cwd || '.'),
+  program
+    .command('tokens')
+    .alias('t')
+    .description('Regenerate the global tokens.css file')
+    .option('-f, --force', 'Overwrite existing tokens.css')
+    .option('--dry-run', 'Show what would be generated without writing')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((opts) => {
+      if (opts.force) warnForce('crucible tokens');
+      runTokens({
+        force: opts.force,
+        dryRun: opts.dryRun,
+        cwd: path.resolve(process.cwd(), opts.cwd || '.'),
+      });
     });
-  });
 
-program
-  .command('eject')
-  .alias('e')
-  .description('Eject the built-in theme into your local crucible.config.json')
-  .option('--config <path>', 'Path to config file', 'crucible.config.json')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .action(async (opts) => {
-    await runEject({
-      config: opts.config,
-      cwd: opts.cwd,
+  program
+    .command('eject')
+    .alias('e')
+    .description('Eject the built-in theme into your local crucible.config.json')
+    .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action(async (opts) => {
+      await runEject({
+        config: opts.config,
+        cwd: opts.cwd,
+      });
     });
-  });
 
-program
-  .command('add [component...]')
-  .alias('a')
-  .description('Scaffold a component into your project')
-  .option('--framework <fw>', 'Target framework', Framework.React)
-  .option('-s, --style <system>', 'Override style system (css|tailwind|scss)')
-  .option('-t, --theme <name>', 'Override theme (minimal|soft)')
-  .option('-a, --all', 'Add all available components')
-  .option('--dev', 'Output to playground/__generated__')
-  .option('-f, --force', 'Overwrite even if file has been edited')
-  .option('--config <path>', 'Path to config file', 'crucible.config.json')
-  .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
-  .option('--stories', 'Generate Storybook story file')
-  .option('--no-stories', 'Skip story generation (overrides config default)')
-  .option('--dry-run', 'Simulate generation without writing files')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .option('--verbose', 'Enable verbose logging')
-  .option('--quiet', 'Disable all logging except errors')
-  .action((components: string[], opts: any) => {
-    if (opts.force) warnForce('crucible add');
-    runAdd(components, opts);
-  });
+  program
+    .command('add [component...]')
+    .alias('a')
+    .description('Scaffold a component into your project')
+    .option('--framework <fw>', 'Target framework', Framework.React)
+    .option('-s, --style <system>', 'Override style system (css|tailwind|scss)')
+    .option('-t, --theme <name>', 'Override theme (minimal|soft)')
+    .option('-a, --all', 'Add all available components')
+    .option('--dev', 'Output to playground/__generated__')
+    .option('-f, --force', 'Overwrite even if file has been edited')
+    .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
+    .option('--stories', 'Generate Storybook story file')
+    .option('--no-stories', 'Skip story generation (overrides config default)')
+    .option('--dry-run', 'Simulate generation without writing files')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .option('--verbose', 'Enable verbose logging')
+    .option('--quiet', 'Disable all logging except errors')
+    .action((components: string[], opts: any) => {
+      if (opts.force) warnForce('crucible add');
+      runAdd(components, opts);
+    });
 
-program
-  .command('list')
-  .alias('l')
-  .description('Show all available components')
-  .action(() => {
-    runList();
-  });
+  program
+    .command('list')
+    .alias('l')
+    .description('Show all available components')
+    .action(() => {
+      runList();
+    });
 
-program
-  .command('pg:gen [framework]')
-  .alias('pg')
-  .description('Generate playground components for frameworks (dev only)')
-  .option('--stories', 'Include story files', true)
-  .option('--no-stories', 'Exclude story files')
-  .option('-f, --force', 'Clean up existing generated files before generating')
-  .action(async (framework: string | undefined, opts: any) => {
-    assertDevMode('crucible pg:gen');
-    if (opts.force) warnForce('crucible pg:gen');
-    await runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
-  });
+  program
+    .command('pg:gen [framework]')
+    .alias('pg')
+    .description('Generate playground components for frameworks (dev only)')
+    .option('--stories', 'Include story files', true)
+    .option('--no-stories', 'Exclude story files')
+    .option('-f, --force', 'Clean up existing generated files before generating')
+    .action(async (framework: string | undefined, opts: any) => {
+      assertDevMode('crucible pg:gen');
+      if (opts.force) warnForce('crucible pg:gen');
+      await runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
+    });
 
-program
-  .command('pg:open [framework]')
-  .alias('po')
-  .description('Open Storybook for a framework playground (dev only)')
-  .action(async (framework: string | undefined, opts: any) => {
-    assertDevMode('crucible pg:open');
-    await runPlaygroundOpen({ framework });
-  });
+  program
+    .command('pg:open [framework]')
+    .alias('po')
+    .description('Open Storybook for a framework playground (dev only)')
+    .action(async (framework: string | undefined, opts: any) => {
+      assertDevMode('crucible pg:open');
+      await runPlaygroundOpen({ framework });
+    });
 
-program
-  .command('pg:dev [framework]')
-  .alias('pd')
-  .description('Start dev server for a framework playground (dev only)')
-  .action(async (framework: string | undefined, opts: any) => {
-    assertDevMode('crucible pg:dev');
-    await runPlaygroundDev({ framework });
-  });
+  program
+    .command('pg:dev [framework]')
+    .alias('pd')
+    .description('Start dev server for a framework playground (dev only)')
+    .action(async (framework: string | undefined, opts: any) => {
+      assertDevMode('crucible pg:dev');
+      await runPlaygroundDev({ framework });
+    });
 
-// clean command - remove generated files
-program
-  .command('clean')
-  .alias('c')
-  .description('Remove generated files from current directory')
-  .option('-a, --all', 'Also remove crucible.config.json')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .action(async (opts: any) => {
-    await runClean(opts);
-  });
+  // clean command - remove generated files
+  program
+    .command('clean')
+    .alias('c')
+    .description('Remove generated files from current directory')
+    .option('-a, --all', 'Also remove crucible.config.json')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action(async (opts: any) => {
+      await runClean(opts);
+    });
 
-// pg:clean command - clean all playground folders
-program
-  .command('pg:clean')
-  .alias('pcl')
-  .description('Clean all playground folders (dev only)')
-  .action(async () => {
-    assertDevMode('crucible pg:clean');
-    await runPgClean();
-  });
+  // pg:clean command - clean all playground folders
+  program
+    .command('pg:clean')
+    .alias('pcl')
+    .description('Clean all playground folders (dev only)')
+    .action(async () => {
+      assertDevMode('crucible pg:clean');
+      await runPgClean();
+    });
 
-// config command - show current crucible.config.json
-program
-  .command('config')
-  .alias('cfg')
-  .description('Show current crucible.config.json')
-  .option('--json', 'Output raw JSON')
-  .option('--cwd <path>', 'Current working directory', '.')
-  .action(async (opts: any) => {
-    await runConfigShow(opts);
-  });
+  // config command - show current crucible.config.json
+  program
+    .command('config')
+    .alias('cfg')
+    .description('Show current crucible.config.json')
+    .option('--json', 'Output raw JSON')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action(async (opts: any) => {
+      await runConfigShow(opts);
+    });
 
-program.parse();
+  await program.parseAsync();
+}
+
+bootstrap();

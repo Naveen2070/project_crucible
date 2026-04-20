@@ -1,0 +1,197 @@
+import type { Meta, StoryObj } from '@storybook/vue';
+import Table from './Table.vue';
+
+const meta: Meta<typeof Table> = {
+  title: 'Crucible/Table',
+  component: Table,
+  tags: ['autodocs'],
+  parameters: { layout: 'fullscreen' },
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'striped', 'bordered', 'compact'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    virtualize: { control: 'boolean' },
+    paginationMode: { control: 'select', options: ['client', 'server'] },
+    selectionMode: { control: 'select', options: ['none', 'single', 'multiple'] },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Table>;
+
+const columns = [
+  { key: 'id', label: 'ID', sortable: true, width: '60px' },
+  { key: 'name', label: 'Name', sortable: true },
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'role', label: 'Role', sortable: true },
+  { key: 'status', label: 'Status' },
+];
+
+const generateData = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: `User ${i + 1}`,
+    email: `user${i + 1}@example.com`,
+    role: i % 3 === 0 ? 'Admin' : i % 2 === 0 ? 'Editor' : 'Viewer',
+    status: i % 4 === 0 ? 'Inactive' : 'Active',
+  }));
+
+export const Default: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" />`,
+  }),
+};
+
+export const Striped: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    variant: 'striped',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" />`,
+  }),
+};
+
+export const Bordered: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    variant: 'bordered',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" />`,
+  }),
+};
+
+export const Compact: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    variant: 'compact',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" />`,
+  }),
+};
+
+export const WithPagination: Story = {
+  args: {
+    columns,
+    data: generateData(50),
+    rowKey: 'id',
+    paginationMode: 'client',
+    pageSize: 10,
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :paginationMode="args.paginationMode" :pageSize="args.pageSize" />`,
+  }),
+};
+
+export const WithSorting: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    sortKey: 'name',
+    sortDirection: 'asc',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :sortKey="args.sortKey" :sortDirection="args.sortDirection" />`,
+  }),
+};
+
+export const WithSelection: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    selectionMode: 'multiple',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :selectionMode="args.selectionMode" />`,
+  }),
+};
+
+export const Loading: Story = {
+  args: {
+    columns,
+    data: generateData(20),
+    rowKey: 'id',
+    loading: true,
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :loading="args.loading" />`,
+  }),
+};
+
+export const Empty: Story = {
+  args: {
+    columns,
+    data: [],
+    rowKey: 'id',
+    emptyMessage: 'No users found',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :emptyMessage="args.emptyMessage" />`,
+  }),
+};
+
+export const Virtualized5k: Story = {
+  args: {
+    columns,
+    data: generateData(5000),
+    rowKey: 'id',
+    virtualize: true,
+    virtualizationThreshold: 50,
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :virtualize="args.virtualize" :virtualizationThreshold="args.virtualizationThreshold" />`,
+  }),
+};
+
+export const AllFeatures: Story = {
+  args: {
+    columns,
+    data: generateData(100),
+    rowKey: 'id',
+    variant: 'striped',
+    size: 'md',
+    virtualize: true,
+    paginationMode: 'client',
+    pageSize: 10,
+    selectionMode: 'multiple',
+  },
+  render: (args) => ({
+    components: { Table },
+    setup() { return { args }; },
+    template: `<Table :columns="args.columns" :data="args.data" :rowKey="args.rowKey" :variant="args.variant" :size="args.size" :virtualize="args.virtualize" :paginationMode="args.paginationMode" :pageSize="args.pageSize" :selectionMode="args.selectionMode" />`,
+  }),
+};

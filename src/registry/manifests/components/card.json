@@ -1,0 +1,19 @@
+{
+  "id": "Card",
+  "name": "Card",
+  "description": "Container component for related information",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "hoverable", "clickable"],
+  "sizes": ["sm", "md", "lg"],
+  "states": [],
+  "props": ["title", "onClick", "href"],
+  "prefix": "card",
+  "noClassName": true,
+  "a11y": { "role": "article" },
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border-[var(--color-border)]",
+    "hoverable": "bg-[var(--color-surface)] border-[var(--color-border)] hover:shadow-lg",
+    "clickable": "bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg"
+  }
+}

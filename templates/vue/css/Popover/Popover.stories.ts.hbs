@@ -1,0 +1,123 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Popover from './Popover.vue';
+import Button from '../Button/Button.vue';
+
+const meta: Meta<typeof Popover> = {
+  title: 'Crucible/Popover',
+  component: Popover,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'minimal'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+  },
+  decorators: [
+    () => ({
+      template: '<div style="height: 300px; display: flex; align-items: center; justify-content: center;"><story /></div>',
+    }),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Popover>;
+
+export const Default: Story = {
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      return { args };
+    },
+    template: `
+      <Popover v-bind="args">
+        <template #trigger>
+          <Button>Open Popover</Button>
+        </template>
+        <div style="padding: 16px;">
+          <p style="margin: 0;">Popover Content</p>
+          <p style="margin: 8px 0 0; color: var(--color-text-muted);">This is a Vue popover</p>
+        </div>
+      </Popover>
+    `,
+  }),
+};
+
+export const Placements: Story = {
+  decorators: [
+    () => ({
+      template: '<div style="height: 400px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; align-items: center; justify-items: center;"><story /></div>',
+    }),
+  ],
+  render: () => ({
+    components: { Popover, Button },
+    template: `
+      <Popover placement="top">
+        <template #trigger>
+          <Button>Top</Button>
+        </template>
+        <div style="padding: 10px;">Top Content</div>
+      </Popover>
+      <Popover placement="bottom">
+        <template #trigger>
+          <Button>Bottom</Button>
+        </template>
+        <div style="padding: 10px;">Bottom Content</div>
+      </Popover>
+      <Popover placement="left">
+        <template #trigger>
+          <Button>Left</Button>
+        </template>
+        <div style="padding: 10px;">Left Content</div>
+      </Popover>
+      <Popover placement="right">
+        <template #trigger>
+          <Button>Right</Button>
+        </template>
+        <div style="padding: 10px;">Right Content</div>
+      </Popover>
+    `,
+  }),
+};
+
+export const Alignments: Story = {
+  decorators: [
+    () => ({
+      template: '<div style="height: 400px; display: flex; flex-direction: column; gap: 40px; align-items: center; justify-content: center;"><story /></div>',
+    }),
+  ],
+  render: () => ({
+    components: { Popover, Button },
+    template: `
+      <Popover alignment="start">
+        <template #trigger>
+          <Button>Start Alignment</Button>
+        </template>
+        <div style="padding: 10px;">Aligned to Start</div>
+      </Popover>
+      <Popover alignment="center">
+        <template #trigger>
+          <Button>Center Alignment</Button>
+        </template>
+        <div style="padding: 10px;">Aligned to Center</div>
+      </Popover>
+      <Popover alignment="end">
+        <template #trigger>
+          <Button>End Alignment</Button>
+        </template>
+        <div style="padding: 10px;">Aligned to End</div>
+      </Popover>
+    `,
+  }),
+};

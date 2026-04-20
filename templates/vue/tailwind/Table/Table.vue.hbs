@@ -1,0 +1,404 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { sort, SortDirection } from '../../utils/table-sorter';
+import { getPageData, getPageNumbers } from '../../utils/table-paginator';
+import { VirtualState, HeadlessVirtualizer } from '../../utils/virtualizer';
+
+export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface TableColumn<T = unknown> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+interface Props {
+  columns: TableColumn[];
+  data: Record<string, unknown>[];
+  rowKey: string;
+  variant?: TableVariant;
+  size?: TableSize;
+  virtualize?: boolean;
+  virtualizationThreshold?: number;
+  itemHeight?: number;
+  customVirtualState?: VirtualState;
+  paginationMode?: 'client' | 'server';
+  pageSize?: number;
+  page?: number;
+  totalPages?: number;
+  totalCount?: number;
+  sortKey?: string;
+  sortDirection?: SortDirection;
+  selectionMode?: 'single' | 'multiple' | 'none';
+  selectedRows?: string[];
+  loading?: boolean;
+  emptyMessage?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  size: 'md',
+  virtualize: false,
+  virtualizationThreshold: 100,
+  itemHeight: 44,
+  paginationMode: 'client',
+  pageSize: 10,
+  page: 1,
+  sortDirection: 'asc',
+  selectionMode: 'none',
+  selectedRows: () => [],
+  loading: false,
+  emptyMessage: 'No data available',
+});
+
+const emit = defineEmits<{
+  (e: 'pageChange', page: number, pageSize: number): void;
+  (e: 'sort', key: string, direction: SortDirection): void;
+  (e: 'select', keys: string[]): void;
+  (e: 'selectAll', selected: boolean): void;
+}>();
+
+const internalPage = ref(props.page);
+const internalSortKey = ref(props.sortKey);
+const internalSortDir = ref<SortDirection>(props.sortDirection || 'asc');
+const internalSelected = ref<string[]>([...props.selectedRows]);
+
+const sortIcon = computed(() => internalSortDir.value === 'asc' ? '↑' : '↓');
+
+const processedData = computed(() => {
+  let result = [...props.data];
+  if (internalSortKey.value) {
+    result = sort(result, internalSortKey.value, internalSortDir.value);
+  }
+  return result;
+});
+
+const paginationResult = computed(() => {
+  if (props.paginationMode === 'server') {
+    return {
+      data: processedData.value,
+      pageInfo: {
+        page: props.page,
+        pageSize: props.pageSize,
+        totalItems: props.totalCount || 0,
+        totalPages: props.totalPages || 0,
+        startIndex: 0,
+        endIndex: processedData.value.length,
+        hasNextPage: props.page < (props.totalPages || 0),
+        hasPrevPage: props.page > 1,
+      },
+    };
+  }
+  return getPageData(processedData.value, internalPage.value, props.pageSize);
+});
+
+const displayData = computed(() => paginationResult.value.data);
+const pageInfo = computed(() => paginationResult.value.pageInfo);
+const pageNumbers = computed(() => getPageNumbers(pageInfo.value.page, pageInfo.value.totalPages));
+
+const paginationStart = computed(() => pageInfo.value.startIndex + 1);
+const paginationEnd = computed(() => pageInfo.value.endIndex);
+const paginationTotal = computed(() => pageInfo.value.totalItems);
+
+const sizeClasses: Record<string, string> = {
+  sm: 'text-sm py-2',
+  md: 'text-base py-3',
+  lg: 'text-lg py-4',
+};
+
+const alignClasses: Record<string, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
+
+const handleSort = (column: TableColumn) => {
+  if (!column.sortable) return;
+  const newDir = internalSortKey.value === column.key
+    ? (internalSortDir.value === 'asc' ? 'desc' : 'asc')
+    : 'asc';
+  internalSortKey.value = column.key;
+  internalSortDir.value = newDir;
+  emit('sort', column.key, newDir);
+};
+
+const handleSelect = (row: Record<string, unknown>) => {
+  const key = String(row[props.rowKey]);
+  let newSelected: string[];
+  if (props.selectionMode === 'single') {
+    newSelected = internalSelected.value.includes(key) ? [] : [key];
+  } else {
+    newSelected = internalSelected.value.includes(key)
+      ? internalSelected.value.filter(k => k !== key)
+      : [...internalSelected.value, key];
+  }
+  internalSelected.value = newSelected;
+  emit('select', newSelected);
+};
+
+const handleSelectAll = () => {
+  const allKeys = displayData.value.map(row => String(row[props.rowKey]));
+  const newSelected = internalSelected.value.length === displayData.value.length
+    ? []
+    : allKeys;
+  internalSelected.value = newSelected;
+  emit('selectAll', newSelected.length > 0);
+};
+
+const isStriped = computed(() => props.variant === 'striped');
+const isBordered = computed(() => props.variant === 'bordered');
+const isCompact = computed(() => props.variant === 'compact');
+
+const containerRef = ref<HTMLDivElement | null>(null);
+const containerHeight = ref(600);
+const virtualizerRef = ref<HeadlessVirtualizer | null>(null);
+
+const shouldVirtualize = computed(() => 
+  props.virtualize && props.data.length >= props.virtualizationThreshold
+);
+
+const internalVirtualState = computed(() => {
+  if (!shouldVirtualize.value || !virtualizerRef.value) return null;
+  return virtualizerRef.value.getState();
+});
+
+const effectiveVirtualState = computed(() => 
+  props.customVirtualState || internalVirtualState.value
+);
+
+const virtualItems = computed(() => effectiveVirtualState.value?.virtualItems || []);
+const totalHeight = computed(() => effectiveVirtualState.value?.totalHeight || 0);
+const offsetY = computed(() => effectiveVirtualState.value?.offsetY || 0);
+const showVirtualContainer = computed(() => shouldVirtualize.value && effectiveVirtualState.value);
+
+const handleScroll = (e: Event) => {
+  const target = e.target as HTMLDivElement;
+  virtualizerRef.value?.updateScroll(target.scrollTop);
+};
+
+onMounted(() => {
+  if (shouldVirtualize.value && containerRef.value) {
+    virtualizerRef.value = new HeadlessVirtualizer({
+      itemCount: props.data.length,
+      itemHeight: props.itemHeight || 44,
+      overscan: 5,
+      containerHeight: containerHeight.value,
+    });
+
+    const observer = new ResizeObserver(entries => {
+      containerHeight.value = entries[0].contentRect.height;
+      virtualizerRef.value?.updateContainerHeight(entries[0].contentRect.height);
+    });
+    observer.observe(containerRef.value);
+  }
+});
+
+onUnmounted(() => {
+  virtualizerRef.value = null;
+});
+
+const wrapperClasses = computed(() => [
+  'w-full overflow-hidden rounded-[var(--radius-md)] border',
+  isBordered.value ? 'border-[var(--color-border)]' : 'border-transparent',
+]);
+
+const tableClasses = computed(() => [
+  'w-full border-collapse',
+  props.loading ? 'opacity-50 pointer-events-none' : '',
+]);
+
+const headerCellClasses = (col: TableColumn) => [
+  'px-4 py-3 font-semibold text-left',
+  sizeClasses[props.size],
+  alignClasses[col.align || 'left'],
+  col.sortable ? 'cursor-pointer select-none hover:bg-[var(--color-secondary)]' : '',
+  isBordered.value ? 'border ! border-[var(--color-border)]' : '',
+].filter(Boolean).join(' ');
+
+const getSortAriaSort = (colKey: string) => {
+  if (internalSortKey.value !== colKey) return undefined;
+  return internalSortDir.value === 'asc' ? 'ascending' : 'descending';
+};
+
+const getCellClass = (col: TableColumn) => [
+  'px-4',
+  sizeClasses[props.size],
+  alignClasses[col.align || 'left'],
+  isBordered.value ? 'border ! border-[var(--color-border)]' : '',
+].filter(Boolean).join(' ');
+
+const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.includes(String(row[props.rowKey]));
+</script>
+
+<template>
+  <div :class="wrapperClasses">
+    <div 
+      ref="containerRef" 
+      :class="showVirtualContainer ? 'overflow-auto' : undefined"
+      :style="showVirtualContainer ? { height: containerHeight + 'px', overflow: 'auto' } : {}"
+      @scroll="showVirtualContainer ? handleScroll : undefined"
+    >
+      <div v-if="showVirtualContainer" :style="{ height: totalHeight + 'px', position: 'relative' }">
+        <table :class="tableClasses" role="grid" style="position: sticky; top: 0;">
+          <thead class="bg-[var(--color-surface)]">
+            <tr class="border-b border-[var(--color-border)]">
+              <th v-if="selectionMode !== 'none'" :class="['px-4 py-3', sizeClasses[size], isBordered ? 'border ! border-[var(--color-border)]' : '']">
+                <input
+                  type="checkbox"
+                  :checked="internalSelected.length === displayData.length && displayData.length > 0"
+                  @change="handleSelectAll"
+                  class="rounded border-[var(--color-border)]"
+                />
+              </th>
+              <th
+                v-for="col in columns"
+                :key="col.key"
+                :class="headerCellClasses(col)"
+                :style="{ width: col.width }"
+                @click="handleSort(col)"
+                :role="col.sortable ? 'columnheader' : undefined"
+                :aria-sort="getSortAriaSort(col.key)"
+              >
+                {{ col.label }}
+                <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">{{ sortIcon }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody :style="{ transform: 'translateY(' + offsetY + 'px)' }">
+            <tr
+              v-for="item in virtualItems"
+              :key="item.index"
+              :class="[
+                'transition-colors',
+                isStriped && item.index % 2 === 1 ? 'bg-[var(--color-muted)]' : '',
+                !isStriped && !isCompact ? 'hover:bg-[var(--color-secondary)]' : '',
+              ].filter(Boolean).join(' ')"
+              :style="{ position: 'absolute', top: item.start, width: '100%' }"
+            >
+              <td v-if="selectionMode !== 'none'" :class="['px-4 py-2', isBordered ? 'border ! border-[var(--color-border)]' : '']">
+                <input
+                  type="checkbox"
+                  :checked="isRowSelected(displayData[item.index])"
+                  @change="handleSelect(displayData[item.index])"
+                  class="rounded border-[var(--color-border)]"
+                />
+              </td>
+              <td
+                v-for="col in columns"
+                :key="col.key"
+                :class="getCellClass(col)"
+                :style="{ width: col.width }"
+              >
+                <span v-text="displayData[item.index]?.[col.key]" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <table v-else :class="tableClasses" role="grid">
+        <thead class="bg-[var(--color-surface)]">
+          <tr class="border-b border-[var(--color-border)]">
+            <th v-if="selectionMode !== 'none'" :class="['px-4 py-3', sizeClasses[size], isBordered ? 'border ! border-[var(--color-border)]' : '']">
+              <input
+                type="checkbox"
+                :checked="internalSelected.length === displayData.length && displayData.length > 0"
+                @change="handleSelectAll"
+                class="rounded border-[var(--color-border)]"
+              />
+            </th>
+            <th
+              v-for="col in columns"
+              :key="col.key"
+              :class="headerCellClasses(col)"
+              :style="{ width: col.width }"
+              @click="handleSort(col)"
+              :role="col.sortable ? 'columnheader' : undefined"
+              :aria-sort="getSortAriaSort(col.key)"
+            >
+              {{ col.label }}
+              <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">{{ sortIcon }}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="displayData.length === 0 && !loading">
+            <td
+              :colspan="columns.length + (selectionMode !== 'none' ? 1 : 0)"
+              class="px-4 py-8 text-center text-[var(--color-text-muted)]"
+            >
+              {{ emptyMessage }}
+            </td>
+          </tr>
+          <tr
+            v-for="(row, idx) in displayData"
+            :key="String(row[rowKey])"
+            :class="[
+              'transition-colors',
+              isStriped && idx % 2 === 1 ? 'bg-[var(--color-muted)]' : '',
+              !isStriped && !isCompact ? 'hover:bg-[var(--color-secondary)]' : '',
+              isRowSelected(row) ? 'bg-[var(--color-primary)]/10' : '',
+            ].filter(Boolean).join(' ')"
+          >
+            <td v-if="selectionMode !== 'none'" class="px-4 py-2">
+              <input
+                type="checkbox"
+                :checked="isRowSelected(row)"
+                @change="handleSelect(row)"
+                class="rounded border-[var(--color-border)]"
+              />
+            </td>
+            <td
+              v-for="col in columns"
+              :key="col.key"
+              :class="getCellClass(col)"
+              :style="{ width: col.width }"
+            >
+              <span v-text="row[col.key]" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div
+      v-if="paginationMode === 'client' && pageInfo.totalPages > 1"
+      class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]"
+    >
+      <div class="text-sm text-[var(--color-text-muted)]">
+        Showing {{ paginationStart }} to {{ paginationEnd }} of {{ paginationTotal }} results
+      </div>
+      <div class="flex items-center gap-1">
+        <button
+          @click="() => { internalPage--; emit('pageChange', internalPage, pageSize); }"
+          :disabled="!pageInfo.hasPrevPage"
+          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <button
+          v-for="p in pageNumbers"
+          :key="p"
+          @click="() => { internalPage = p; emit('pageChange', p, pageSize); }"
+          :class="[
+            'px-3 py-1 text-sm rounded border',
+            p === internalPage
+              ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
+              : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]',
+          ].filter(Boolean).join(' ')"
+        >
+          {{ p }}
+        </button>
+        <button
+          @click="() => { internalPage++; emit('pageChange', internalPage, pageSize); }"
+          :disabled="!pageInfo.hasNextPage"
+          class="px-3 py-1 text-sm rounded border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

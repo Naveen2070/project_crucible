@@ -21,10 +21,15 @@ export enum DarkModeStrategy {
   Manual = 'manual',
 }
 
-export enum ComponentName {
-  Button = 'Button',
-  Input = 'Input',
-  Card = 'Card',
-  Dialog = 'Dialog',
-  Select = 'Select',
-}
+export const ComponentName = {
+  Button: 'Button',
+  Input: 'Input',
+  Card: 'Card',
+  Dialog: 'Dialog',
+  Select: 'Select',
+  Table: 'Table',
+  Popover: 'Popover',
+} as const;
+
+export type ComponentName = typeof ComponentName[keyof typeof ComponentName];
+

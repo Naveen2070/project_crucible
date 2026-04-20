@@ -1,0 +1,17 @@
+{
+  "id": "Input",
+  "name": "Input",
+  "description": "Standard input field",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "error"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled", "error"],
+  "props": ["required", "hint", "label", "placeholder", "id"],
+  "prefix": "input",
+  "a11y": { "role": "input", "passwordToggle": true },
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]",
+    "error": "bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]"
+  }
+}

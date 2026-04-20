@@ -1,0 +1,309 @@
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HeadlessVirtualizer, VirtualState } from './utils/virtualizer';
+import { sort, SortDirection } from './utils/table-sorter';
+import { getPageData, getPageNumbers } from './utils/table-paginator';
+
+export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface TableColumn<T = unknown> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+@Component({
+  selector: 'app-table',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './table.component.html',
+  styleUrls: ['./table.component.scss']
+})
+export class TableComponent<T extends Record<string, unknown>> implements OnInit, OnDestroy {
+  @Input() columns: TableColumn<T>[] = [];
+  @Input() data: T[] = [];
+  @Input() rowKey: keyof T | string = '';
+  @Input() variant: TableVariant = 'default';
+  @Input() size: TableSize = 'md';
+  @Input() virtualize = false;
+  @Input() virtualizationThreshold = 100;
+  @Input() itemHeight = 44;
+  @Input() customVirtualState?: VirtualState;
+  @Input() paginationMode: 'client' | 'server' = 'client';
+  @Input() pageSize = 10;
+  @Input() page = 1;
+  @Input() totalPages = 0;
+  @Input() totalCount?: number;
+  @Input() sortKey?: string;
+  @Input() sortDirection: SortDirection = 'asc';
+  @Input() selectionMode: 'single' | 'multiple' | 'none' = 'none';
+  @Input() selectedRows: string[] = [];
+  @Input() loading = false;
+  @Input() emptyMessage = 'No data available';
+  @Input() className = '';
+
+  @Output() pageChange = new EventEmitter<{ page: number; pageSize: number }>();
+  @Output() sortChange = new EventEmitter<{ key: string; direction: SortDirection }>();
+  @Output() selectChange = new EventEmitter<string[]>();
+  @Output() selectAllChange = new EventEmitter<boolean>();
+
+  containerRef: HTMLDivElement | null = null;
+  scrollTop = signal(0);
+  containerHeight = signal(600);
+  internalPage = signal(1);
+  internalSortKey = signal<string | undefined>(undefined);
+  internalSortDir = signal<SortDirection>('asc');
+  internalSelected = signal<string[]>([]);
+
+  virtualizer: HeadlessVirtualizer | null = null;
+  resizeObserver: ResizeObserver | null = null;
+
+  sizeClasses: Record<string, string> = {
+    sm: 'cellSm',
+    md: 'cellMd',
+    lg: 'cellLg',
+  };
+
+  alignClasses: Record<string, string> = {
+    left: 'cellLeft',
+    center: 'cellCenter',
+    right: 'cellRight',
+  };
+
+  tableContainer = 'tableContainer';
+  thead = 'thead';
+  tbody = 'tbody';
+  headerRow = 'headerRow';
+  emptyRow = 'emptyRow';
+  pagination = 'pagination';
+  paginationInfo = 'paginationInfo';
+  paginationButtons = 'paginationButtons';
+  paginationBtn = 'paginationBtn';
+  paginationBtnActive = 'paginationBtnActive';
+  checkbox = 'checkbox';
+  sortIcon = 'sortIcon';
+
+  getAriaSort(colKey: string): string | null {
+    if (this.internalSortKey() !== colKey) return null;
+    return this.internalSortDir() === 'asc' ? 'ascending' : 'descending';
+  }
+
+  shouldShowSortIcon(colKey: string): boolean {
+    return this.internalSortKey() === colKey;
+  }
+
+  shouldVirtualize = computed(() => this.virtualize && this.data.length >= this.virtualizationThreshold);
+
+  virtualState = computed(() => {
+    if (!this.shouldVirtualize() || !this.virtualizer) return null;
+    return this.virtualizer.getState();
+  });
+
+  effectiveVirtualState = computed(() => {
+    return this.customVirtualState || this.virtualState();
+  });
+
+  processedData = computed(() => {
+    let result = [...this.data];
+    if (this.internalSortKey()) {
+      result = sort(result, this.internalSortKey()!, this.internalSortDir());
+    }
+    return result;
+  });
+
+  paginationResult = computed(() => {
+    if (this.paginationMode === 'server') {
+      return {
+        data: this.processedData(),
+        pageInfo: {
+          page: this.page,
+          pageSize: this.pageSize,
+          totalItems: this.totalCount || 0,
+          totalPages: this.totalPages,
+          startIndex: 0,
+          endIndex: this.processedData().length,
+          hasNextPage: this.page < this.totalPages,
+          hasPrevPage: this.page > 1,
+        },
+      };
+    }
+    return getPageData(this.processedData(), this.internalPage(), this.pageSize);
+  });
+
+  displayData = computed(() => this.paginationResult().data);
+  pageInfo = computed(() => this.paginationResult().pageInfo);
+  pageNumbers = computed(() => getPageNumbers(this.pageInfo().page, this.pageInfo().totalPages));
+
+  getPaginationInfo(): string {
+    const info = this.pageInfo();
+    return `Showing ${info.startIndex + 1} to ${info.endIndex} of ${info.totalItems} results`;
+  }
+
+  isStriped = computed(() => this.variant === 'striped');
+  isBordered = computed(() => this.variant === 'bordered');
+  isCompact = computed(() => this.variant === 'compact');
+
+  getCellClass(): string {
+    const classes = ['cell', this.sizeClasses[this.size]];
+    if (this.isBordered()) {
+      classes.push('cellBordered');
+    }
+    return classes.join(' ');
+  }
+
+  ngOnInit() {
+    this.internalPage.set(this.page);
+    this.internalSortKey.set(this.sortKey);
+    this.internalSortDir.set(this.sortDirection);
+    this.internalSelected.set([...this.selectedRows]);
+
+    if (this.shouldVirtualize()) {
+      this.virtualizer = new HeadlessVirtualizer({
+        itemCount: this.data.length,
+        itemHeight: this.itemHeight,
+        overscan: 5,
+        containerHeight: this.containerHeight(),
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+
+  setContainerRef(el: HTMLDivElement) {
+    this.containerRef = el;
+    if (el) {
+      this.resizeObserver = new ResizeObserver(entries => {
+        this.containerHeight.set(entries[0].contentRect.height);
+      });
+      this.resizeObserver.observe(el);
+    }
+  }
+
+  onScroll(event: Event) {
+    const target = event.target as HTMLDivElement;
+    this.scrollTop.set(target.scrollTop);
+    if (this.virtualizer) {
+      this.virtualizer.updateScroll(target.scrollTop);
+    }
+  }
+
+  handleSort(column: TableColumn<T>) {
+    if (!column.sortable) return;
+    const currentKey = this.internalSortKey();
+    const currentDir = this.internalSortDir();
+    const newDir = currentKey === column.key
+      ? (currentDir === 'asc' ? 'desc' : 'asc')
+      : 'asc';
+    this.internalSortKey.set(column.key);
+    this.internalSortDir.set(newDir);
+    this.sortChange.emit({ key: column.key, direction: newDir });
+  }
+
+  handleSelect(row: T) {
+    const key = String(row[this.rowKey]);
+    const current = this.internalSelected();
+    let newSelected: string[];
+    if (this.selectionMode === 'single') {
+      newSelected = current.includes(key) ? [] : [key];
+    } else {
+      newSelected = current.includes(key)
+        ? current.filter(k => k !== key)
+        : [...current, key];
+    }
+    this.internalSelected.set(newSelected);
+    this.selectChange.emit(newSelected);
+  }
+
+  handleSelectAll() {
+    const allKeys = this.displayData().map(row => String(row[this.rowKey]));
+    const current = this.internalSelected();
+    const newSelected = current.length === this.displayData().length ? [] : allKeys;
+    this.internalSelected.set(newSelected);
+    this.selectAllChange.emit(newSelected.length > 0);
+  }
+
+  onPageChange(newPage: number) {
+    this.internalPage.set(newPage);
+    this.pageChange.emit({ page: newPage, pageSize: this.pageSize });
+  }
+
+  getWrapperClasses(): string {
+    const classes = ['tableWrapper'];
+    if (this.isBordered()) {
+      classes.push('tableWrapper');
+    }
+    if (this.className) {
+      classes.push(this.className);
+    }
+    return classes.join(' ');
+  }
+
+  getTableClasses(): string {
+    const classes = ['table'];
+    if (this.loading) {
+      classes.push('tableLoading');
+    }
+    return classes.join(' ');
+  }
+
+  getHeaderCellClasses(col: TableColumn<T>): string {
+    const classes = ['headerCell', this.sizeClasses[this.size]];
+    classes.push(this.alignClasses[col.align || 'left']);
+    if (col.sortable) {
+      classes.push('headerCellSortable');
+    }
+    if (this.isBordered()) {
+      classes.push('headerCellBordered');
+    }
+    return classes.join(' ');
+  }
+
+  getRowClasses(row: T, index: number): string {
+    const classes = ['row'];
+    const key = String(row[this.rowKey]);
+    const isSelected = this.internalSelected().includes(key);
+    
+    if (this.isStriped() && index % 2 === 1) {
+      classes.push('rowStriped');
+    }
+    if (!this.isStriped() && !this.isCompact()) {
+      classes.push('rowHover');
+    }
+    if (isSelected) {
+      classes.push('rowSelected');
+    }
+    return classes.join(' ');
+  }
+
+  getCellClasses(col: TableColumn<T>): string {
+    const classes = ['cell', this.sizeClasses[this.size], this.alignClasses[col.align || 'left']];
+    if (this.isBordered()) {
+      classes.push('cellBordered');
+    }
+    return classes.join(' ');
+  }
+
+  getCellValue(row: T, colKey: string): string {
+    return String(row[colKey as keyof T] ?? '');
+  }
+
+  trackByKey(index: number, col: TableColumn<T>): string {
+    return col.key;
+  }
+
+  trackByIndex(index: number, item: T): number {
+    return index;
+  }
+
+  trackByPage(index: number, page: number): number {
+    return page;
+  }
+}

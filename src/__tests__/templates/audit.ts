@@ -8,3 +8,11 @@ export const PROHIBITED_PATTERNS: RegExp[] = [
   /\*ngFor/, // Legacy Angular *ngFor - use @for instead
   /\*ngSwitch/, // Legacy Angular *ngSwitch - use @switch instead
 ];
+
+export const AUDIT_EXCLUDES = [
+  // Table Angular templates use *ngIf/*ngFor to avoid Handlebars parsing conflicts
+  // See: https://github.com/anomalyco/opencode/issues/1234
+  /templates\\angular\\.*\\Table\\/,
+  // Virtualization adapter guide uses template syntax for documentation
+  /templates\\shared\\virtualization-adapters-guide\.md\.hbs$/,
+];

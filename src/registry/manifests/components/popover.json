@@ -1,0 +1,24 @@
+{
+  "id": "Popover",
+  "name": "Popover",
+  "description": "Floating popover component",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "minimal"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["open", "closed"],
+  "props": ["isOpen", "onOpenChange", "placement", "alignment", "trigger", "closeOnClickOutside", "closeOnEscape"],
+  "prefix": "popover",
+  "behaviours": ["closeable"],
+  "a11y": { "role": "dialog" },
+  "dependencies": ["Button"],
+  "peerDependencies": {
+    "react": ["@floating-ui/react"],
+    "vue": ["@floating-ui/vue"],
+    "angular": ["@floating-ui/dom"]
+  },
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border-[var(--color-border)] shadow-lg",
+    "minimal": "bg-[var(--color-surface)] shadow-md"
+  }
+}

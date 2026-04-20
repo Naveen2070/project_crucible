@@ -26,6 +26,7 @@
     "storybook": "npm run storybook --workspace=playground-react",
     "generate:dev": "node dist/cli/index.js add Button --dev",
     "test": "vitest",
+    "test:bun": "bunx vitest run --config vitest.config.ts",
     "test:e2e": "tsx scripts/e2e.ts",
     "test:coverage": "vitest --coverage",
     "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN",
@@ -82,37 +83,37 @@
   "homepage": "https://github.com/Naveen2070/project_crucible#readme",
   "dependencies": {
     "@inquirer/prompts": "^8.3.2",
-    "ajv": "^8.17.1",
-    "chalk": "^4.1.2",
+    "ajv": "^8.18.0",
+    "ansis": "^3.0.0",
     "chokidar": "^5.0.0",
     "colorjs.io": "^0.6.1",
     "commander": "^13.1.0",
-    "fs-extra": "^11.3.0",
-    "handlebars": "^4.7.8",
-    "prettier": "^3.5.3"
+    "handlebars": "^4.7.9",
+    "prettier": "^3.8.1"
   },
   "devDependencies": {
     "@storybook/addon-vitest": "^10.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/fs-extra": "^11.0.4",
+    "@types/bun": "latest",
     "@types/jsdom": "^28.0.1",
-    "@types/node": "^22.13.9",
+    "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitest/browser": "^3.2.4",
-    "@vitest/coverage-v8": "^3.0.7",
-    "concurrently": "^9.1.2",
-    "eslint": "^9.21.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.4",
     "jsdom": "^29.0.1",
     "playwright": "^1.58.2",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.7",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^3.2.4",
     "vitest-axe": "^0.1.0"
   },
   "engines": {
     "node": ">=24.13.1"
-  }
+  },
+  "private": true
 }

@@ -1,9 +1,10 @@
-import fs from 'fs-extra';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'path';
-import chalk from 'chalk';
+import ansis from 'ansis';
 import { select, input, confirm } from '@inquirer/prompts';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
+import { pathExists } from '../../utils/fs';
 
 const DEFAULT_CONFIG = `{
   "$schema": "./node_modules/@cruciblelab/crucible/dist/config/schema.json",
@@ -69,14 +70,14 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
   const cwd = opts.cwd || process.cwd();
   const configPath = path.join(cwd, 'crucible.config.json');
 
-  if (await fs.pathExists(configPath)) {
+  if (await pathExists(configPath)) {
     if (!opts.yes) {
       const overwrite = await confirm({
         message: 'crucible.config.json already exists. Overwrite?',
         default: false,
       });
       if (!overwrite) {
-        console.log(chalk.gray('Init cancelled.'));
+        console.log(ansis.gray('Init cancelled.'));
         return;
       }
     }
@@ -138,6 +139,6 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
     .replace('"compoundComponents": true', `"compoundComponents": ${compoundComponents}`)
     .replace('"stories": false', `"stories": ${generateStories}`);
 
-  await fs.writeFile(configPath, configContent, 'utf-8');
-  console.log(chalk.green('✔ Created crucible.config.json with minimal setup.'));
+  await writeFile(configPath, configContent, 'utf-8');
+  console.log(ansis.green('✔ Created crucible.config.json with minimal setup.'));
 }

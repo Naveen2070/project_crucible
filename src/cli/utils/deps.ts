@@ -1,11 +1,12 @@
-import chalk from 'chalk';
-import fs from 'fs-extra';
+import ansis from 'ansis';
+import { readFile } from 'node:fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
 import { confirm } from '@inquirer/prompts';
 import { registry, ComponentDef } from '../../registry/components';
 import { getPeerDependencies } from '../../registry/peer-deps';
 import { Framework } from '../../core/enums';
+import { pathExists, readJson } from '../../utils/fs';
 
 export interface DependencyCheck {
   missingComponents: string[];
@@ -34,7 +35,7 @@ export async function checkComponentDependencies(
     }
   }
 
-  const peerDeps = getPeerDependencies(component as any, framework);
+  const peerDeps = getPeerDependencies(component, framework);
   for (const peerDep of peerDeps) {
     const installed = await checkPeerDependencyInstalled(peerDep, outputDir);
     if (!installed) {
@@ -51,18 +52,18 @@ export async function checkComponentExists(
   framework: Framework,
 ): Promise<boolean> {
   const compDir = path.join(outputDir, component);
-  if (!(await fs.pathExists(compDir))) {
+  if (!(await pathExists(compDir))) {
     return false;
   }
 
   const extensions = getComponentExtensions(framework);
   for (const ext of extensions) {
     const mainFile = path.join(compDir, `${component}${ext}`);
-    if (await fs.pathExists(mainFile)) {
+    if (await pathExists(mainFile)) {
       return true;
     }
     const kebabFile = path.join(compDir, `${component.toLowerCase()}${ext}`);
-    if (await fs.pathExists(kebabFile)) {
+    if (await pathExists(kebabFile)) {
       return true;
     }
   }
@@ -85,10 +86,10 @@ function getComponentExtensions(framework: Framework): string[] {
 
 async function checkPeerDependencyInstalled(pkg: string, projectDir: string): Promise<boolean> {
   const packageJsonPath = path.join(projectDir, 'package.json');
-  if (!(await fs.pathExists(packageJsonPath))) {
+  if (!(await pathExists(packageJsonPath))) {
     return false;
   }
-  const pkgJson = await fs.readJson(packageJsonPath);
+  const pkgJson = await readJson(packageJsonPath);
   const deps = { ...pkgJson.dependencies, ...pkgJson.devDependencies };
   return pkg in deps;
 }
@@ -106,7 +107,7 @@ export async function resolveDependencies(
   if (check.missingComponents.length > 0) {
     for (const missing of check.missingComponents) {
       if (options.verbose) {
-        console.log(chalk.cyan(`📦 ${component} depends on ${missing} — adding...`));
+        console.log(ansis.cyan(`📦 ${component} depends on ${missing} — adding...`));
       }
       resolvedComponents.push(missing);
     }
@@ -116,7 +117,7 @@ export async function resolveDependencies(
     for (const peerDep of check.missingPeerDeps) {
       if (options.yes) {
         if (!options.quiet) {
-          console.log(chalk.cyan(`📦 Installing peer dependency: ${peerDep}...`));
+          console.log(ansis.cyan(`📦 Installing peer dependency: ${peerDep}...`));
         }
         try {
           execSync(`npm install ${peerDep}`, {
@@ -127,7 +128,7 @@ export async function resolveDependencies(
         } catch (err) {
           if (!options.quiet) {
             console.warn(
-              chalk.yellow(`⚠ Failed to install ${peerDep}. You may need to install it manually.`),
+              ansis.yellow(`⚠ Failed to install ${peerDep}. You may need to install it manually.`),
             );
           }
         }
@@ -146,7 +147,7 @@ export async function resolveDependencies(
           } catch (err) {
             if (!options.quiet) {
               console.warn(
-                chalk.yellow(
+                ansis.yellow(
                   `⚠ Failed to install ${peerDep}. You may need to install it manually.`,
                 ),
               );
@@ -163,9 +164,9 @@ export async function resolveDependencies(
 export function formatDependencyMessage(component: string, deps: string[]): string {
   if (deps.length === 0) return '';
   if (deps.length === 1) {
-    return chalk.cyan(`📦 ${component} uses ${deps[0]} — will be generated`);
+    return ansis.cyan(`📦 ${component} uses ${deps[0]} — will be generated`);
   }
-  return chalk.cyan(
+  return ansis.cyan(
     `📦 ${component} uses ${deps.slice(0, -1).join(', ')} and ${deps[deps.length - 1]} — will be generated`,
   );
 }
@@ -180,9 +181,9 @@ export async function installPeerDependenciesSmart(
   cwd: string,
 ): Promise<void> {
   const pkgPath = path.join(cwd, 'package.json');
-  if (!(await fs.pathExists(pkgPath))) return;
+  if (!(await pathExists(pkgPath))) return;
 
-  const pkg = await fs.readJson(pkgPath);
+  const pkg = await readJson(pkgPath);
   const installed = { ...pkg.dependencies, ...pkg.devDependencies };
 
   const toInstall: string[] = [];
@@ -198,14 +199,14 @@ export async function installPeerDependenciesSmart(
   if (toInstall.length > 0) {
     const unique = [...new Set(toInstall)];
     const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
-    console.log(chalk.cyan(`📦 Installing: ${unique.join(', ')}`));
+    console.log(ansis.cyan(`📦 Installing: ${unique.join(', ')}`));
     try {
       execSync(`npm install ${unique.join(' ')} ${legacyFlag}`.trim(), {
         cwd,
         stdio: 'inherit',
       });
     } catch {
-      console.warn(chalk.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
+      console.warn(ansis.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
     }
   }
 }

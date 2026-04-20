@@ -1,0 +1,1015 @@
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { sort, SortDirection } from './utils/table-sorter';
+import { getPageData, getPageNumbers } from './utils/table-paginator';
+import { VirtualState, HeadlessVirtualizer } from './utils/virtualizer';
+import styles from './Table.module.css';
+
+export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface TableColumn<T = unknown> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+export interface TableProps<T = unknown> {
+  columns: TableColumn<T>[];
+  data: T[];
+  rowKey: keyof T;
+  variant?: TableVariant;
+  size?: TableSize;
+  virtualize?: boolean;
+  virtualizationThreshold?: number;
+  itemHeight?: number;
+  customVirtualState?: VirtualState;
+  paginationMode?: 'client' | 'server';
+  pageSize?: number;
+  page?: number;
+  totalPages?: number;
+  totalCount?: number;
+  onPageChange?: (page: number, pageSize: number) => void;
+  sortKey?: string;
+  sortDirection?: SortDirection;
+  onSort?: (key: string, direction: SortDirection) => void;
+  selectionMode?: 'single' | 'multiple' | 'none';
+  selectedRows?: string[];
+  onSelect?: (keys: string[]) => void;
+  onSelectAll?: (selected: boolean) => void;
+  loading?: boolean;
+  emptyMessage?: string;
+  className?: string;
+}
+
+const sizeClasses: Record<string, string> = {
+  sm: styles.cellSm,
+  md: styles.cellMd,
+  lg: styles.cellLg,
+};
+
+const alignClasses: Record<string, string> = {
+  left: styles.cellLeft,
+  center: styles.cellCenter,
+  right: styles.cellRight,
+};
+
+const useVirtualizer = (
+  itemCount: number,
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  options: { itemHeight: number; virtualizationThreshold: number; virtualize: boolean }
+) => {
+  const virtualizerRef = useRef<HeadlessVirtualizer | null>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
+
+  const shouldVirtualize = options.virtualize && itemCount >= options.virtualizationThreshold;
+
+  useEffect(() => {
+    if (shouldVirtualize) {
+      virtualizerRef.current = new HeadlessVirtualizer({
+        itemCount,
+        itemHeight: options.itemHeight,
+        overscan: 5,
+        containerHeight,
+      });
+    }
+    return () => {
+      virtualizerRef.current = null;
+    };
+  }, [shouldVirtualize, itemCount, options.itemHeight, containerHeight]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !shouldVirtualize) return;
+
+    const observer = new ResizeObserver(entries => {
+      setContainerHeight(entries[0].contentRect.height);
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [containerRef, shouldVirtualize]);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    setScrollTop(target.scrollTop);
+    virtualizerRef.current?.updateScroll(target.scrollTop);
+  }, []);
+
+  const virtualState = shouldVirtualize && virtualizerRef.current
+    ? virtualizerRef.current.getState()
+    : null;
+
+  return { shouldVirtualize, virtualState, handleScroll, scrollTop, containerHeight };
+};
+
+{{#if features.compoundComponents}}
+export interface TableContextValue<T = unknown> {
+  columns: TableColumn<T>[];
+  data: T[];
+  rowKey: keyof T;
+  variant: TableVariant;
+  size: TableSize;
+  selectionMode: 'single' | 'multiple' | 'none';
+  selectedRows: string[];
+  sortKey?: string;
+  sortDirection?: SortDirection;
+  paginationMode: 'client' | 'server';
+  pageInfo?: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    startIndex: number;
+    endIndex: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  onSort?: (key: string, direction: SortDirection) => void;
+  onSelect?: (keys: string[]) => void;
+  onSelectAll?: (selected: boolean) => void;
+  onPageChange?: (page: number, pageSize: number) => void;
+  loading?: boolean;
+  emptyMessage?: string;
+}
+
+const TableContext = React.createContext<TableContextValue | null>(null);
+
+export const useTable = <T extends Record<string, unknown>>() => {
+  const ctx = React.useContext(TableContext);
+  if (!ctx) throw new Error('useTable must be used within Table.Root');
+  return ctx as TableContextValue<T>;
+};
+
+export const TableRoot = <T extends Record<string, unknown>>({
+  columns,
+  data,
+  rowKey,
+  variant = 'default',
+  size = 'md',
+  paginationMode = 'client',
+  pageSize = 10,
+  page = 1,
+  totalPages: totalPagesProp,
+  totalCount,
+  onPageChange,
+  sortKey,
+  sortDirection,
+  onSort,
+  selectionMode = 'none',
+  selectedRows = [],
+  onSelect,
+  onSelectAll,
+  loading = false,
+  emptyMessage = 'No data available',
+  className,
+  children,
+}: TableProps<T> & { children?: React.ReactNode }) => {
+  const [internalPage, setInternalPage] = useState(page);
+  const [internalSortKey, setInternalSortKey] = useState(sortKey);
+  const [internalSortDir, setInternalSortDir] = useState<SortDirection>(sortDirection || 'asc');
+  const [internalSelected, setInternalSelected] = useState<string[]>(selectedRows);
+
+  const processedData = useMemo(() => {
+    let result = [...data];
+    if (internalSortKey && onSort) {
+      result = sort(result, internalSortKey, internalSortDir);
+    }
+    return result;
+  }, [data, internalSortKey, internalSortDir, onSort]);
+
+  const paginationResult = useMemo(() => {
+    if (paginationMode === 'server') {
+      return {
+        data: processedData,
+        pageInfo: {
+          page,
+          pageSize,
+          totalItems: totalCount || 0,
+          totalPages: totalPagesProp || 0,
+          startIndex: 0,
+          endIndex: processedData.length,
+          hasNextPage: page < (totalPagesProp || 0),
+          hasPrevPage: page > 1,
+        },
+      };
+    }
+    return getPageData(processedData, internalPage, pageSize);
+  }, [processedData, paginationMode, page, pageSize, internalPage, totalPagesProp, totalCount]);
+
+  const { data: displayData, pageInfo } = paginationResult;
+
+  const handleSort = useCallback((key: string) => {
+    const newDir = internalSortKey === key
+      ? (internalSortDir === 'asc' ? 'desc' : 'asc')
+      : 'asc';
+    setInternalSortKey(key);
+    setInternalSortDir(newDir);
+    onSort?.(key, newDir);
+  }, [internalSortKey, internalSortDir, onSort]);
+
+  const handleSelect = useCallback((row: T) => {
+    const key = String(row[rowKey]);
+    let newSelected: string[];
+    if (selectionMode === 'single') {
+      newSelected = internalSelected.includes(key) ? [] : [key];
+    } else {
+      newSelected = internalSelected.includes(key)
+        ? internalSelected.filter(k => k !== key)
+        : [...internalSelected, key];
+    }
+    setInternalSelected(newSelected);
+    onSelect?.(newSelected);
+  }, [internalSelected, onSelect, selectionMode, rowKey]);
+
+  const handleSelectAll = useCallback(() => {
+    const allKeys = displayData.map(row => String(row[rowKey]));
+    const newSelected = internalSelected.length === displayData.length
+      ? []
+      : allKeys;
+    setInternalSelected(newSelected);
+    onSelectAll?.(newSelected.length > 0);
+  }, [displayData, internalSelected, onSelectAll, rowKey]);
+
+  const handlePageChange = useCallback((newPage: number) => {
+    setInternalPage(newPage);
+    onPageChange?.(newPage, pageSize);
+  }, [onPageChange, pageSize]);
+
+  const contextValue: TableContextValue<T> = {
+    columns,
+    data: displayData,
+    rowKey,
+    variant,
+    size,
+    selectionMode,
+    selectedRows: internalSelected,
+    sortKey: internalSortKey,
+    sortDirection: internalSortDir,
+    paginationMode,
+    pageInfo: paginationMode === 'client' ? pageInfo : {
+      page,
+      pageSize,
+      totalItems: totalCount || 0,
+      totalPages: totalPagesProp || 0,
+      startIndex: 0,
+      endIndex: processedData.length,
+      hasNextPage: page < (totalPagesProp || 0),
+      hasPrevPage: page > 1,
+    },
+    onSort: handleSort,
+    onSelect: handleSelect,
+    onSelectAll: handleSelectAll,
+    onPageChange: handlePageChange,
+    loading,
+    emptyMessage,
+  };
+
+  const isBordered = variant === 'bordered';
+  const wrapperClasses = [styles.tableWrapper, isBordered ? styles.tableWrapperBordered : '', className].filter(Boolean).join(' ');
+
+  const pageNumbers = pageInfo ? getPageNumbers(pageInfo.page, pageInfo.totalPages) : [];
+
+  const renderDefaultContent = () => {
+    const isStriped = variant === 'striped';
+    const isBordered = variant === 'bordered';
+    const isCompact = variant === 'compact';
+
+    const renderRows = () => {
+      if (displayData.length === 0 && !loading) {
+        return (
+          <tr>
+            <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
+              {emptyMessage}
+            </td>
+          </tr>
+        );
+      }
+
+    return displayData.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = internalSelected.includes(key);
+      const isOdd = idx % 2 === 1;
+      return (
+        <tr
+          key={key}
+          className={[
+            styles.row,
+            isStriped && isOdd ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {selectionMode !== 'none' && (
+            <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleSelect(row)}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
+              <td
+                key={col.key}
+                className={[
+                  styles.cell,
+                  isCompact ? styles.cellCompact : '',
+                  sizeClasses[size],
+                  alignClasses[col.align || 'left'],
+                  isBordered ? styles.cellBordered : '',
+                ].filter(Boolean).join(' ')}
+                style={col.width ? { width: col.width } : undefined}
+              >
+                {String(row[col.key] ?? '')}
+              </td>
+            ))}
+          </tr>
+        );
+      });
+    };
+
+    const renderHeader = () => (
+      <thead className={styles.thead}>
+        <tr className={styles.headerRow}>
+          {selectionMode !== 'none' && (
+            <th className={[styles.headerCell, sizeClasses[size], isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={internalSelected.length === displayData.length && displayData.length > 0}
+                onChange={() => {
+                  const allKeys = displayData.map(r => String(r[rowKey]));
+                  const newSelected = internalSelected.length === displayData.length ? [] : allKeys;
+                  setInternalSelected(newSelected);
+                  onSelectAll?.(newSelected.length > 0);
+                }}
+                className={styles.checkbox}
+              />
+            </th>
+          )}
+          {columns.map(col => (
+            <th
+              key={col.key}
+              className={[
+                styles.headerCell,
+                sizeClasses[size],
+                col.sortable ? styles.headerCellSortable : '',
+                alignClasses[col.align || 'left'],
+                isBordered ? styles.headerCellBordered : '',
+              ].filter(Boolean).join(' ')}
+              style={col.width ? { width: col.width } : undefined}
+              onClick={() => col.sortable && handleSort(col.key)}
+              role={col.sortable ? 'columnheader' : undefined}
+              aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+            >
+              {col.label}
+              {col.sortable && internalSortKey === col.key && (
+                <span className={styles.sortIcon}>{internalSortDir === 'asc' ? '↑' : '↓'}</span>
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+    );
+
+    const renderPagination = () => {
+      if (paginationMode !== 'client' || !pageInfo || pageInfo.totalPages <= 1) return null;
+      return (
+        <div className={styles.pagination}>
+          <div className={styles.paginationInfo}>
+            Showing {pageInfo.startIndex + 1} to {pageInfo.endIndex} of {pageInfo.totalItems} results
+          </div>
+          <div className={styles.paginationButtons}>
+            <button
+              onClick={() => handlePageChange(pageInfo.page - 1)}
+              disabled={!pageInfo.hasPrevPage}
+              className={styles.paginationBtn}
+            >
+              Previous
+            </button>
+            {pageNumbers.map(p => (
+              <button
+                key={p}
+                onClick={() => handlePageChange(p)}
+                className={[styles.paginationBtn, p === pageInfo.page ? styles.paginationBtnActive : ''].filter(Boolean).join(' ')}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(pageInfo.page + 1)}
+              disabled={!pageInfo.hasNextPage}
+              className={styles.paginationBtn}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <>
+        <table className={[styles.table, loading && styles.tableLoading].filter(Boolean).join(' ')} role="grid">
+          {renderHeader()}
+          <tbody className={styles.tbody}>{renderRows()}</tbody>
+        </table>
+        {renderPagination()}
+      </>
+    );
+  };
+
+  return (
+    <TableContext.Provider value={contextValue}>
+      <div className={wrapperClasses}>
+        {children ? children : renderDefaultContent()}
+      </div>
+    </TableContext.Provider>
+  );
+};
+
+export const TableHeader = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { columns, selectionMode, sortKey, sortDirection, onSort, variant } = useTable();
+  const { size } = useTable();
+  const isBordered = variant === 'bordered';
+
+  const headerCellClasses = (col: TableColumn) => [
+    styles.headerCell,
+    sizeClasses[size],
+    col.sortable ? styles.headerCellSortable : '',
+    alignClasses[col.align || 'left'],
+    isBordered ? styles.headerCellBordered : '',
+  ].filter(Boolean).join(' ');
+
+  const handleSortClick = (col: TableColumn) => {
+    if (col.sortable && onSort) {
+      onSort(col.key);
+    }
+  };
+
+  if (children) {
+    return <thead className={[styles.thead, className].filter(Boolean).join(' ')}>{children}</thead>;
+  }
+
+  return (
+    <thead className={[styles.thead, className].filter(Boolean).join(' ')}>
+      <tr className={styles.headerRow}>
+        {selectionMode !== 'none' && (
+          <th className={[styles.headerCell, sizeClasses[size], isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
+            <input type="checkbox" className={styles.checkbox} />
+          </th>
+        )}
+        {columns.map(col => (
+          <th
+            key={col.key}
+            className={headerCellClasses(col)}
+            style={col.width ? { width: col.width } : undefined}
+            onClick={() => handleSortClick(col)}
+            role={col.sortable ? 'columnheader' : undefined}
+            aria-sort={sortKey === col.key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : undefined}
+          >
+            {col.label}
+            {col.sortable && sortKey === col.key && (
+              <span className={styles.sortIcon}>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+            )}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  );
+};
+
+export const TableBody = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { data: displayData, loading, emptyMessage, columns, selectionMode, rowKey, variant, selectedRows, onSelect } = useTable();
+
+  if (children) {
+    return <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>{children}</tbody>;
+  }
+
+  const isStriped = variant === 'striped';
+  const isBordered = variant === 'bordered';
+  const isCompact = variant === 'compact';
+
+  const renderRows = () => {
+    if (displayData.length === 0 && !loading) {
+      return (
+        <tr>
+          <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
+            {emptyMessage}
+          </td>
+        </tr>
+      );
+    }
+
+    return displayData.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = selectedRows.includes(key);
+      const isOdd = idx % 2 === 1;
+      return (
+        <tr
+          key={key}
+          className={[
+            styles.row,
+            isStriped && isOdd ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {selectionMode !== 'none' && (
+            <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onSelect?.([key])}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
+            <td
+              key={col.key}
+              className={[styles.cell, isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}
+            >
+              {String(row[col.key] ?? '')}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  return <tbody className={[styles.tbody, className].filter(Boolean).join(' ')}>{renderRows()}</tbody>;
+};
+
+export const TableRow = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { variant, selectionMode } = useTable();
+
+  if (children) {
+    return <tr className={[styles.row, className].filter(Boolean).join(' ')}>{children}</tr>;
+  }
+
+  return <tr className={[styles.row, className].filter(Boolean).join(' ')} />;
+};
+
+export const TableHead = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { align } = useTable() as { align?: 'left' | 'center' | 'right' };
+
+  return (
+    <th className={[styles.headerCell, alignClasses[align || 'left'], className].filter(Boolean).join(' ')}>
+      {children}
+    </th>
+  );
+};
+
+export const TableCell = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { size, align } = useTable() as { size: TableSize; align?: 'left' | 'center' | 'right' };
+
+  return (
+    <td className={[styles.cell, sizeClasses[size], alignClasses[align || 'left'], className].filter(Boolean).join(' ')}>
+      {children}
+    </td>
+  );
+};
+
+export const TablePagination = ({ className }: { className?: string }) => {
+  const { paginationMode, pageInfo, onPageChange, size } = useTable();
+
+  if (paginationMode !== 'client' || !pageInfo || pageInfo.totalPages <= 1) {
+    return null;
+  }
+
+  const pageNumbers = getPageNumbers(pageInfo.page, pageInfo.totalPages);
+
+  return (
+    <div className={[styles.pagination, className].filter(Boolean).join(' ')}>
+      <div className={styles.paginationInfo}>
+        Showing {pageInfo.startIndex + 1} to {pageInfo.endIndex} of {pageInfo.totalItems} results
+      </div>
+      <div className={styles.paginationButtons}>
+        <button
+          onClick={() => onPageChange?.(pageInfo.page - 1, pageInfo.pageSize)}
+          disabled={!pageInfo.hasPrevPage}
+          className={styles.paginationBtn}
+        >
+          Previous
+        </button>
+        {pageNumbers.map(p => (
+          <button
+            key={p}
+            onClick={() => onPageChange?.(p, pageInfo.pageSize)}
+            className={[styles.paginationBtn, p === pageInfo.page ? styles.paginationBtnActive : ''].filter(Boolean).join(' ')}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange?.(pageInfo.page + 1, pageInfo.pageSize)}
+          disabled={!pageInfo.hasNextPage}
+          className={styles.paginationBtn}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export const Table = Object.assign(TableRoot, {
+  Header: TableHeader,
+  Body: TableBody,
+  Row: TableRow,
+  Head: TableHead,
+  Cell: TableCell,
+  Pagination: TablePagination,
+});
+
+TableRoot.displayName = 'Table.Root';
+TableHeader.displayName = 'Table.Header';
+TableBody.displayName = 'Table.Body';
+TableRow.displayName = 'Table.Row';
+TableHead.displayName = 'Table.Head';
+TableCell.displayName = 'Table.Cell';
+TablePagination.displayName = 'Table.Pagination';
+{{else}}
+export const Table = <T extends Record<string, unknown>>({
+  columns,
+  data,
+  rowKey,
+  variant = 'default',
+  size = 'md',
+  virtualize = false,
+  virtualizationThreshold = 100,
+  itemHeight = 44,
+  customVirtualState,
+  paginationMode = 'client',
+  pageSize = 10,
+  page = 1,
+  totalPages: totalPagesProp,
+  totalCount,
+  onPageChange,
+  sortKey,
+  sortDirection,
+  onSort,
+  selectionMode = 'none',
+  selectedRows = [],
+  onSelect,
+  onSelectAll,
+  loading = false,
+  emptyMessage = 'No data available',
+  className,
+}: TableProps<T>) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { shouldVirtualize, virtualState, handleScroll } = useVirtualizer(
+    data.length,
+    containerRef,
+    { itemHeight, virtualizationThreshold, virtualize }
+  );
+
+  const effectiveVirtualState = customVirtualState || virtualState;
+  const showVirtualContainer = shouldVirtualize && effectiveVirtualState;
+
+  const [internalPage, setInternalPage] = useState(page);
+  const [internalSortKey, setInternalSortKey] = useState(sortKey);
+  const [internalSortDir, setInternalSortDir] = useState<SortDirection>(sortDirection || 'asc');
+  const [internalSelected, setInternalSelected] = useState<string[]>(selectedRows);
+
+  const processedData = useMemo(() => {
+    let result = [...data];
+    if (internalSortKey && onSort) {
+      result = sort(result, internalSortKey, internalSortDir);
+    }
+    return result;
+  }, [data, internalSortKey, internalSortDir, onSort]);
+
+  const paginationResult = useMemo(() => {
+    if (paginationMode === 'server') {
+      return {
+        data: processedData,
+        pageInfo: {
+          page,
+          pageSize,
+          totalItems: totalCount || 0,
+          totalPages: totalPagesProp || 0,
+          startIndex: 0,
+          endIndex: processedData.length,
+          hasNextPage: page < (totalPagesProp || 0),
+          hasPrevPage: page > 1,
+        },
+      };
+    }
+    return getPageData(processedData, internalPage, pageSize);
+  }, [processedData, paginationMode, page, pageSize, internalPage, totalPagesProp, totalCount]);
+
+  const { data: displayData, pageInfo } = paginationResult;
+  const pageNumbers = getPageNumbers(pageInfo.page, pageInfo.totalPages);
+
+  const virtualItems = effectiveVirtualState?.virtualItems || [];
+  const totalHeight = effectiveVirtualState?.totalHeight || 0;
+  const offsetY = effectiveVirtualState?.offsetY || 0;
+
+  const handleSort = useCallback((column: TableColumn) => {
+    if (!column.sortable) return;
+    const newDir = internalSortKey === column.key
+      ? (internalSortDir === 'asc' ? 'desc' : 'asc')
+      : 'asc';
+    setInternalSortKey(column.key);
+    setInternalSortDir(newDir);
+    onSort?.(column.key, newDir);
+  }, [internalSortKey, internalSortDir, onSort]);
+
+  const handleSelect = useCallback((row: T) => {
+    const key = String(row[rowKey]);
+    let newSelected: string[];
+    if (selectionMode === 'single') {
+      newSelected = internalSelected.includes(key) ? [] : [key];
+    } else {
+      newSelected = internalSelected.includes(key)
+        ? internalSelected.filter(k => k !== key)
+        : [...internalSelected, key];
+    }
+    setInternalSelected(newSelected);
+    onSelect?.(newSelected);
+  }, [internalSelected, onSelect, selectionMode, rowKey]);
+
+  const handleSelectAll = useCallback(() => {
+    const allKeys = displayData.map(row => String(row[rowKey]));
+    const newSelected = internalSelected.length === displayData.length
+      ? []
+      : allKeys;
+    setInternalSelected(newSelected);
+    onSelectAll?.(newSelected.length > 0);
+  }, [displayData, internalSelected, onSelectAll, rowKey]);
+
+  const isStriped = variant === 'striped';
+  const isBordered = variant === 'bordered';
+  const isCompact = variant === 'compact';
+
+  const wrapperClasses = [
+    styles.tableWrapper,
+    isBordered ? styles.tableWrapperBordered : '',
+    className,
+  ].filter(Boolean).join(' ');
+
+  const tableClasses = [
+    styles.table,
+    loading && styles.tableLoading,
+  ].filter(Boolean).join(' ');
+
+  const containerStyle: React.CSSProperties = showVirtualContainer
+    ? { height: containerHeight, overflow: 'auto' }
+    : {};
+
+  const virtualContainerStyle: React.CSSProperties = { height: totalHeight, position: 'relative' };
+  const stickyTableStyle: React.CSSProperties = { position: 'sticky' as const, top: 0 };
+  const virtualBodyStyle: React.CSSProperties = { transform: `translateY(${offsetY}px)` };
+
+  const renderRows = (items: T[], startIdx: number = 0) => {
+    return items.map((row, idx) => {
+      const key = String(row[rowKey]);
+      const isSelected = internalSelected.includes(key);
+      const actualIndex = startIdx + idx;
+
+      return (
+        <tr
+          key={key}
+          className={[
+            styles.row,
+            isStriped && actualIndex % 2 === 1 ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {selectionMode !== 'none' && (
+            <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleSelect(row)}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
+            <td
+              key={col.key}
+              className={[
+                styles.cell,
+                isCompact ? styles.cellCompact : '',
+                sizeClasses[size],
+                alignClasses[col.align || 'left'],
+                isBordered ? styles.cellBordered : '',
+              ].filter(Boolean).join(' ')}
+              style={col.width ? { width: col.width } : undefined}
+            >
+              {String(row[col.key] ?? '')}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  const renderVirtualRows = () => {
+    return virtualItems.map((item) => {
+      const row = displayData[item.index];
+      if (!row) return null;
+      const key = String(row[rowKey]);
+      const isSelected = internalSelected.includes(key);
+      const rowStyle = {
+        position: 'absolute' as const,
+        top: item.start,
+        width: '100%',
+      };
+      return (
+        <tr
+          key={`${key}-${item.index}`}
+          className={[
+            styles.row,
+            isStriped && item.index % 2 === 1 ? styles.rowStriped : '',
+            isCompact ? styles.rowCompact : '',
+            !isStriped && !isCompact ? styles.rowHover : '',
+            isSelected ? styles.rowSelected : '',
+          ].filter(Boolean).join(' ')}
+          style={rowStyle}
+        >
+          {selectionMode !== 'none' && (
+            <td className={[styles.cell, isCompact ? styles.cellCompact : ''].filter(Boolean).join(' ')}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleSelect(row)}
+                className={styles.checkbox}
+              />
+            </td>
+          )}
+          {columns.map(col => (
+            <td
+              key={col.key}
+              className={[
+                styles.cell,
+                isCompact ? styles.cellCompact : '',
+                sizeClasses[size],
+                alignClasses[col.align || 'left'],
+                isBordered ? styles.cellBordered : '',
+              ].filter(Boolean).join(' ')}
+              style={col.width ? { width: col.width } : undefined}
+            >
+              {String(row[col.key] ?? '')}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  const headerCellClasses = (col: TableColumn) => [
+    styles.headerCell,
+    sizeClasses[size],
+    col.sortable ? styles.headerCellSortable : '',
+    alignClasses[col.align || 'left'],
+    isBordered ? styles.headerCellBordered : '',
+  ].filter(Boolean).join(' ');
+
+  return (
+    <div className={wrapperClasses}>
+      <div ref={containerRef} className={showVirtualContainer ? styles.tableContainer : undefined} onScroll={showVirtualContainer ? handleScroll : undefined} style={containerStyle}>
+        {showVirtualContainer ? (
+          <div style={virtualContainerStyle}>
+            <table className={tableClasses} role="grid" style={stickyTableStyle}>
+              <thead className={styles.thead}>
+                <tr className={styles.headerRow}>
+                  {selectionMode !== 'none' && (
+                    <th className={[styles.headerCell, isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
+                      <input
+                        type="checkbox"
+                        checked={internalSelected.length === displayData.length && displayData.length > 0}
+                        onChange={handleSelectAll}
+                        className={styles.checkbox}
+                      />
+                    </th>
+                  )}
+                  {columns.map(col => (
+                    <th
+                      key={col.key}
+                      className={headerCellClasses(col)}
+                      style={col.width ? { width: col.width } : undefined}
+                      onClick={() => handleSort(col)}
+                      role={col.sortable ? 'columnheader' : undefined}
+                      aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    >
+                      {col.label}
+                      {col.sortable && internalSortKey === col.key && (
+                        <span className={styles.sortIcon}>{internalSortDir === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className={styles.tbody} style={virtualBodyStyle}>
+                {renderVirtualRows()}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <table className={tableClasses} role="grid">
+            <thead className={styles.thead}>
+              <tr className={styles.headerRow}>
+                  {selectionMode !== 'none' && (
+                    <th className={[styles.headerCell, isBordered ? styles.headerCellBordered : ''].filter(Boolean).join(' ')}>
+                    <input
+                      type="checkbox"
+                      checked={internalSelected.length === displayData.length && displayData.length > 0}
+                      onChange={handleSelectAll}
+                      className={styles.checkbox}
+                    />
+                  </th>
+                )}
+                {columns.map(col => (
+                  <th
+                    key={col.key}
+                    className={headerCellClasses(col)}
+                    style={col.width ? { width: col.width } : undefined}
+                    onClick={() => handleSort(col)}
+                    role={col.sortable ? 'columnheader' : undefined}
+                    aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                  >
+                    {col.label}
+                    {col.sortable && internalSortKey === col.key && (
+                      <span className={styles.sortIcon}>{internalSortDir === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className={styles.tbody}>
+              {displayData.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan={columns.length + (selectionMode !== 'none' ? 1 : 0)} className={styles.emptyRow}>
+                    {emptyMessage}
+                  </td>
+                </tr>
+              ) : (
+                renderRows(displayData)
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {paginationMode === 'client' && pageInfo.totalPages > 1 && (
+        <div className={styles.pagination}>
+          <div className={styles.paginationInfo}>
+            Showing {pageInfo.startIndex + 1} to {pageInfo.endIndex} of {pageInfo.totalItems} results
+          </div>
+          <div className={styles.paginationButtons}>
+            <button
+              onClick={() => {
+                const newPage = internalPage - 1;
+                setInternalPage(newPage);
+                onPageChange?.(newPage, pageSize);
+              }}
+              disabled={!pageInfo.hasPrevPage}
+              className={styles.paginationBtn}
+            >
+              Previous
+            </button>
+            {pageNumbers.map(p => (
+              <button
+                key={p}
+                onClick={() => {
+                  setInternalPage(p);
+                  onPageChange?.(p, pageSize);
+                }}
+                className={[
+                  styles.paginationBtn,
+                  p === internalPage ? styles.paginationBtnActive : '',
+                ].filter(Boolean).join(' ')}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                const newPage = internalPage + 1;
+                setInternalPage(newPage);
+                onPageChange?.(newPage, pageSize);
+              }}
+              disabled={!pageInfo.hasNextPage}
+              className={styles.paginationBtn}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+Table.displayName = 'Table';
+{{/if}}

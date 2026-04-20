@@ -1,44 +1,4 @@
-import { ComponentName } from '../../core/enums';
-
-export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = {
-  [ComponentName.Button]: {
-    default:
-      'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent hover:opacity-90',
-    primary:
-      'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent hover:opacity-90',
-    secondary:
-      'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] border-transparent hover:opacity-80',
-    outline:
-      'bg-transparent text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
-    ghost:
-      'bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]',
-    link: 'bg-transparent text-[var(--color-primary)] underline-offset-4 hover:underline border-transparent',
-    destructive:
-      'bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] border-transparent hover:opacity-90',
-  },
-  [ComponentName.Input]: {
-    default:
-      'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-    error:
-      'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
-  },
-  [ComponentName.Card]: {
-    default: 'bg-[var(--color-surface)] border-[var(--color-border)]',
-    hoverable: 'bg-[var(--color-surface)] border-[var(--color-border)] hover:shadow-lg',
-    clickable:
-      'bg-[var(--color-surface)] border-[var(--color-border)] cursor-pointer hover:shadow-lg',
-  },
-  [ComponentName.Dialog]: {
-    default: 'bg-[var(--color-surface)]',
-    confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
-  },
-  [ComponentName.Select]: {
-    default:
-      'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
-    error:
-      'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
-  },
-};
+import { pluginRegistry } from '../../plugins/registry';
 
 export interface ComponentMeta {
   /** Visual variants (e.g., primary, secondary, ghost) */
@@ -68,51 +28,52 @@ export interface ComponentMeta {
     focusTrap?: boolean;
     keyboardNav?: boolean;
     passwordToggle?: boolean;
+    dynamicRowCount?: boolean;
   };
+
+  /** Utils files to copy to generated output (e.g., ['virtualizer', 'table-sorter']) */
+  utils?: string[];
+
+  /** Arbitrary plugin data */
+  extensions?: Record<string, any>;
 }
 
-export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = {
-  [ComponentName.Button]: {
-    variants: ['default', 'primary', 'secondary', 'outline', 'ghost', 'link', 'destructive'],
-    sizes: ['xs', 'sm', 'md', 'lg', 'icon'],
-    states: ['disabled', 'loading'],
-    props: [],
-    prefix: 'btn',
+/**
+ * Component defaults.
+ * In v1.1, these are proxied to the pluginRegistry.
+ */
+export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = new Proxy({}, {
+  get(_, prop: string) {
+    const manifest = pluginRegistry.getComponentManifest(prop);
+    if (!manifest) return undefined;
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { tailwindDefaults, ...meta } = manifest;
+    return meta as ComponentMeta;
   },
-  [ComponentName.Input]: {
-    variants: ['default', 'error'],
-    sizes: ['sm', 'md', 'lg'],
-    states: ['disabled', 'error'],
-    props: ['required', 'hint', 'label', 'placeholder', 'id'],
-    prefix: 'input',
-    a11y: { role: 'input', passwordToggle: true },
+  ownKeys() {
+    return pluginRegistry.getAllComponentIds();
   },
-  [ComponentName.Card]: {
-    variants: ['default', 'hoverable', 'clickable'],
-    sizes: ['sm', 'md', 'lg'],
-    states: [],
-    props: ['title', 'onClick', 'href'],
-    prefix: 'card',
-    noClassName: true,
-    a11y: { role: 'article' },
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
+});
+
+export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = new Proxy({}, {
+  get(_, prop: string) {
+    const manifest = pluginRegistry.getComponentManifest(prop);
+    return manifest?.tailwindDefaults || {};
   },
-  [ComponentName.Dialog]: {
-    variants: ['default', 'confirm'],
-    sizes: ['sm', 'md', 'lg'],
-    states: ['open', 'closed'],
-    props: ['title'],
-    prefix: 'Dialog',
-    noClassName: true,
-    behaviours: ['closeable', 'focusTrap', 'scrollLock'],
-    a11y: { role: 'dialog', focusTrap: true },
+  ownKeys() {
+    return pluginRegistry.getAllComponentIds();
   },
-  [ComponentName.Select]: {
-    variants: ['default', 'error'],
-    sizes: ['sm', 'md', 'lg'],
-    states: ['disabled', 'error', 'open'],
-    props: ['label', 'placeholder', 'id'],
-    prefix: 'select',
-    behaviours: ['closeable'],
-    a11y: { role: 'combobox', keyboardNav: true },
-  },
-};
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
+});

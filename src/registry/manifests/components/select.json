@@ -1,0 +1,19 @@
+{
+  "id": "Select",
+  "name": "Select",
+  "description": "Custom dropdown select component",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "error"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled", "error", "open"],
+  "props": ["label", "placeholder", "id"],
+  "prefix": "select",
+  "behaviours": ["closeable"],
+  "a11y": { "role": "combobox", "keyboardNav": true },
+  "dependencies": ["Button"],
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]",
+    "error": "bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]"
+  }
+}
