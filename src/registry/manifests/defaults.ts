@@ -33,6 +33,9 @@ export interface ComponentMeta {
 
   /** Utils files to copy to generated output (e.g., ['virtualizer', 'table-sorter']) */
   utils?: string[];
+
+  /** Arbitrary plugin data */
+  extensions?: Record<string, any>;
 }
 
 /**

@@ -24,6 +24,7 @@ export interface ComponentManifest {
   dependencies?: string[];
   peerDependencies?: Record<string, string[]>;
   tailwindDefaults?: Record<string, string>;
+  extensions?: Record<string, any>;
 }
 
 export interface FrameworkManifest {

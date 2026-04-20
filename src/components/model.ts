@@ -57,6 +57,7 @@ export interface ComponentModel {
   hasSelection: boolean;
   hasVirtualization: boolean;
   utils?: string[];
+  extensions: Record<string, any>;
 }
 
 export function buildComponentModel(
@@ -142,5 +143,6 @@ export function buildComponentModel(
     hasSelection: defaults.states.includes('selectable'),
     hasVirtualization: defaults.states.includes('virtualizable'),
     utils: defaults.utils,
+    extensions: defaults.extensions || {},
   };
 }
