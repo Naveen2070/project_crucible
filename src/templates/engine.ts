@@ -160,7 +160,7 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   const tplDir = path.join(templatesRoot, model.framework, model.styleSystem, model.name);
   const result: Record<string, string> = {};
 
-  const resolver = FRAMEWORK_TARGETS[model.framework];
+  const resolver = pluginRegistry.getFrameworkResolver(model.framework);
   if (!resolver) throw new Error(`Unsupported framework: ${model.framework}`);
 
   const allTargets = resolver(model.name, model.styleSystem as StyleSystem);

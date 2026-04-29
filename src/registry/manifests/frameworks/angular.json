@@ -1,0 +1,6 @@
+{
+  "id": "angular",
+  "name": "Angular",
+  "extension": "ts",
+  "storiesExtension": "stories.ts"
+}

@@ -28,7 +28,7 @@ export interface ComponentManifest {
 }
 
 export interface FrameworkManifest {
-  id: Framework;
+  id: string; // Changed from Framework to string for pluggability
   name: string;
   extension: string;
   storiesExtension: string;
@@ -38,7 +38,16 @@ export interface PluginManifest {
   id: string;
   name: string;
   version: string;
+  engineVersion?: string; // Optional: compatible engine version (semver range)
   description?: string;
   components: string[]; // IDs of components provided by this plugin
   templatesDir?: string; // Optional: relative path to templates, defaults to './templates'
+  frameworks?: string[]; // Optional: relative paths to framework manifests
+}
+
+export interface LoadedPlugin {
+  manifest: PluginManifest;
+  components: ComponentManifest[];
+  frameworks?: FrameworkManifest[]; // Added frameworks to LoadedPlugin
+  root: string;
 }

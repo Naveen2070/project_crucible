@@ -1,0 +1,6 @@
+{
+  "id": "vue",
+  "name": "Vue 3",
+  "extension": "vue",
+  "storiesExtension": "stories.ts"
+}
