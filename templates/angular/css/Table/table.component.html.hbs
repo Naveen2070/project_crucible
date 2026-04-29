@@ -3,7 +3,7 @@
     <table [ngClass]="getTableClasses()" role="grid">
       <thead [ngClass]="thead">
         <tr [ngClass]="headerRow">
-          <ng-container *ngIf="selectionMode !== 'none'">
+          @if (selectionMode !== 'none') {
             <th [ngClass]="[headerCell, sizeClasses[size], isBordered() ? 'headerCellBordered' : '']">
               <input
                 type="checkbox"
@@ -11,8 +11,8 @@
                 (change)="handleSelectAll()"
                 [ngClass]="checkbox" />
             </th>
-          </ng-container>
-          <ng-container *ngFor="let col of columns; trackBy: trackByKey">
+          }
+          @for (col of columns; track trackByKey($index, col)) {
             <th
               [ngClass]="getHeaderCellClasses(col)"
               [style.width]="col.width"
@@ -20,15 +20,15 @@
               [attr.role]="col.sortable ? 'columnheader' : null"
               [attr.aria-sort]="getAriaSort(col.key)">
               {{ col.label }}
-              <ng-container *ngIf="col.sortable && shouldShowSortIcon(col.key)">
+              @if (col.sortable && shouldShowSortIcon(col.key)) {
                 <span class="sort-icon">{{ sortIcon }}</span>
-              </ng-container>
+              }
             </th>
-          </ng-container>
+          }
         </tr>
       </thead>
       <tbody [ngClass]="tbody">
-        <ng-container *ngIf="displayData().length === 0 && !loading">
+        @if (displayData().length === 0 && !loading) {
           <tr>
             <td
               [colSpan]="columns.length + (selectionMode !== 'none' ? 1 : 0)"
@@ -36,10 +36,10 @@
               {{ emptyMessage }}
             </td>
           </tr>
-        </ng-container>
-        <ng-container *ngFor="let row of displayData(); trackBy: trackByIndex; let idx = index">
+        }
+        @for (row of displayData(); track trackByIndex($index, row); let idx = $index) {
           <tr [ngClass]="getRowClasses(row, idx)">
-            <ng-container *ngIf="selectionMode !== 'none'">
+            @if (selectionMode !== 'none') {
               <td [ngClass]="getCellClass()">
                 <input
                   type="checkbox"
@@ -47,46 +47,48 @@
                   (change)="handleSelect(row)"
                   [ngClass]="checkbox" />
               </td>
-            </ng-container>
-            <ng-container *ngFor="let col of columns; trackBy: trackByKey">
+            }
+            @for (col of columns; track trackByKey($index, col)) {
               <td
                 [ngClass]="getCellClasses(col)"
                 [style.width]="col.width"
                 [textContent]="getCellValue(row, col.key)">
               </td>
-            </ng-container>
+            }
           </tr>
-        </ng-container>
+        }
       </tbody>
     </table>
   </div>
 
-  <ng-container *ngIf="paginationMode === 'client' && pageInfo() as info">
-    <div *ngIf="info.totalPages > 1" [ngClass]="pagination">
-      <div [ngClass]="paginationInfo">
-        Showing {{ pageStart }} to {{ pageEnd }} of {{ totalItems }} results
-      </div>
-      <div [ngClass]="paginationButtons">
-        <button
-          (click)="onPageChange(internalPage() - 1)"
-          [disabled]="!info.hasPrevPage"
-          [ngClass]="paginationBtn">
-          Previous
-        </button>
-        <ng-container *ngFor="let p of pageNumbers(); trackBy: trackByPage">
+  @if (paginationMode === 'client' && pageInfo(); as info) {
+    @if (info.totalPages > 1) {
+      <div [ngClass]="pagination">
+        <div [ngClass]="paginationInfo">
+          Showing {{ pageStart }} to {{ pageEnd }} of {{ totalItems }} results
+        </div>
+        <div [ngClass]="paginationButtons">
           <button
-            (click)="onPageChange(p)"
-            [ngClass]="[paginationBtn, p === internalPage() ? paginationBtnActive : '']">
-            {{ p }}
+            (click)="onPageChange(internalPage() - 1)"
+            [disabled]="!info.hasPrevPage"
+            [ngClass]="paginationBtn">
+            Previous
           </button>
-        </ng-container>
-        <button
-          (click)="onPageChange(internalPage() + 1)"
-          [disabled]="!info.hasNextPage"
-          [ngClass]="paginationBtn">
-          Next
-        </button>
+          @for (p of pageNumbers(); track trackByPage($index, p)) {
+            <button
+              (click)="onPageChange(p)"
+              [ngClass]="[paginationBtn, p === internalPage() ? paginationBtnActive : '']">
+              {{ p }}
+            </button>
+          }
+          <button
+            (click)="onPageChange(internalPage() + 1)"
+            [disabled]="!info.hasNextPage"
+            [ngClass]="paginationBtn">
+            Next
+          </button>
+        </div>
       </div>
-    </div>
-  </ng-container>
+    }
+  }
 </div>
