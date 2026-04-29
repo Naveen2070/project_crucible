@@ -1,12 +1,9 @@
 import { Framework, StyleSystem } from '../core/enums';
+import { pluginRegistry, FileTarget, FrameworkResolver } from '../plugins/registry';
 
-export interface FileTarget {
-  tpl: string;
-  out: string;
-  isStory?: boolean;
-}
+export type { FileTarget };
 
-export const FRAMEWORK_TARGETS: Record<Framework, (name: string, styleSystem: StyleSystem) => FileTarget[]> = {
+export const FRAMEWORK_TARGETS: Record<string, FrameworkResolver> = {
   [Framework.React]: (name, styleSystem) => {
     const targets: FileTarget[] = [{ tpl: `${name}.tsx.hbs`, out: `${name}.tsx` }];
     if (styleSystem === StyleSystem.CSS) {
@@ -38,3 +35,8 @@ export const FRAMEWORK_TARGETS: Record<Framework, (name: string, styleSystem: St
     ];
   },
 };
+
+// Register built-in framework resolvers
+for (const [id, resolver] of Object.entries(FRAMEWORK_TARGETS)) {
+  pluginRegistry.registerFrameworkResolver(id, resolver);
+}

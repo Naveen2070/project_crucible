@@ -113,7 +113,6 @@
     "vitest-axe": "^0.1.0"
   },
   "engines": {
-    "node": ">=24.13.1"
-  },
-  "private": true
+    "node": ">=20 <25"
+  }
 }
