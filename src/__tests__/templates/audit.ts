@@ -10,9 +10,6 @@ export const PROHIBITED_PATTERNS: RegExp[] = [
 ];
 
 export const AUDIT_EXCLUDES = [
-  // Table Angular templates use *ngIf/*ngFor to avoid Handlebars parsing conflicts
-  // See: https://github.com/anomalyco/opencode/issues/1234
-  /templates\\angular\\.*\\Table\\/,
   // Virtualization adapter guide uses template syntax for documentation
-  /templates\\shared\\virtualization-adapters-guide\.md\.hbs$/,
+  /templates[\\/]shared[\\/]virtualization-adapters-guide\.md\.hbs$/,
 ];
