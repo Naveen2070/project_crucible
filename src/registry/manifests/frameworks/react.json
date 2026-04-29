@@ -1,0 +1,6 @@
+{
+  "id": "react",
+  "name": "React",
+  "extension": "tsx",
+  "storiesExtension": "stories.tsx"
+}

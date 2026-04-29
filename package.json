@@ -19,7 +19,7 @@
   "scripts": {
     "audit:templates": "tsx scripts/audit-templates.ts",
     "prebuild": "npm run audit:templates",
-    "build": "tsc",
+    "build": "tsc && tsx scripts/copy-manifests.ts",
     "build:watch": "tsc --watch",
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
     "playground": "npm run dev --workspace=playground-react",
@@ -113,7 +113,6 @@
     "vitest-axe": "^0.1.0"
   },
   "engines": {
-    "node": ">=24.13.1"
-  },
-  "private": true
+    "node": ">=20 <25"
+  }
 }

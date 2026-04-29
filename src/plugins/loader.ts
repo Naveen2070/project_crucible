@@ -1,14 +1,10 @@
 import path from 'path';
 import { readdir } from 'node:fs/promises';
+import ansis from 'ansis';
 import { pathExists, readJson } from '../utils/fs';
-import { PluginManifest, ComponentManifest } from './types';
+import { PluginManifest, ComponentManifest, LoadedPlugin } from './types';
 import { pluginRegistry } from './registry';
-
-export interface LoadedPlugin {
-  manifest: PluginManifest;
-  components: ComponentManifest[];
-  root: string;
-}
+import '../registry/frameworks'; // Ensure built-in frameworks are registered
 
 export async function initRegistry(cwd: string) {
   const plugins = await loadPlugins(cwd);
@@ -20,17 +16,28 @@ export async function initRegistry(cwd: string) {
 export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
   const plugins: LoadedPlugin[] = [];
   
-  // 1. Built-in "core" plugin (can be hardcoded or loaded from a manifest)
-  // For now, let's look for a manifest in src/registry/manifests/plugin.json
+  let engineVersion = '1.0.0';
+  try {
+    const pkg = await readJson(path.join(__dirname, '../../../package.json'));
+    engineVersion = pkg.version || '1.0.0';
+  } catch {}
+
+  // 1. Built-in "core" plugin
   const coreManifestPath = path.join(__dirname, '../registry/manifests/plugin.json');
   if (await pathExists(coreManifestPath)) {
     const manifest = await readJson(coreManifestPath);
-    const components = await loadPluginComponents(path.dirname(coreManifestPath), manifest.components);
-    plugins.push({
-      manifest,
-      components,
-      root: path.dirname(coreManifestPath),
-    });
+    if (isCompatible(manifest.engineVersion, engineVersion)) {
+      const components = await loadPluginComponents(path.dirname(coreManifestPath), manifest.components);
+      const frameworks = manifest.frameworks ? await loadPluginFrameworks(path.dirname(coreManifestPath), manifest.frameworks) : undefined;
+      plugins.push({
+        manifest,
+        components,
+        frameworks,
+        root: path.dirname(coreManifestPath),
+      });
+    } else {
+      console.warn(ansis.yellow(`⚠ Skipping core plugin: incompatible engine version (needs ${manifest.engineVersion}, engine is ${engineVersion})`));
+    }
   }
 
   // 2. Local project plugins: .crucible/plugins/*
@@ -45,10 +52,18 @@ export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
         if (await pathExists(manifestPath)) {
           try {
             const manifest = await readJson(manifestPath);
+            
+            if (!isCompatible(manifest.engineVersion, engineVersion)) {
+              console.warn(ansis.yellow(`⚠ Skipping plugin "${manifest.id}": incompatible engine version (needs ${manifest.engineVersion}, engine is ${engineVersion})`));
+              continue;
+            }
+
             const components = await loadPluginComponents(pluginRoot, manifest.components);
+            const frameworks = manifest.frameworks ? await loadPluginFrameworks(pluginRoot, manifest.frameworks) : undefined;
             plugins.push({
               manifest,
               components,
+              frameworks,
               root: pluginRoot,
             });
           } catch (err) {
@@ -62,6 +77,32 @@ export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
   return plugins;
 }
 
+function isCompatible(required: string | undefined, current: string): boolean {
+  if (!required) return true;
+  
+  // Basic semver check for >= versions
+  if (required.startsWith('>=')) {
+    const reqVersion = required.replace('>=', '').trim();
+    return compareVersions(current, reqVersion) >= 0;
+  }
+  
+  // Exact match
+  return current === required;
+}
+
+function compareVersions(v1: string, v2: string): number {
+  const parts1 = v1.split('.').map(Number);
+  const parts2 = v2.split('.').map(Number);
+  
+  for (let i = 0; i < 3; i++) {
+    const p1 = parts1[i] || 0;
+    const p2 = parts2[i] || 0;
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
+  }
+  return 0;
+}
+
 async function loadPluginComponents(pluginRoot: string, componentPaths: string[]): Promise<ComponentManifest[]> {
   const components: ComponentManifest[] = [];
   for (const compPath of componentPaths) {
@@ -72,4 +113,16 @@ async function loadPluginComponents(pluginRoot: string, componentPaths: string[]
     }
   }
   return components;
+}
+
+async function loadPluginFrameworks(pluginRoot: string, frameworkPaths: string[]): Promise<any[]> {
+  const frameworks: any[] = [];
+  for (const fwPath of frameworkPaths) {
+    const fullPath = path.resolve(pluginRoot, fwPath);
+    if (await pathExists(fullPath)) {
+      const framework = await readJson(fullPath);
+      frameworks.push(framework);
+    }
+  }
+  return frameworks;
 }

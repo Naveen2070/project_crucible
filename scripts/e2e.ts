@@ -860,11 +860,45 @@ async function runE2E() {
     }
     results.push({ phase: 'Table + Angular + SCSS', passed: true });
 
+    // Table + Angular + Tailwind
+    console.log(ansis.cyan('📦 Phase 27: Table + Angular + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Table'));
+    runCLI('add Table -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Table', 'table.component.html')))) {
+      throw new Error('Missing: Table/table.component.html');
+    }
+    const tableAngularTwContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Table', 'table.component.html'),
+      'utf-8',
+    );
+    if (!tableAngularTwContent.includes('@if')) {
+      throw new Error('Angular Tailwind Table should use modern control flow (@if)');
+    }
+    results.push({ phase: 'Table + Angular + Tailwind', passed: true });
+
     // ==================== POPOVER COMPONENT TESTS ====================
     console.log(ansis.cyan('\n🎈 POPOVER COMPONENT'));
 
     // Popover + React + CSS (Compound)
-    console.log(ansis.cyan('📦 Phase 27: Popover + React + CSS (Compound)'));
+    console.log(ansis.cyan('📦 Phase 28: Popover + React + CSS (Compound)'));
     await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -896,8 +930,42 @@ async function runE2E() {
     }
     results.push({ phase: 'Popover + React + CSS (Compound)', passed: true });
 
+    // Popover + Vue + SCSS
+    console.log(ansis.cyan('📦 Phase 29: Popover + Vue + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Popover'));
+    runCLI('add Popover -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.vue')))) {
+      throw new Error('Missing: Popover/Popover.vue');
+    }
+    const popoverVueScssContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.vue'),
+      'utf-8',
+    );
+    if (!popoverVueScssContent.includes('lang="scss"')) {
+      throw new Error('Vue Popover missing scss block');
+    }
+    results.push({ phase: 'Popover + Vue + SCSS', passed: true });
+
     // Popover + Vue + Tailwind
-    console.log(ansis.cyan('📦 Phase 28: Popover + Vue + Tailwind'));
+    console.log(ansis.cyan('📦 Phase 30: Popover + Vue + Tailwind'));
     await writeJson(
       path.join(TEST_DIR, 'crucible.config.json'),
       {
@@ -925,10 +993,51 @@ async function runE2E() {
       path.join(TEST_DIR, 'src/components', 'Popover', 'Popover.vue'),
       'utf-8',
     );
-    if (!popoverVueTwContent.includes('placementClasses')) {
-      throw new Error('Vue Popover missing placementClasses');
+    if (!popoverVueTwContent.includes('useFloating')) {
+      throw new Error('Vue Popover missing useFloating logic');
     }
     results.push({ phase: 'Popover + Vue + Tailwind', passed: true });
+
+    // Popover + Angular + CSS
+    console.log(ansis.cyan('📦 Phase 31: Popover + Angular + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Popover'));
+    runCLI('add Popover -y');
+    const popoverAngularFiles = [
+      'Popover/popover.component.ts',
+      'Popover/popover.component.html',
+      'Popover/popover.component.css',
+    ];
+    for (const file of popoverAngularFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const popoverAngularTsContent = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Popover', 'popover.component.ts'),
+      'utf-8',
+    );
+    if (!popoverAngularTsContent.includes('computePosition')) {
+      throw new Error('Angular Popover missing computePosition logic');
+    }
+    results.push({ phase: 'Popover + Angular + CSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
