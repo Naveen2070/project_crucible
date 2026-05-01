@@ -188,6 +188,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
             <td className={['px-4 py-2', isBordered ? 'border ! border-[var(--color-border)]' : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
+                aria-label={isSelected ? 'Deselect row' : 'Select row'}
                 checked={isSelected}
                 onChange={() => handleSelect(row)}
                 className="rounded border-[var(--color-border)]"
@@ -223,6 +224,9 @@ export const TableRoot = <T extends Record<string, unknown>>({
 
   return (
     <div className={wrapperClasses}>
+      <span aria-live="polite" className="sr-only" style=\{{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0 \}}>
+        {internalSortKey ? `Sorted by ${internalSortKey} ${internalSortDir}` : ''}
+      </span>
       <div className="overflow-auto">
         <table className={tableClasses} role="grid">
           <thead className="bg-[var(--color-surface)]">
@@ -231,6 +235,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                 <th className="px-4 py-3">
                   <input
                     type="checkbox"
+                    aria-label="Select all rows"
                     checked={internalSelected.length === displayData.length && displayData.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-[var(--color-border)]"

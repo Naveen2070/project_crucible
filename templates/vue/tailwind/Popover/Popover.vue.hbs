@@ -127,7 +127,7 @@ const sizeClasses = {
 
 <template>
   <div :class="['inline-block', className]" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-    <div ref="triggerRef" class="cursor-pointer inline-block" @click="toggle">
+    <div ref="triggerRef" class="cursor-pointer inline-block" @click="toggle" :aria-expanded="isOpen" aria-haspopup="dialog">
       <slot name="trigger">
         <button type="button">Trigger</button>
       </slot>

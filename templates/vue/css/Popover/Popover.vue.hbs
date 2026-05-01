@@ -126,7 +126,7 @@ const contentClasses = computed(() => {
 
 <template>
   <div class="popover-root" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-    <div ref="triggerRef" class="popover-trigger" @click="toggle">
+    <div ref="triggerRef" class="popover-trigger" @click="toggle" :aria-expanded="isOpen" aria-haspopup="dialog">
       <slot name="trigger">
         <button type="button">Trigger</button>
       </slot>

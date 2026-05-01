@@ -235,8 +235,12 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
 
 <template>
   <div :class="wrapperClasses">
-    <div 
-      ref="containerRef" 
+    <span aria-live="polite" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
+      \{{ internalSortKey ? `Sorted by ${internalSortKey} ${internalSortDir}` : '' \}}
+    </span>
+    <div
+      ref="container"
+
       :class="showVirtualContainer ? 'tableContainer' : undefined"
       :style="showVirtualContainer ? { height: containerHeight + 'px', overflow: 'auto' } : {}"
       @scroll="showVirtualContainer ? handleScroll : undefined"
@@ -248,6 +252,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               <th v-if="selectionMode !== 'none'" :class="['headerCell', sizeClasses[size], isBordered ? 'headerCellBordered' : '']">
                 <input
                   type="checkbox"
+                  aria-label="Select all rows"
                   :checked="internalSelected.length === displayData.length && displayData.length > 0"
                   @change="handleSelectAll"
                   class="checkbox"

@@ -1,4 +1,7 @@
 <div [ngClass]="getWrapperClasses()">
+  <span aria-live="polite" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
+    \{{ internalSortKey() ? 'Sorted by ' + internalSortKey() + ' ' + internalSortDir() : '' \}}
+  </span>
   <div [ngClass]="tableContainer">
     <table [ngClass]="getTableClasses()" role="grid">
       <thead [ngClass]="thead">
@@ -7,6 +10,7 @@
             <th [ngClass]="[headerCell, sizeClasses[size], isBordered() ? 'headerCellBordered' : '']">
               <input
                 type="checkbox"
+                aria-label="Select all rows"
                 [checked]="internalSelected().length === displayData().length && displayData().length > 0"
                 (change)="handleSelectAll()"
                 [ngClass]="checkbox" />
@@ -43,6 +47,7 @@
               <td [ngClass]="getCellClass()">
                 <input
                   type="checkbox"
+                  [attr.aria-label]="'Select row ' + idx"
                   [checked]="internalSelected().includes(String(row[rowKey]))"
                   (change)="handleSelect(row)"
                   [ngClass]="checkbox" />

@@ -306,6 +306,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
             <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
+                aria-label={isSelected ? 'Deselect row' : 'Select row'}
                 checked={isSelected}
                 onChange={() => handleSelect(row)}
                 className={styles.checkbox}
@@ -425,6 +426,9 @@ export const TableRoot = <T extends Record<string, unknown>>({
   return (
     <TableContext.Provider value={contextValue}>
       <div className={wrapperClasses}>
+        <span aria-live="polite" className="sr-only" style={ { position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0 } }>
+          {sortKey ? `Sorted by ${sortKey} ${sortDirection}` : ''}
+        </span>
         {children ? children : renderDefaultContent()}
       </div>
     </TableContext.Provider>
@@ -523,6 +527,7 @@ export const TableBody = ({ children, className }: { children?: React.ReactNode;
             <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
+                aria-label={isSelected ? 'Deselect row' : 'Select row'}
                 checked={isSelected}
                 onChange={() => onSelect?.([key])}
                 className={styles.checkbox}

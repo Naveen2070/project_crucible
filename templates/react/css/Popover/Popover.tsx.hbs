@@ -12,6 +12,7 @@ import {
   useInteractions,
   safePolygon,
   Placement,
+  FloatingFocusManager,
 } from '@floating-ui/react';
 {{> react/styles-import}}
 
@@ -150,20 +151,22 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   if (!isOpen) return null;
 
   return (
-    <div
-      ref={refs.setFloating}
-      style={floatingStyles}
-      className={`
-        ${styles.content}
-        ${styles[`variant-${variant}`]}
-        ${styles[`size-${size}`]}
-        ${isOpen ? styles['content-open'] : ''}
-        ${className}
-      `}
-      {...getFloatingProps()}
-    >
-      {children}
-    </div>
+    <FloatingFocusManager context={context} modal={false}>
+      <div
+        ref={refs.setFloating}
+        style={floatingStyles}
+        className={`
+          ${styles.content}
+          ${styles[`variant-${variant}`]}
+          ${styles[`size-${size}`]}
+          ${isOpen ? styles['content-open'] : ''}
+          ${className}
+        `}
+        {...getFloatingProps()}
+      >
+        {children}
+      </div>
+    </FloatingFocusManager>
   );
 };
 
@@ -333,19 +336,21 @@ export const Popover: React.FC<PopoverProps> & {
         {Array.isArray(children) ? children[0] : 'Trigger'}
       </div>
       {isOpen && (
-        <div
-          ref={refs.setFloating}
-          style={floatingStyles}
-          className={`
-            ${styles.content}
-            ${styles[`variant-${variant}`]}
-            ${styles[`size-${size}`]}
-            ${styles['content-open']}
-          `}
-          {...getFloatingProps()}
-        >
-          {Array.isArray(children) ? children.slice(1) : children}
-        </div>
+        <FloatingFocusManager context={context} modal={false}>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            className={`
+              ${styles.content}
+              ${styles[`variant-${variant}`]}
+              ${styles[`size-${size}`]}
+              ${styles['content-open']}
+            `}
+            {...getFloatingProps()}
+          >
+            {Array.isArray(children) ? children.slice(1) : children}
+          </div>
+        </FloatingFocusManager>
       )}
     </div>
   );

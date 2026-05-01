@@ -1,4 +1,7 @@
 <div [ngClass]="getWrapperClasses()">
+  <span aria-live="polite" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
+    \{{ internalSortKey() ? 'Sorted by ' + internalSortKey() + ' ' + internalSortDir() : '' \}}
+  </span>
   <div
     #container
     [ngClass]="shouldVirtualize() ? 'overflow-auto' : ''"
@@ -16,6 +19,7 @@
                 <th [ngClass]="['px-4 py-3', isBordered() ? 'border ! border-[var(--color-border)]' : '']">
                   <input
                     type="checkbox"
+                    aria-label="Select all rows"
                     [checked]="internalSelected().length === displayData().length && displayData().length > 0"
                     (change)="handleSelectAll()"
                     class="rounded border-[var(--color-border)]" />
@@ -43,7 +47,8 @@
                   <td [ngClass]="getSelectionCellClass()">
                     <input
                       type="checkbox"
-                      [checked]="internalSelected().includes(String(displayData()[item.index][rowKey]))"
+                      [attr.aria-label]="'Select row ' + item.index"
+                      [checked]="internalSelected.includes(String(displayData()[item.index][rowKey]))"
                       (change)="handleSelect(displayData()[item.index])"
                       class="rounded border-[var(--color-border)]" />
                   </td>
@@ -104,6 +109,7 @@
                 <td [ngClass]="getSelectionCellClass()">
                   <input
                     type="checkbox"
+                    [attr.aria-label]="'Select row ' + idx"
                     [checked]="internalSelected().includes(String(row[rowKey]))"
                     (change)="handleSelect(row)"
                     class="rounded border-[var(--color-border)]" />
