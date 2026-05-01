@@ -12,6 +12,7 @@ import {
   useInteractions,
   safePolygon,
   Placement,
+  FloatingFocusManager,
 } from '@floating-ui/react';
 
 {{#if features.compoundComponents}}
@@ -160,21 +161,23 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   };
 
   return (
-    <div
-      ref={refs.setFloating}
-      style={floatingStyles}
-      className={`
-        z-[var(--popover-z-index)] 
-        rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden
-        ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
-        ${sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.md}
-        animate-in fade-in zoom-in-95 duration-200
-        ${className}
-      `}
-      {...getFloatingProps()}
-    >
-      {children}
-    </div>
+    <FloatingFocusManager context={context} modal={false}>
+      <div
+        ref={refs.setFloating}
+        style={floatingStyles}
+        className={`
+          z-[var(--popover-z-index)] 
+          rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden
+          ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
+          ${sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.md}
+          animate-in fade-in zoom-in-95 duration-200
+          ${className}
+        `}
+        {...getFloatingProps()}
+      >
+        {children}
+      </div>
+    </FloatingFocusManager>
   );
 };
 
@@ -367,20 +370,22 @@ export const Popover: React.FC<PopoverProps> & {
         {Array.isArray(children) ? children[0] : 'Trigger'}
       </div>
       {isOpen && (
-        <div
-          ref={refs.setFloating}
-          style={floatingStyles}
-          className={`
-            z-[var(--popover-z-index)] 
-            rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden
-            ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
-            ${sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.md}
-            animate-in fade-in zoom-in-95 duration-200
-          `}
-          {...getFloatingProps()}
-        >
-          {Array.isArray(children) ? children.slice(1) : children}
-        </div>
+        <FloatingFocusManager context={context} modal={false}>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            className={`
+              z-[var(--popover-z-index)] 
+              rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden
+              ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
+              ${sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.md}
+              animate-in fade-in zoom-in-95 duration-200
+            `}
+            {...getFloatingProps()}
+          >
+            {Array.isArray(children) ? children.slice(1) : children}
+          </div>
+        </FloatingFocusManager>
       )}
     </div>
   );

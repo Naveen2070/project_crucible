@@ -1,5 +1,5 @@
 <div [class]="'relative inline-block ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
-  <div #triggerRef class="cursor-pointer inline-block" (click)="toggle()">
+  <div #triggerRef class="cursor-pointer inline-block" (click)="toggle()" [attr.aria-expanded]="isOpen" aria-haspopup="dialog">
     <ng-content select="[trigger]"></ng-content>
   </div>
 

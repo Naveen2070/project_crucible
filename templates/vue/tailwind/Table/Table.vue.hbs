@@ -235,8 +235,12 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
 
 <template>
   <div :class="wrapperClasses">
-    <div 
-      ref="containerRef" 
+    <span aria-live="polite" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
+      \{{ internalSortKey ? `Sorted by ${internalSortKey} ${internalSortDir}` : '' \}}
+    </span>
+    <div
+      ref="container"
+
       :class="showVirtualContainer ? 'overflow-auto' : undefined"
       :style="showVirtualContainer ? { height: containerHeight + 'px', overflow: 'auto' } : {}"
       @scroll="showVirtualContainer ? handleScroll : undefined"
@@ -248,6 +252,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               <th v-if="selectionMode !== 'none'" :class="['px-4 py-3', sizeClasses[size], isBordered ? 'border ! border-[var(--color-border)]' : '']">
                 <input
                   type="checkbox"
+                  aria-label="Select all rows"
                   :checked="internalSelected.length === displayData.length && displayData.length > 0"
                   @change="handleSelectAll"
                   class="rounded border-[var(--color-border)]"
@@ -281,6 +286,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               <td v-if="selectionMode !== 'none'" :class="['px-4 py-2', isBordered ? 'border ! border-[var(--color-border)]' : '']">
                 <input
                   type="checkbox"
+                  :aria-label="'Select row ' + item.index"
                   :checked="isRowSelected(displayData[item.index])"
                   @change="handleSelect(displayData[item.index])"
                   class="rounded border-[var(--color-border)]"
@@ -304,6 +310,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
             <th v-if="selectionMode !== 'none'" :class="['px-4 py-3', sizeClasses[size], isBordered ? 'border ! border-[var(--color-border)]' : '']">
               <input
                 type="checkbox"
+                aria-label="Select all rows"
                 :checked="internalSelected.length === displayData.length && displayData.length > 0"
                 @change="handleSelectAll"
                 class="rounded border-[var(--color-border)]"
@@ -345,6 +352,7 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
             <td v-if="selectionMode !== 'none'" class="px-4 py-2">
               <input
                 type="checkbox"
+                :aria-label="'Select row ' + idx"
                 :checked="isRowSelected(row)"
                 @change="handleSelect(row)"
                 class="rounded border-[var(--color-border)]"

@@ -1,5 +1,5 @@
-<div [class]="'popover-root ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
-  <div #triggerRef class="popover-trigger" (click)="toggle()">
+<div class="popoverWrapper" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div #triggerRef class="popoverTrigger" (click)="toggle()" [attr.aria-expanded]="isOpen" aria-haspopup="dialog">
     <ng-content select="[trigger]"></ng-content>
   </div>
 
