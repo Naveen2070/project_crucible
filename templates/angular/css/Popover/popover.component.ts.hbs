@@ -11,6 +11,7 @@ import { computePosition, autoUpdate, offset, flip, shift, Placement } from '@fl
 })
 export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() isOpen = false;
+  isPositioned = false;
   @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
   @Input() alignment: 'start' | 'center' | 'end' = 'center';
   @Input() variant: 'default' | 'minimal' = 'default';
@@ -67,6 +68,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
           left: `${x}px`,
           top: `${y}px`,
         });
+        this.isPositioned = true;
       });
     });
   }
@@ -87,6 +89,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   close() {
     this.isOpen = false;
+    this.isPositioned = false;
     this.isOpenChange.emit(this.isOpen);
   }
 

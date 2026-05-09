@@ -106,7 +106,7 @@ const floatingPlacement = computed<Placement>(() =>
   `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement
 );
 
-const { floatingStyles } = useFloating(triggerRef, contentRef, {
+const { floatingStyles, isPositioned } = useFloating(triggerRef, contentRef, {
   placement: floatingPlacement,
   open: isOpen,
   middleware: [offset(8), flip(), shift({ padding: 8 })],
@@ -149,7 +149,7 @@ const sizeClasses = {
           variantClasses[variant],
           sizeClasses[size]
         ]"
-        :style="floatingStyles"
+        :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
       >
         <slot></slot>
       </div>

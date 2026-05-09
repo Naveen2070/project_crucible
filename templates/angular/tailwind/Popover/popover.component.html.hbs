@@ -8,6 +8,7 @@
       #contentRef 
       class="absolute z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden"
       [ngClass]="getTailwindClasses()"
+      [style.visibility]="isPositioned ? 'visible' : 'hidden'"
     >
       <ng-content></ng-content>
     </div>
