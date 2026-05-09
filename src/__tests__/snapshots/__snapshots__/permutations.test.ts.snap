@@ -16688,6 +16688,7 @@ type PopoverContextType = {
   floatingStyles: React.CSSProperties;
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  context: ReturnType<typeof useFloating>['context'];
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -16773,7 +16774,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -16806,7 +16807,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
 
   if (!isOpen) return null;
 
@@ -20356,6 +20357,7 @@ type PopoverContextType = {
   floatingStyles: React.CSSProperties;
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  context: ReturnType<typeof useFloating>['context'];
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -20441,7 +20443,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -20474,7 +20476,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
 
   if (!isOpen) return null;
 
@@ -23194,6 +23196,7 @@ type PopoverContextType = {
   floatingStyles: React.CSSProperties;
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  context: ReturnType<typeof useFloating>['context'];
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -23279,7 +23282,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -23312,7 +23315,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
 
   if (!isOpen) return null;
 
@@ -26038,6 +26041,7 @@ type PopoverContextType = {
   floatingStyles: React.CSSProperties;
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  context: ReturnType<typeof useFloating>['context'];
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -26123,7 +26127,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -26156,7 +26160,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
 
   if (!isOpen) return null;
 
@@ -29706,6 +29710,7 @@ type PopoverContextType = {
   floatingStyles: React.CSSProperties;
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  context: ReturnType<typeof useFloating>['context'];
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -29791,7 +29796,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -29824,7 +29829,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
 
   if (!isOpen) return null;
 
@@ -32544,6 +32549,7 @@ type PopoverContextType = {
   floatingStyles: React.CSSProperties;
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
+  context: ReturnType<typeof useFloating>['context'];
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -32629,7 +32635,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -32662,7 +32668,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
 
   if (!isOpen) return null;
 
