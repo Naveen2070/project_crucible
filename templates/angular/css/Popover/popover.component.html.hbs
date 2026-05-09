@@ -4,7 +4,7 @@
   </div>
 
   @if (isOpen) {
-    <div #contentRef [ngClass]="getContentClasses()">
+    <div #contentRef [ngClass]="getContentClasses()" [style.visibility]="isPositioned ? 'visible' : 'hidden'">
       <ng-content></ng-content>
     </div>
   }

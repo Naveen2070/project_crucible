@@ -29,6 +29,7 @@ type PopoverContextType = {
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
   context: ReturnType<typeof useFloating>['context'];
+  isPositioned: boolean;
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -93,7 +94,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
 
   const floatingPlacement = \`\${placement}\${alignment === 'center' ? '' : '-' + alignment}\` as Placement;
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context, isPositioned } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
     placement: floatingPlacement,
@@ -114,7 +115,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context, isPositioned }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -147,7 +148,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context, isPositioned } = usePopover();
 
   if (!isOpen) return null;
 
@@ -166,16 +167,22 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
     <FloatingFocusManager context={context} modal={false}>
       <div
         ref={refs.setFloating}
-        style={floatingStyles}
-        className={\`
-          z-[var(--popover-z-index)] 
-          rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden
-          \${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
-          \${sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.md}
-          animate-in fade-in zoom-in-95 duration-200
-          \${className}
-        \`}
-        {...getFloatingProps()}
+        {...getFloatingProps({
+          style: { 
+            ...floatingStyles, 
+            opacity: isPositioned ? 1 : 0,
+            visibility: isPositioned ? 'visible' : 'hidden',
+            pointerEvents: isPositioned ? 'auto' : 'none'
+          },
+          className: \`
+            z-[var(--popover-z-index)] 
+            rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden
+            \${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
+            \${sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.md}
+            \${isPositioned ? 'animate-in fade-in zoom-in-95 duration-200' : ''}
+            \${className}
+          \`
+        })}
       >
         {children}
       </div>
@@ -522,6 +529,7 @@ type PopoverContextType = {
   getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
   getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
   context: ReturnType<typeof useFloating>['context'];
+  isPositioned: boolean;
 };
 
 const PopoverContext = createContext<PopoverContextType | undefined>(undefined);
@@ -586,7 +594,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
 
   const floatingPlacement = \`\${placement}\${alignment === 'center' ? '' : '-' + alignment}\` as Placement;
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context, isPositioned } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
     placement: floatingPlacement,
@@ -607,7 +615,7 @@ export const PopoverRoot: React.FC<PopoverProps> = ({
   ]);
 
   return (
-    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context }}>
+    <PopoverContext.Provider value={{ isOpen, setIsOpen, variant, size, refs, floatingStyles, getReferenceProps, getFloatingProps, context, isPositioned }}>
       {children}
     </PopoverContext.Provider>
   );
@@ -640,7 +648,7 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
   children,
   className = '',
 }) => {
-  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context } = usePopover();
+  const { isOpen, refs, floatingStyles, getFloatingProps, variant, size, context, isPositioned } = usePopover();
 
   if (!isOpen) return null;
 
@@ -648,15 +656,21 @@ export const PopoverContent: React.FC<{ children: React.ReactNode; className?: s
     <FloatingFocusManager context={context} modal={false}>
       <div
         ref={refs.setFloating}
-        style={floatingStyles}
-        className={\`
-          \${styles.content}
-          \${styles[\`variant-\${variant}\`]}
-          \${styles[\`size-\${size}\`]}
-          \${isOpen ? styles['content-open'] : ''}
-          \${className}
-        \`}
-        {...getFloatingProps()}
+        {...getFloatingProps({
+          style: { 
+            ...floatingStyles, 
+            opacity: isPositioned ? 1 : 0,
+            visibility: isPositioned ? 'visible' : 'hidden',
+            pointerEvents: isPositioned ? 'auto' : 'none'
+          },
+          className: \`
+            \${styles.content}
+            \${styles[\`variant-\${variant}\`]}
+            \${styles[\`size-\${size}\`]}
+            \${(isOpen && isPositioned) ? styles['content-open'] : ''}
+            \${className}
+          \`
+        })}
       >
         {children}
       </div>
@@ -1040,7 +1054,7 @@ export const Popover: React.FC<PopoverProps> & {
 
   const floatingPlacement = \`\${placement}\${alignment === 'center' ? '' : '-' + alignment}\` as Placement;
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context, isPositioned } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
     placement: floatingPlacement,
@@ -1073,14 +1087,20 @@ export const Popover: React.FC<PopoverProps> & {
         <FloatingFocusManager context={context} modal={false}>
           <div
             ref={refs.setFloating}
-            style={floatingStyles}
-            className={\`
-              \${styles.content}
-              \${styles[\`variant-\${variant}\`]}
-              \${styles[\`size-\${size}\`]}
-              \${styles['content-open']}
-            \`}
-            {...getFloatingProps()}
+            {...getFloatingProps({
+              style: { 
+                ...floatingStyles, 
+                opacity: isPositioned ? 1 : 0,
+                visibility: isPositioned ? 'visible' : 'hidden',
+                pointerEvents: isPositioned ? 'auto' : 'none'
+              },
+              className: \`
+                \${styles.content}
+                \${styles[\`variant-\${variant}\`]}
+                \${styles[\`size-\${size}\`]}
+                \${isPositioned ? styles['content-open'] : ''}
+              \`
+            })}
           >
             {Array.isArray(children) ? children.slice(1) : children}
           </div>
