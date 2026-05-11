@@ -1,11 +1,36 @@
-<div class="popoverWrapper" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
-  <div #triggerRef class="popoverTrigger" (click)="toggle()" [attr.aria-expanded]="isOpen" aria-haspopup="dialog">
-    <ng-content select="[trigger]"></ng-content>
+<div [class]="'popover-root ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div #triggerRef class="popover-trigger" (click)="toggle()" [attr.aria-expanded]="isOpen" aria-haspopup="dialog">
+    {{#if features.compoundComponents}}
+    <ng-content select="[popover-trigger]"></ng-content>
+    {{else}}
+    <ng-content select="[trigger]">
+      <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+        Trigger
+      </button>
+    </ng-content>
+    {{/if}}
   </div>
 
   @if (isOpen) {
-    <div #contentRef [ngClass]="getContentClasses()" [style.visibility]="isPositioned ? 'visible' : 'hidden'">
+    <div 
+      #contentRef 
+      [ngClass]="getContentClasses()"
+      [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      role="dialog"
+    >
+      {{#if features.compoundComponents}}
+      <ng-content select="[popover-content]"></ng-content>
+      {{else}}
       <ng-content></ng-content>
+      {{/if}}
+
+      @if (showArrow) {
+        <div
+          #arrowRef
+          class="popover-arrow"
+        ></div>
+      }
     </div>
   }
 </div>
+

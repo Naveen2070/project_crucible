@@ -1,16 +1,37 @@
 <div [class]="'relative inline-block ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <div #triggerRef class="cursor-pointer inline-block" (click)="toggle()" [attr.aria-expanded]="isOpen" aria-haspopup="dialog">
-    <ng-content select="[trigger]"></ng-content>
+    {{#if features.compoundComponents}}
+    <ng-content select="[popover-trigger]"></ng-content>
+    {{else}}
+    <ng-content select="[trigger]">
+      <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+        Trigger
+      </button>
+    </ng-content>
+    {{/if}}
   </div>
 
   @if (isOpen) {
     <div 
       #contentRef 
-      class="absolute z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[180px] overflow-hidden"
+      class="fixed z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[200px] outline-none"
       [ngClass]="getTailwindClasses()"
       [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      role="dialog"
     >
+      {{#if features.compoundComponents}}
+      <ng-content select="[popover-content]"></ng-content>
+      {{else}}
       <ng-content></ng-content>
+      {{/if}}
+
+      @if (showArrow) {
+        <div
+          #arrowRef
+          class="absolute w-2 h-2 rotate-45 bg-inherit border-inherit border-b border-r"
+        ></div>
+      }
     </div>
   }
 </div>
+

@@ -9,11 +9,16 @@ const meta: Meta<typeof Popover> = {
   argTypes: {
     placement: {
       control: 'select',
-      options: ['top', 'bottom', 'left', 'right'],
+      options: [
+        'top', 'top-start', 'top-end',
+        'bottom', 'bottom-start', 'bottom-end',
+        'left', 'left-start', 'left-end',
+        'right', 'right-start', 'right-end'
+      ],
     },
-    alignment: {
+    trigger: {
       control: 'select',
-      options: ['start', 'center', 'end'],
+      options: ['click', 'hover'],
     },
     variant: {
       control: 'select',
@@ -22,6 +27,9 @@ const meta: Meta<typeof Popover> = {
     size: {
       control: 'select',
       options: ['sm', 'md', 'lg'],
+    },
+    showArrow: {
+      control: 'boolean',
     },
   },
   decorators: [
@@ -42,13 +50,65 @@ export const Default: Story = {
     },
     template: `
       <Popover v-bind="args">
+        {{#if features.compoundComponents}}
         <template #trigger>
           <Button>Open Popover</Button>
         </template>
-        <div style="padding: 16px;">
-          <p style="margin: 0;">Popover Content</p>
-          <p style="margin: 8px 0 0; color: var(--color-text-muted);">This is a Vue popover</p>
+        <template #content="{ close }">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
+            <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
+              This is a rebuilt, portal-ready Vue popover.
+            </p>
+            <Button size="sm" variant="minimal" @click="close">Close</Button>
+          </div>
+        </template>
+        {{else}}
+        <template #trigger>
+          <Button>Open Popover</Button>
+        </template>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
+          <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
+            This is a rebuilt Vue popover using the default slot.
+          </p>
         </div>
+        {{/if}}
+      </Popover>
+    `,
+  }),
+};
+
+export const WithItems: Story = {
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      return { args };
+    },
+    template: `
+      <Popover v-bind="args">
+        {{#if features.compoundComponents}}
+        <template #trigger>
+          <Button>User Menu</Button>
+        </template>
+        <template #content>
+          <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
+            <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+            <div style="padding: 8px 12px; cursor: pointer; border-radius: 4px;" class="hover:bg-accent">Profile</div>
+            <div style="padding: 8px 12px; cursor: pointer; border-radius: 4px;" class="hover:bg-accent">Settings</div>
+            <div style="height: 1px; background: var(--color-border); margin: 4px 0;"></div>
+            <div style="padding: 8px 12px; cursor: pointer; color: var(--color-error); border-radius: 4px;" class="hover:bg-accent">Logout</div>
+          </div>
+        </template>
+        {{else}}
+        <template #trigger>
+          <Button>User Menu</Button>
+        </template>
+        <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+          <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
+        </div>
+        {{/if}}
       </Popover>
     `,
   }),
@@ -64,60 +124,22 @@ export const Placements: Story = {
     components: { Popover, Button },
     template: `
       <Popover placement="top">
-        <template #trigger>
-          <Button>Top</Button>
-        </template>
+        <template #trigger><Button>Top</Button></template>
         <div style="padding: 10px;">Top Content</div>
       </Popover>
       <Popover placement="bottom">
-        <template #trigger>
-          <Button>Bottom</Button>
-        </template>
+        <template #trigger><Button>Bottom</Button></template>
         <div style="padding: 10px;">Bottom Content</div>
       </Popover>
       <Popover placement="left">
-        <template #trigger>
-          <Button>Left</Button>
-        </template>
+        <template #trigger><Button>Left</Button></template>
         <div style="padding: 10px;">Left Content</div>
       </Popover>
       <Popover placement="right">
-        <template #trigger>
-          <Button>Right</Button>
-        </template>
+        <template #trigger><Button>Right</Button></template>
         <div style="padding: 10px;">Right Content</div>
       </Popover>
     `,
   }),
 };
 
-export const Alignments: Story = {
-  decorators: [
-    () => ({
-      template: '<div style="height: 400px; display: flex; flex-direction: column; gap: 40px; align-items: center; justify-content: center;"><story /></div>',
-    }),
-  ],
-  render: () => ({
-    components: { Popover, Button },
-    template: `
-      <Popover alignment="start">
-        <template #trigger>
-          <Button>Start Alignment</Button>
-        </template>
-        <div style="padding: 10px;">Aligned to Start</div>
-      </Popover>
-      <Popover alignment="center">
-        <template #trigger>
-          <Button>Center Alignment</Button>
-        </template>
-        <div style="padding: 10px;">Aligned to Center</div>
-      </Popover>
-      <Popover alignment="end">
-        <template #trigger>
-          <Button>End Alignment</Button>
-        </template>
-        <div style="padding: 10px;">Aligned to End</div>
-      </Popover>
-    `,
-  }),
-};

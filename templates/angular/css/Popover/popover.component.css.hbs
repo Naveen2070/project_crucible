@@ -16,8 +16,18 @@
   border-radius: var(--popover-radius, {{tokens.componentTokens.popover.radius}});
   box-shadow: var(--popover-shadow, {{tokens.componentTokens.popover.shadow}});
   padding: var(--popover-padding, {{tokens.componentTokens.popover.padding}});
-  min-width: 180px;
-  overflow: hidden;
+  min-width: 200px;
+  outline: none;
+}
+
+.popover-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-bottom: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  transform: rotate(45deg);
 }
 
 /* Variants */
@@ -56,3 +66,4 @@
     transform: scale(1);
   }
 }
+

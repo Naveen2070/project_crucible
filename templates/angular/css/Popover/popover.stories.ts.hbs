@@ -9,11 +9,16 @@ const meta: Meta<PopoverComponent> = {
   argTypes: {
     placement: {
       control: 'select',
-      options: ['top', 'bottom', 'left', 'right'],
+      options: [
+        'top', 'top-start', 'top-end',
+        'bottom', 'bottom-start', 'bottom-end',
+        'left', 'left-start', 'left-end',
+        'right', 'right-start', 'right-end'
+      ],
     },
-    alignment: {
+    trigger: {
       control: 'select',
-      options: ['start', 'center', 'end'],
+      options: ['click', 'hover'],
     },
     variant: {
       control: 'select',
@@ -22,6 +27,9 @@ const meta: Meta<PopoverComponent> = {
     size: {
       control: 'select',
       options: ['sm', 'md', 'lg'],
+    },
+    showArrow: {
+      control: 'boolean',
     },
   },
   decorators: [
@@ -35,17 +43,56 @@ type Story = StoryObj<PopoverComponent>;
 export const Default: Story = {
   args: {
     placement: 'bottom',
-    alignment: 'center',
+    showArrow: true,
   },
   render: (args) => ({
     props: args,
     template: `
-      <app-popover [placement]="placement" [alignment]="alignment" [variant]="variant" [size]="size">
-        <button trigger type="button">Open Popover</button>
-        <div style="padding: 16px;">
-          <p style="margin: 0;">Popover Content</p>
-          <p style="margin: 8px 0 0; color: var(--color-text-muted);">This is an Angular popover</p>
+      <app-popover [placement]="placement" [trigger]="trigger" [variant]="variant" [size]="size" [showArrow]="showArrow">
+        {{#if features.compoundComponents}}
+        <button popover-trigger type="button" class="btn btn--primary">Open Popover</button>
+        <div popover-content style="display: flex; flex-direction: column; gap: 8px;">
+          <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
+          <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
+            This is a rebuilt, portal-ready Angular popover.
+          </p>
+          <button (click)="args.isOpen = false" class="btn btn--minimal btn--sm">Close</button>
         </div>
+        {{else}}
+        <button trigger type="button">Open Popover</button>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
+          <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
+            This is a rebuilt Angular popover using the default slot.
+          </p>
+        </div>
+        {{/if}}
+      </app-popover>
+    `,
+  }),
+};
+
+export const WithItems: Story = {
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-popover [placement]="placement" [showArrow]="showArrow">
+        {{#if features.compoundComponents}}
+        <button popover-trigger type="button" class="btn">User Menu</button>
+        <div popover-content style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+          <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
+          <div style="padding: 8px 12px; cursor: pointer;">Settings</div>
+          <div style="height: 1px; background: var(--color-border); margin: 4px 0;"></div>
+          <div style="padding: 8px 12px; cursor: pointer; color: var(--color-error);">Logout</div>
+        </div>
+        {{else}}
+        <button trigger type="button">User Menu</button>
+        <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+          <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
+        </div>
+        {{/if}}
       </app-popover>
     `,
   }),
@@ -77,24 +124,3 @@ export const Placements: Story = {
   }),
 };
 
-export const Alignments: Story = {
-  decorators: [
-    componentWrapperDecorator((story) => `<div style="height: 400px; display: flex; flex-direction: column; gap: 40px; align-items: center; justify-content: center;">${story}</div>`),
-  ],
-  render: () => ({
-    template: `
-      <app-popover alignment="start">
-        <button trigger type="button">Start Alignment</button>
-        <div style="padding: 10px;">Aligned to Start</div>
-      </app-popover>
-      <app-popover alignment="center">
-        <button trigger type="button">Center Alignment</button>
-        <div style="padding: 10px;">Aligned to Center</div>
-      </app-popover>
-      <app-popover alignment="end">
-        <button trigger type="button">End Alignment</button>
-        <div style="padding: 10px;">Aligned to End</div>
-      </app-popover>
-    `,
-  }),
-};
