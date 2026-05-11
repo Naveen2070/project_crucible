@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { useFloating, offset, flip, shift, autoUpdate, Placement } from '@floating-ui/vue';
+import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
   /** Controlled open state */
@@ -21,6 +21,8 @@ interface PopoverProps {
   closeOnClickOutside?: boolean;
   /** Whether to close when pressing Escape */
   closeOnEscape?: boolean;
+  /** Whether to show the arrow */
+  showArrow?: boolean;
 }
 
 const props = withDefaults(defineProps<PopoverProps>(), {
@@ -32,6 +34,7 @@ const props = withDefaults(defineProps<PopoverProps>(), {
   trigger: 'click',
   closeOnClickOutside: true,
   closeOnEscape: true,
+  showArrow: true,
 });
 
 const emit = defineEmits<{
@@ -49,6 +52,7 @@ const isOpen = computed({
 
 const contentRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
+const arrowRef = ref<HTMLElement | null>(null);
 
 const toggle = () => {
   if (props.trigger === 'click') {
@@ -106,11 +110,33 @@ const floatingPlacement = computed<Placement>(() =>
   `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement
 );
 
-const { floatingStyles, isPositioned } = useFloating(triggerRef, contentRef, {
+const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(triggerRef, contentRef, {
   placement: floatingPlacement,
   open: isOpen,
-  middleware: [offset(8), flip(), shift({ padding: 8 })],
+  middleware: [
+    offset(props.showArrow ? 12 : 8),
+    flip(),
+    shift({ padding: 8 }),
+    arrow({ element: arrowRef }),
+  ],
   whileElementsMounted: autoUpdate,
+});
+
+const arrowStyle = computed(() => {
+  const { x, y } = middlewareData.value.arrow || {};
+  const side = placement.value.split('-')[0];
+  const staticSide = {
+    top: 'bottom',
+    right: 'left',
+    bottom: 'top',
+    left: 'right',
+  }[side];
+
+  return {
+    left: x != null ? `${x}px` : '',
+    top: y != null ? `${y}px` : '',
+    [staticSide as string]: '-4px',
+  };
 });
 
 const contentClasses = computed(() => {
@@ -127,21 +153,41 @@ const contentClasses = computed(() => {
 <template>
   <div class="popover-root" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <div ref="triggerRef" class="popover-trigger" @click="toggle" :aria-expanded="isOpen" aria-haspopup="dialog">
+      {{#if features.compoundComponents}}
+      <slot name="trigger" :isOpen="isOpen"></slot>
+      {{else}}
       <slot name="trigger">
-        <button type="button">Trigger</button>
+        <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+          Trigger
+        </button>
       </slot>
+      {{/if}}
     </div>
 
-    <Transition name="popover-fade">
-      <div
-        v-if="isOpen"
-        ref="contentRef"
-        :class="contentClasses"
-        :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
-      >
-        <slot></slot>
-      </div>
-    </Transition>
+    <Teleport to="body">
+      <Transition name="popover-fade">
+        <div
+          v-if="isOpen"
+          ref="contentRef"
+          :class="contentClasses"
+          :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
+          role="dialog"
+        >
+          {{#if features.compoundComponents}}
+          <slot name="content" :close="close"></slot>
+          {{else}}
+          <slot></slot>
+          {{/if}}
+
+          <div
+            v-if="showArrow"
+            ref="arrowRef"
+            class="popover-arrow"
+            :style="arrowStyle"
+          ></div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -163,8 +209,18 @@ const contentClasses = computed(() => {
   border-radius: var(--popover-radius, {{tokens.componentTokens.popover.radius}});
   box-shadow: var(--popover-shadow, {{tokens.componentTokens.popover.shadow}});
   padding: var(--popover-padding, {{tokens.componentTokens.popover.padding}});
-  min-width: 180px;
-  overflow: hidden;
+  min-width: 200px;
+  outline: none;
+}
+
+.popover-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-bottom: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  transform: rotate(45deg);
 }
 
 /* Variants */
@@ -203,3 +259,4 @@ const contentClasses = computed(() => {
   transform: scale(0.95);
 }
 </style>
+

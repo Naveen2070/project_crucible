@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { computePosition, autoUpdate, offset, flip, shift, Placement } from '@floating-ui/dom';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } from '@floating-ui/dom';
 
 @Component({
   selector: 'app-popover',
@@ -19,13 +19,21 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() closeOnClickOutside = true;
   @Input() closeOnEscape = true;
   @Input() className = '';
+  @Input() showArrow = true;
 
   @Output() isOpenChange = new EventEmitter<boolean>();
 
   @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
   @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('arrowRef') arrowRef?: ElementRef<HTMLElement>;
 
   private cleanupFloating?: () => void;
+  private contentMoved = false;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngAfterViewInit() {
     if (this.isOpen) {
@@ -36,7 +44,6 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isOpen']) {
       if (this.isOpen) {
-        // use setTimeout to ensure view is updated before initializing floating-ui
         setTimeout(() => this.initFloating(), 0);
       } else {
         this.destroyFloating();
@@ -49,6 +56,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private initFloating() {
+    if (!isPlatformBrowser(this.platformId)) return;
     if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
     
     this.destroyFloating();
@@ -56,17 +64,55 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
     const triggerEl = this.triggerRef.nativeElement;
     const contentEl = this.contentRef.nativeElement;
     
+    // Portal: Move content to body to prevent clipping
+    if (!this.contentMoved) {
+      this.renderer.appendChild(document.body, contentEl);
+      this.contentMoved = true;
+    }
+    
     const floatingPlacement = `${this.placement}${this.alignment === 'center' ? '' : '-' + this.alignment}` as Placement;
     
     this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      const middleware = [
+        offset(this.showArrow ? 12 : 8),
+        flip(),
+        shift({ padding: 8 }),
+      ];
+      
+      if (this.showArrow && this.arrowRef) {
+        middleware.push(arrow({ element: this.arrowRef.nativeElement }));
+      }
+      
       computePosition(triggerEl, contentEl, {
         placement: floatingPlacement,
-        middleware: [offset(8), flip(), shift({ padding: 8 })],
-      }).then(({ x, y }) => {
+        middleware,
+      }).then(({ x, y, placement, middlewareData }) => {
         Object.assign(contentEl.style, {
           left: `${x}px`,
           top: `${y}px`,
+          position: 'absolute',
+          visibility: 'visible',
         });
+        
+        if (this.showArrow && this.arrowRef && middlewareData.arrow) {
+          const { x: arrowX, y: arrowY } = middlewareData.arrow;
+          const side = placement.split('-')[0];
+          const staticSide = {
+            top: 'bottom',
+            right: 'left',
+            bottom: 'top',
+            left: 'right',
+          }[side];
+          
+          Object.assign(this.arrowRef.nativeElement.style, {
+            left: arrowX != null ? `${arrowX}px` : '',
+            top: arrowY != null ? `${arrowY}px` : '',
+            right: '',
+            bottom: '',
+            [staticSide as string]: '-4px',
+          });
+        }
+        
         this.isPositioned = true;
       });
     });
@@ -77,6 +123,13 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.cleanupFloating();
       this.cleanupFloating = undefined;
     }
+    
+    if (this.contentMoved && this.contentRef?.nativeElement) {
+      this.renderer.removeChild(document.body, this.contentRef.nativeElement);
+      this.contentMoved = false;
+    }
+    
+    this.isPositioned = false;
   }
 
   toggle() {
@@ -88,7 +141,6 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   close() {
     this.isOpen = false;
-    this.isPositioned = false;
     this.isOpenChange.emit(this.isOpen);
   }
 
@@ -147,3 +199,4 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
     `;
   }
 }
+
