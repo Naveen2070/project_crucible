@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } from '@floating-ui/dom';
+
 
 @Component({
   selector: 'app-popover',
@@ -9,9 +10,24 @@ import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } fr
   templateUrl: './popover.component.html',
   styleUrls: ['./popover.component.css']
 })
-export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
-  @Input() isOpen = false;
+export class PopoverComponent implements AfterViewInit, OnDestroy {
+  private _isOpen = false;
+  private isViewInit = false;
+
+  @Input()
+  get isOpen(): boolean {
+    return this._isOpen;
+  }
+  set isOpen(value: boolean) {
+    const prev = this._isOpen;
+    this._isOpen = value;
+    if (prev !== value) {
+      this.handleOpenStateChange(value);
+    }
+  }
+
   isPositioned = false;
+  arrowSide = 'bottom';
   @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
   @Input() alignment: 'start' | 'center' | 'end' = 'center';
   @Input() variant: 'default' | 'minimal' = 'default';
@@ -30,6 +46,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   private cleanupFloating?: () => void;
   private contentMoved = false;
+  private closeTimeout?: any;
 
   constructor(
     private renderer: Renderer2,
@@ -37,23 +54,26 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   ) {}
 
   ngAfterViewInit() {
+    this.isViewInit = true;
     if (this.isOpen) {
       this.initFloating();
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['isOpen']) {
-      if (this.isOpen) {
-        setTimeout(() => this.initFloating(), 0);
-      } else {
-        this.destroyFloating();
-      }
+  private handleOpenStateChange(isOpen: boolean) {
+    if (!this.isViewInit) return;
+    if (isOpen) {
+      setTimeout(() => this.initFloating(), 0);
+    } else {
+      this.destroyFloating();
     }
   }
 
   ngOnDestroy() {
     this.destroyFloating();
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
   }
 
   private initFloating() {
@@ -94,15 +114,16 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
           visibility: 'visible',
         });
         
+        this.arrowSide = placement.split('-')[0];
+        
         if (this.showArrow && this.arrowRef && middlewareData.arrow) {
           const { x: arrowX, y: arrowY } = middlewareData.arrow;
-          const side = placement.split('-')[0];
           const staticSide = {
             top: 'bottom',
             right: 'left',
             bottom: 'top',
             left: 'right',
-          }[side];
+          }[this.arrowSide];
           
           Object.assign(this.arrowRef.nativeElement.style, {
             left: arrowX != null ? `${arrowX}px` : '',
@@ -146,6 +167,10 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   onMouseEnter() {
     if (this.trigger === 'hover') {
+      if (this.closeTimeout) {
+        clearTimeout(this.closeTimeout);
+        this.closeTimeout = undefined;
+      }
       this.isOpen = true;
       this.isOpenChange.emit(this.isOpen);
     }
@@ -153,8 +178,10 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   onMouseLeave() {
     if (this.trigger === 'hover') {
-      this.isOpen = false;
-      this.isOpenChange.emit(this.isOpen);
+      this.closeTimeout = setTimeout(() => {
+        this.isOpen = false;
+        this.isOpenChange.emit(this.isOpen);
+      }, 150);
     }
   }
 
@@ -172,7 +199,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('document:keydown.escape')
   handleEscape() {
     if (!this.closeOnEscape) return;
     if (this.isOpen) {

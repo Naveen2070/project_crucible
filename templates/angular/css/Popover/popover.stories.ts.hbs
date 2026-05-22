@@ -32,6 +32,13 @@ const meta: Meta<PopoverComponent> = {
       control: 'boolean',
     },
   },
+  args: {
+    placement: 'bottom',
+    trigger: 'click',
+    variant: 'default',
+    size: 'md',
+    showArrow: true,
+  },
   decorators: [
     componentWrapperDecorator((story) => `<div style="height: 300px; display: flex; align-items: center; justify-content: center;">${story}</div>`),
   ],
@@ -48,22 +55,22 @@ export const Default: Story = {
   render: (args) => ({
     props: args,
     template: `
-      <app-popover [placement]="placement" [trigger]="trigger" [variant]="variant" [size]="size" [showArrow]="showArrow">
+      <app-popover #popover [placement]="placement" [trigger]="trigger" [variant]="variant" [size]="size" [showArrow]="showArrow">
         {{#if features.compoundComponents}}
         <button popover-trigger type="button" class="btn btn--primary">Open Popover</button>
         <div popover-content style="display: flex; flex-direction: column; gap: 8px;">
           <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-          <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
-            This is a rebuilt, portal-ready Angular popover.
+          <p style="margin: 0; font-size: 0.875rem; color: #666;">
+            This is a completely rebuilt, production-ready popover.
           </p>
-          <button (click)="args.isOpen = false" class="btn btn--minimal btn--sm">Close</button>
+          <button type="button" class="btn btn--minimal btn--sm" (click)="popover.close()">Close</button>
         </div>
         {{else}}
-        <button trigger type="button">Open Popover</button>
+        <button trigger type="button" class="btn btn--primary">Open Popover</button>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-          <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
-            This is a rebuilt Angular popover using the default slot.
+          <p style="margin: 0; font-size: 0.875rem; color: #666;">
+            This is a completely rebuilt, production-ready popover.
           </p>
         </div>
         {{/if}}
@@ -80,16 +87,16 @@ export const WithItems: Story = {
         {{#if features.compoundComponents}}
         <button popover-trigger type="button" class="btn">User Menu</button>
         <div popover-content style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
           <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
           <div style="padding: 8px 12px; cursor: pointer;">Settings</div>
-          <div style="height: 1px; background: var(--color-border); margin: 4px 0;"></div>
-          <div style="padding: 8px 12px; cursor: pointer; color: var(--color-error);">Logout</div>
+          <div style="height: 1px; background: #eee; margin: 4px 0;"></div>
+          <div style="padding: 8px 12px; cursor: pointer; color: red;">Logout</div>
         </div>
         {{else}}
-        <button trigger type="button">User Menu</button>
+        <button trigger type="button" class="btn">User Menu</button>
         <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
           <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
         </div>
         {{/if}}
@@ -98,29 +105,64 @@ export const WithItems: Story = {
   }),
 };
 
-export const Placements: Story = {
-  decorators: [
-    componentWrapperDecorator((story) => `<div style="height: 400px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; align-items: center; justify-items: center;">${story}</div>`),
-  ],
-  render: () => ({
+export const HoverTrigger: Story = {
+  args: {
+    trigger: 'hover',
+  },
+  render: (args) => ({
+    props: args,
     template: `
-      <app-popover placement="top">
-        <button trigger type="button">Top</button>
-        <div style="padding: 10px;">Top Content</div>
-      </app-popover>
-      <app-popover placement="bottom">
-        <button trigger type="button">Bottom</button>
-        <div style="padding: 10px;">Bottom Content</div>
-      </app-popover>
-      <app-popover placement="left">
-        <button trigger type="button">Left</button>
-        <div style="padding: 10px;">Left Content</div>
-      </app-popover>
-      <app-popover placement="right">
-        <button trigger type="button">Right</button>
-        <div style="padding: 10px;">Right Content</div>
+      <app-popover [placement]="placement" [trigger]="trigger" [showArrow]="showArrow">
+        {{#if features.compoundComponents}}
+        <span popover-trigger style="text-decoration: underline; cursor: help;">Hover me for info</span>
+        <div popover-content style="max-width: 200px;">
+          <p style="margin: 0; font-size: 0.875rem;">
+            This popover opens on hover and uses a safe polygon to stay open while moving to the content.
+          </p>
+        </div>
+        {{else}}
+        <span trigger style="text-decoration: underline; cursor: help;">Hover me for info</span>
+        <p style="margin: 0; font-size: 0.875rem; max-width: 200px;">
+          This popover opens on hover and uses a safe polygon to stay open while moving to the content.
+        </p>
+        {{/if}}
       </app-popover>
     `,
   }),
 };
 
+export const Controlled: Story = {
+  render: (args) => ({
+    props: {
+      ...args,
+      controlledOpen: false,
+      setOpen(this: any, val: boolean) {
+        this.controlledOpen = val;
+      }
+
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <button class="btn btn--primary" (click)="controlledOpen = !controlledOpen">
+          Externally Toggle: \{{controlledOpen ? 'Close' : 'Open'}}
+        </button>
+        
+        <app-popover [placement]="placement" [trigger]="trigger" [variant]="variant" [size]="size" [showArrow]="showArrow" [isOpen]="controlledOpen" (isOpenChange)="setOpen($event)">
+          {{#if features.compoundComponents}}
+          <button popover-trigger type="button" class="btn btn--outline">Popover Trigger</button>
+          <div popover-content style="display: flex; flex-direction: column; gap: 8px;">
+            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
+            <button class="btn btn--sm" (click)="setOpen(false)">Close me</button>
+          </div>
+          {{else}}
+          <button trigger type="button" class="btn btn--outline">Popover Trigger</button>
+          <div>
+            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
+            <button class="btn btn--sm" (click)="setOpen(false)">Close me</button>
+          </div>
+          {{/if}}
+        </app-popover>
+      </div>
+    `,
+  }),
+};

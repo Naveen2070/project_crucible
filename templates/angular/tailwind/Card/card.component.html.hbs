@@ -6,7 +6,7 @@
   [class.card--hoverable]="variant === 'hoverable'"
   [class.card--clickable]="variant === 'clickable'"
   [attr.tabindex]="variant === 'clickable' ? 0 : null"
-  [attr.role]="variant === 'clickable' ? 'button' : article"
+  [attr.role]="variant === 'clickable' ? 'button' : 'article'"
 >
   <header class="p-6 border-b border-[var(--color-border)] empty:hidden flex items-start justify-between gap-4">
     <div>

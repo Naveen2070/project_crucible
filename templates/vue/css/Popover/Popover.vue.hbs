@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, getCurrentInstance } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -41,9 +41,16 @@ const emit = defineEmits<{
   (e: 'update:isOpen', value: boolean): void;
 }>();
 
+const instance = getCurrentInstance();
+const isControlled = computed(() => {
+  if (!instance) return false;
+  const propsObj = instance.vnode.props || {};
+  return 'isOpen' in propsObj || 'is-open' in propsObj;
+});
+
 const internalOpen = ref(false);
 const isOpen = computed({
-  get: () => props.isOpen !== undefined ? props.isOpen : internalOpen.value,
+  get: () => isControlled.value ? props.isOpen : internalOpen.value,
   set: (val) => {
     internalOpen.value = val;
     emit('update:isOpen', val);
@@ -53,6 +60,8 @@ const isOpen = computed({
 const contentRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
 const arrowRef = ref<HTMLElement | null>(null);
+
+let closeTimeout: number | undefined;
 
 const toggle = () => {
   if (props.trigger === 'click') {
@@ -66,13 +75,19 @@ const close = () => {
 
 const handleMouseEnter = () => {
   if (props.trigger === 'hover') {
+    if (closeTimeout) {
+      clearTimeout(closeTimeout);
+      closeTimeout = undefined;
+    }
     isOpen.value = true;
   }
 };
 
 const handleMouseLeave = () => {
   if (props.trigger === 'hover') {
-    isOpen.value = false;
+    closeTimeout = window.setTimeout(() => {
+      isOpen.value = false;
+    }, 150);
   }
 };
 
@@ -104,33 +119,44 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside);
   document.removeEventListener('keydown', handleEscape);
+  if (closeTimeout) {
+    clearTimeout(closeTimeout);
+  }
 });
 
 const floatingPlacement = computed<Placement>(() => 
   `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement
 );
 
-const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(triggerRef, contentRef, {
-  placement: floatingPlacement,
-  open: isOpen,
-  middleware: [
+const middleware = computed(() => {
+  const list = [
     offset(props.showArrow ? 12 : 8),
     flip(),
     shift({ padding: 8 }),
-    arrow({ element: arrowRef }),
-  ],
+  ];
+  if (props.showArrow && arrowRef.value) {
+    list.push(arrow({ element: arrowRef }));
+  }
+  return list;
+});
+
+const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(triggerRef, contentRef, {
+  placement: floatingPlacement,
+  open: isOpen,
+  middleware,
   whileElementsMounted: autoUpdate,
 });
 
+const side = computed(() => placement.value.split('-')[0]);
+
 const arrowStyle = computed(() => {
   const { x, y } = middlewareData.value.arrow || {};
-  const side = placement.value.split('-')[0];
   const staticSide = {
     top: 'bottom',
     right: 'left',
     bottom: 'top',
     left: 'right',
-  }[side];
+  }[side.value];
 
   return {
     left: x != null ? `${x}px` : '',
@@ -171,7 +197,11 @@ const contentClasses = computed(() => {
           ref="contentRef"
           :class="contentClasses"
           :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
+          :data-state="isOpen && isPositioned ? 'open' : 'closed'"
+          :data-placement="placement"
           role="dialog"
+          @mouseenter="handleMouseEnter"
+          @mouseleave="handleMouseLeave"
         >
           {{#if features.compoundComponents}}
           <slot name="content" :close="close"></slot>
@@ -183,6 +213,7 @@ const contentClasses = computed(() => {
             v-if="showArrow"
             ref="arrowRef"
             class="popover-arrow"
+            :class="'arrow-' + side"
             :style="arrowStyle"
           ></div>
         </div>
@@ -218,9 +249,28 @@ const contentClasses = computed(() => {
   width: 8px;
   height: 8px;
   background: inherit;
-  border-right: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
-  border-bottom: 1px solid var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border: 1px solid transparent;
   transform: rotate(45deg);
+}
+
+.arrow-top {
+  border-right-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-bottom-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+}
+
+.arrow-bottom {
+  border-left-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-top-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+}
+
+.arrow-left {
+  border-top-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-right-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+}
+
+.arrow-right {
+  border-left-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
+  border-bottom-color: var(--popover-border, {{tokens.componentTokens.popover.border}});
 }
 
 /* Variants */
@@ -246,17 +296,91 @@ const contentClasses = computed(() => {
 
 /* Animation */
 .popover-fade-enter-active {
-  transition: all 0.2s ease-out;
+  animation: popover-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .popover-fade-leave-active {
-  transition: all 0.1s ease-in;
+  animation: popover-hide 100ms ease-in;
 }
 
-.popover-fade-enter-from,
-.popover-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
+/* Directional Animations */
+.popover-fade-enter-active[data-placement^='top'] {
+  animation-name: popover-slide-down;
+}
+.popover-fade-enter-active[data-placement^='bottom'] {
+  animation-name: popover-slide-up;
+}
+.popover-fade-enter-active[data-placement^='left'] {
+  animation-name: popover-slide-right;
+}
+.popover-fade-enter-active[data-placement^='right'] {
+  animation-name: popover-slide-left;
+}
+
+@keyframes popover-show {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes popover-hide {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes popover-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popover-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popover-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes popover-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 </style>
 
