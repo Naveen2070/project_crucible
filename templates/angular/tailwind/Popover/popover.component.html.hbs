@@ -17,7 +17,11 @@
       class="fixed z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[200px] outline-none"
       [ngClass]="getTailwindClasses()"
       [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      [attr.data-placement]="placement"
+      [attr.data-state]="isOpen && isPositioned ? 'open' : 'closed'"
       role="dialog"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
     >
       {{#if features.compoundComponents}}
       <ng-content select="[popover-content]"></ng-content>
@@ -28,10 +32,11 @@
       @if (showArrow) {
         <div
           #arrowRef
-          class="absolute w-2 h-2 rotate-45 bg-inherit border-inherit border-b border-r"
+          [ngClass]="getArrowClasses()"
         ></div>
       }
     </div>
   }
 </div>
+
 

@@ -16,7 +16,11 @@
       #contentRef 
       [ngClass]="getContentClasses()"
       [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      [attr.data-placement]="placement"
+      [attr.data-state]="isOpen && isPositioned ? 'open' : 'closed'"
       role="dialog"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
     >
       {{#if features.compoundComponents}}
       <ng-content select="[popover-content]"></ng-content>
@@ -28,9 +32,11 @@
         <div
           #arrowRef
           class="popover-arrow"
+          [ngClass]="'arrow-' + arrowSide"
         ></div>
       }
     </div>
   }
 </div>
+
 

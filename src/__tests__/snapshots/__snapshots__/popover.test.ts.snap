@@ -179,7 +179,7 @@ const InternalContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLProps<HTMLDivElement>
 >(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, ...context } = usePopoverContext();
+  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
   if (!floatingContext.open) return null;
@@ -189,7 +189,11 @@ const InternalContent = React.forwardRef<
       <div
         ref={ref}
         style={{
-          ...context.floatingStyles,
+          position: floatingContext.strategy,
+          top: floatingContext.y ?? 0,
+          left: floatingContext.x ?? 0,
+          width: 'max-content',
+          visibility: isPositioned ? 'visible' : 'hidden',
           ...style,
         }}
         className={\`
@@ -198,7 +202,7 @@ const InternalContent = React.forwardRef<
           data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
           \${className || ''}
         \`}
-        data-state={context.open ? "open" : "closed"}
+        data-state={context.open && isPositioned ? "open" : "closed"}
         data-side={floatingContext.placement.split('-')[0]}
         {...context.getFloatingProps(props)}
       >
@@ -667,7 +671,7 @@ const InternalContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLProps<HTMLDivElement>
 >(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, ...context } = usePopoverContext();
+  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
   if (!floatingContext.open) return null;
@@ -677,11 +681,15 @@ const InternalContent = React.forwardRef<
       <div
         ref={ref}
         style={{
-          ...context.floatingStyles,
+          position: floatingContext.strategy,
+          top: floatingContext.y ?? 0,
+          left: floatingContext.x ?? 0,
+          width: 'max-content',
+          visibility: isPositioned ? 'visible' : 'hidden',
           ...style,
         }}
         className={\`\${styles.content} \${className || ''}\`}
-        data-state={context.open ? "open" : "closed"}
+        data-state={context.open && isPositioned ? "open" : "closed"}
         data-placement={floatingContext.placement}
         {...context.getFloatingProps(props)}
       >
@@ -1151,7 +1159,7 @@ const InternalContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLProps<HTMLDivElement>
 >(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, ...context } = usePopoverContext();
+  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
   if (!floatingContext.open) return null;
@@ -1161,11 +1169,15 @@ const InternalContent = React.forwardRef<
       <div
         ref={ref}
         style={{
-          ...context.floatingStyles,
+          position: floatingContext.strategy,
+          top: floatingContext.y ?? 0,
+          left: floatingContext.x ?? 0,
+          width: 'max-content',
+          visibility: isPositioned ? 'visible' : 'hidden',
           ...style,
         }}
         className={\`\${styles.content} \${className || ''}\`}
-        data-state={context.open ? "open" : "closed"}
+        data-state={context.open && isPositioned ? "open" : "closed"}
         data-placement={floatingContext.placement}
         {...context.getFloatingProps(props)}
       >

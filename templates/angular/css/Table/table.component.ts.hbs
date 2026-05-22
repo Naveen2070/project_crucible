@@ -52,6 +52,21 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   @Output() selectAllChange = new EventEmitter<boolean>();
 
   containerRef: HTMLDivElement | null = null;
+  virtualizer: HeadlessVirtualizer | null = null;
+  resizeObserver: ResizeObserver | null = null;
+
+  sizeClasses: Record<string, string> = {
+    sm: 'cellSm',
+    md: 'cellMd',
+    lg: 'cellLg',
+  };
+
+  alignClasses: Record<string, string> = {
+    left: 'cellLeft',
+    center: 'cellCenter',
+    right: 'cellRight',
+  };
+
   scrollTop = signal(0);
   containerHeight = signal(600);
   internalPage = signal(1);
@@ -59,6 +74,20 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   internalSortDir = signal<SortDirection>('asc');
   internalSelected = signal<string[]>([]);
   sortIcon = '↑';
+  String = String;
+
+  tableContainer = 'tableContainer';
+  thead = 'thead';
+  tbody = 'tbody';
+  headerRow = 'headerRow';
+  headerCell = 'headerCell';
+  emptyRow = 'emptyRow';
+  pagination = 'pagination';
+  paginationInfo = 'paginationInfo';
+  paginationButtons = 'paginationButtons';
+  paginationBtn = 'paginationBtn';
+  paginationBtnActive = 'paginationBtnActive';
+  checkbox = 'checkbox';
 
   getAriaSort(colKey: string): string | null {
     if (this.internalSortKey() !== colKey) return null;

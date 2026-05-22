@@ -78,6 +78,7 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   thead = 'thead';
   tbody = 'tbody';
   headerRow = 'headerRow';
+  headerCell = 'headerCell';
   emptyRow = 'emptyRow';
   pagination = 'pagination';
   paginationInfo = 'paginationInfo';
@@ -86,6 +87,7 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   paginationBtnActive = 'paginationBtnActive';
   checkbox = 'checkbox';
   sortIcon = 'sortIcon';
+  String = String;
 
   getAriaSort(colKey: string): string | null {
     if (this.internalSortKey() !== colKey) return null;

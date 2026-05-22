@@ -73,6 +73,8 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
     right: 'text-right',
   };
 
+  String = String;
+
   getSortIcon(): string {
     return this.internalSortDir() === 'asc' ? '↑' : '↓';
   }

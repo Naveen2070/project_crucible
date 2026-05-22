@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import type { Meta, StoryObj } from '@storybook/vue3';
 import Popover from './Popover.vue';
 import Button from '../Button/Button.vue';
@@ -57,8 +58,8 @@ export const Default: Story = {
         <template #content="{ close }">
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-            <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
-              This is a rebuilt, portal-ready Vue popover.
+            <p style="margin: 0; font-size: 0.875rem; color: #666;">
+              This is a completely rebuilt, production-ready popover.
             </p>
             <Button size="sm" variant="minimal" @click="close">Close</Button>
           </div>
@@ -69,8 +70,8 @@ export const Default: Story = {
         </template>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-          <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
-            This is a rebuilt Vue popover using the default slot.
+          <p style="margin: 0; font-size: 0.875rem; color: #666;">
+            This is a completely rebuilt, production-ready popover.
           </p>
         </div>
         {{/if}}
@@ -93,11 +94,11 @@ export const WithItems: Story = {
         </template>
         <template #content>
           <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-            <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
-            <div style="padding: 8px 12px; cursor: pointer; border-radius: 4px;" class="hover:bg-accent">Profile</div>
-            <div style="padding: 8px 12px; cursor: pointer; border-radius: 4px;" class="hover:bg-accent">Settings</div>
-            <div style="height: 1px; background: var(--color-border); margin: 4px 0;"></div>
-            <div style="padding: 8px 12px; cursor: pointer; color: var(--color-error); border-radius: 4px;" class="hover:bg-accent">Logout</div>
+            <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
+            <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
+            <div style="padding: 8px 12px; cursor: pointer;">Settings</div>
+            <div style="height: 1px; background: #eee; margin: 4px 0;"></div>
+            <div style="padding: 8px 12px; cursor: pointer; color: red;">Logout</div>
           </div>
         </template>
         {{else}}
@@ -105,7 +106,7 @@ export const WithItems: Story = {
           <Button>User Menu</Button>
         </template>
         <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: var(--color-text-muted);">Account</div>
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
           <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
         </div>
         {{/if}}
@@ -114,31 +115,72 @@ export const WithItems: Story = {
   }),
 };
 
-export const Placements: Story = {
-  decorators: [
-    () => ({
-      template: '<div style="height: 400px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; align-items: center; justify-items: center;"><story /></div>',
-    }),
-  ],
-  render: () => ({
+export const HoverTrigger: Story = {
+  args: {
+    trigger: 'hover',
+  },
+  render: (args) => ({
     components: { Popover, Button },
+    setup() {
+      return { args };
+    },
     template: `
-      <Popover placement="top">
-        <template #trigger><Button>Top</Button></template>
-        <div style="padding: 10px;">Top Content</div>
+      <Popover v-bind="args">
+        {{#if features.compoundComponents}}
+        <template #trigger>
+          <span style="text-decoration: underline; cursor: help;">Hover me for info</span>
+        </template>
+        <template #content>
+          <p style="margin: 0; font-size: 0.875rem; max-width: 200px;">
+            This popover opens on hover and uses a safe polygon to stay open while moving to the content.
+          </p>
+        </template>
+        {{else}}
+        <template #trigger>
+          <span style="text-decoration: underline; cursor: help;">Hover me for info</span>
+        </template>
+        <p style="margin: 0; font-size: 0.875rem; max-width: 200px;">
+          This popover opens on hover and uses a safe polygon to stay open while moving to the content.
+        </p>
+        {{/if}}
       </Popover>
-      <Popover placement="bottom">
-        <template #trigger><Button>Bottom</Button></template>
-        <div style="padding: 10px;">Bottom Content</div>
-      </Popover>
-      <Popover placement="left">
-        <template #trigger><Button>Left</Button></template>
-        <div style="padding: 10px;">Left Content</div>
-      </Popover>
-      <Popover placement="right">
-        <template #trigger><Button>Right</Button></template>
-        <div style="padding: 10px;">Right Content</div>
-      </Popover>
+    `,
+  }),
+};
+
+export const Controlled: Story = {
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      const isOpen = ref(false);
+      return { args, isOpen };
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <Button @click="isOpen = !isOpen">
+          Externally Toggle: \{{isOpen ? 'Close' : 'Open'}}
+        </Button>
+        
+        <Popover v-bind="args" v-model:isOpen="isOpen">
+          {{#if features.compoundComponents}}
+          <template #trigger>
+            <Button variant="outline">Popover Trigger</Button>
+          </template>
+          <template #content>
+            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
+            <Button size="sm" @click="isOpen = false">Close me</Button>
+          </template>
+          {{else}}
+          <template #trigger>
+            <Button variant="outline">Popover Trigger</Button>
+          </template>
+          <div>
+            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
+            <Button size="sm" @click="isOpen = false">Close me</Button>
+          </div>
+          {{/if}}
+        </Popover>
+      </div>
     `,
   }),
 };
