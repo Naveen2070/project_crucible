@@ -2,6 +2,11 @@ import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewC
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } from '@floating-ui/dom';
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+let popoverIdCounter = 0;
+
 @Component({
   selector: 'app-popover',
   standalone: true,
@@ -11,6 +16,7 @@ import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } fr
 export class PopoverComponent implements AfterViewInit, OnDestroy {
   private _isOpen = false;
   private isViewInit = false;
+  private previouslyFocused: HTMLElement | null = null;
 
   @Input()
   get isOpen(): boolean {
@@ -26,6 +32,8 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
 
   isPositioned = false;
   arrowSide = 'bottom';
+  readonly contentId = `popover-content-${++popoverIdCounter}`;
+
   @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
   @Input() alignment: 'start' | 'center' | 'end' = 'center';
   @Input() variant: 'default' | 'minimal' = 'default';
@@ -35,6 +43,8 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
   @Input() closeOnEscape = true;
   @Input() className = '';
   @Input() showArrow = true;
+  @Input() modal = false;
+  @Input() ariaLabel?: string;
 
   @Output() isOpenChange = new EventEmitter<boolean>();
 
@@ -61,10 +71,31 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
   private handleOpenStateChange(isOpen: boolean) {
     if (!this.isViewInit) return;
     if (isOpen) {
-      setTimeout(() => this.initFloating(), 0);
+      if (this.trigger === 'click' && isPlatformBrowser(this.platformId)) {
+        this.previouslyFocused = document.activeElement as HTMLElement | null;
+      }
+      setTimeout(() => {
+        this.initFloating();
+        this.focusContent();
+      }, 0);
     } else {
       this.destroyFloating();
+      this.restoreFocus();
     }
+  }
+
+  private focusContent() {
+    if (this.trigger !== 'click') return;
+    if (!this.contentRef?.nativeElement) return;
+    const focusable = this.contentRef.nativeElement.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    (focusable ?? this.contentRef.nativeElement).focus({ preventScroll: true });
+  }
+
+  private restoreFocus() {
+    if (this.previouslyFocused && typeof this.previouslyFocused.focus === 'function') {
+      this.previouslyFocused.focus({ preventScroll: true });
+    }
+    this.previouslyFocused = null;
   }
 
   ngOnDestroy() {
@@ -77,31 +108,30 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
   private initFloating() {
     if (!isPlatformBrowser(this.platformId)) return;
     if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
-    
+
     this.destroyFloating();
-    
+
     const triggerEl = this.triggerRef.nativeElement;
     const contentEl = this.contentRef.nativeElement;
-    
-    // Portal: Move content to body to prevent clipping
+
     if (!this.contentMoved) {
       this.renderer.appendChild(document.body, contentEl);
       this.contentMoved = true;
     }
-    
+
     const floatingPlacement = `${this.placement}${this.alignment === 'center' ? '' : '-' + this.alignment}` as Placement;
-    
+
     this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
       const middleware = [
         offset(this.showArrow ? 12 : 8),
         flip(),
         shift({ padding: 8 }),
       ];
-      
+
       if (this.showArrow && this.arrowRef) {
         middleware.push(arrow({ element: this.arrowRef.nativeElement }));
       }
-      
+
       computePosition(triggerEl, contentEl, {
         placement: floatingPlacement,
         middleware,
@@ -112,9 +142,9 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
           position: 'absolute',
           visibility: 'visible',
         });
-        
+
         this.arrowSide = placement.split('-')[0];
-        
+
         if (this.showArrow && this.arrowRef && middlewareData.arrow) {
           const { x: arrowX, y: arrowY } = middlewareData.arrow;
           const staticSide = {
@@ -123,7 +153,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
             bottom: 'top',
             left: 'right',
           }[this.arrowSide];
-          
+
           Object.assign(this.arrowRef.nativeElement.style, {
             left: arrowX != null ? `${arrowX}px` : '',
             top: arrowY != null ? `${arrowY}px` : '',
@@ -132,7 +162,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
             [staticSide as string]: '-4px',
           });
         }
-        
+
         this.isPositioned = true;
       });
     });
@@ -143,12 +173,12 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
       this.cleanupFloating();
       this.cleanupFloating = undefined;
     }
-    
+
     if (this.contentMoved && this.contentRef?.nativeElement) {
       this.renderer.removeChild(document.body, this.contentRef.nativeElement);
       this.contentMoved = false;
     }
-    
+
     this.isPositioned = false;
   }
 
@@ -198,43 +228,72 @@ export class PopoverComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('document:keydown.escape')
-  handleEscape() {
-    if (!this.closeOnEscape) return;
-    if (this.isOpen) {
+  @HostListener('document:keydown', ['$event'])
+  handleDocumentKeydown(event: KeyboardEvent) {
+    if (!this.isOpen) return;
+
+    if (this.closeOnEscape && event.key === 'Escape') {
       this.close();
+      return;
+    }
+
+    if (event.key === 'Tab' && this.modal && this.contentRef?.nativeElement) {
+      const focusables = Array.from(
+        this.contentRef.nativeElement.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => el.offsetParent !== null);
+
+      if (focusables.length === 0) {
+        event.preventDefault();
+        this.contentRef.nativeElement.focus();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const contentEl = this.contentRef.nativeElement;
+
+      if (event.shiftKey && (active === first || !contentEl.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
   }
 
   getTailwindClasses() {
     const variantClasses = {
-      default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-lg',
-      minimal: 'bg-[var(--color-surface)] shadow-md',
+      default:
+        'bg-[var(--popover-background,var(--color-surface))] border border-[var(--popover-border,var(--color-border))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]',
+      minimal:
+        'bg-[var(--popover-background,var(--color-surface))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]',
     };
 
     const sizeClasses = {
-      sm: 'text-sm p-[calc(var(--popover-padding)*0.75)]',
-      md: 'text-base p-[var(--popover-padding)]',
-      lg: 'text-lg p-[calc(var(--popover-padding)*1.5)]',
+      sm: 'text-[0.8125rem] min-w-[200px] p-3',
+      md: 'text-sm min-w-[18rem] p-4',
+      lg: 'text-[0.9375rem] min-w-[22.5rem] p-5',
     };
 
-    return `
-      ${variantClasses[this.variant]}
-      ${sizeClasses[this.size]}
-      animate-in fade-in zoom-in-95 duration-200
-    `;
+    return [
+      'text-[var(--color-text,#1A1A2E)] max-w-[calc(100vw-16px)]',
+      'focus-visible:outline-2 focus-visible:outline-[var(--color-primary,#6C63FF)] focus-visible:outline-offset-2',
+      'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+      'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+      variantClasses[this.variant],
+      sizeClasses[this.size],
+    ].join(' ');
   }
 
   getArrowClasses() {
     return {
       'absolute w-2 h-2 rotate-45 bg-inherit border-inherit': true,
-      'border-b border-r': this.arrowSide === 'top',
-      'border-t border-l': this.arrowSide === 'bottom',
-      'border-t border-r': this.arrowSide === 'left',
-      'border-b border-l': this.arrowSide === 'right'
+      'border-b border-r border-[var(--popover-border,var(--color-border))]': this.arrowSide === 'top',
+      'border-t border-l border-[var(--popover-border,var(--color-border))]': this.arrowSide === 'bottom',
+      'border-t border-r border-[var(--popover-border,var(--color-border))]': this.arrowSide === 'left',
+      'border-b border-l border-[var(--popover-border,var(--color-border))]': this.arrowSide === 'right',
     };
   }
 }
-
-
-

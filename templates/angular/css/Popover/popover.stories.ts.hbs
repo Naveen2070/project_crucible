@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/angular';
-import { componentWrapperDecorator } from '@storybook/angular';
+import { componentWrapperDecorator, moduleMetadata } from '@storybook/angular';
 import { PopoverComponent } from './popover.component';
+import { ButtonComponent } from '../Button/button.component';
 
 const meta: Meta<PopoverComponent> = {
   title: 'Crucible/Popover',
@@ -9,12 +10,11 @@ const meta: Meta<PopoverComponent> = {
   argTypes: {
     placement: {
       control: 'select',
-      options: [
-        'top', 'top-start', 'top-end',
-        'bottom', 'bottom-start', 'bottom-end',
-        'left', 'left-start', 'left-end',
-        'right', 'right-start', 'right-end'
-      ],
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
     },
     trigger: {
       control: 'select',
@@ -28,19 +28,29 @@ const meta: Meta<PopoverComponent> = {
       control: 'select',
       options: ['sm', 'md', 'lg'],
     },
-    showArrow: {
-      control: 'boolean',
-    },
+    showArrow: { control: 'boolean' },
+    modal: { control: 'boolean' },
+    closeOnClickOutside: { control: 'boolean' },
+    closeOnEscape: { control: 'boolean' },
+    ariaLabel: { control: 'text' },
   },
   args: {
     placement: 'bottom',
+    alignment: 'center',
     trigger: 'click',
     variant: 'default',
     size: 'md',
     showArrow: true,
+    modal: false,
+    closeOnClickOutside: true,
+    closeOnEscape: true,
   },
   decorators: [
-    componentWrapperDecorator((story) => `<div style="height: 300px; display: flex; align-items: center; justify-content: center;">${story}</div>`),
+    moduleMetadata({ imports: [ButtonComponent] }),
+    componentWrapperDecorator(
+      (story) =>
+        `<div style="height: 360px; display: flex; align-items: center; justify-content: center;">${story}</div>`,
+    ),
   ],
 };
 
@@ -48,87 +58,116 @@ export default meta;
 type Story = StoryObj<PopoverComponent>;
 
 export const Default: Story = {
-  args: {
-    placement: 'bottom',
-    showArrow: true,
-  },
   render: (args) => ({
     props: args,
     template: `
-      <app-popover #popover [placement]="placement" [trigger]="trigger" [variant]="variant" [size]="size" [showArrow]="showArrow">
-        {{#if features.compoundComponents}}
-        <button popover-trigger type="button" class="btn btn--primary">Open Popover</button>
-        <div popover-content style="display: flex; flex-direction: column; gap: 8px;">
-          <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-          <p style="margin: 0; font-size: 0.875rem; color: #666;">
-            This is a completely rebuilt, production-ready popover.
-          </p>
-          <button type="button" class="btn btn--minimal btn--sm" (click)="popover.close()">Close</button>
+      <app-popover
+        #popover
+        [placement]="placement"
+        [alignment]="alignment"
+        [trigger]="trigger"
+        [variant]="variant"
+        [size]="size"
+        [showArrow]="showArrow"
+        [modal]="modal"
+        [closeOnClickOutside]="closeOnClickOutside"
+        [closeOnEscape]="closeOnEscape"
+        [ariaLabel]="ariaLabel"
+      >
+        <app-button trigger variant="primary">Open Popover</app-button>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <h3 style="margin: 0 0 4px 0; font-size: 0.9375rem; font-weight: 600;">Dimensions</h3>
+            <p style="margin: 0; font-size: 0.8125rem; color: var(--color-text-muted, #6B6B8A);">
+              Set the dimensions for the layer.
+            </p>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <app-button variant="ghost" size="sm" (click)="popover.close()">Cancel</app-button>
+            <app-button variant="primary" size="sm" (click)="popover.close()">Apply</app-button>
+          </div>
         </div>
-        {{else}}
-        <button trigger type="button" class="btn btn--primary">Open Popover</button>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-          <p style="margin: 0; font-size: 0.875rem; color: #666;">
-            This is a completely rebuilt, production-ready popover.
-          </p>
-        </div>
-        {{/if}}
       </app-popover>
     `,
   }),
 };
 
-export const WithItems: Story = {
-  render: (args) => ({
-    props: args,
-    template: `
-      <app-popover [placement]="placement" [showArrow]="showArrow">
-        {{#if features.compoundComponents}}
-        <button popover-trigger type="button" class="btn">User Menu</button>
-        <div popover-content style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
-          <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
-          <div style="padding: 8px 12px; cursor: pointer;">Settings</div>
-          <div style="height: 1px; background: #eee; margin: 4px 0;"></div>
-          <div style="padding: 8px 12px; cursor: pointer; color: red;">Logout</div>
+export const AllPlacements: Story = {
+  parameters: { layout: 'centered' },
+  decorators: [
+    componentWrapperDecorator(
+      (story) =>
+        `<div style="min-height: 480px; display: flex; align-items: center; justify-content: center; padding: 80px;">${story}</div>`,
+    ),
+  ],
+  render: (args) => {
+    const sides = ['top', 'bottom', 'left', 'right'] as const;
+    const alignments = ['start', 'center', 'end'] as const;
+    const placements = sides.flatMap((side) =>
+      alignments.map((alignment) => ({ side, alignment, label: `${side}-${alignment}` })),
+    );
+    return {
+      props: { ...args, placements },
+      template: `
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          <app-popover
+            *ngFor="let p of placements"
+            [placement]="p.side"
+            [alignment]="p.alignment"
+            [trigger]="trigger"
+            [variant]="variant"
+            [size]="'sm'"
+            [showArrow]="showArrow"
+            [modal]="modal"
+          >
+            <app-button trigger variant="outline" size="sm">\{{ p.label }}</app-button>
+            <p style="margin: 0; font-size: 0.8125rem;">
+              Placement: <strong>\{{ p.label }}</strong>
+            </p>
+          </app-popover>
         </div>
-        {{else}}
-        <button trigger type="button" class="btn">User Menu</button>
-        <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
-          <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
-        </div>
-        {{/if}}
-      </app-popover>
-    `,
-  }),
+      `,
+    };
+  },
 };
 
-export const HoverTrigger: Story = {
-  args: {
-    trigger: 'hover',
-  },
-  render: (args) => ({
-    props: args,
-    template: `
-      <app-popover [placement]="placement" [trigger]="trigger" [showArrow]="showArrow">
-        {{#if features.compoundComponents}}
-        <span popover-trigger style="text-decoration: underline; cursor: help;">Hover me for info</span>
-        <div popover-content style="max-width: 200px;">
-          <p style="margin: 0; font-size: 0.875rem;">
-            This popover opens on hover and uses a safe polygon to stay open while moving to the content.
-          </p>
+export const VariantsAndSizes: Story = {
+  render: (args) => {
+    const variants = ['default', 'minimal'] as const;
+    const sizes = ['sm', 'md', 'lg'] as const;
+    const cells = variants.flatMap((variant) =>
+      sizes.map((size) => ({
+        variant,
+        size,
+        buttonLabel: `${variant} / ${size}`,
+        headingLabel: `${variant} · ${size}`,
+      })),
+    );
+    return {
+      props: { ...args, cells },
+      template: `
+        <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 24px; align-items: center; justify-items: center;">
+          <app-popover
+            *ngFor="let cell of cells"
+            [placement]="placement"
+            [alignment]="alignment"
+            [trigger]="trigger"
+            [variant]="cell.variant"
+            [size]="cell.size"
+            [showArrow]="showArrow"
+          >
+            <app-button trigger variant="primary" [size]="cell.size">\{{ cell.buttonLabel }}</app-button>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <strong style="font-size: 0.875rem;">\{{ cell.headingLabel }}</strong>
+              <p style="margin: 0; font-size: inherit; color: var(--color-text-muted, #6B6B8A);">
+                Body text scales with the size token.
+              </p>
+            </div>
+          </app-popover>
         </div>
-        {{else}}
-        <span trigger style="text-decoration: underline; cursor: help;">Hover me for info</span>
-        <p style="margin: 0; font-size: 0.875rem; max-width: 200px;">
-          This popover opens on hover and uses a safe polygon to stay open while moving to the content.
-        </p>
-        {{/if}}
-      </app-popover>
-    `,
-  }),
+      `,
+    };
+  },
 };
 
 export const Controlled: Story = {
@@ -138,31 +177,116 @@ export const Controlled: Story = {
       controlledOpen: false,
       setOpen(this: any, val: boolean) {
         this.controlledOpen = val;
-      }
-
+      },
     },
     template: `
       <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
-        <button class="btn btn--primary" (click)="controlledOpen = !controlledOpen">
-          Externally Toggle: \{{controlledOpen ? 'Close' : 'Open'}}
-        </button>
-        
-        <app-popover [placement]="placement" [trigger]="trigger" [variant]="variant" [size]="size" [showArrow]="showArrow" [isOpen]="controlledOpen" (isOpenChange)="setOpen($event)">
-          {{#if features.compoundComponents}}
-          <button popover-trigger type="button" class="btn btn--outline">Popover Trigger</button>
-          <div popover-content style="display: flex; flex-direction: column; gap: 8px;">
-            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
-            <button class="btn btn--sm" (click)="setOpen(false)">Close me</button>
+        <app-button variant="ghost" (click)="controlledOpen = !controlledOpen">
+          External toggle &mdash; currently \{{ controlledOpen ? 'open' : 'closed' }}
+        </app-button>
+
+        <app-popover
+          [placement]="placement"
+          [alignment]="alignment"
+          [trigger]="trigger"
+          [variant]="variant"
+          [size]="size"
+          [showArrow]="showArrow"
+          [modal]="modal"
+          [isOpen]="controlledOpen"
+          (isOpenChange)="setOpen($event)"
+        >
+          <app-button trigger variant="outline">Popover Trigger</app-button>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <p style="margin: 0; font-size: 0.875rem;">
+              This popover's open state is controlled by the parent component.
+            </p>
+            <app-button variant="primary" size="sm" (click)="setOpen(false)">Close from inside</app-button>
           </div>
-          {{else}}
-          <button trigger type="button" class="btn btn--outline">Popover Trigger</button>
-          <div>
-            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
-            <button class="btn btn--sm" (click)="setOpen(false)">Close me</button>
-          </div>
-          {{/if}}
         </app-popover>
       </div>
+    `,
+  }),
+};
+
+export const Uncontrolled: Story = {
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-popover
+        #popover
+        [placement]="placement"
+        [alignment]="alignment"
+        [trigger]="trigger"
+        [variant]="variant"
+        [size]="size"
+        [showArrow]="showArrow"
+        [modal]="modal"
+      >
+        <app-button trigger variant="primary">Open (uncontrolled)</app-button>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <p style="margin: 0; font-size: 0.875rem;">
+            The component owns its open state.
+          </p>
+          <app-button variant="ghost" size="sm" (click)="popover.close()">Close</app-button>
+        </div>
+      </app-popover>
+    `,
+  }),
+};
+
+export const HoverTrigger: Story = {
+  args: { trigger: 'hover' },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-popover
+        [placement]="placement"
+        [alignment]="alignment"
+        [trigger]="trigger"
+        [variant]="variant"
+        [size]="'sm'"
+        [showArrow]="showArrow"
+      >
+        <span trigger style="text-decoration: underline dotted; cursor: help;">Hover for info</span>
+        <p style="margin: 0; font-size: 0.8125rem; max-width: 240px;">
+          Hover-triggered popovers open on pointer-enter and close after a short delay on leave.
+        </p>
+      </app-popover>
+    `,
+  }),
+};
+
+export const Modal: Story = {
+  args: { modal: true, ariaLabel: 'Confirm action' },
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-popover
+        #popover
+        [placement]="placement"
+        [alignment]="alignment"
+        [trigger]="trigger"
+        [variant]="variant"
+        [size]="size"
+        [showArrow]="showArrow"
+        [modal]="modal"
+        [ariaLabel]="ariaLabel"
+      >
+        <app-button trigger variant="primary">Open modal popover</app-button>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <h3 style="margin: 0 0 4px 0; font-size: 0.9375rem; font-weight: 600;">Confirm action</h3>
+            <p style="margin: 0; font-size: 0.8125rem; color: var(--color-text-muted, #6B6B8A);">
+              Focus is trapped inside while this popover is open. Tab cycles between buttons.
+            </p>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <app-button variant="ghost" size="sm" (click)="popover.close()">Cancel</app-button>
+            <app-button variant="primary" size="sm" (click)="popover.close()">Confirm</app-button>
+          </div>
+        </div>
+      </app-popover>
     `,
   }),
 };

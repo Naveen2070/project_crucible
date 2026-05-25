@@ -1,5 +1,12 @@
 <div [class]="'relative inline-block ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
-  <div #triggerRef class="cursor-pointer inline-block" (click)="toggle()" [attr.aria-expanded]="isOpen" aria-haspopup="dialog">
+  <div
+    #triggerRef
+    class="inline-block"
+    (click)="toggle()"
+    [attr.aria-expanded]="isOpen"
+    [attr.aria-controls]="isOpen ? contentId : null"
+    aria-haspopup="dialog"
+  >
     {{#if features.compoundComponents}}
     <ng-content select="[popover-trigger]"></ng-content>
     {{else}}
@@ -12,14 +19,18 @@
   </div>
 
   @if (isOpen) {
-    <div 
-      #contentRef 
-      class="fixed z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[200px] outline-none"
-      [ngClass]="getTailwindClasses()"
+    <div
+      #contentRef
+      [id]="contentId"
+      [class]="'absolute z-[var(--popover-z-index,50)] rounded-[var(--popover-radius,8px)] outline-none ' + getTailwindClasses()"
       [style.visibility]="isPositioned ? 'visible' : 'hidden'"
       [attr.data-placement]="placement"
+      [attr.data-side]="arrowSide"
       [attr.data-state]="isOpen && isPositioned ? 'open' : 'closed'"
+      [attr.aria-modal]="modal ? 'true' : null"
+      [attr.aria-label]="ariaLabel || null"
       role="dialog"
+      tabindex="-1"
       (mouseenter)="onMouseEnter()"
       (mouseleave)="onMouseLeave()"
     >
@@ -33,10 +44,9 @@
         <div
           #arrowRef
           [ngClass]="getArrowClasses()"
+          aria-hidden="true"
         ></div>
       }
     </div>
   }
 </div>
-
-

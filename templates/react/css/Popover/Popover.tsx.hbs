@@ -1,9 +1,9 @@
-import React, { 
-  createContext, 
-  useContext, 
-  useState, 
-  useMemo, 
-  useCallback 
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
 } from 'react';
 import {
   useFloating,
@@ -26,6 +26,9 @@ import {
   limitShift,
 } from '@floating-ui/react';
 {{> react/styles-import}}
+
+export type PopoverSize = 'sm' | 'md' | 'lg';
+export type PopoverVariant = 'default' | 'minimal';
 
 export interface PopoverOptions {
   initialOpen?: boolean;
@@ -172,37 +175,54 @@ const InternalPortal = ({ children }: { children: React.ReactNode }) => (
   <FloatingPortal>{children}</FloatingPortal>
 );
 
-const InternalContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLProps<HTMLDivElement>
->(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
-  const ref = useMergeRefs([context.refs.setFloating, propRef]);
+interface PopoverContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: PopoverSize;
+  variant?: PopoverVariant;
+}
 
-  if (!floatingContext.open) return null;
+const InternalContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
+  function PopoverContent(
+    { style, className, children, size = 'md', variant = 'default', ...props },
+    propRef
+  ) {
+    const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
+    const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
-  return (
-    <FloatingFocusManager context={floatingContext} modal={context.modal}>
-      <div
-        ref={ref}
-        style=\{{
-          position: floatingContext.strategy,
-          top: floatingContext.y ?? 0,
-          left: floatingContext.x ?? 0,
-          width: 'max-content',
-          visibility: isPositioned ? 'visible' : 'hidden',
-          ...style,
-        }}
-        className={`${styles.content} ${className || ''}`}
-        data-state={context.open && isPositioned ? "open" : "closed"}
-        data-placement={floatingContext.placement}
-        {...context.getFloatingProps(props)}
-      >
-        {children}
-      </div>
-    </FloatingFocusManager>
-  );
-});
+    if (!floatingContext.open) return null;
+
+    const side = floatingContext.placement.split('-')[0];
+
+    return (
+      <FloatingFocusManager context={floatingContext} modal={context.modal}>
+        <div
+          ref={ref}
+          style=\{{
+            position: floatingContext.strategy,
+            top: floatingContext.y ?? 0,
+            left: floatingContext.x ?? 0,
+            visibility: isPositioned ? 'visible' : 'hidden',
+            ...style,
+          }}
+          className={[
+            styles.content,
+            styles[`size-${size}`],
+            styles[`variant-${variant}`],
+            className,
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          data-state={context.open && isPositioned ? "open" : "closed"}
+          data-placement={floatingContext.placement}
+          data-side={side}
+          tabIndex={-1}
+          {...context.getFloatingProps(props)}
+        >
+          {children}
+        </div>
+      </FloatingFocusManager>
+    );
+  }
+);
 
 const InternalArrow = React.forwardRef<
   SVGSVGElement,
@@ -215,8 +235,8 @@ const InternalArrow = React.forwardRef<
     <FloatingArrow
       ref={ref}
       context={floatingContext}
-      fill="white"
-      stroke="var(--popover-border)"
+      fill="var(--popover-background, var(--color-surface, white))"
+      stroke="var(--popover-border, var(--color-border))"
       strokeWidth={1}
       {...props}
     />
@@ -224,20 +244,32 @@ const InternalArrow = React.forwardRef<
 });
 
 const InternalClose = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(function PopoverClose(props, ref) {
+  HTMLElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
+>(function PopoverClose({ asChild = false, children, onClick, ...props }, propRef) {
   const { setOpen } = usePopoverContext();
+  const handleClick = (event: React.MouseEvent<any>) => {
+    onClick?.(event as any);
+    setOpen(false);
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const childProps = (children as any).props as any;
+    return React.cloneElement(children as any, {
+      ref: propRef as any,
+      ...props,
+      ...childProps,
+      onClick: (e: React.MouseEvent<any>) => {
+        childProps.onClick?.(e);
+        handleClick(e);
+      },
+    });
+  }
+
   return (
-    <button
-      type="button"
-      ref={ref}
-      {...props}
-      onClick={(event) => {
-        props.onClick?.(event);
-        setOpen(false);
-      }}
-    />
+    <button type="button" ref={propRef as any} {...props} onClick={handleClick}>
+      {children}
+    </button>
   );
 });
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -23,6 +23,10 @@ interface PopoverProps {
   closeOnEscape?: boolean;
   /** Whether to show the arrow */
   showArrow?: boolean;
+  /** Modal mode: traps focus inside the popover while open. Default false. */
+  modal?: boolean;
+  /** Accessible label for the popover dialog */
+  ariaLabel?: string;
 }
 
 const props = withDefaults(defineProps<PopoverProps>(), {
@@ -35,6 +39,8 @@ const props = withDefaults(defineProps<PopoverProps>(), {
   closeOnClickOutside: true,
   closeOnEscape: true,
   showArrow: true,
+  modal: false,
+  ariaLabel: undefined,
 });
 
 const emit = defineEmits<{
@@ -50,18 +56,25 @@ const isControlled = computed(() => {
 
 const internalOpen = ref(false);
 const isOpen = computed({
-  get: () => isControlled.value ? props.isOpen : internalOpen.value,
+  get: () => (isControlled.value ? props.isOpen : internalOpen.value),
   set: (val) => {
     internalOpen.value = val;
     emit('update:isOpen', val);
-  }
+  },
 });
+
+const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const contentId = `popover-content-${uid}`;
 
 const contentRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
 const arrowRef = ref<HTMLElement | null>(null);
 
 let closeTimeout: number | undefined;
+let previouslyFocused: HTMLElement | null = null;
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const toggle = () => {
   if (props.trigger === 'click') {
@@ -104,49 +117,92 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
-const handleEscape = (event: KeyboardEvent) => {
-  if (!props.closeOnEscape) return;
-  if (event.key === 'Escape' && isOpen.value) {
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!isOpen.value) return;
+
+  if (props.closeOnEscape && event.key === 'Escape') {
     close();
+    return;
+  }
+
+  if (event.key === 'Tab' && props.modal && contentRef.value) {
+    const focusables = Array.from(
+      contentRef.value.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    ).filter((el) => el.offsetParent !== null);
+
+    if (focusables.length === 0) {
+      event.preventDefault();
+      contentRef.value.focus();
+      return;
+    }
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+
+    if (event.shiftKey && (active === first || !contentRef.value.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 };
 
 onMounted(() => {
   document.addEventListener('mousedown', handleClickOutside);
-  document.addEventListener('keydown', handleEscape);
+  document.addEventListener('keydown', handleKeydown);
 });
 
 onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside);
-  document.removeEventListener('keydown', handleEscape);
+  document.removeEventListener('keydown', handleKeydown);
   if (closeTimeout) {
     clearTimeout(closeTimeout);
   }
 });
 
-const floatingPlacement = computed<Placement>(() => 
-  `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement
+watch(isOpen, async (open) => {
+  if (open) {
+    if (props.trigger === 'click') {
+      previouslyFocused = document.activeElement as HTMLElement | null;
+    }
+    await nextTick();
+    if (props.trigger === 'click' && contentRef.value) {
+      const focusable = contentRef.value.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+      (focusable ?? contentRef.value).focus({ preventScroll: true });
+    }
+  } else if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+    previouslyFocused.focus({ preventScroll: true });
+    previouslyFocused = null;
+  }
+});
+
+const floatingPlacement = computed<Placement>(
+  () =>
+    `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement,
 );
 
 const middleware = computed(() => {
-  const list = [
-    offset(props.showArrow ? 12 : 8),
-    flip(),
-    shift({ padding: 8 }),
-  ];
+  const list = [offset(props.showArrow ? 12 : 8), flip(), shift({ padding: 8 })];
   if (props.showArrow && arrowRef.value) {
     list.push(arrow({ element: arrowRef }));
   }
   return list;
 });
 
-const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(triggerRef, contentRef, {
-  placement: floatingPlacement,
-  open: isOpen,
-  middleware,
-  transform: false,
-  whileElementsMounted: autoUpdate,
-});
+const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(
+  triggerRef,
+  contentRef,
+  {
+    placement: floatingPlacement,
+    open: isOpen,
+    middleware,
+    transform: false,
+    whileElementsMounted: autoUpdate,
+  },
+);
 
 const side = computed(() => placement.value.split('-')[0]);
 
@@ -167,20 +223,33 @@ const arrowStyle = computed(() => {
 });
 
 const variantClasses = {
-  default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-lg',
-  minimal: 'bg-[var(--color-surface)] shadow-md',
+  default:
+    'bg-[var(--popover-background,var(--color-surface))] border border-[var(--popover-border,var(--color-border))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]',
+  minimal:
+    'bg-[var(--popover-background,var(--color-surface))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]',
 };
 
 const sizeClasses = {
-  sm: 'text-sm p-[calc(var(--popover-padding)*0.75)]',
-  md: 'text-base p-[var(--popover-padding)]',
-  lg: 'text-lg p-[calc(var(--popover-padding)*1.5)]',
+  sm: 'text-[0.8125rem] min-w-[200px] p-3',
+  md: 'text-sm min-w-[18rem] p-4',
+  lg: 'text-[0.9375rem] min-w-[22.5rem] p-5',
 };
 </script>
 
 <template>
-  <div :class="['inline-block', className]" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-    <div ref="triggerRef" class="cursor-pointer inline-block" @click="toggle" :aria-expanded="isOpen" aria-haspopup="dialog">
+  <div
+    :class="['inline-block', className]"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+  >
+    <div
+      ref="triggerRef"
+      class="inline-block"
+      @click="toggle"
+      :aria-expanded="isOpen"
+      :aria-controls="isOpen ? contentId : undefined"
+      aria-haspopup="dialog"
+    >
       {{#if features.compoundComponents}}
       <slot name="trigger" :isOpen="isOpen"></slot>
       {{else}}
@@ -196,15 +265,20 @@ const sizeClasses = {
       <div
         v-if="isOpen"
         ref="contentRef"
+        :id="contentId"
         :class="[
-          'absolute z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[200px] outline-none',
+          'popover-content absolute z-[var(--popover-z-index,50)] rounded-[var(--popover-radius,8px)] text-[var(--color-text,#1A1A2E)] outline-none max-w-[calc(100vw-16px)] focus-visible:outline-2 focus-visible:outline-[var(--color-primary,#6C63FF)] focus-visible:outline-offset-2',
           variantClasses[variant],
-          sizeClasses[size]
+          sizeClasses[size],
         ]"
         :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
         :data-state="isOpen && isPositioned ? 'open' : 'closed'"
         :data-placement="placement"
+        :data-side="side"
         role="dialog"
+        :aria-modal="modal ? 'true' : undefined"
+        :aria-label="ariaLabel"
+        tabindex="-1"
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
       >
@@ -219,15 +293,61 @@ const sizeClasses = {
           ref="arrowRef"
           :class="[
             'absolute w-2 h-2 rotate-45 bg-inherit border-inherit',
-            side === 'top' ? 'border-b border-r' : '',
-            side === 'bottom' ? 'border-t border-l' : '',
-            side === 'left' ? 'border-t border-r' : '',
-            side === 'right' ? 'border-b border-l' : ''
+            side === 'top' ? 'border-r border-b border-[var(--popover-border,var(--color-border))]' : '',
+            side === 'bottom' ? 'border-l border-t border-[var(--popover-border,var(--color-border))]' : '',
+            side === 'left' ? 'border-t border-r border-[var(--popover-border,var(--color-border))]' : '',
+            side === 'right' ? 'border-l border-b border-[var(--popover-border,var(--color-border))]' : '',
           ]"
           :style="arrowStyle"
+          aria-hidden="true"
         ></div>
       </div>
     </Teleport>
   </div>
 </template>
 
+<style>
+.popover-content[data-state='open'] {
+  animation: popover-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popover-content[data-state='open'][data-side='top'] {
+  animation-name: popover-slide-down;
+}
+.popover-content[data-state='open'][data-side='bottom'] {
+  animation-name: popover-slide-up;
+}
+.popover-content[data-state='open'][data-side='left'] {
+  animation-name: popover-slide-right;
+}
+.popover-content[data-state='open'][data-side='right'] {
+  animation-name: popover-slide-left;
+}
+
+@keyframes popover-show {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes popover-slide-up {
+  from { opacity: 0; transform: translateY(4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes popover-slide-down {
+  from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes popover-slide-left {
+  from { opacity: 0; transform: translateX(4px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes popover-slide-right {
+  from { opacity: 0; transform: translateX(-4px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover-content[data-state='open'] {
+    animation: none;
+  }
+}
+</style>
