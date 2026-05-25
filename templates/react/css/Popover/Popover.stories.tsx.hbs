@@ -14,20 +14,23 @@ const meta: Meta<typeof Popover> = {
         'top', 'top-start', 'top-end',
         'bottom', 'bottom-start', 'bottom-end',
         'left', 'left-start', 'left-end',
-        'right', 'right-start', 'right-end'
+        'right', 'right-start', 'right-end',
       ],
     },
     trigger: {
       control: 'select',
       options: ['click', 'hover'],
     },
-    modal: {
-      control: 'boolean',
-    },
+    modal: { control: 'boolean' },
+  },
+  args: {
+    placement: 'bottom',
+    trigger: 'click',
+    modal: false,
   },
   decorators: [
     (Story) => (
-      <div style=\{{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style=\{{ height: '360px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Story />
       </div>
     ),
@@ -44,17 +47,200 @@ export const Default: Story = {
         <Button>Open Popover</Button>
       </Popover.Trigger>
       <Popover.Portal>
+        <Popover.Content size="md" variant="default">
+          <div style=\{{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div>
+              <h3 style=\{{ margin: '0 0 4px 0', fontSize: '0.9375rem', fontWeight: 600 }}>Dimensions</h3>
+              <p style=\{{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted, #6B6B8A)' }}>
+                Set the dimensions for the layer.
+              </p>
+            </div>
+            <div style=\{{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Popover.Close asChild>
+                <Button size="sm" variant="ghost">Cancel</Button>
+              </Popover.Close>
+              <Popover.Close asChild>
+                <Button size="sm">Apply</Button>
+              </Popover.Close>
+            </div>
+          </div>
+          <Popover.Arrow />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  ),
+};
+
+export const AllPlacements: Story = {
+  parameters: { layout: 'centered' },
+  decorators: [
+    (Story) => (
+      <div style=\{{ minHeight: '480px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  render: (args) => {
+    const sides = ['top', 'bottom', 'left', 'right'] as const;
+    const alignments = ['start', 'center', 'end'] as const;
+    const placements = sides.flatMap((side) =>
+      alignments.map((alignment) => ({
+        placement: (alignment === 'center' ? side : `${side}-${alignment}`) as any,
+        label: `${side}-${alignment}`,
+      }))
+    );
+    return (
+      <div style=\{{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        {placements.map((p) => (
+          <Popover.Root key={p.label} {...args} placement={p.placement}>
+            <Popover.Trigger asChild>
+              <Button size="sm" variant="outline">{p.label}</Button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content size="sm">
+                <p style=\{{ margin: 0, fontSize: '0.8125rem' }}>
+                  Placement: <strong>{p.label}</strong>
+                </p>
+                <Popover.Arrow />
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
+        ))}
+      </div>
+    );
+  },
+};
+
+export const VariantsAndSizes: Story = {
+  render: (args) => {
+    const variants = ['default', 'minimal'] as const;
+    const sizes = ['sm', 'md', 'lg'] as const;
+    const cells = variants.flatMap((variant) =>
+      sizes.map((size) => ({ variant, size, label: `${variant} / ${size}` }))
+    );
+    return (
+      <div style=\{{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: '24px', alignItems: 'center', justifyItems: 'center' }}>
+        {cells.map((cell) => (
+          <Popover.Root key={cell.label} {...args}>
+            <Popover.Trigger asChild>
+              <Button size={cell.size}>{cell.label}</Button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content size={cell.size} variant={cell.variant}>
+                <div style=\{{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <strong style=\{{ fontSize: '0.875rem' }}>{cell.variant} · {cell.size}</strong>
+                  <p style=\{{ margin: 0, fontSize: 'inherit', color: 'var(--color-text-muted, #6B6B8A)' }}>
+                    Body text scales with the size token.
+                  </p>
+                </div>
+                <Popover.Arrow />
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
+        ))}
+      </div>
+    );
+  },
+};
+
+export const Controlled: Story = {
+  render: function ControlledStory(args) {
+    const [open, setOpen] = React.useState(false);
+    return (
+      <div style=\{{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+        <Button variant="ghost" onClick={() => setOpen(!open)}>
+          External toggle &mdash; currently {open ? 'open' : 'closed'}
+        </Button>
+
+        <Popover.Root {...args} open={open} onOpenChange={setOpen}>
+          <Popover.Trigger asChild>
+            <Button variant="outline">Popover Trigger</Button>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content>
+              <div style=\{{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style=\{{ margin: 0, fontSize: '0.875rem' }}>
+                  This popover's open state is controlled by the parent component.
+                </p>
+                <Button size="sm" onClick={() => setOpen(false)}>Close from inside</Button>
+              </div>
+              <Popover.Arrow />
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
+      </div>
+    );
+  },
+};
+
+export const Uncontrolled: Story = {
+  render: (args) => (
+    <Popover.Root {...args}>
+      <Popover.Trigger asChild>
+        <Button>Open (uncontrolled)</Button>
+      </Popover.Trigger>
+      <Popover.Portal>
         <Popover.Content>
           <div style=\{{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h3 style=\{{ margin: 0, fontSize: '1rem' }}>Popover Title</h3>
-            <p style=\{{ margin: 0, fontSize: '0.875rem', color: '#666' }}>
-              This is a completely rebuilt, production-ready popover.
+            <p style=\{{ margin: 0, fontSize: '0.875rem' }}>
+              The component owns its open state. No <code>open</code>/<code>onOpenChange</code> needed.
             </p>
             <Popover.Close asChild>
-              <Button size="sm" variant="minimal">Close</Button>
+              <Button size="sm" variant="ghost">Close</Button>
             </Popover.Close>
           </div>
-          <Popover.Arrow fill="white" />
+          <Popover.Arrow />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  ),
+};
+
+export const HoverTrigger: Story = {
+  args: { trigger: 'hover' },
+  render: (args) => (
+    <Popover.Root {...args}>
+      <Popover.Trigger asChild>
+        <span style=\{{ textDecoration: 'underline dotted', cursor: 'help' }}>Hover for info</span>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content size="sm">
+          <p style=\{{ margin: 0, fontSize: '0.8125rem', maxWidth: '240px' }}>
+            Hover-triggered popovers open on pointer-enter and use a safe polygon to stay open while moving to the content.
+          </p>
+          <Popover.Arrow />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  ),
+};
+
+export const Modal: Story = {
+  args: { modal: true },
+  render: (args) => (
+    <Popover.Root {...args}>
+      <Popover.Trigger asChild>
+        <Button>Open modal popover</Button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content>
+          <div style=\{{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div>
+              <h3 style=\{{ margin: '0 0 4px 0', fontSize: '0.9375rem', fontWeight: 600 }}>Confirm action</h3>
+              <p style=\{{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted, #6B6B8A)' }}>
+                Focus is trapped inside while this popover is open. Tab cycles between buttons.
+              </p>
+            </div>
+            <div style=\{{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Popover.Close asChild>
+                <Button size="sm" variant="ghost">Cancel</Button>
+              </Popover.Close>
+              <Popover.Close asChild>
+                <Button size="sm">Confirm</Button>
+              </Popover.Close>
+            </div>
+          </div>
+          <Popover.Arrow />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -65,65 +251,21 @@ export const WithItems: Story = {
   render: (args) => (
     <Popover.Root {...args}>
       <Popover.Trigger asChild>
-        <Button>User Menu</Button>
+        <Button variant="outline">User menu</Button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content style=\{{ padding: '4px', minWidth: '160px' }}>
-          <div className="popover-items">
-            <div style=\{{ padding: '8px 12px', fontSize: '0.75rem', fontWeight: 'bold', color: '#999' }}>Account</div>
-            <div style=\{{ padding: '8px 12px', cursor: 'pointer' }}>Profile</div>
-            <div style=\{{ padding: '8px 12px', cursor: 'pointer' }}>Settings</div>
-            <div style=\{{ height: '1px', background: '#eee', margin: '4px 0' }} />
-            <div style=\{{ padding: '8px 12px', cursor: 'pointer', color: 'red' }}>Logout</div>
+        <Popover.Content size="sm" style=\{{ padding: '4px', minWidth: '180px' }}>
+          <div style=\{{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style=\{{ padding: '8px 12px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted, #6B6B8A)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Account
+            </div>
+            <button type="button" style=\{{ textAlign: 'left', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.875rem', color: 'inherit' }}>Profile</button>
+            <button type="button" style=\{{ textAlign: 'left', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.875rem', color: 'inherit' }}>Settings</button>
+            <div style=\{{ height: '1px', background: 'var(--color-border, #E2E1F0)', margin: '4px 0' }} />
+            <button type="button" style=\{{ textAlign: 'left', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--color-destructive, #E24B4A)' }}>Log out</button>
           </div>
-          <Popover.Arrow fill="white" />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
   ),
-};
-
-export const HoverTrigger: Story = {
-  args: {
-    trigger: 'hover',
-  },
-  render: (args) => (
-    <Popover.Root {...args}>
-      <Popover.Trigger asChild>
-        <span style=\{{ textDecoration: 'underline', cursor: 'help' }}>Hover me for info</span>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content style=\{{ maxWidth: '200px' }}>
-          <p style=\{{ margin: 0, fontSize: '0.875rem' }}>
-            This popover opens on hover and uses a safe polygon to stay open while moving to the content.
-          </p>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
-  ),
-};
-
-export const Controlled: Story = {
-  render: function ControlledStory(args) {
-    const [open, setOpen] = React.useState(false);
-    return (
-      <div style=\{{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-        <Button onClick={() => setOpen(!open)}>
-          Externally Toggle: {open ? 'Close' : 'Open'}
-        </Button>
-        
-        <Popover.Root {...args} open={open} onOpenChange={setOpen}>
-          <Popover.Trigger asChild>
-            <Button variant="outline">Popover Trigger</Button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content>
-              <p>I am controlled by external state.</p>
-              <Button size="sm" onClick={() => setOpen(false)}>Close me</Button>
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
-      </div>
-    );
-  },
 };

@@ -10,12 +10,11 @@ const meta: Meta<typeof Popover> = {
   argTypes: {
     placement: {
       control: 'select',
-      options: [
-        'top', 'top-start', 'top-end',
-        'bottom', 'bottom-start', 'bottom-end',
-        'left', 'left-start', 'left-end',
-        'right', 'right-start', 'right-end'
-      ],
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
     },
     trigger: {
       control: 'select',
@@ -29,13 +28,26 @@ const meta: Meta<typeof Popover> = {
       control: 'select',
       options: ['sm', 'md', 'lg'],
     },
-    showArrow: {
-      control: 'boolean',
-    },
+    showArrow: { control: 'boolean' },
+    modal: { control: 'boolean' },
+    closeOnClickOutside: { control: 'boolean' },
+    closeOnEscape: { control: 'boolean' },
+    ariaLabel: { control: 'text' },
+  },
+  args: {
+    placement: 'bottom',
+    alignment: 'center',
+    trigger: 'click',
+    variant: 'default',
+    size: 'md',
+    showArrow: true,
+    modal: false,
+    closeOnClickOutside: true,
+    closeOnEscape: true,
   },
   decorators: [
     () => ({
-      template: '<div style="height: 300px; display: flex; align-items: center; justify-content: center;"><story /></div>',
+      template: '<div style="height: 360px; display: flex; align-items: center; justify-content: center;"><story /></div>',
     }),
   ],
 };
@@ -56,22 +68,280 @@ export const Default: Story = {
           <Button>Open Popover</Button>
         </template>
         <template #content="{ close }">
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-            <p style="margin: 0; font-size: 0.875rem; color: #666;">
-              This is a completely rebuilt, production-ready popover.
-            </p>
-            <Button size="sm" variant="minimal" @click="close">Close</Button>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0; font-size: 0.9375rem; font-weight: 600;">Dimensions</h3>
+              <p style="margin: 0; font-size: 0.8125rem; color: var(--color-text-muted, #6B6B8A);">
+                Set the dimensions for the layer.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <Button size="sm" variant="ghost" @click="close">Cancel</Button>
+              <Button size="sm" @click="close">Apply</Button>
+            </div>
           </div>
         </template>
         {{else}}
         <template #trigger>
           <Button>Open Popover</Button>
         </template>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <h3 style="margin: 0; font-size: 1rem;">Popover Title</h3>
-          <p style="margin: 0; font-size: 0.875rem; color: #666;">
-            This is a completely rebuilt, production-ready popover.
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <h3 style="margin: 0; font-size: 0.9375rem; font-weight: 600;">Dimensions</h3>
+          <p style="margin: 0; font-size: 0.8125rem; color: var(--color-text-muted, #6B6B8A);">
+            Set the dimensions for the layer.
+          </p>
+        </div>
+        {{/if}}
+      </Popover>
+    `,
+  }),
+};
+
+export const AllPlacements: Story = {
+  parameters: { layout: 'centered' },
+  decorators: [
+    () => ({
+      template: '<div style="min-height: 480px; display: flex; align-items: center; justify-content: center; padding: 80px;"><story /></div>',
+    }),
+  ],
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      const sides = ['top', 'bottom', 'left', 'right'] as const;
+      const alignments = ['start', 'center', 'end'] as const;
+      const placements = sides.flatMap((side) =>
+        alignments.map((alignment) => ({ side, alignment, label: `${side}-${alignment}` })),
+      );
+      return { args, placements };
+    },
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <Popover
+          v-for="p in placements"
+          :key="p.label"
+          v-bind="args"
+          :placement="p.side"
+          :alignment="p.alignment"
+        >
+          {{#if features.compoundComponents}}
+          <template #trigger>
+            <Button size="sm" variant="outline" v-text="p.label"></Button>
+          </template>
+          <template #content>
+            <p style="margin: 0; font-size: 0.8125rem;">
+              Placement: <strong v-text="p.label"></strong>
+            </p>
+          </template>
+          {{else}}
+          <template #trigger>
+            <Button size="sm" variant="outline" v-text="p.label"></Button>
+          </template>
+          <p style="margin: 0; font-size: 0.8125rem;">
+            Placement: <strong v-text="p.label"></strong>
+          </p>
+          {{/if}}
+        </Popover>
+      </div>
+    `,
+  }),
+};
+
+export const VariantsAndSizes: Story = {
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      const variants = ['default', 'minimal'] as const;
+      const sizes = ['sm', 'md', 'lg'] as const;
+      const cells = variants.flatMap((variant) =>
+        sizes.map((size) => ({
+          variant,
+          size,
+          buttonLabel: `${variant} / ${size}`,
+          headingLabel: `${variant} · ${size}`,
+        })),
+      );
+      return { args, cells };
+    },
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 24px; align-items: center; justify-items: center;">
+        <Popover
+          v-for="cell in cells"
+          :key="cell.buttonLabel"
+          v-bind="args"
+          :variant="cell.variant"
+          :size="cell.size"
+        >
+          {{#if features.compoundComponents}}
+          <template #trigger>
+            <Button :size="cell.size" v-text="cell.buttonLabel"></Button>
+          </template>
+          <template #content>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <strong style="font-size: 0.875rem;" v-text="cell.headingLabel"></strong>
+              <p style="margin: 0; font-size: inherit; color: var(--color-text-muted, #6B6B8A);">
+                Body text scales with the size token.
+              </p>
+            </div>
+          </template>
+          {{else}}
+          <template #trigger>
+            <Button :size="cell.size" v-text="cell.buttonLabel"></Button>
+          </template>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <strong style="font-size: 0.875rem;" v-text="cell.headingLabel"></strong>
+            <p style="margin: 0; font-size: inherit; color: var(--color-text-muted, #6B6B8A);">
+              Body text scales with the size token.
+            </p>
+          </div>
+          {{/if}}
+        </Popover>
+      </div>
+    `,
+  }),
+};
+
+export const Controlled: Story = {
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      const isOpen = ref(false);
+      return { args, isOpen };
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <Button variant="ghost" @click="isOpen = !isOpen">
+          External toggle &mdash; currently \{{ isOpen ? 'open' : 'closed' }}
+        </Button>
+
+        <Popover v-bind="args" v-model:isOpen="isOpen">
+          {{#if features.compoundComponents}}
+          <template #trigger>
+            <Button variant="outline">Popover Trigger</Button>
+          </template>
+          <template #content>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <p style="margin: 0; font-size: 0.875rem;">
+                This popover's open state is controlled by the parent component.
+              </p>
+              <Button size="sm" @click="isOpen = false">Close from inside</Button>
+            </div>
+          </template>
+          {{else}}
+          <template #trigger>
+            <Button variant="outline">Popover Trigger</Button>
+          </template>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <p style="margin: 0; font-size: 0.875rem;">
+              This popover's open state is controlled by the parent component.
+            </p>
+            <Button size="sm" @click="isOpen = false">Close from inside</Button>
+          </div>
+          {{/if}}
+        </Popover>
+      </div>
+    `,
+  }),
+};
+
+export const Uncontrolled: Story = {
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      return { args };
+    },
+    template: `
+      <Popover v-bind="args">
+        {{#if features.compoundComponents}}
+        <template #trigger>
+          <Button>Open (uncontrolled)</Button>
+        </template>
+        <template #content="{ close }">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <p style="margin: 0; font-size: 0.875rem;">
+              The component owns its open state. No <code>v-model</code> needed.
+            </p>
+            <Button size="sm" variant="ghost" @click="close">Close</Button>
+          </div>
+        </template>
+        {{else}}
+        <template #trigger>
+          <Button>Open (uncontrolled)</Button>
+        </template>
+        <p style="margin: 0; font-size: 0.875rem;">
+          The component owns its open state. No <code>v-model</code> needed.
+        </p>
+        {{/if}}
+      </Popover>
+    `,
+  }),
+};
+
+export const HoverTrigger: Story = {
+  args: { trigger: 'hover' },
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      return { args };
+    },
+    template: `
+      <Popover v-bind="args">
+        {{#if features.compoundComponents}}
+        <template #trigger>
+          <span style="text-decoration: underline dotted; cursor: help;">Hover for info</span>
+        </template>
+        <template #content>
+          <p style="margin: 0; font-size: 0.8125rem; max-width: 240px;">
+            Hover-triggered popovers open on pointer-enter and close after a short delay on leave.
+          </p>
+        </template>
+        {{else}}
+        <template #trigger>
+          <span style="text-decoration: underline dotted; cursor: help;">Hover for info</span>
+        </template>
+        <p style="margin: 0; font-size: 0.8125rem; max-width: 240px;">
+          Hover-triggered popovers open on pointer-enter and close after a short delay on leave.
+        </p>
+        {{/if}}
+      </Popover>
+    `,
+  }),
+};
+
+export const Modal: Story = {
+  args: { modal: true, ariaLabel: 'Confirm action' },
+  render: (args) => ({
+    components: { Popover, Button },
+    setup() {
+      return { args };
+    },
+    template: `
+      <Popover v-bind="args">
+        {{#if features.compoundComponents}}
+        <template #trigger>
+          <Button>Open modal popover</Button>
+        </template>
+        <template #content="{ close }">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0; font-size: 0.9375rem; font-weight: 600;">Confirm action</h3>
+              <p style="margin: 0; font-size: 0.8125rem; color: var(--color-text-muted, #6B6B8A);">
+                Focus is trapped inside while this popover is open. Tab cycles between buttons.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <Button size="sm" variant="ghost" @click="close">Cancel</Button>
+              <Button size="sm" @click="close">Confirm</Button>
+            </div>
+          </div>
+        </template>
+        {{else}}
+        <template #trigger>
+          <Button>Open modal popover</Button>
+        </template>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <h3 style="margin: 0; font-size: 0.9375rem; font-weight: 600;">Confirm action</h3>
+          <p style="margin: 0; font-size: 0.8125rem; color: var(--color-text-muted, #6B6B8A);">
+            Focus is trapped inside while this popover is open.
           </p>
         </div>
         {{/if}}
@@ -87,101 +357,35 @@ export const WithItems: Story = {
       return { args };
     },
     template: `
-      <Popover v-bind="args">
+      <Popover v-bind="args" :showArrow="false">
         {{#if features.compoundComponents}}
         <template #trigger>
-          <Button>User Menu</Button>
+          <Button variant="outline">User menu</Button>
         </template>
         <template #content>
-          <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-            <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
-            <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
-            <div style="padding: 8px 12px; cursor: pointer;">Settings</div>
-            <div style="height: 1px; background: #eee; margin: 4px 0;"></div>
-            <div style="padding: 8px 12px; cursor: pointer; color: red;">Logout</div>
+          <div style="display: flex; flex-direction: column; gap: 2px; margin: -8px;">
+            <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted, #6B6B8A); text-transform: uppercase; letter-spacing: 0.05em;">
+              Account
+            </div>
+            <button type="button" style="text-align: left; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: inherit;">Profile</button>
+            <button type="button" style="text-align: left; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: inherit;">Settings</button>
+            <div style="height: 1px; background: var(--color-border, #E2E1F0); margin: 4px 0;"></div>
+            <button type="button" style="text-align: left; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: var(--color-destructive, #E24B4A);">Log out</button>
           </div>
         </template>
         {{else}}
         <template #trigger>
-          <Button>User Menu</Button>
+          <Button variant="outline">User menu</Button>
         </template>
-        <div style="padding: 4px; min-width: 160px; display: flex; flex-direction: column;">
-          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: bold; color: #999;">Account</div>
-          <div style="padding: 8px 12px; cursor: pointer;">Profile</div>
+        <div style="display: flex; flex-direction: column; gap: 2px; margin: -8px;">
+          <div style="padding: 8px 12px; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted, #6B6B8A); text-transform: uppercase; letter-spacing: 0.05em;">
+            Account
+          </div>
+          <button type="button" style="text-align: left; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: inherit;">Profile</button>
+          <button type="button" style="text-align: left; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: var(--color-destructive, #E24B4A);">Log out</button>
         </div>
         {{/if}}
       </Popover>
     `,
   }),
 };
-
-export const HoverTrigger: Story = {
-  args: {
-    trigger: 'hover',
-  },
-  render: (args) => ({
-    components: { Popover, Button },
-    setup() {
-      return { args };
-    },
-    template: `
-      <Popover v-bind="args">
-        {{#if features.compoundComponents}}
-        <template #trigger>
-          <span style="text-decoration: underline; cursor: help;">Hover me for info</span>
-        </template>
-        <template #content>
-          <p style="margin: 0; font-size: 0.875rem; max-width: 200px;">
-            This popover opens on hover and uses a safe polygon to stay open while moving to the content.
-          </p>
-        </template>
-        {{else}}
-        <template #trigger>
-          <span style="text-decoration: underline; cursor: help;">Hover me for info</span>
-        </template>
-        <p style="margin: 0; font-size: 0.875rem; max-width: 200px;">
-          This popover opens on hover and uses a safe polygon to stay open while moving to the content.
-        </p>
-        {{/if}}
-      </Popover>
-    `,
-  }),
-};
-
-export const Controlled: Story = {
-  render: (args) => ({
-    components: { Popover, Button },
-    setup() {
-      const isOpen = ref(false);
-      return { args, isOpen };
-    },
-    template: `
-      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
-        <Button @click="isOpen = !isOpen">
-          Externally Toggle: \{{isOpen ? 'Close' : 'Open'}}
-        </Button>
-        
-        <Popover v-bind="args" v-model:isOpen="isOpen">
-          {{#if features.compoundComponents}}
-          <template #trigger>
-            <Button variant="outline">Popover Trigger</Button>
-          </template>
-          <template #content>
-            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
-            <Button size="sm" @click="isOpen = false">Close me</Button>
-          </template>
-          {{else}}
-          <template #trigger>
-            <Button variant="outline">Popover Trigger</Button>
-          </template>
-          <div>
-            <p style="margin: 0 0 8px 0;">I am controlled by external state.</p>
-            <Button size="sm" @click="isOpen = false">Close me</Button>
-          </div>
-          {{/if}}
-        </Popover>
-      </div>
-    `,
-  }),
-};
-
