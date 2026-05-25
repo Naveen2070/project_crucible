@@ -144,6 +144,7 @@ const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(
   placement: floatingPlacement,
   open: isOpen,
   middleware,
+  transform: false,
   whileElementsMounted: autoUpdate,
 });
 
@@ -192,49 +193,40 @@ const sizeClasses = {
     </div>
 
     <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="opacity-0 scale-95"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition duration-100 ease-in"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95"
+      <div
+        v-if="isOpen"
+        ref="contentRef"
+        :class="[
+          'absolute z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[200px] outline-none',
+          variantClasses[variant],
+          sizeClasses[size]
+        ]"
+        :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
+        :data-state="isOpen && isPositioned ? 'open' : 'closed'"
+        :data-placement="placement"
+        role="dialog"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
       >
-        <div
-          v-if="isOpen"
-          ref="contentRef"
-          :class="[
-            'absolute z-[var(--popover-z-index)] rounded-[var(--popover-radius)] min-w-[200px] outline-none',
-            variantClasses[variant],
-            sizeClasses[size]
-          ]"
-          :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
-          :data-state="isOpen && isPositioned ? 'open' : 'closed'"
-          :data-placement="placement"
-          role="dialog"
-          @mouseenter="handleMouseEnter"
-          @mouseleave="handleMouseLeave"
-        >
-          {{#if features.compoundComponents}}
-          <slot name="content" :close="close"></slot>
-          {{else}}
-          <slot></slot>
-          {{/if}}
+        {{#if features.compoundComponents}}
+        <slot name="content" :close="close"></slot>
+        {{else}}
+        <slot></slot>
+        {{/if}}
 
-          <div
-            v-if="showArrow"
-            ref="arrowRef"
-            :class="[
-              'absolute w-2 h-2 rotate-45 bg-inherit border-inherit',
-              side === 'top' ? 'border-b border-r' : '',
-              side === 'bottom' ? 'border-t border-l' : '',
-              side === 'left' ? 'border-t border-r' : '',
-              side === 'right' ? 'border-b border-l' : ''
-            ]"
-            :style="arrowStyle"
-          ></div>
-        </div>
-      </Transition>
+        <div
+          v-if="showArrow"
+          ref="arrowRef"
+          :class="[
+            'absolute w-2 h-2 rotate-45 bg-inherit border-inherit',
+            side === 'top' ? 'border-b border-r' : '',
+            side === 'bottom' ? 'border-t border-l' : '',
+            side === 'left' ? 'border-t border-r' : '',
+            side === 'right' ? 'border-b border-l' : ''
+          ]"
+          :style="arrowStyle"
+        ></div>
+      </div>
     </Teleport>
   </div>
 </template>
