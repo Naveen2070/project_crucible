@@ -144,6 +144,7 @@ const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(
   placement: floatingPlacement,
   open: isOpen,
   middleware,
+  transform: false,
   whileElementsMounted: autoUpdate,
 });
 
@@ -191,33 +192,31 @@ const contentClasses = computed(() => {
     </div>
 
     <Teleport to="body">
-      <Transition name="popover-fade">
-        <div
-          v-if="isOpen"
-          ref="contentRef"
-          :class="contentClasses"
-          :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
-          :data-state="isOpen && isPositioned ? 'open' : 'closed'"
-          :data-placement="placement"
-          role="dialog"
-          @mouseenter="handleMouseEnter"
-          @mouseleave="handleMouseLeave"
-        >
-          {{#if features.compoundComponents}}
-          <slot name="content" :close="close"></slot>
-          {{else}}
-          <slot></slot>
-          {{/if}}
+      <div
+        v-if="isOpen"
+        ref="contentRef"
+        :class="contentClasses"
+        :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
+        :data-state="isOpen && isPositioned ? 'open' : 'closed'"
+        :data-placement="placement"
+        role="dialog"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
+      >
+        {{#if features.compoundComponents}}
+        <slot name="content" :close="close"></slot>
+        {{else}}
+        <slot></slot>
+        {{/if}}
 
-          <div
-            v-if="showArrow"
-            ref="arrowRef"
-            class="popover-arrow"
-            :class="'arrow-' + side"
-            :style="arrowStyle"
-          ></div>
-        </div>
-      </Transition>
+        <div
+          v-if="showArrow"
+          ref="arrowRef"
+          class="popover-arrow"
+          :class="'arrow-' + side"
+          :style="arrowStyle"
+        ></div>
+      </div>
     </Teleport>
   </div>
 </template>
@@ -295,25 +294,21 @@ const contentClasses = computed(() => {
 }
 
 /* Animation */
-.popover-fade-enter-active {
+.popover-content[data-state='open'] {
   animation: popover-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.popover-fade-leave-active {
-  animation: popover-hide 100ms ease-in;
-}
-
 /* Directional Animations */
-.popover-fade-enter-active[data-placement^='top'] {
+.popover-content[data-state='open'][data-placement^='top'] {
   animation-name: popover-slide-down;
 }
-.popover-fade-enter-active[data-placement^='bottom'] {
+.popover-content[data-state='open'][data-placement^='bottom'] {
   animation-name: popover-slide-up;
 }
-.popover-fade-enter-active[data-placement^='left'] {
+.popover-content[data-state='open'][data-placement^='left'] {
   animation-name: popover-slide-right;
 }
-.popover-fade-enter-active[data-placement^='right'] {
+.popover-content[data-state='open'][data-placement^='right'] {
   animation-name: popover-slide-left;
 }
 
@@ -325,17 +320,6 @@ const contentClasses = computed(() => {
   to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes popover-hide {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.96);
   }
 }
 
