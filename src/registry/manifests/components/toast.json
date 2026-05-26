@@ -1,0 +1,28 @@
+{
+  "id": "Toast",
+  "name": "Toast",
+  "description": "Sonner-style toast notifications: central <Toaster /> + global toast() function with variant shortcuts",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "success", "error", "warning", "info", "loading"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["enter", "visible", "exit"],
+  "props": ["position", "duration", "maxToasts", "richColors", "closeButton", "expand", "gap", "offset", "pauseWhenPageIsHidden"],
+  "prefix": "toast",
+  "behaviours": ["closeable"],
+  "a11y": { "role": "status" },
+  "dependencies": [],
+  "peerDependencies": {
+    "react": [],
+    "vue": [],
+    "angular": []
+  },
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border border-[var(--color-border)]",
+    "success": "bg-[var(--color-surface)] border-l-4 border-l-[var(--color-success)]",
+    "error": "bg-[var(--color-surface)] border-l-4 border-l-[var(--color-destructive)]",
+    "warning": "bg-[var(--color-surface)] border-l-4 border-l-[#f59e0b]",
+    "info": "bg-[var(--color-surface)] border-l-4 border-l-[var(--color-primary)]",
+    "loading": "bg-[var(--color-surface)] border-l-4 border-l-[var(--color-text-muted)]"
+  }
+}

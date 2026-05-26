@@ -110,21 +110,22 @@ export const AllPlacements: Story = {
       props: { ...args, placements },
       template: `
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-          <app-popover
-            *ngFor="let p of placements"
-            [placement]="p.side"
-            [alignment]="p.alignment"
-            [trigger]="trigger"
-            [variant]="variant"
-            [size]="'sm'"
-            [showArrow]="showArrow"
-            [modal]="modal"
-          >
-            <app-button trigger variant="outline" size="sm">\{{ p.label }}</app-button>
-            <p style="margin: 0; font-size: 0.8125rem;">
-              Placement: <strong>\{{ p.label }}</strong>
-            </p>
-          </app-popover>
+          @for (p of placements; track p.label) {
+            <app-popover
+              [placement]="p.side"
+              [alignment]="p.alignment"
+              [trigger]="trigger"
+              [variant]="variant"
+              [size]="'sm'"
+              [showArrow]="showArrow"
+              [modal]="modal"
+            >
+              <app-button trigger variant="outline" size="sm">\{{ p.label }}</app-button>
+              <p style="margin: 0; font-size: 0.8125rem;">
+                Placement: <strong>\{{ p.label }}</strong>
+              </p>
+            </app-popover>
+          }
         </div>
       `,
     };
@@ -147,23 +148,24 @@ export const VariantsAndSizes: Story = {
       props: { ...args, cells },
       template: `
         <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 24px; align-items: center; justify-items: center;">
-          <app-popover
-            *ngFor="let cell of cells"
-            [placement]="placement"
-            [alignment]="alignment"
-            [trigger]="trigger"
-            [variant]="cell.variant"
-            [size]="cell.size"
-            [showArrow]="showArrow"
-          >
-            <app-button trigger variant="primary" [size]="cell.size">\{{ cell.buttonLabel }}</app-button>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              <strong style="font-size: 0.875rem;">\{{ cell.headingLabel }}</strong>
-              <p style="margin: 0; font-size: inherit; color: var(--color-text-muted, #6B6B8A);">
-                Body text scales with the size token.
-              </p>
-            </div>
-          </app-popover>
+          @for (cell of cells; track cell.buttonLabel) {
+            <app-popover
+              [placement]="placement"
+              [alignment]="alignment"
+              [trigger]="trigger"
+              [variant]="cell.variant"
+              [size]="cell.size"
+              [showArrow]="showArrow"
+            >
+              <app-button trigger variant="primary" [size]="cell.size">\{{ cell.buttonLabel }}</app-button>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <strong style="font-size: 0.875rem;">\{{ cell.headingLabel }}</strong>
+                <p style="margin: 0; font-size: inherit; color: var(--color-text-muted, #6B6B8A);">
+                  Body text scales with the size token.
+                </p>
+              </div>
+            </app-popover>
+          }
         </div>
       `,
     };
