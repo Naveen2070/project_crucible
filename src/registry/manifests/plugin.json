@@ -12,7 +12,8 @@
     "components/dialog.json",
     "components/select.json",
     "components/table.json",
-    "components/popover.json"
+    "components/popover.json",
+    "components/toast.json"
   ],
   "frameworks": [
     "frameworks/react.json",
