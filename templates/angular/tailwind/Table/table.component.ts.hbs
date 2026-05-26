@@ -44,6 +44,8 @@ export class TableComponent<T extends Record<string, unknown>> implements OnInit
   @Input() loading = false;
   @Input() emptyMessage = 'No data available';
   @Input() className = '';
+  /** Accessible caption announced by screen readers (visually hidden by default). */
+  @Input() caption?: string;
 
   @Output() pageChange = new EventEmitter<{ page: number; pageSize: number }>();
   @Output() sortChange = new EventEmitter<{ key: string; direction: SortDirection }>();

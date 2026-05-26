@@ -104,10 +104,12 @@ export const WithSorting: Story = {
     columns,
     data: generateData(20),
     rowKey: 'id',
+    sortKey: 'name',
+    sortDirection: 'asc',
   },
   render: (args: any) => ({
     props: args,
-    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey"></app-table>`,
+    template: `<app-table [columns]="columns" [data]="data" [rowKey]="rowKey" [sortKey]="sortKey" [sortDirection]="sortDirection"></app-table>`,
   }),
 };
 
