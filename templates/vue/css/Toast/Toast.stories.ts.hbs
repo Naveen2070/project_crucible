@@ -1,0 +1,273 @@
+import { ref } from 'vue';
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Toaster, { toast, type ToastPosition } from './Toast.vue';
+import Button from '../Button/Button.vue';
+
+const meta: Meta<typeof Toaster> = {
+  title: 'Crucible/Toast',
+  component: Toaster,
+  tags: ['autodocs'],
+  argTypes: {
+    position: {
+      control: 'select',
+      options: [
+        'top-left',
+        'top-center',
+        'top-right',
+        'bottom-left',
+        'bottom-center',
+        'bottom-right',
+      ],
+    },
+    duration: { control: 'number' },
+    maxToasts: { control: 'number' },
+    richColors: { control: 'boolean' },
+    closeButton: { control: 'boolean' },
+  },
+  args: {
+    position: 'bottom-right',
+    duration: 4000,
+    maxToasts: 5,
+    richColors: false,
+    closeButton: false,
+  },
+  parameters: { layout: 'centered' },
+  decorators: [
+    () => ({
+      template: '<div style="min-height: 320px; padding: 32px;"><story /></div>',
+    }),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Toaster>;
+
+export const Default: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      return {
+        args,
+        showToast: () => toast('Event has been created'),
+        dismissAll: () => toast.dismiss(),
+      };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        <Button @click="showToast">Show toast</Button>
+        <Button variant="outline" @click="dismissAll">Dismiss all</Button>
+      </div>
+      <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted, #6B6B8A);">
+        Click <strong>Show toast</strong>. Auto-dismisses after \{{ args.duration }}ms. Hover to pause.
+      </p>
+    `,
+  }),
+};
+
+export const Variants: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      return {
+        args: { ...args, closeButton: true },
+        fireSuccess: () =>
+          toast.success('Profile updated', { description: 'Your changes have been saved.' }),
+        fireError: () =>
+          toast.error('Upload failed', { description: 'Network error — please try again.' }),
+        fireWarning: () =>
+          toast.warning('Disk almost full', { description: '85% of available space used.' }),
+        fireInfo: () =>
+          toast.info('New version available', { description: 'Version 2.0 is ready.' }),
+        fireLoading: () =>
+          toast.loading('Uploading file…', { description: 'Please wait' }),
+      };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Button @click="fireSuccess">Success</Button>
+        <Button variant="destructive" @click="fireError">Error</Button>
+        <Button variant="outline" @click="fireWarning">Warning</Button>
+        <Button variant="outline" @click="fireInfo">Info</Button>
+        <Button variant="ghost" @click="fireLoading">Loading</Button>
+      </div>
+    `,
+  }),
+};
+
+export const WithAction: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      const onRetry = () =>
+        toast.success('File deleted', { description: 'Successful on retry' });
+      const onUndo = () => toast.info('Message restored');
+      return {
+        args,
+        fireErrorWithRetry: () =>
+          toast.error('Failed to delete file', {
+            description: 'The server returned an error.',
+            action: { label: 'Retry', onClick: onRetry },
+          }),
+        fireUndo: () =>
+          toast('Message archived', {
+            description: 'You can undo this action.',
+            action: { label: 'Undo', onClick: onUndo },
+            duration: 8000,
+          }),
+      };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Button variant="destructive" @click="fireErrorWithRetry">Error with retry</Button>
+        <Button @click="fireUndo">Action with undo</Button>
+      </div>
+    `,
+  }),
+};
+
+export const PromiseToast: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      const runPromise = (shouldFail = false) => {
+        const p = new Promise<{ name: string }>((resolve, reject) =>
+          window.setTimeout(() => {
+            if (shouldFail) reject(new Error('Network error'));
+            else resolve({ name: 'document.pdf' });
+          }, 2000),
+        );
+        toast.promise(p, {
+          loading: 'Saving file…',
+          success: (data) => `\${data.name} saved successfully`,
+          error: (err) => `Error: \${(err as Error).message}`,
+        });
+      };
+      return { args, runOk: () => runPromise(false), runFail: () => runPromise(true) };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Button @click="runOk">Run promise (succeeds)</Button>
+        <Button variant="destructive" @click="runFail">Run promise (fails)</Button>
+      </div>
+      <p style="margin: 8px 0 0 0; font-size: 0.875rem; color: var(--color-text-muted, #6B6B8A);">
+        Loading toast appears immediately, then replaces in place after 2s.
+      </p>
+    `,
+  }),
+};
+
+export const AllPositions: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      const pos = ref<ToastPosition>('bottom-right');
+      const positions: ToastPosition[] = [
+        'top-left',
+        'top-center',
+        'top-right',
+        'bottom-left',
+        'bottom-center',
+        'bottom-right',
+      ];
+      const switchTo = (p: ToastPosition) => {
+        pos.value = p;
+        window.setTimeout(() => toast(`Toast at \${p}`), 50);
+      };
+      return { args, pos, positions, switchTo };
+    },
+    template: `
+      <Toaster v-bind="args" :position="pos" />
+      <p style="margin: 0 0 12px 0; font-size: 0.875rem;">
+        Active position: <code v-text="pos" />
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <Button
+          v-for="p in positions"
+          :key="p"
+          :variant="p === pos ? 'default' : 'outline'"
+          @click="switchTo(p)"
+          v-text="p"
+        />
+      </div>
+    `,
+  }),
+};
+
+export const UpdateInPlace: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      const saveDraft = () => {
+        const id = toast.loading('Saving draft…', { id: 'save-demo' });
+        window.setTimeout(() => {
+          toast.success('Draft saved', {
+            id,
+            description: 'All changes synced.',
+            duration: 4000,
+          });
+        }, 1500);
+      };
+      return { args, saveDraft };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Button @click="saveDraft">Save draft (updates in place)</Button>
+      </div>
+      <p style="margin: 8px 0 0 0; font-size: 0.875rem; color: var(--color-text-muted, #6B6B8A);">
+        Click multiple times — same toast id reuses the same slot.
+      </p>
+    `,
+  }),
+};
+
+export const RichColors: Story = {
+  args: { richColors: true, closeButton: true },
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      return {
+        args,
+        fireSuccess: () => toast.success('Saved!', { description: 'Your changes are live.' }),
+        fireError: () => toast.error('Failed', { description: 'Network error.' }),
+        fireWarning: () => toast.warning('Almost full', { description: '85% disk used.' }),
+        fireInfo: () => toast.info('Heads up', { description: 'Update available.' }),
+      };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Button @click="fireSuccess">Success</Button>
+        <Button variant="destructive" @click="fireError">Error</Button>
+        <Button variant="outline" @click="fireWarning">Warning</Button>
+        <Button variant="outline" @click="fireInfo">Info</Button>
+      </div>
+    `,
+  }),
+};
+
+export const DismissAndCustom: Story = {
+  render: (args) => ({
+    components: { Toaster, Button },
+    setup() {
+      const stackThree = () => {
+        toast('First');
+        window.setTimeout(() => toast.success('Second'), 200);
+        window.setTimeout(() => toast.info('Third'), 400);
+      };
+      const dismissAll = () => toast.dismiss();
+      return { args, stackThree, dismissAll };
+    },
+    template: `
+      <Toaster v-bind="args" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Button @click="stackThree">Stack 3 toasts</Button>
+        <Button variant="outline" @click="dismissAll">Dismiss all</Button>
+      </div>
+    `,
+  }),
+};
