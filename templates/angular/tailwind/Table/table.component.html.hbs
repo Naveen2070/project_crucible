@@ -12,7 +12,14 @@
   >
     @if (shouldVirtualize() && virtualState()) {
       <div [style.height]="virtualState()!.totalHeight + 'px'" [style.position]="'relative'">
-        <table [ngClass]="getTableClasses()" role="grid">
+        <table
+          [ngClass]="getTableClasses()"
+          role="grid"
+          [attr.aria-busy]="loading ? 'true' : null"
+        >
+          @if (caption) {
+            <caption class="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0 [clip:rect(0,0,0,0)]" [innerText]="caption"></caption>
+          }
           <thead class="sticky top-0 z-10 bg-[var(--color-surface)]">
             <tr class="border-b border-[var(--color-border)]">
               @if (selectionMode !== 'none') {
@@ -29,12 +36,13 @@
                 <th
                   [ngClass]="getHeaderCellClasses(col)"
                   [style.width]="col.width"
+                  scope="col"
                   (click)="handleSort(col)"
                   [attr.role]="col.sortable ? 'columnheader' : null"
                   [attr.aria-sort]="getAriaSort(col.key)">
-                  {{ col.label }}
+                  <span [innerText]="col.label"></span>
                   @if (col.sortable && shouldShowSortIcon(col.key)) {
-                    <span class="sort-icon">{{ sortIcon }}</span>
+                    <span class="sort-icon" [innerText]="sortIcon"></span>
                   }
                 </th>
               }
@@ -66,7 +74,14 @@
         </table>
       </div>
     } @else {
-      <table [ngClass]="getTableClasses()" role="grid">
+      <table
+        [ngClass]="getTableClasses()"
+        role="grid"
+        [attr.aria-busy]="loading ? 'true' : null"
+      >
+        @if (caption) {
+          <caption class="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0 [clip:rect(0,0,0,0)]" [innerText]="caption"></caption>
+        }
         <thead class="bg-[var(--color-surface)]">
           <tr class="border-b border-[var(--color-border)]">
             @if (selectionMode !== 'none') {
@@ -82,12 +97,13 @@
               <th
                 [ngClass]="getHeaderCellClasses(col)"
                 [style.width]="col.width"
+                scope="col"
                 (click)="handleSort(col)"
                 [attr.role]="col.sortable ? 'columnheader' : null"
                 [attr.aria-sort]="getAriaSort(col.key)">
-                {{ col.label }}
+                <span [innerText]="col.label"></span>
                 @if (col.sortable && shouldShowSortIcon(col.key)) {
-                  <span class="ml-1" [textContent]="getSortIcon()"></span>
+                  <span class="ml-1" [innerText]="sortIcon"></span>
                 }
               </th>
             }
@@ -98,9 +114,9 @@
             <tr>
               <td
                 [attr.colspan]="columns.length + (selectionMode !== 'none' ? 1 : 0)"
-                class="px-4 py-8 text-center text-[var(--color-text-muted)]">
-                {{ emptyMessage }}
-              </td>
+                class="px-4 py-8 text-center text-[var(--color-text-muted)]"
+                [innerText]="emptyMessage"
+              ></td>
             </tr>
           }
           @for (row of displayData(); track trackByIndex($index, row); let idx = $index) {
@@ -133,7 +149,13 @@
     @if (info.totalPages > 1) {
       <div class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
         <div class="text-sm text-[var(--color-text-muted)]">
-          Showing {{ pageStart }} to {{ pageEnd }} of {{ totalItems }} results
+          Showing
+          <span [innerText]="pageStart"></span>
+          to
+          <span [innerText]="pageEnd"></span>
+          of
+          <span [innerText]="totalItems"></span>
+          results
         </div>
         <div class="flex items-center gap-1">
           <button
@@ -146,11 +168,11 @@
             <button
               (click)="onPageChange(p)"
               class="px-3 py-1 text-sm rounded border"
-              [ngClass]="p === internalPage() 
-                ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' 
-                : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]'">
-              {{ p }}
-            </button>
+              [ngClass]="p === internalPage()
+                ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
+                : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]'"
+              [innerText]="p"
+            ></button>
           }
           <button
             (click)="onPageChange(internalPage() + 1)"

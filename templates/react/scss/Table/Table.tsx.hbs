@@ -39,6 +39,8 @@ export interface TableProps<T = unknown> {
   loading?: boolean;
   emptyMessage?: string;
   className?: string;
+  /** Accessible caption announced by screen readers (visually hidden by default). */
+  caption?: string;
 }
 
 const sizeClasses: Record<string, string> = {
@@ -75,6 +77,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
   loading = false,
   emptyMessage = 'No data available',
   className,
+  caption,
 }: TableProps<T>) => {
   const [internalPage, setInternalPage] = useState(page);
   const [internalSortKey, setInternalSortKey] = useState(sortKey);
@@ -83,7 +86,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
 
   const processedData = useMemo(() => {
     let result = [...data];
-    if (internalSortKey && onSort) {
+    if (internalSortKey) {
       result = sort(result, internalSortKey, internalSortDir);
     }
     return result;
@@ -213,7 +216,12 @@ export const TableRoot = <T extends Record<string, unknown>>({
   return (
     <div className={wrapperClasses}>
       <div className={styles.tableContainer}>
-        <table className={tableClasses} role="grid">
+        <table
+          className={tableClasses}
+          role="grid"
+          aria-busy={loading || undefined}
+        >
+          {caption && <caption className={styles.srOnly}>{caption}</caption>}
           <thead className={styles.thead}>
             <tr className={styles.headerRow}>
               {selectionMode !== 'none' && (
@@ -231,6 +239,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                   key={col.key}
                   className={headerCellClasses(col)}
                   style={col.width ? { width: col.width } : undefined}
+                  scope="col"
                   onClick={() => handleSort(col)}
                   role={col.sortable ? 'columnheader' : undefined}
                   aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}

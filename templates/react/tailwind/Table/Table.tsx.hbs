@@ -40,6 +40,8 @@ export interface TableProps<T = unknown> {
   loading?: boolean;
   emptyMessage?: string;
   className?: string;
+  /** Accessible caption announced by screen readers (visually hidden by default). */
+  caption?: string;
 }
 
 const sizeClasses: Record<string, string> = {
@@ -80,6 +82,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
   loading = false,
   emptyMessage = 'No data available',
   className,
+  caption,
 }: TableProps<T>) => {
   const [internalPage, setInternalPage] = useState(page);
   const [internalSortKey, setInternalSortKey] = useState(sortKey);
@@ -93,7 +96,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
 
   const processedData = useMemo(() => {
     let result = [...data];
-    if (internalSortKey && onSort) {
+    if (internalSortKey) {
       result = sort(result, internalSortKey, internalSortDir);
     }
     return result;
@@ -228,7 +231,14 @@ export const TableRoot = <T extends Record<string, unknown>>({
         {internalSortKey ? `Sorted by ${internalSortKey} ${internalSortDir}` : ''}
       </span>
       <div className="overflow-auto">
-        <table className={tableClasses} role="grid">
+        <table
+          className={tableClasses}
+          role="grid"
+          aria-busy={loading || undefined}
+        >
+          {caption && (
+            <caption className="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0 [clip:rect(0,0,0,0)]">{caption}</caption>
+          )}
           <thead className="bg-[var(--color-surface)]">
             <tr className="border-b border-[var(--color-border)]">
               {selectionMode !== 'none' && (
@@ -247,6 +257,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                   key={col.key}
                   className={headerCellClasses(col)}
                   style={col.width ? { width: col.width } : undefined}
+                  scope="col"
                   onClick={() => handleSort(col)}
                   role={col.sortable ? 'columnheader' : undefined}
                   aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}

@@ -36,6 +36,8 @@ interface Props {
   selectedRows?: string[];
   loading?: boolean;
   emptyMessage?: string;
+  /** Accessible caption announced by screen readers (visually hidden by default). */
+  caption?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -246,7 +248,13 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
       @scroll="showVirtualContainer ? handleScroll : undefined"
     >
       <div v-if="showVirtualContainer" :style="{ height: totalHeight + 'px', position: 'relative' }">
-        <table :class="tableClasses" role="grid" style="position: sticky; top: 0;">
+        <table
+          :class="tableClasses"
+          role="grid"
+          style="position: sticky; top: 0;"
+          :aria-busy="loading || undefined"
+        >
+          <caption v-if="caption" class="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0 [clip:rect(0,0,0,0)]" v-text="caption" />
           <thead class="bg-[var(--color-surface)]">
             <tr class="border-b border-[var(--color-border)]">
               <th v-if="selectionMode !== 'none'" :class="['px-4 py-3', sizeClasses[size], isBordered ? 'border ! border-[var(--color-border)]' : '']">
@@ -263,12 +271,13 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
                 :key="col.key"
                 :class="headerCellClasses(col)"
                 :style="{ width: col.width }"
+                scope="col"
                 @click="handleSort(col)"
                 :role="col.sortable ? 'columnheader' : undefined"
                 :aria-sort="getSortAriaSort(col.key)"
               >
-                {{ col.label }}
-                <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">{{ sortIcon }}</span>
+                <span v-text="col.label" />
+                <span v-if="col.sortable && internalSortKey === col.key" class="ml-1" v-text="sortIcon" />
               </th>
             </tr>
           </thead>
@@ -304,7 +313,13 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
           </tbody>
         </table>
       </div>
-      <table v-else :class="tableClasses" role="grid">
+      <table
+        v-else
+        :class="tableClasses"
+        role="grid"
+        :aria-busy="loading || undefined"
+      >
+        <caption v-if="caption" class="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0 [clip:rect(0,0,0,0)]" v-text="caption" />
         <thead class="bg-[var(--color-surface)]">
           <tr class="border-b border-[var(--color-border)]">
             <th v-if="selectionMode !== 'none'" :class="['px-4 py-3', sizeClasses[size], isBordered ? 'border ! border-[var(--color-border)]' : '']">
@@ -321,12 +336,13 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               :key="col.key"
               :class="headerCellClasses(col)"
               :style="{ width: col.width }"
+              scope="col"
               @click="handleSort(col)"
               :role="col.sortable ? 'columnheader' : undefined"
               :aria-sort="getSortAriaSort(col.key)"
             >
-              {{ col.label }}
-              <span v-if="col.sortable && internalSortKey === col.key" class="ml-1">{{ sortIcon }}</span>
+              <span v-text="col.label" />
+              <span v-if="col.sortable && internalSortKey === col.key" class="ml-1" v-text="sortIcon" />
             </th>
           </tr>
         </thead>
@@ -335,9 +351,8 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
             <td
               :colspan="columns.length + (selectionMode !== 'none' ? 1 : 0)"
               class="px-4 py-8 text-center text-[var(--color-text-muted)]"
-            >
-              {{ emptyMessage }}
-            </td>
+              v-text="emptyMessage"
+            ></td>
           </tr>
           <tr
             v-for="(row, idx) in displayData"
@@ -376,7 +391,13 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
       class="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]"
     >
       <div class="text-sm text-[var(--color-text-muted)]">
-        Showing {{ paginationStart }} to {{ paginationEnd }} of {{ paginationTotal }} results
+        Showing
+        <span v-text="paginationStart" />
+        to
+        <span v-text="paginationEnd" />
+        of
+        <span v-text="paginationTotal" />
+        results
       </div>
       <div class="flex items-center gap-1">
         <button
@@ -396,9 +417,8 @@ const isRowSelected = (row: Record<string, unknown>) => internalSelected.value.i
               ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
               : 'border-[var(--color-border)] hover:bg-[var(--color-secondary)]',
           ].filter(Boolean).join(' ')"
-        >
-          {{ p }}
-        </button>
+          v-text="p"
+        ></button>
         <button
           @click="() => { internalPage++; emit('pageChange', internalPage, pageSize); }"
           :disabled="!pageInfo.hasNextPage"
