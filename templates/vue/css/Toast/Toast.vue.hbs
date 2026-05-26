@@ -1,0 +1,565 @@
+<script lang="ts">
+import { ref } from 'vue';
+
+// ===== Types (exported for consumer use) =====
+export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info' | 'loading';
+export type ToastPosition =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
+
+export interface ToastAction {
+  label: string;
+  onClick: (event: MouseEvent) => void;
+}
+
+export interface ToastOptions {
+  id?: string | number;
+  description?: string;
+  duration?: number;
+  variant?: ToastVariant;
+  icon?: string;
+  action?: ToastAction;
+  cancel?: ToastAction;
+  onDismiss?: (id: string | number) => void;
+  onAutoClose?: (id: string | number) => void;
+  className?: string;
+}
+
+export interface ToastData extends ToastOptions {
+  id: string | number;
+  message: string;
+  variant: ToastVariant;
+  createdAt: number;
+}
+
+// ===== Module-level singleton store =====
+let nextId = 1;
+export const toastsRef = ref<ToastData[]>([]);
+
+function upsert(
+  partial: Partial<ToastOptions> & { message: string; variant: ToastVariant },
+): string | number {
+  const id = partial.id ?? nextId++;
+  const idx = toastsRef.value.findIndex((t) => t.id === id);
+  if (idx >= 0) {
+    const merged: ToastData = { ...toastsRef.value[idx], ...partial, id };
+    toastsRef.value = toastsRef.value.map((t, i) => (i === idx ? merged : t));
+  } else {
+    toastsRef.value = [
+      ...toastsRef.value,
+      { id, createdAt: Date.now(), ...partial } as ToastData,
+    ];
+  }
+  return id;
+}
+
+export function removeToast(id: string | number) {
+  toastsRef.value = toastsRef.value.filter((t) => t.id !== id);
+}
+
+function dismissImpl(id?: string | number) {
+  if (id == null) {
+    toastsRef.value.forEach((t) => t.onDismiss?.(t.id));
+    toastsRef.value = [];
+    return;
+  }
+  const t = toastsRef.value.find((x) => x.id === id);
+  if (!t) return;
+  t.onDismiss?.(t.id);
+  removeToast(id);
+}
+
+// ===== Public toast() function with attached variant shortcuts =====
+interface ToastFunction {
+  (message: string, options?: ToastOptions): string | number;
+  success: (message: string, options?: ToastOptions) => string | number;
+  error: (message: string, options?: ToastOptions) => string | number;
+  warning: (message: string, options?: ToastOptions) => string | number;
+  info: (message: string, options?: ToastOptions) => string | number;
+  loading: (message: string, options?: ToastOptions) => string | number;
+  custom: (message: string, options?: ToastOptions) => string | number;
+  dismiss: (id?: string | number) => void;
+  promise: <T>(
+    promise: Promise<T>,
+    messages: {
+      loading: string;
+      success: string | ((value: T) => string);
+      error: string | ((err: unknown) => string);
+    },
+    options?: ToastOptions,
+  ) => string | number;
+}
+
+const toastFn = ((message: string, options: ToastOptions = {}) =>
+  upsert({ ...options, message, variant: options.variant ?? 'default' })) as ToastFunction;
+
+toastFn.success = (m, o) => upsert({ ...o, message: m, variant: 'success' });
+toastFn.error = (m, o) => upsert({ ...o, message: m, variant: 'error' });
+toastFn.warning = (m, o) => upsert({ ...o, message: m, variant: 'warning' });
+toastFn.info = (m, o) => upsert({ ...o, message: m, variant: 'info' });
+toastFn.loading = (m, o) =>
+  upsert({ ...o, message: m, variant: 'loading', duration: o?.duration ?? Infinity });
+toastFn.custom = (m, o) => upsert({ ...o, message: m, variant: o?.variant ?? 'default' });
+toastFn.dismiss = dismissImpl;
+toastFn.promise = (p, msgs, options) => {
+  const id = upsert({
+    ...options,
+    message: msgs.loading,
+    variant: 'loading',
+    duration: Infinity,
+  });
+  p.then((v) =>
+    upsert({
+      id,
+      message: typeof msgs.success === 'function' ? msgs.success(v) : msgs.success,
+      variant: 'success',
+      duration: options?.duration,
+    }),
+  ).catch((err) =>
+    upsert({
+      id,
+      message: typeof msgs.error === 'function' ? msgs.error(err) : msgs.error,
+      variant: 'error',
+      duration: options?.duration,
+    }),
+  );
+  return id;
+};
+
+export const toast = toastFn;
+</script>
+
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+
+interface Props {
+  position?: ToastPosition;
+  duration?: number;
+  maxToasts?: number;
+  richColors?: boolean;
+  closeButton?: boolean;
+  pauseWhenPageIsHidden?: boolean;
+  className?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  position: 'bottom-right',
+  duration: 4000,
+  maxToasts: 5,
+  richColors: false,
+  closeButton: false,
+  pauseWhenPageIsHidden: true,
+  className: '',
+});
+
+const positionSide = computed(() => (props.position.startsWith('top') ? 'top' : 'bottom'));
+
+const wrapperClasses = computed(() =>
+  [
+    'toaster',
+    `toaster--${props.position}`,
+    props.richColors ? 'toaster--rich' : '',
+    props.className,
+  ]
+    .filter(Boolean)
+    .join(' '),
+);
+
+// Visible window (most recent maxToasts)
+const visibleToasts = computed(() => {
+  const all = toastsRef.value;
+  return all.length > props.maxToasts ? all.slice(all.length - props.maxToasts) : all;
+});
+
+// Auto-drop overflow when limit exceeded
+watch(toastsRef, (list) => {
+  if (list.length > props.maxToasts) {
+    const overflow = list.length - props.maxToasts;
+    list.slice(0, overflow).forEach((t) => removeToast(t.id));
+  }
+});
+
+// Per-toast timer registry (id -> timeout state)
+interface TimerEntry {
+  timer: number | null;
+  remaining: number;
+  startedAt: number;
+  dismissed: boolean;
+  state: 'enter' | 'visible' | 'exit';
+}
+const timers = ref<Map<string | number, TimerEntry>>(new Map());
+
+function getEntry(id: string | number, duration: number): TimerEntry {
+  let entry = timers.value.get(id);
+  if (!entry) {
+    entry = {
+      timer: null,
+      remaining: duration,
+      startedAt: Date.now(),
+      dismissed: false,
+      state: 'enter',
+    };
+    timers.value.set(id, entry);
+    // promote to visible on next frame
+    requestAnimationFrame(() => {
+      const e = timers.value.get(id);
+      if (e) e.state = 'visible';
+      timers.value = new Map(timers.value);
+    });
+  }
+  return entry;
+}
+
+function clearTimer(id: string | number) {
+  const e = timers.value.get(id);
+  if (e?.timer) {
+    window.clearTimeout(e.timer);
+    e.timer = null;
+  }
+}
+
+function scheduleAutoClose(t: ToastData) {
+  const duration = t.duration ?? props.duration;
+  if (duration === Infinity) return;
+  const e = getEntry(t.id, duration);
+  if (e.dismissed) return;
+  e.startedAt = Date.now();
+  clearTimer(t.id);
+  e.timer = window.setTimeout(() => handleAutoClose(t), e.remaining);
+}
+
+function pause(id: string | number) {
+  const e = timers.value.get(id);
+  if (!e || !e.timer) return;
+  window.clearTimeout(e.timer);
+  e.timer = null;
+  e.remaining = Math.max(0, e.remaining - (Date.now() - e.startedAt));
+}
+
+function resume(t: ToastData) {
+  scheduleAutoClose(t);
+}
+
+function handleDismiss(t: ToastData) {
+  const e = getEntry(t.id, t.duration ?? props.duration);
+  if (e.dismissed) return;
+  e.dismissed = true;
+  clearTimer(t.id);
+  e.state = 'exit';
+  timers.value = new Map(timers.value);
+  window.setTimeout(() => {
+    t.onDismiss?.(t.id);
+    removeToast(t.id);
+    timers.value.delete(t.id);
+  }, 150);
+}
+
+function handleAutoClose(t: ToastData) {
+  const e = timers.value.get(t.id);
+  if (!e || e.dismissed) return;
+  e.dismissed = true;
+  clearTimer(t.id);
+  e.state = 'exit';
+  timers.value = new Map(timers.value);
+  window.setTimeout(() => {
+    t.onAutoClose?.(t.id);
+    removeToast(t.id);
+    timers.value.delete(t.id);
+  }, 150);
+}
+
+function getStateAttr(id: string | number): string {
+  return timers.value.get(id)?.state ?? 'enter';
+}
+
+function toastClasses(t: ToastData) {
+  return ['toast', `toast--${t.variant}`, t.className].filter(Boolean).join(' ');
+}
+
+function actionClick(t: ToastData, e: MouseEvent) {
+  t.action?.onClick(e);
+  handleDismiss(t);
+}
+
+// Schedule timer for each new toast
+watch(
+  visibleToasts,
+  (list) => {
+    list.forEach((t) => {
+      if (!timers.value.has(t.id)) scheduleAutoClose(t);
+    });
+  },
+  { immediate: true },
+);
+
+// Page visibility pause/resume
+function onVisibility() {
+  if (document.visibilityState === 'hidden') {
+    visibleToasts.value.forEach((t) => pause(t.id));
+  } else {
+    visibleToasts.value.forEach((t) => resume(t));
+  }
+}
+
+onMounted(() => {
+  if (props.pauseWhenPageIsHidden) {
+    document.addEventListener('visibilitychange', onVisibility);
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisibility);
+  timers.value.forEach((e) => {
+    if (e.timer) window.clearTimeout(e.timer);
+  });
+});
+
+function shouldShowIcon(t: ToastData): boolean {
+  return Boolean(t.icon) || t.variant !== 'default';
+}
+
+const ICON_PATHS: Record<string, string> = {
+  success: 'M20 6L9 17l-5-5',
+  error: 'M18 6L6 18M6 6l12 12',
+  warning:
+    'M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z',
+  info: 'M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+};
+
+function iconPath(variant: ToastVariant): string {
+  return ICON_PATHS[variant] ?? '';
+}
+</script>
+
+<template>
+  <Teleport to="body">
+    <ol
+      :class="wrapperClasses"
+      :data-position-side="positionSide"
+      aria-label="Notifications"
+    >
+      <li
+        v-for="t in visibleToasts"
+        :key="t.id"
+        :class="toastClasses(t)"
+        :data-state="getStateAttr(t.id)"
+        :role="t.variant === 'error' ? 'alert' : 'status'"
+        :aria-live="t.variant === 'error' ? 'assertive' : 'polite'"
+        aria-atomic="true"
+        @mouseenter="pause(t.id)"
+        @mouseleave="resume(t)"
+        @focus="pause(t.id)"
+        @blur="resume(t)"
+      >
+        <span v-if="shouldShowIcon(t)" class="toast-icon">
+          <span v-if="t.variant === 'loading'" class="toast-spinner" aria-hidden="true" />
+          <svg
+            v-else-if="iconPath(t.variant)"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path :d="iconPath(t.variant)" />
+          </svg>
+        </span>
+        <div class="toast-body">
+          <div class="toast-title" v-text="t.message" />
+          <div v-if="t.description" class="toast-description" v-text="t.description" />
+        </div>
+        <button
+          v-if="t.action"
+          type="button"
+          class="toast-action"
+          @click="actionClick(t, $event)"
+          v-text="t.action.label"
+        />
+        <button
+          v-if="closeButton"
+          type="button"
+          class="toast-close"
+          aria-label="Close notification"
+          @click="handleDismiss(t)"
+        >
+          ×
+        </button>
+      </li>
+    </ol>
+  </Teleport>
+</template>
+
+<style scoped>
+.toaster {
+  position: fixed;
+  z-index: var(--toast-z-index, {{tokens.componentTokens.toast.zIndex}});
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  max-width: 420px;
+  width: 100%;
+  list-style: none;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+}
+.toaster--top-left { top: 0; left: 0; }
+.toaster--top-center { top: 0; left: 50%; transform: translateX(-50%); }
+.toaster--top-right { top: 0; right: 0; }
+.toaster--bottom-left { bottom: 0; left: 0; flex-direction: column-reverse; }
+.toaster--bottom-center { bottom: 0; left: 50%; transform: translateX(-50%); flex-direction: column-reverse; }
+.toaster--bottom-right { bottom: 0; right: 0; flex-direction: column-reverse; }
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--toast-gap, {{tokens.componentTokens.toast.gap}});
+  background: var(--toast-background, {{tokens.componentTokens.toast.background}});
+  color: var(--toast-text, {{tokens.componentTokens.toast.text}});
+  border: 1px solid var(--toast-border, {{tokens.componentTokens.toast.border}});
+  border-radius: var(--toast-radius, {{tokens.componentTokens.toast.radius}});
+  box-shadow: var(--toast-shadow, {{tokens.componentTokens.toast.shadow}});
+  padding: var(--toast-padding, {{tokens.componentTokens.toast.padding}});
+  font-size: 0.875rem;
+  line-height: 1.4;
+  min-width: 320px;
+  max-width: 420px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.toast--default { border-left: 3px solid var(--color-border); }
+.toast--success { border-left: 3px solid var(--color-success); }
+.toast--error { border-left: 3px solid var(--color-destructive); }
+.toast--warning { border-left: 3px solid #f59e0b; }
+.toast--info { border-left: 3px solid var(--color-primary); }
+.toast--loading { border-left: 3px solid var(--color-text-muted); }
+
+.toaster--rich .toast--success {
+  background: var(--color-success);
+  color: #ffffff;
+  border-color: transparent;
+}
+.toaster--rich .toast--error {
+  background: var(--color-destructive);
+  color: #ffffff;
+  border-color: transparent;
+}
+.toaster--rich .toast--warning {
+  background: #f59e0b;
+  color: #1a1a2e;
+  border-color: transparent;
+}
+.toaster--rich .toast--info {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-color: transparent;
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.toast-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.toast-title {
+  font-weight: 500;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+.toast-description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+.toast-action {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--color-secondary);
+  color: var(--color-secondary-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  align-self: flex-start;
+}
+.toast-action:hover { background: var(--color-border); }
+.toast-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.toast-close {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease;
+}
+.toast-close:hover { opacity: 1; }
+.toast-close:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; opacity: 1; }
+
+.toast[data-state='enter'] { animation: toast-enter-bottom 250ms cubic-bezier(0.16, 1, 0.3, 1); }
+.toaster[data-position-side='top'] .toast[data-state='enter'] { animation-name: toast-enter-top; }
+.toast[data-state='exit'] { animation: toast-exit 150ms ease-in forwards; pointer-events: none; }
+
+.toast-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: toast-spin 0.8s linear infinite;
+}
+
+@keyframes toast-enter-bottom {
+  from { opacity: 0; transform: translateY(100%) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-enter-top {
+  from { opacity: 0; transform: translateY(-100%) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-exit {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.96); }
+}
+@keyframes toast-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast[data-state='enter'],
+  .toast[data-state='exit'] { animation: none; }
+  .toast-spinner { animation: none; }
+}
+</style>
