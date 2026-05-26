@@ -99,6 +99,8 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 | `Card`    | default, hoverable, clickable                                  | sm, md, lg           | —                     | Container with title, onClick, href   |
 | `Dialog`  | default, confirm                                               | sm, md, lg           | open, closed          | Focus trap, scroll lock, closeable    |
 | `Select`  | default, error                                                 | sm, md, lg           | disabled, error, open | Keyboard navigation, combobox pattern |
+| `Popover` | default, minimal                                               | sm, md, lg           | open, closed, modal   | Floating-UI positioning, focus trap (modal), click/hover trigger, arrow |
+| `Table`   | default, striped, bordered, compact                            | sm, md, lg           | loading, empty        | Client/server pagination, sorting, single/multi selection, virtualization (5k+ rows), optional caption |
 
 ---
 
@@ -221,11 +223,12 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 ## Project Status
 
-| Version | Status    | Description                                                                     |
-| ------- | --------- | ------------------------------------------------------------------------------- |
-| v1.0.4  | ✅ Stable | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script  |
-| v1.0.3  | ✅ Stable | Manual dark mode strategy, Vue SCSS template fixes                              |
-| v1.0.0  | ✅ Stable | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases |
+| Version      | Status        | Description                                                                                     |
+| ------------ | ------------- | ----------------------------------------------------------------------------------------------- |
+| _unreleased_ | 🚧 In-flight  | Added **Popover** and **Table** components; fixed sort/positioning bugs across all frameworks   |
+| v1.0.4       | ✅ Stable     | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                  |
+| v1.0.3       | ✅ Stable     | Manual dark mode strategy, Vue SCSS template fixes                                              |
+| v1.0.0       | ✅ Stable     | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases                 |
 
 ### v1.0.4 Features
 
