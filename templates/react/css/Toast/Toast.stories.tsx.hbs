@@ -1,0 +1,309 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Toaster, toast, type ToastPosition } from './Toast';
+import { Button } from '../Button/Button';
+
+const meta: Meta<typeof Toaster> = {
+  title: 'Crucible/Toast',
+  component: Toaster,
+  tags: ['autodocs'],
+  argTypes: {
+    position: {
+      control: 'select',
+      options: [
+        'top-left',
+        'top-center',
+        'top-right',
+        'bottom-left',
+        'bottom-center',
+        'bottom-right',
+      ],
+    },
+    duration: { control: 'number' },
+    maxToasts: { control: 'number' },
+    richColors: { control: 'boolean' },
+    closeButton: { control: 'boolean' },
+  },
+  args: {
+    position: 'bottom-right',
+    duration: 4000,
+    maxToasts: 5,
+    richColors: false,
+    closeButton: false,
+  },
+  parameters: { layout: 'centered' },
+  decorators: [
+    (Story) => (
+      <div style=\{{ minHeight: '320px', padding: '32px' }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Toaster>;
+
+const row: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+  marginBottom: '16px',
+};
+
+export const Default: Story = {
+  render: (args) => (
+    <>
+      <Toaster {...args} />
+      <div style={row}>
+        <Button onClick={() => toast('Event has been created')}>Show toast</Button>
+        <Button variant="outline" onClick={() => toast.dismiss()}>
+          Dismiss all
+        </Button>
+      </div>
+      <p style=\{{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted, #6B6B8A)' }}>
+        Click <strong>Show toast</strong>. Auto-dismisses after {args.duration}ms. Hover to pause.
+      </p>
+    </>
+  ),
+};
+
+export const Variants: Story = {
+  render: (args) => (
+    <>
+      <Toaster {...args} closeButton />
+      <div style={row}>
+        <Button
+          onClick={() =>
+            toast.success('Profile updated', { description: 'Your changes have been saved.' })
+          }
+        >
+          Success
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={() =>
+            toast.error('Upload failed', { description: 'Network error — please try again.' })
+          }
+        >
+          Error
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.warning('Disk almost full', { description: '85% of available space used.' })
+          }
+        >
+          Warning
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.info('New version available', { description: 'Version 2.0 is ready.' })
+          }
+        >
+          Info
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => toast.loading('Uploading file…', { description: 'Please wait' })}
+        >
+          Loading
+        </Button>
+      </div>
+    </>
+  ),
+};
+
+export const WithAction: Story = {
+  render: (args) => (
+    <>
+      <Toaster {...args} />
+      <div style={row}>
+        <Button
+          variant="destructive"
+          onClick={() =>
+            toast.error('Failed to delete file', {
+              description: 'The server returned an error.',
+              action: {
+                label: 'Retry',
+                onClick: () => toast.success('File deleted', { description: 'Successful on retry' }),
+              },
+            })
+          }
+        >
+          Error with retry
+        </Button>
+        <Button
+          onClick={() =>
+            toast('Message archived', {
+              description: 'You can undo this action.',
+              action: {
+                label: 'Undo',
+                onClick: () => toast.info('Message restored'),
+              },
+              duration: 8000,
+            })
+          }
+        >
+          Action with undo
+        </Button>
+      </div>
+    </>
+  ),
+};
+
+export const PromiseToast: Story = {
+  render: (args) => {
+    const runPromise = (shouldFail = false) => {
+      const p = new Promise<{ name: string }>((resolve, reject) =>
+        window.setTimeout(() => {
+          if (shouldFail) reject(new Error('Network error'));
+          else resolve({ name: 'document.pdf' });
+        }, 2000),
+      );
+      toast.promise(p, {
+        loading: 'Saving file…',
+        success: (data) => `${data.name} saved successfully`,
+        error: (err) => `Error: ${(err as Error).message}`,
+      });
+    };
+    return (
+      <>
+        <Toaster {...args} />
+        <div style={row}>
+          <Button onClick={() => runPromise(false)}>Run promise (succeeds)</Button>
+          <Button variant="destructive" onClick={() => runPromise(true)}>
+            Run promise (fails)
+          </Button>
+        </div>
+        <p style=\{{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted, #6B6B8A)' }}>
+          Loading toast appears immediately, then replaces in place after 2s.
+        </p>
+      </>
+    );
+  },
+};
+
+export const AllPositions: Story = {
+  render: (args) => {
+    const [pos, setPos] = React.useState<ToastPosition>('bottom-right');
+    const positions: ToastPosition[] = [
+      'top-left',
+      'top-center',
+      'top-right',
+      'bottom-left',
+      'bottom-center',
+      'bottom-right',
+    ];
+    return (
+      <>
+        <Toaster {...args} position={pos} />
+        <p style=\{{ margin: '0 0 12px 0', fontSize: '0.875rem' }}>
+          Active position: <code>{pos}</code>
+        </p>
+        <div style=\{{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+          {positions.map((p) => (
+            <Button
+              key={p}
+              variant={p === pos ? 'default' : 'outline'}
+              onClick={() => {
+                setPos(p);
+                window.setTimeout(() => toast(`Toast at ${p}`), 50);
+              }}
+            >
+              {p}
+            </Button>
+          ))}
+        </div>
+      </>
+    );
+  },
+};
+
+export const UpdateInPlace: Story = {
+  render: (args) => (
+    <>
+      <Toaster {...args} />
+      <div style={row}>
+        <Button
+          onClick={() => {
+            const id = toast.loading('Saving draft…', { id: 'save-demo' });
+            window.setTimeout(() => {
+              toast.success('Draft saved', {
+                id,
+                description: 'All changes synced.',
+                duration: 4000,
+              });
+            }, 1500);
+          }}
+        >
+          Save draft (updates in place)
+        </Button>
+      </div>
+      <p style=\{{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted, #6B6B8A)' }}>
+        Click multiple times — same toast id reuses the same slot.
+      </p>
+    </>
+  ),
+};
+
+export const RichColors: Story = {
+  args: { richColors: true, closeButton: true },
+  render: (args) => (
+    <>
+      <Toaster {...args} />
+      <div style={row}>
+        <Button onClick={() => toast.success('Saved!', { description: 'Your changes are live.' })}>
+          Success
+        </Button>
+        <Button variant="destructive" onClick={() => toast.error('Failed', { description: 'Network error.' })}>
+          Error
+        </Button>
+        <Button variant="outline" onClick={() => toast.warning('Almost full', { description: '85% disk used.' })}>
+          Warning
+        </Button>
+        <Button variant="outline" onClick={() => toast.info('Heads up', { description: 'Update available.' })}>
+          Info
+        </Button>
+      </div>
+    </>
+  ),
+};
+
+export const DismissAndCustom: Story = {
+  render: (args) => (
+    <>
+      <Toaster {...args} />
+      <div style={row}>
+        <Button
+          onClick={() => {
+            toast('First');
+            window.setTimeout(() => toast.success('Second'), 200);
+            window.setTimeout(() => toast.info('Third'), 400);
+          }}
+        >
+          Stack 3 toasts
+        </Button>
+        <Button variant="outline" onClick={() => toast.dismiss()}>
+          Dismiss all
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() =>
+            toast.custom(
+              <div style=\{{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <strong>Custom JSX</strong>
+                <span style=\{{ fontSize: '0.8125rem', color: 'var(--color-text-muted, #6B6B8A)' }}>
+                  Render any node as a toast.
+                </span>
+              </div>,
+            )
+          }
+        >
+          Custom JSX toast
+        </Button>
+      </div>
+    </>
+  ),
+};
