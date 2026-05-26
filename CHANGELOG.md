@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Popover component** (React, Vue, Angular × CSS/SCSS/Tailwind): `placement` (top/bottom/left/right),
+  `alignment` (start/center/end), `variant` (default/minimal), `size` (sm/md/lg),
+  `trigger` (click/hover), `modal`, `ariaLabel`, `showArrow`. Built on `@floating-ui/{react,vue,dom}`.
+  Click trigger moves focus into the popover on open and restores it to the trigger on close;
+  `modal: true` traps Tab. `aria-haspopup` / `aria-controls` / `aria-expanded` wiring on trigger;
+  `role="dialog"` and optional `aria-modal` / `aria-label` on content. Stories: Default, AllPlacements,
+  VariantsAndSizes, Controlled, Uncontrolled, HoverTrigger, Modal, WithItems.
+- **Table component** (React, Vue, Angular × CSS/SCSS/Tailwind): `columns`, `data`, `rowKey`,
+  `variant` (default/striped/bordered/compact), `size` (sm/md/lg), client/server pagination,
+  single/multiple row selection, sortable headers, virtualization (5000+ rows), loading state,
+  custom `emptyMessage`, optional `caption` (visually-hidden by default). Stories: Default, Striped,
+  Bordered, Compact, WithPagination, WithSorting, WithSelection, Loading, Empty, Virtualized5k,
+  AllFeatures. React additionally exposes a compound API: `<Table.Header />`, `<Table.Body />`,
+  `<Table.Pagination />`.
+
+### Fixed
+
+- **Popover (Vue) — open flicker at top-left**: passed `transform: false` to `useFloating` so
+  positioning uses `top`/`left` instead of `transform: translate(…)`. The `popover-show` keyframe's
+  `transform: scale(…)` was overriding the translate for the full animation duration, pinning the
+  popover at viewport (0, 0). Removed the `<Transition>` wrapper; entry animation is now CSS-driven
+  via `[data-state="open"]` which only flips on after `isPositioned` is true.
+- **Popover (React) — `Popover.Close asChild` nested-button HTML**: `PopoverClose` now supports
+  `asChild` and merges props via `cloneElement` instead of always wrapping in its own `<button>`.
+- **Table sort logic (all frameworks)**: removed the `&& onSort` guard from the `processedData`
+  memo/computed — sort now applies whenever an internal sort key is set, regardless of whether
+  a parent `onSort` callback is provided.
+- **Table compound mode (React) — columns clumped on the left**: `<Table>` with children now wraps
+  `Table.Header` and `Table.Body` in a real `<table class="table">` element so the existing
+  `width: 100%; border-collapse: collapse` applies. Previously the compound children rendered as
+  orphan `<thead>`/`<tbody>` outside any `<table>`, triggering anonymous-table-box layout where
+  columns sized to content.
+- **Table (React) — monolithic virtualization crash**: `useVirtualizer()` destructure now includes
+  `containerHeight` (was previously referenced but not destructured, causing the virtual container
+  height to be `undefined`).
+- **Table generated playgrounds (Vue + Angular) — blank headers and pagination**: replaced
+  stripped `{{ col.label }}`, `{{ sortIcon }}`, `{{ emptyMessage }}`, `{{ paginationStart }}`,
+  `{{ paginationEnd }}`, `{{ paginationTotal }}`, `{{ p }}` mustaches with `v-text="…"` (Vue) and
+  `[innerText]="…"` (Angular). The toolchain post-processor was stripping simple identifier
+  mustaches from generated files; `v-text` / `[innerText]` survive.
+- **Popover stories (all frameworks) — wrong-looking Cancel buttons**: `variant="minimal"`
+  (not a valid Button variant — falls back to unstyled base) replaced with `variant="ghost"`.
+  Angular stories now use `<app-button>` instead of raw HTML `<button class="btn">` (the
+  Angular Button's CSS is component-scoped, so raw HTML in Popover/Table stories was rendering
+  as default browser buttons).
+
+### Accessibility
+
+- **Table**: `scope="col"` on every column `<th>`; optional `caption?: string` prop renders a
+  visually-hidden `<caption>` for screen readers; `aria-busy="true"` on `<table>` while
+  `loading`; `prefers-reduced-motion` disables entry animations where applicable.
+- **Popover**: focus moves into the popover on click-open and restores to the trigger on close;
+  `tabindex="-1"` on content so it can receive programmatic focus; `aria-modal` set only when
+  `modal: true`; `prefers-reduced-motion` disables the entry animation.
+
 ## [1.0.4] - 2026-03-31
 
 ### Changed
