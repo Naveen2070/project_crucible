@@ -1,0 +1,23 @@
+{
+  "id": "Form",
+  "name": "Form",
+  "description": "Composable form system with built-in validation and an optional react-hook-form adapter",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "inline"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled", "error", "submitting"],
+  "props": ["label", "hint", "required", "placeholder", "id"],
+  "prefix": "form",
+  "a11y": { "role": "form" },
+  "dependencies": [],
+  "peerDependencies": {
+    "react": [],
+    "vue": [],
+    "angular": []
+  },
+  "tailwindDefaults": {
+    "default": "flex flex-col gap-[var(--form-group-gap)]",
+    "inline": "flex flex-row flex-wrap items-end gap-[var(--form-group-gap)]"
+  }
+}
