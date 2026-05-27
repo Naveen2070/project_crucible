@@ -1193,6 +1193,127 @@ async function runE2E() {
       throw new Error('Angular Toast missing toast named export');
     }
     results.push({ phase: 'Toast + Angular + CSS', passed: true });
+
+    // ---- Form ----
+    const formA11y = {
+      focusRingStyle: 'outline',
+      focusRingColor: 'var(--color-primary)',
+      focusRingWidth: '2px',
+      focusRingOffset: '2px',
+      reduceMotion: true,
+    };
+
+    // Form + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 36: Form + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'Form.tsx'),
+      'utf-8',
+    );
+    if (!formReactCss.includes('export const FormControl') || !formReactCss.includes('Object.assign(FormRoot')) {
+      throw new Error('React Form missing compound exports');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Form', 'Form.module.css')))) {
+      throw new Error('Missing: Form/Form.module.css');
+    }
+    results.push({ phase: 'Form + React + CSS (compound)', passed: true });
+
+    // Form + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 37: Form + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'Form.tsx'),
+      'utf-8',
+    );
+    if (!formReactTw.includes('gap-[var(--form-group-gap)]')) {
+      throw new Error('React Tailwind Form missing inline token utility classes');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Form', 'Form.module.css'))) {
+      throw new Error('Tailwind Form should not emit a CSS module');
+    }
+    results.push({ phase: 'Form + React + Tailwind', passed: true });
+
+    // Form + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 38: Form + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'Form.vue'),
+      'utf-8',
+    );
+    if (!formVue.includes('export function useForm') || !formVue.includes('export const FormField')) {
+      throw new Error('Vue Form missing useForm composable or FormField sub-component');
+    }
+    results.push({ phase: 'Form + Vue + CSS', passed: true });
+
+    // Form + Angular + CSS
+    console.log(ansis.cyan('📦 Phase 39: Form + Angular + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formNgFiles = ['Form/form.component.ts', 'Form/form.component.html', 'Form/form.component.scss'];
+    for (const file of formNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const formNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'form.component.ts'),
+      'utf-8',
+    );
+    if (!formNgTs.includes('export class FormComponent') || !formNgTs.includes("styleUrls: ['./form.component.scss']")) {
+      throw new Error('Angular Form missing FormComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Form + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

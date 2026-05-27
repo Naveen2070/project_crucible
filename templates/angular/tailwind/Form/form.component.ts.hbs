@@ -1,0 +1,206 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export type FormVariant = 'default' | 'inline';
+export type FormSize = 'sm' | 'md' | 'lg';
+export type ValidationMode = 'onSubmit' | 'onBlur' | 'onChange';
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FormFieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (value: unknown, values: Record<string, unknown>) => string | boolean | null | undefined;
+}
+
+export interface FormFieldConfig {
+  name: string;
+  label?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'textarea' | 'checkbox' | 'select';
+  placeholder?: string;
+  description?: string;
+  required?: boolean;
+  rules?: FormFieldRule;
+  options?: { label: string; value: string }[];
+  defaultValue?: unknown;
+}
+
+export type FormValues = Record<string, unknown>;
+
+@Component({
+  selector: 'app-form',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './form.component.html',
+})
+export class FormComponent {
+  /** Schema-driven field list. */
+  @Input() fields: FormFieldConfig[] = [];
+  @Input() values: FormValues = {};
+  @Input() variant: FormVariant = 'default';
+  @Input() size: FormSize = 'md';
+  @Input() mode: ValidationMode = 'onSubmit';
+  @Input() submitLabel = 'Submit';
+  @Input() disabled = false;
+
+  @Output() formSubmit = new EventEmitter<FormValues>();
+  @Output() formError = new EventEmitter<Record<string, string>>();
+
+  errors: Record<string, string> = {};
+  touched: Record<string, boolean> = {};
+  submitting = false;
+
+  get formClasses(): string {
+    return [
+      'flex w-full gap-[var(--form-group-gap)] font-[inherit]',
+      this.variant === 'inline' ? 'flex-row flex-wrap items-end' : 'flex-col',
+      this.size === 'sm' ? 'text-[0.8125rem]' : this.size === 'lg' ? 'text-[0.9375rem]' : 'text-sm',
+    ].join(' ');
+  }
+
+  get itemClass(): string {
+    return 'flex flex-col gap-[var(--form-item-gap)] w-full';
+  }
+
+  get labelClass(): string {
+    return 'inline-flex items-center gap-1 text-sm font-medium text-[var(--form-label-color,var(--color-text))]';
+  }
+
+  get controlClass(): string {
+    return 'w-full box-border px-3 min-h-[var(--form-control-height-md)] rounded-[var(--form-radius,var(--radius-md))] border border-[var(--color-border)] bg-[var(--color-surface)] text-inherit outline-none transition-colors focus-visible:border-[var(--color-primary)] aria-[invalid=true]:border-[var(--form-error-color,var(--color-destructive))]';
+  }
+
+  get descriptionClass(): string {
+    return 'm-0 text-xs text-[var(--form-description-color,var(--color-text-muted))]';
+  }
+
+  get messageClass(): string {
+    return 'm-0 text-xs text-[var(--form-error-color,var(--color-destructive))]';
+  }
+
+  get submitClass(): string {
+    return 'self-start min-h-[var(--form-control-height-md)] px-4 rounded-[var(--form-radius,var(--radius-md))] border-none bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  }
+
+  isRequired(field: FormFieldConfig): boolean {
+    return !!field.required || !!field.rules?.required;
+  }
+
+  controlId(field: FormFieldConfig): string {
+    return `form-${field.name}-control`;
+  }
+
+  descriptionId(field: FormFieldConfig): string {
+    return `form-${field.name}-description`;
+  }
+
+  errorId(field: FormFieldConfig): string {
+    return `form-${field.name}-error`;
+  }
+
+  describedBy(field: FormFieldConfig): string | null {
+    return (
+      [this.descriptionId(field), this.errors[field.name] ? this.errorId(field) : null]
+        .filter(Boolean)
+        .join(' ') || null
+    );
+  }
+
+  getValue(name: string): string {
+    return (this.values[name] ?? '') as string;
+  }
+
+  isChecked(name: string): boolean {
+    return !!this.values[name];
+  }
+
+  onFieldInput(field: FormFieldConfig, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.values = {
+      ...this.values,
+      [field.name]: target.type === 'checkbox' ? target.checked : target.value,
+    };
+    if (this.mode === 'onChange' || this.errors[field.name]) this.validateField(field);
+  }
+
+  onFieldBlur(field: FormFieldConfig): void {
+    this.touched = { ...this.touched, [field.name]: true };
+    if (this.mode === 'onBlur') this.validateField(field);
+  }
+
+  onSubmit(event: Event): void {
+    event.preventDefault();
+    if (this.submitting) return;
+    this.fields.forEach((f) => (this.touched = { ...this.touched, [f.name]: true }));
+    if (this.validateAll()) {
+      this.formError.emit({ ...this.errors });
+      return;
+    }
+    this.formSubmit.emit({ ...this.values });
+  }
+
+  private validateField(field: FormFieldConfig): void {
+    const message = this.evaluate(field);
+    if (message) this.errors = { ...this.errors, [field.name]: message };
+    else {
+      const next = { ...this.errors };
+      delete next[field.name];
+      this.errors = next;
+    }
+  }
+
+  private validateAll(): boolean {
+    const next: Record<string, string> = {};
+    for (const field of this.fields) {
+      const message = this.evaluate(field);
+      if (message) next[field.name] = message;
+    }
+    this.errors = next;
+    return Object.keys(next).length > 0;
+  }
+
+  private unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+    if (rule === undefined) return undefined;
+    if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+      return rule as { value: V; message?: string };
+    }
+    return { value: rule as V };
+  }
+
+  private evaluate(field: FormFieldConfig): string | undefined {
+    const rule = field.rules ?? {};
+    const required = rule.required ?? field.required;
+    const value = this.values[field.name];
+    const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+    if (required && isEmpty) return typeof required === 'string' ? required : 'This field is required.';
+    if (isEmpty) return undefined;
+
+    if (rule.pattern) {
+      const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+      if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+    }
+    const min = this.unwrap(rule.min);
+    if (min && Number(value) < min.value) return min.message ?? `Must be at least ${min.value}.`;
+    const max = this.unwrap(rule.max);
+    if (max && Number(value) > max.value) return max.message ?? `Must be at most ${max.value}.`;
+    const minLength = this.unwrap(rule.minLength);
+    if (minLength && String(value).length < minLength.value) {
+      return minLength.message ?? `Must be at least ${minLength.value} characters.`;
+    }
+    const maxLength = this.unwrap(rule.maxLength);
+    if (maxLength && String(value).length > maxLength.value) {
+      return maxLength.message ?? `Must be at most ${maxLength.value} characters.`;
+    }
+    if (rule.validate) {
+      const result = rule.validate(value, this.values);
+      if (result === false) return 'Invalid value.';
+      if (typeof result === 'string') return result;
+    }
+    return undefined;
+  }
+}

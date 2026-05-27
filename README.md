@@ -54,7 +54,7 @@ npx crucible add Button
 | **Dependency Resolution** | Auto-scaffolds Button for Select/Dialog                 |
 | **Interactive CLI**       | Guided setup with @inquirer/prompts                     |
 | **Prettier Integration**  | Auto-format all generated code                          |
-| **Test Coverage**         | 230 unit tests + 19 E2E phases                          |
+| **Test Coverage**         | 359 unit tests + 39 E2E phases                          |
 
 <p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
 
@@ -88,15 +88,17 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 
 ## Available Components
 
-| Component | Variants                                                       | Sizes                | States                | Description                           |
-| --------- | -------------------------------------------------------------- | -------------------- | --------------------- | ------------------------------------- |
-| `Button`  | default, primary, secondary, outline, ghost, link, destructive | xs, sm, md, lg, icon | disabled, loading     | Compound components, loading spinner  |
-| `Input`   | default, error                                                 | sm, md, lg           | disabled, error       | Password toggle, validation states    |
-| `Card`    | default, hoverable, clickable                                  | sm, md, lg           | —                     | Container with title, onClick, href   |
-| `Dialog`  | default, confirm                                               | sm, md, lg           | open, closed          | Focus trap, scroll lock, closeable    |
-| `Select`  | default, error                                                 | sm, md, lg           | disabled, error, open | Keyboard navigation, combobox pattern |
-| `Popover` | default, minimal                                               | sm, md, lg           | open, closed, modal   | Floating-UI positioning, focus trap (modal), click/hover trigger, arrow |
-| `Table`   | default, striped, bordered, compact                            | sm, md, lg           | loading, empty        | Client/server pagination, sorting, single/multi selection, virtualization (5k+ rows), optional caption |
+| Component | Variants                                                       | Sizes                | States                      | Description                                                                                                                                                        |
+| --------- | -------------------------------------------------------------- | -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Button`  | default, primary, secondary, outline, ghost, link, destructive | xs, sm, md, lg, icon | disabled, loading           | Compound components, loading spinner                                                                                                                               |
+| `Input`   | default, error                                                 | sm, md, lg           | disabled, error             | Password toggle, validation states                                                                                                                                 |
+| `Card`    | default, hoverable, clickable                                  | sm, md, lg           | —                           | Container with title, onClick, href                                                                                                                                |
+| `Dialog`  | default, confirm                                               | sm, md, lg           | open, closed                | Focus trap, scroll lock, closeable                                                                                                                                 |
+| `Select`  | default, error                                                 | sm, md, lg           | disabled, error, open       | Keyboard navigation, combobox pattern                                                                                                                              |
+| `Popover` | default, minimal                                               | sm, md, lg           | open, closed, modal         | Floating-UI positioning, focus trap (modal), click/hover trigger, arrow                                                                                            |
+| `Table`   | default, striped, bordered, compact                            | sm, md, lg           | loading, empty              | Client/server pagination, sorting, single/multi selection, virtualization (5k+ rows), optional caption                                                             |
+| `Toast`   | default, success, error, warning, info, loading                | sm, md, lg           | enter, visible, exit        | Sonner-style notifications: global `toast()` + `<Toaster>`, 6 positions, auto-dismiss, action button, rich colors, pause-on-hide                                   |
+| `Form`    | default, inline                                                | sm, md, lg           | disabled, error, submitting | Dependency-free validation engine, react-hook-form adapter, compound (Root/Field/Item/Label/Control/Description/Message/Submit) + schema-driven modes, aria wiring |
 
 ---
 
@@ -198,7 +200,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 230 tests across 24 files
+- All tests pass (`npm test`) — 359 tests across 31 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
@@ -219,12 +221,12 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 ## Project Status
 
-| Version      | Status        | Description                                                                                     |
-| ------------ | ------------- | ----------------------------------------------------------------------------------------------- |
-| _unreleased_ | 🚧 In-flight  | Added **Popover** and **Table** components; fixed sort/positioning bugs across all frameworks   |
-| v1.0.4       | ✅ Stable     | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                  |
-| v1.0.3       | ✅ Stable     | Manual dark mode strategy, Vue SCSS template fixes                                              |
-| v1.0.0       | ✅ Stable     | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases                 |
+| Version      | Status       | Description                                                                                   |
+| ------------ | ------------ | --------------------------------------------------------------------------------------------- |
+| _unreleased_ | 🚧 In-flight | Added **Popover**, **Table**, **Toast**, and **Form** components; fixed sort/positioning bugs across all frameworks |
+| v1.0.4       | ✅ Stable    | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                |
+| v1.0.3       | ✅ Stable    | Manual dark mode strategy, Vue SCSS template fixes                                            |
+| v1.0.0       | ✅ Stable    | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases               |
 
 ### v1.0.4 Features
 

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Form Component Snapshots > renders Tailwind Form correctly (CSS fallback until Tailwind port lands) 1`] = `
+exports[`Form Component Snapshots > renders Tailwind Form correctly 1`] = `
 {
   "Form.tsx": "import React, {
   createContext,
@@ -12,7 +12,7 @@ exports[`Form Component Snapshots > renders Tailwind Form correctly (CSS fallbac
   useCallback,
   useSyncExternalStore,
 } from 'react';
-import styles from './Form.module.css';
+
 /* ============================================================================
  * Types
  * ========================================================================== */
@@ -153,6 +153,27 @@ export interface FormSubmitProps extends React.ButtonHTMLAttributes<HTMLButtonEl
    *  stays submittable so a submit attempt surfaces validation errors. */
   disableOnInvalid?: boolean;
 }
+
+/* ============================================================================
+ * Tailwind class maps (CSS-module-free; arbitrary values read --form-* tokens)
+ * ========================================================================== */
+const FORM_VARIANT_CLASSES: Record<FormVariant, string> = {
+  default: 'flex-col',
+  inline: 'flex-row flex-wrap items-end',
+};
+const FORM_SIZE_CLASSES: Record<FormSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+const LABEL_CLASS =
+  'inline-flex items-center gap-1 text-sm font-medium text-[var(--form-label-color,var(--color-text))] data-[invalid=true]:text-[var(--form-error-color,var(--color-destructive))]';
+const CONTROL_CLASS =
+  'w-full box-border px-3 min-h-[var(--form-control-height-md)] rounded-[var(--form-radius,var(--radius-md))] border border-[var(--color-border)] bg-[var(--color-surface)] text-inherit outline-none transition-colors focus-visible:border-[var(--color-primary)] aria-[invalid=true]:border-[var(--form-error-color,var(--color-destructive))]';
+const DESCRIPTION_CLASS = 'm-0 text-xs text-[var(--form-description-color,var(--color-text-muted))]';
+const MESSAGE_CLASS = 'm-0 text-xs text-[var(--form-error-color,var(--color-destructive))]';
+const SUBMIT_CLASS =
+  'self-start min-h-[var(--form-control-height-md)] px-4 rounded-[var(--form-radius,var(--radius-md))] border-none bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium cursor-pointer transition-colors hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-[2px] focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[3px]';
 
 /* ============================================================================
  * Pure helpers
@@ -529,7 +550,12 @@ const InternalRoot = React.forwardRef<HTMLFormElement, FormRootProps>(function F
     [isExternal, onSubmit, store],
   );
 
-  const classes = [styles.form, styles[\`variant-\${variant}\`], styles[\`size-\${size}\`], className]
+  const classes = [
+    'flex w-full gap-[var(--form-group-gap)] font-[inherit]',
+    FORM_VARIANT_CLASSES[variant],
+    FORM_SIZE_CLASSES[size],
+    className,
+  ]
     .filter(Boolean)
     .join(' ');
 
@@ -586,7 +612,7 @@ const InternalItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     return (
       <div
         ref={ref}
-        className={[styles.item, className].filter(Boolean).join(' ')}
+        className={['flex flex-col gap-[var(--form-item-gap)] w-full', className].filter(Boolean).join(' ')}
         data-invalid={error ? 'true' : undefined}
         {...props}
       >
@@ -604,13 +630,13 @@ const InternalLabel = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttribut
       <label
         ref={ref}
         htmlFor={formItemId}
-        className={[styles.label, className].filter(Boolean).join(' ')}
+        className={[LABEL_CLASS, className].filter(Boolean).join(' ')}
         data-invalid={error ? 'true' : undefined}
         {...props}
       >
         {children}
         {isRequired && (
-          <span className={styles.required} aria-hidden="true">
+          <span className="text-[var(--form-required-color,var(--color-destructive))]" aria-hidden="true">
             *
           </span>
         )}
@@ -675,7 +701,7 @@ const InternalControl = React.forwardRef<HTMLElement, FormControlProps>(function
     <input
       ref={mergeRefs([propRef as React.Ref<unknown>, binding.ref]) as React.RefCallback<HTMLInputElement>}
       name={binding.name}
-      className={[styles.control, className].filter(Boolean).join(' ')}
+      className={[CONTROL_CLASS, className].filter(Boolean).join(' ')}
       {...aria}
       {...valueProps}
       onChange={binding.onChange}
@@ -689,7 +715,7 @@ const InternalDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAtt
   function FormDescription({ className, children, ...props }, ref) {
     const { descriptionId } = useFormField();
     return (
-      <p ref={ref} id={descriptionId} className={[styles.description, className].filter(Boolean).join(' ')} {...props}>
+      <p ref={ref} id={descriptionId} className={[DESCRIPTION_CLASS, className].filter(Boolean).join(' ')} {...props}>
         {children}
       </p>
     );
@@ -711,7 +737,7 @@ const InternalMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>
       role="alert"
       aria-live="polite"
       data-invalid={error ? 'true' : undefined}
-      className={[styles.message, className].filter(Boolean).join(' ')}
+      className={[MESSAGE_CLASS, className].filter(Boolean).join(' ')}
       {...props}
     >
       {body}
@@ -736,7 +762,7 @@ const InternalSubmit = React.forwardRef<HTMLButtonElement, FormSubmitProps>(func
       'data-state': isSubmitting ? 'submitting' : 'idle',
       ...props,
       ...childProps,
-      className: [styles.submit, childProps.className, className].filter(Boolean).join(' '),
+      className: [SUBMIT_CLASS, childProps.className, className].filter(Boolean).join(' '),
     } as Record<string, unknown>);
   }
 
@@ -746,7 +772,7 @@ const InternalSubmit = React.forwardRef<HTMLButtonElement, FormSubmitProps>(func
       type="submit"
       disabled={isDisabled}
       data-state={isSubmitting ? 'submitting' : 'idle'}
-      className={[styles.submit, className].filter(Boolean).join(' ')}
+      className={[SUBMIT_CLASS, className].filter(Boolean).join(' ')}
       {...props}
     >
       {children}
