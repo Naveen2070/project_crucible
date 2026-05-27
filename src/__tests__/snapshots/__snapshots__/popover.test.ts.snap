@@ -2,12 +2,12 @@
 
 exports[`Popover Component Snapshots > renders Tailwind Popover correctly 1`] = `
 {
-  "Popover.tsx": "import React, { 
-  createContext, 
-  useContext, 
-  useState, 
-  useMemo, 
-  useCallback 
+  "Popover.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
 } from 'react';
 import {
   useFloating,
@@ -29,6 +29,9 @@ import {
   useMergeRefs,
   limitShift,
 } from '@floating-ui/react';
+
+export type PopoverSize = 'sm' | 'md' | 'lg';
+export type PopoverVariant = 'default' | 'minimal';
 
 export interface PopoverOptions {
   initialOpen?: boolean;
@@ -119,6 +122,19 @@ const usePopoverContext = () => {
     throw new Error("Popover components must be wrapped in <Popover.Root />");
   }
   return context;
+};
+
+const SIZE_CLASSES: Record<PopoverSize, string> = {
+  sm: 'text-[0.8125rem] min-w-[200px] p-3',
+  md: 'text-sm min-w-[18rem] p-4',
+  lg: 'text-[0.9375rem] min-w-[22.5rem] p-5',
+};
+
+const VARIANT_CLASSES: Record<PopoverVariant, string> = {
+  default:
+    'border border-[var(--popover-border,var(--color-border))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]',
+  minimal:
+    'shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]',
 };
 
 /**
@@ -175,42 +191,53 @@ const InternalPortal = ({ children }: { children: React.ReactNode }) => (
   <FloatingPortal>{children}</FloatingPortal>
 );
 
-const InternalContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLProps<HTMLDivElement>
->(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
-  const ref = useMergeRefs([context.refs.setFloating, propRef]);
+interface PopoverContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: PopoverSize;
+  variant?: PopoverVariant;
+}
 
-  if (!floatingContext.open) return null;
+const InternalContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
+  function PopoverContent(
+    { style, className, children, size = 'md', variant = 'default', ...props },
+    propRef
+  ) {
+    const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
+    const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
-  return (
-    <FloatingFocusManager context={floatingContext} modal={context.modal}>
-      <div
-        ref={ref}
-        style={{
-          position: floatingContext.strategy,
-          top: floatingContext.y ?? 0,
-          left: floatingContext.x ?? 0,
-          width: 'max-content',
-          visibility: isPositioned ? 'visible' : 'hidden',
-          ...style,
-        }}
-        className={\`
-          z-50 min-w-[200px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none
-          data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95
-          data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
-          \${className || ''}
-        \`}
-        data-state={context.open && isPositioned ? "open" : "closed"}
-        data-side={floatingContext.placement.split('-')[0]}
-        {...context.getFloatingProps(props)}
-      >
-        {children}
-      </div>
-    </FloatingFocusManager>
-  );
-});
+    if (!floatingContext.open) return null;
+
+    const side = floatingContext.placement.split('-')[0];
+
+    return (
+      <FloatingFocusManager context={floatingContext} modal={context.modal}>
+        <div
+          ref={ref}
+          style={{
+            position: floatingContext.strategy,
+            top: floatingContext.y ?? 0,
+            left: floatingContext.x ?? 0,
+            visibility: isPositioned ? 'visible' : 'hidden',
+            ...style,
+          }}
+          className={\`
+            z-[var(--popover-z-index,50)] rounded-[var(--popover-radius,8px)] bg-[var(--popover-background,var(--color-surface,white))] text-[var(--color-text,#1A1A2E)] outline-none max-w-[calc(100vw-16px)]
+            focus-visible:outline-2 focus-visible:outline-[var(--color-primary,#6C63FF)] focus-visible:outline-offset-2
+            data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
+            data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
+            \${SIZE_CLASSES[size]} \${VARIANT_CLASSES[variant]} \${className || ''}
+          \`}
+          data-state={context.open && isPositioned ? "open" : "closed"}
+          data-placement={floatingContext.placement}
+          data-side={side}
+          tabIndex={-1}
+          {...context.getFloatingProps(props)}
+        >
+          {children}
+        </div>
+      </FloatingFocusManager>
+    );
+  }
+);
 
 const InternalArrow = React.forwardRef<
   SVGSVGElement,
@@ -223,7 +250,7 @@ const InternalArrow = React.forwardRef<
     <FloatingArrow
       ref={ref}
       context={floatingContext}
-      className={\`fill-popover stroke-border \${className || ''}\`}
+      className={\`fill-[var(--popover-background,var(--color-surface,white))] stroke-[var(--popover-border,var(--color-border))] \${className || ''}\`}
       strokeWidth={1}
       {...props}
     />
@@ -231,20 +258,32 @@ const InternalArrow = React.forwardRef<
 });
 
 const InternalClose = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(function PopoverClose(props, ref) {
+  HTMLElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
+>(function PopoverClose({ asChild = false, children, onClick, ...props }, propRef) {
   const { setOpen } = usePopoverContext();
+  const handleClick = (event: React.MouseEvent<any>) => {
+    onClick?.(event as any);
+    setOpen(false);
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const childProps = (children as any).props as any;
+    return React.cloneElement(children as any, {
+      ref: propRef as any,
+      ...props,
+      ...childProps,
+      onClick: (e: React.MouseEvent<any>) => {
+        childProps.onClick?.(e);
+        handleClick(e);
+      },
+    });
+  }
+
   return (
-    <button
-      type="button"
-      ref={ref}
-      {...props}
-      onClick={(event) => {
-        props.onClick?.(event);
-        setOpen(false);
-      }}
-    />
+    <button type="button" ref={propRef as any} {...props} onClick={handleClick}>
+      {children}
+    </button>
   );
 });
 
@@ -332,6 +371,19 @@ Generated by Crucible v1.0.0 | Theme: minimal | Framework: react
   --popover-radius: var(--radius-md);
   --popover-padding: calc(var(--spacing-unit) * 2);
   --popover-z-index: 50;
+  --toast-background: var(--color-surface);
+  --toast-border: var(--color-border);
+  --toast-text: var(--color-text);
+  --toast-text-muted: var(--color-text-muted);
+  --toast-radius: var(--radius-md);
+  --toast-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --toast-padding: calc(var(--spacing-unit) * 4);
+  --toast-gap: calc(var(--spacing-unit) * 2);
+  --toast-z-index: 9999;
+  --toast-success-bg: var(--color-success);
+  --toast-error-bg: var(--color-destructive);
+  --toast-warning-bg: #f59e0b;
+  --toast-info-bg: var(--color-primary);
   --color-primary: #000;
   --color-secondary: #F3F2FF;
   --color-surface: #fff;
@@ -374,23 +426,75 @@ exports[`Popover Component Snapshots > renders basic Popover correctly 1`] = `
 }
 
 .content {
+  position: absolute;
   z-index: var(--popover-z-index, 50);
   background-color: var(--popover-background, var(--color-surface));
+  color: var(--color-text, var(--foreground, #1A1A2E));
   border: 1px solid var(--popover-border, var(--color-border));
   border-radius: var(--popover-radius, var(--radius-md));
-  box-shadow: var(--popover-shadow, 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05));
-  padding: var(--popover-padding, calc(var(--spacing-unit) * 2));
-  min-width: 200px;
+  box-shadow: var(
+    --popover-shadow,
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1)
+  );
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   outline: none;
+  max-width: calc(100vw - 16px);
   transform-origin: var(--floating-ui-transform-origin);
 }
 
+.content:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+}
+
+/* Variants */
+.variant-default {
+  /* uses defaults above */
+}
+
+.variant-minimal {
+  border: none;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Sizes */
+.size-sm {
+  font-size: 0.8125rem;
+  min-width: 200px;
+  padding: 12px;
+}
+
+.size-md {
+  font-size: 0.875rem;
+  min-width: 288px;
+  padding: 16px;
+}
+
+.size-lg {
+  font-size: 0.9375rem;
+  min-width: 360px;
+  padding: 20px;
+}
+
+/* Animation — gated on data-state so it only runs after positioning settles */
 .content[data-state='open'] {
   animation: popover-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.content[data-state='closed'] {
-  animation: popover-hide 100ms ease-in;
+.content[data-state='open'][data-side='top'] {
+  animation-name: popover-slide-down;
+}
+.content[data-state='open'][data-side='bottom'] {
+  animation-name: popover-slide-up;
+}
+.content[data-state='open'][data-side='left'] {
+  animation-name: popover-slide-right;
+}
+.content[data-state='open'][data-side='right'] {
+  animation-name: popover-slide-left;
 }
 
 @keyframes popover-show {
@@ -402,31 +506,6 @@ exports[`Popover Component Snapshots > renders basic Popover correctly 1`] = `
     opacity: 1;
     transform: scale(1);
   }
-}
-
-@keyframes popover-hide {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-}
-
-/* Directional Animations */
-.content[data-placement^='top'][data-state='open'] {
-  animation-name: popover-slide-down;
-}
-.content[data-placement^='bottom'][data-state='open'] {
-  animation-name: popover-slide-up;
-}
-.content[data-placement^='left'][data-state='open'] {
-  animation-name: popover-slide-right;
-}
-.content[data-placement^='right'][data-state='open'] {
-  animation-name: popover-slide-left;
 }
 
 @keyframes popover-slide-up {
@@ -473,6 +552,12 @@ exports[`Popover Component Snapshots > renders basic Popover correctly 1`] = `
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .content[data-state='open'] {
+    animation: none;
+  }
+}
+
 .item {
   padding: 8px 12px;
   cursor: pointer;
@@ -494,12 +579,12 @@ exports[`Popover Component Snapshots > renders basic Popover correctly 1`] = `
   margin: 4px 0;
 }
 ",
-  "Popover.tsx": "import React, { 
-  createContext, 
-  useContext, 
-  useState, 
-  useMemo, 
-  useCallback 
+  "Popover.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
 } from 'react';
 import {
   useFloating,
@@ -522,6 +607,9 @@ import {
   limitShift,
 } from '@floating-ui/react';
 import styles from './Popover.module.css';
+export type PopoverSize = 'sm' | 'md' | 'lg';
+export type PopoverVariant = 'default' | 'minimal';
+
 export interface PopoverOptions {
   initialOpen?: boolean;
   placement?: Placement;
@@ -667,37 +755,54 @@ const InternalPortal = ({ children }: { children: React.ReactNode }) => (
   <FloatingPortal>{children}</FloatingPortal>
 );
 
-const InternalContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLProps<HTMLDivElement>
->(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
-  const ref = useMergeRefs([context.refs.setFloating, propRef]);
+interface PopoverContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: PopoverSize;
+  variant?: PopoverVariant;
+}
 
-  if (!floatingContext.open) return null;
+const InternalContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
+  function PopoverContent(
+    { style, className, children, size = 'md', variant = 'default', ...props },
+    propRef
+  ) {
+    const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
+    const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
-  return (
-    <FloatingFocusManager context={floatingContext} modal={context.modal}>
-      <div
-        ref={ref}
-        style={{
-          position: floatingContext.strategy,
-          top: floatingContext.y ?? 0,
-          left: floatingContext.x ?? 0,
-          width: 'max-content',
-          visibility: isPositioned ? 'visible' : 'hidden',
-          ...style,
-        }}
-        className={\`\${styles.content} \${className || ''}\`}
-        data-state={context.open && isPositioned ? "open" : "closed"}
-        data-placement={floatingContext.placement}
-        {...context.getFloatingProps(props)}
-      >
-        {children}
-      </div>
-    </FloatingFocusManager>
-  );
-});
+    if (!floatingContext.open) return null;
+
+    const side = floatingContext.placement.split('-')[0];
+
+    return (
+      <FloatingFocusManager context={floatingContext} modal={context.modal}>
+        <div
+          ref={ref}
+          style={{
+            position: floatingContext.strategy,
+            top: floatingContext.y ?? 0,
+            left: floatingContext.x ?? 0,
+            visibility: isPositioned ? 'visible' : 'hidden',
+            ...style,
+          }}
+          className={[
+            styles.content,
+            styles[\`size-\${size}\`],
+            styles[\`variant-\${variant}\`],
+            className,
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          data-state={context.open && isPositioned ? "open" : "closed"}
+          data-placement={floatingContext.placement}
+          data-side={side}
+          tabIndex={-1}
+          {...context.getFloatingProps(props)}
+        >
+          {children}
+        </div>
+      </FloatingFocusManager>
+    );
+  }
+);
 
 const InternalArrow = React.forwardRef<
   SVGSVGElement,
@@ -710,8 +815,8 @@ const InternalArrow = React.forwardRef<
     <FloatingArrow
       ref={ref}
       context={floatingContext}
-      fill="white"
-      stroke="var(--popover-border)"
+      fill="var(--popover-background, var(--color-surface, white))"
+      stroke="var(--popover-border, var(--color-border))"
       strokeWidth={1}
       {...props}
     />
@@ -719,20 +824,32 @@ const InternalArrow = React.forwardRef<
 });
 
 const InternalClose = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(function PopoverClose(props, ref) {
+  HTMLElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
+>(function PopoverClose({ asChild = false, children, onClick, ...props }, propRef) {
   const { setOpen } = usePopoverContext();
+  const handleClick = (event: React.MouseEvent<any>) => {
+    onClick?.(event as any);
+    setOpen(false);
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const childProps = (children as any).props as any;
+    return React.cloneElement(children as any, {
+      ref: propRef as any,
+      ...props,
+      ...childProps,
+      onClick: (e: React.MouseEvent<any>) => {
+        childProps.onClick?.(e);
+        handleClick(e);
+      },
+    });
+  }
+
   return (
-    <button
-      type="button"
-      ref={ref}
-      {...props}
-      onClick={(event) => {
-        props.onClick?.(event);
-        setOpen(false);
-      }}
-    />
+    <button type="button" ref={propRef as any} {...props} onClick={handleClick}>
+      {children}
+    </button>
   );
 });
 
@@ -820,6 +937,19 @@ Generated by Crucible v1.0.0 | Theme: minimal | Framework: react
   --popover-radius: var(--radius-md);
   --popover-padding: calc(var(--spacing-unit) * 2);
   --popover-z-index: 50;
+  --toast-background: var(--color-surface);
+  --toast-border: var(--color-border);
+  --toast-text: var(--color-text);
+  --toast-text-muted: var(--color-text-muted);
+  --toast-radius: var(--radius-md);
+  --toast-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --toast-padding: calc(var(--spacing-unit) * 4);
+  --toast-gap: calc(var(--spacing-unit) * 2);
+  --toast-z-index: 9999;
+  --toast-success-bg: var(--color-success);
+  --toast-error-bg: var(--color-destructive);
+  --toast-warning-bg: #f59e0b;
+  --toast-info-bg: var(--color-primary);
   --color-primary: #000;
   --color-secondary: #F3F2FF;
   --color-surface: #fff;
@@ -862,23 +992,75 @@ exports[`Popover Component Snapshots > renders monolithic Popover correctly 1`] 
 }
 
 .content {
+  position: absolute;
   z-index: var(--popover-z-index, 50);
   background-color: var(--popover-background, var(--color-surface));
+  color: var(--color-text, var(--foreground, #1A1A2E));
   border: 1px solid var(--popover-border, var(--color-border));
   border-radius: var(--popover-radius, var(--radius-md));
-  box-shadow: var(--popover-shadow, 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05));
-  padding: var(--popover-padding, calc(var(--spacing-unit) * 2));
-  min-width: 200px;
+  box-shadow: var(
+    --popover-shadow,
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1)
+  );
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   outline: none;
+  max-width: calc(100vw - 16px);
   transform-origin: var(--floating-ui-transform-origin);
 }
 
+.content:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+}
+
+/* Variants */
+.variant-default {
+  /* uses defaults above */
+}
+
+.variant-minimal {
+  border: none;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Sizes */
+.size-sm {
+  font-size: 0.8125rem;
+  min-width: 200px;
+  padding: 12px;
+}
+
+.size-md {
+  font-size: 0.875rem;
+  min-width: 288px;
+  padding: 16px;
+}
+
+.size-lg {
+  font-size: 0.9375rem;
+  min-width: 360px;
+  padding: 20px;
+}
+
+/* Animation — gated on data-state so it only runs after positioning settles */
 .content[data-state='open'] {
   animation: popover-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.content[data-state='closed'] {
-  animation: popover-hide 100ms ease-in;
+.content[data-state='open'][data-side='top'] {
+  animation-name: popover-slide-down;
+}
+.content[data-state='open'][data-side='bottom'] {
+  animation-name: popover-slide-up;
+}
+.content[data-state='open'][data-side='left'] {
+  animation-name: popover-slide-right;
+}
+.content[data-state='open'][data-side='right'] {
+  animation-name: popover-slide-left;
 }
 
 @keyframes popover-show {
@@ -890,31 +1072,6 @@ exports[`Popover Component Snapshots > renders monolithic Popover correctly 1`] 
     opacity: 1;
     transform: scale(1);
   }
-}
-
-@keyframes popover-hide {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-}
-
-/* Directional Animations */
-.content[data-placement^='top'][data-state='open'] {
-  animation-name: popover-slide-down;
-}
-.content[data-placement^='bottom'][data-state='open'] {
-  animation-name: popover-slide-up;
-}
-.content[data-placement^='left'][data-state='open'] {
-  animation-name: popover-slide-right;
-}
-.content[data-placement^='right'][data-state='open'] {
-  animation-name: popover-slide-left;
 }
 
 @keyframes popover-slide-up {
@@ -961,6 +1118,12 @@ exports[`Popover Component Snapshots > renders monolithic Popover correctly 1`] 
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .content[data-state='open'] {
+    animation: none;
+  }
+}
+
 .item {
   padding: 8px 12px;
   cursor: pointer;
@@ -982,12 +1145,12 @@ exports[`Popover Component Snapshots > renders monolithic Popover correctly 1`] 
   margin: 4px 0;
 }
 ",
-  "Popover.tsx": "import React, { 
-  createContext, 
-  useContext, 
-  useState, 
-  useMemo, 
-  useCallback 
+  "Popover.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
 } from 'react';
 import {
   useFloating,
@@ -1010,6 +1173,9 @@ import {
   limitShift,
 } from '@floating-ui/react';
 import styles from './Popover.module.css';
+export type PopoverSize = 'sm' | 'md' | 'lg';
+export type PopoverVariant = 'default' | 'minimal';
+
 export interface PopoverOptions {
   initialOpen?: boolean;
   placement?: Placement;
@@ -1155,37 +1321,54 @@ const InternalPortal = ({ children }: { children: React.ReactNode }) => (
   <FloatingPortal>{children}</FloatingPortal>
 );
 
-const InternalContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLProps<HTMLDivElement>
->(function PopoverContent({ style, className, children, ...props }, propRef) {
-  const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
-  const ref = useMergeRefs([context.refs.setFloating, propRef]);
+interface PopoverContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: PopoverSize;
+  variant?: PopoverVariant;
+}
 
-  if (!floatingContext.open) return null;
+const InternalContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
+  function PopoverContent(
+    { style, className, children, size = 'md', variant = 'default', ...props },
+    propRef
+  ) {
+    const { context: floatingContext, isPositioned, ...context } = usePopoverContext();
+    const ref = useMergeRefs([context.refs.setFloating, propRef]);
 
-  return (
-    <FloatingFocusManager context={floatingContext} modal={context.modal}>
-      <div
-        ref={ref}
-        style={{
-          position: floatingContext.strategy,
-          top: floatingContext.y ?? 0,
-          left: floatingContext.x ?? 0,
-          width: 'max-content',
-          visibility: isPositioned ? 'visible' : 'hidden',
-          ...style,
-        }}
-        className={\`\${styles.content} \${className || ''}\`}
-        data-state={context.open && isPositioned ? "open" : "closed"}
-        data-placement={floatingContext.placement}
-        {...context.getFloatingProps(props)}
-      >
-        {children}
-      </div>
-    </FloatingFocusManager>
-  );
-});
+    if (!floatingContext.open) return null;
+
+    const side = floatingContext.placement.split('-')[0];
+
+    return (
+      <FloatingFocusManager context={floatingContext} modal={context.modal}>
+        <div
+          ref={ref}
+          style={{
+            position: floatingContext.strategy,
+            top: floatingContext.y ?? 0,
+            left: floatingContext.x ?? 0,
+            visibility: isPositioned ? 'visible' : 'hidden',
+            ...style,
+          }}
+          className={[
+            styles.content,
+            styles[\`size-\${size}\`],
+            styles[\`variant-\${variant}\`],
+            className,
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          data-state={context.open && isPositioned ? "open" : "closed"}
+          data-placement={floatingContext.placement}
+          data-side={side}
+          tabIndex={-1}
+          {...context.getFloatingProps(props)}
+        >
+          {children}
+        </div>
+      </FloatingFocusManager>
+    );
+  }
+);
 
 const InternalArrow = React.forwardRef<
   SVGSVGElement,
@@ -1198,8 +1381,8 @@ const InternalArrow = React.forwardRef<
     <FloatingArrow
       ref={ref}
       context={floatingContext}
-      fill="white"
-      stroke="var(--popover-border)"
+      fill="var(--popover-background, var(--color-surface, white))"
+      stroke="var(--popover-border, var(--color-border))"
       strokeWidth={1}
       {...props}
     />
@@ -1207,20 +1390,32 @@ const InternalArrow = React.forwardRef<
 });
 
 const InternalClose = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(function PopoverClose(props, ref) {
+  HTMLElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
+>(function PopoverClose({ asChild = false, children, onClick, ...props }, propRef) {
   const { setOpen } = usePopoverContext();
+  const handleClick = (event: React.MouseEvent<any>) => {
+    onClick?.(event as any);
+    setOpen(false);
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const childProps = (children as any).props as any;
+    return React.cloneElement(children as any, {
+      ref: propRef as any,
+      ...props,
+      ...childProps,
+      onClick: (e: React.MouseEvent<any>) => {
+        childProps.onClick?.(e);
+        handleClick(e);
+      },
+    });
+  }
+
   return (
-    <button
-      type="button"
-      ref={ref}
-      {...props}
-      onClick={(event) => {
-        props.onClick?.(event);
-        setOpen(false);
-      }}
-    />
+    <button type="button" ref={propRef as any} {...props} onClick={handleClick}>
+      {children}
+    </button>
   );
 });
 
@@ -1312,6 +1507,19 @@ Generated by Crucible v1.0.0 | Theme: minimal | Framework: react
   --popover-radius: var(--radius-md);
   --popover-padding: calc(var(--spacing-unit) * 2);
   --popover-z-index: 50;
+  --toast-background: var(--color-surface);
+  --toast-border: var(--color-border);
+  --toast-text: var(--color-text);
+  --toast-text-muted: var(--color-text-muted);
+  --toast-radius: var(--radius-md);
+  --toast-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --toast-padding: calc(var(--spacing-unit) * 4);
+  --toast-gap: calc(var(--spacing-unit) * 2);
+  --toast-z-index: 9999;
+  --toast-success-bg: var(--color-success);
+  --toast-error-bg: var(--color-destructive);
+  --toast-warning-bg: #f59e0b;
+  --toast-info-bg: var(--color-primary);
   --color-primary: #000;
   --color-secondary: #F3F2FF;
   --color-surface: #fff;

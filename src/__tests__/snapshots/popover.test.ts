@@ -54,7 +54,7 @@ describe('Popover Component Snapshots', () => {
     const output = await renderComponent(model);
 
     expect(output['Popover.tsx']).toContain('data-[state=open]:animate-in');
-    expect(output['Popover.tsx']).toContain('bg-popover');
+    expect(output['Popover.tsx']).toContain('bg-[var(--popover-background');
     expect(output['Popover.module.css']).toBeUndefined();
     expect(output).toMatchSnapshot();
   });
