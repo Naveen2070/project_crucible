@@ -1,0 +1,96 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { FormComponent } from './form.component';
+
+const meta: Meta<FormComponent> = {
+  title: 'Crucible/Form',
+  component: FormComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'inline'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    mode: { control: 'select', options: ['onSubmit', 'onBlur', 'onChange'] },
+    disabled: { control: 'boolean' },
+  },
+  args: { variant: 'default', size: 'md', mode: 'onBlur', disabled: false, submitLabel: 'Submit' },
+};
+
+export default meta;
+type Story = StoryObj<FormComponent>;
+
+const onFormSubmit = (values: Record<string, unknown>) =>
+  alert('Submitted:\n' + JSON.stringify(values, null, 2));
+const onFormError = (errors: Record<string, string>) =>
+  console.warn('Form invalid:', errors);
+
+export const Default: Story = {
+  args: {
+    fields: [
+      {
+        name: 'email',
+        label: 'Email',
+        type: 'email',
+        placeholder: 'you@example.com',
+        required: true,
+        description: 'We will never share your email.',
+        rules: { pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: 'Enter a valid email.' } },
+      },
+      {
+        name: 'password',
+        label: 'Password',
+        type: 'password',
+        placeholder: '********',
+        rules: { required: true, minLength: { value: 8, message: 'At least 8 characters.' } },
+      },
+    ],
+  },
+  render: (args) => ({
+    props: { ...args, onFormSubmit, onFormError },
+    template: `<app-form
+      [fields]="fields"
+      [variant]="variant"
+      [size]="size"
+      [mode]="mode"
+      [disabled]="disabled"
+      [submitLabel]="submitLabel"
+      (formSubmit)="onFormSubmit($event)"
+      (formError)="onFormError($event)"
+    ></app-form>`,
+  }),
+};
+
+export const Inline: Story = {
+  args: {
+    variant: 'inline',
+    fields: [{ name: 'query', label: 'Search', type: 'text', placeholder: 'Type to search…', required: true }],
+  },
+  render: (args) => ({
+    props: { ...args, onFormSubmit, onFormError },
+    template: `<app-form
+      [fields]="fields"
+      [variant]="variant"
+      [size]="size"
+      [mode]="mode"
+      [submitLabel]="submitLabel"
+      (formSubmit)="onFormSubmit($event)"
+      (formError)="onFormError($event)"
+    ></app-form>`,
+  }),
+};
+
+export const WithError: Story = {
+  args: {
+    fields: [{ name: 'username', label: 'Username', type: 'text', rules: { required: true, minLength: { value: 3 } } }],
+  },
+  render: (args) => ({
+    props: { ...args, onFormSubmit, onFormError },
+    template: `<app-form
+      [fields]="fields"
+      [variant]="variant"
+      [size]="size"
+      [mode]="mode"
+      [submitLabel]="submitLabel"
+      (formSubmit)="onFormSubmit($event)"
+      (formError)="onFormError($event)"
+    ></app-form>`,
+  }),
+};

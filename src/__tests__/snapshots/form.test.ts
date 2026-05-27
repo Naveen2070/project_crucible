@@ -64,14 +64,15 @@ describe('Form Component Snapshots', () => {
     expect(output).toMatchSnapshot();
   });
 
-  test('renders Tailwind Form correctly (CSS fallback until Tailwind port lands)', async () => {
+  test('renders Tailwind Form correctly', async () => {
     const tailwindConfig = { ...config, styleSystem: StyleSystem.Tailwind };
     const tokens = resolveTokens(tailwindConfig as any);
     const model = buildComponentModel(ComponentName.Form, tokens, tailwindConfig as any, false);
     const output = await renderComponent(model);
 
-    expect(output['Form.tsx']).toBeDefined();
     expect(output['Form.tsx']).toContain('export const Form');
+    // Inline Tailwind utilities reading the --form-* design tokens; no CSS module.
+    expect(output['Form.tsx']).toContain('gap-[var(--form-group-gap)]');
     expect(output['Form.module.css']).toBeUndefined();
     expect(output).toMatchSnapshot();
   });

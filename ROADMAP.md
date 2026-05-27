@@ -66,8 +66,8 @@ Full code ownership means you maintain what you edit. However:
 | Interactive CLI with @inquirer/prompts            | ✅     |
 | Tailwind auto-setup                               | ✅     |
 | Component registry with ComponentMeta             | ✅     |
-| 230 unit tests across 24 test files               | ✅     |
-| 19 E2E phases covering all commands               | ✅     |
+| 359 unit tests across 31 test files               | ✅     |
+| 39 E2E phases covering all commands               | ✅     |
 | Professional component patterns                   | ✅     |
 | DialogDescription + aria-describedby              | ✅     |
 | Semantic color tokens (foreground variants)       | ✅     |
@@ -94,8 +94,8 @@ New components are added in parallel with version milestones. Each component req
 | --------------- | -------------- | ------------ |
 | **Table**       | v1.1           | ✅ Landed    |
 | **Popover**     | v1.1           | ✅ Landed    |
-| **Toast**       | v1.1           | **Priority** |
-| **Form System** | v1.1           | **Priority** |
+| **Toast**       | v1.1           | ✅ Landed    |
+| **Form System** | v1.1           | ✅ Landed    |
 | Tabs            | v1.1           | Planned      |
 | Tooltip         | v1.1           | Planned      |
 | Textarea        | v1.1           | Planned      |

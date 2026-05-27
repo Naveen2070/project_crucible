@@ -9,6 +9,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Form component** (React, Vue, Angular × CSS/SCSS/Tailwind): composable form system with a
+  dependency-free validation engine (`required`, `pattern`, `min`/`max`, `minLength`/`maxLength`,
+  custom `validate`; modes `onSubmit`/`onBlur`/`onChange`/`onTouched`/`all`) and an optional
+  react-hook-form adapter (pass `control`). React/Vue expose an 8-part compound API —
+  `Root`/`Field`/`Item`/`Label`/`Control`/`Description`/`Message`/`Submit` (Vue via named exports +
+  `provide`/`inject`); when `compoundComponents` is off (always on Angular) the component is
+  schema-driven via a `fields` config array. `Control` wires `id`/`aria-describedby`/`aria-invalid`/
+  `aria-required` and supports `asChild` (React); `Message` is `role="alert"` and hidden until errored;
+  `Submit` reflects `isSubmitting`/validity. No npm peer dependencies. Stories: Default/compound,
+  Inline, validation, and schema-driven.
+- **Toast component** (React, Vue, Angular × CSS/SCSS/Tailwind): Sonner-style notifications — a global
+  `toast()` function with `success`/`error`/`warning`/`info`/`loading` shortcuts and `toast.promise`,
+  rendered by a central `<Toaster>` (React/Vue) / `ToasterComponent` (Angular, plus an injectable store).
+  Props: `position` (6 corners), `duration`, `maxToasts`, `richColors`, `closeButton`,
+  `pauseWhenPageIsHidden`, per-toast `action`. Enter/visible/exit animation states via inline keyframes
+  (no Tailwind config edit required); `role="status"`/`aria-live` wiring. No npm peer dependencies.
 - **Popover component** (React, Vue, Angular × CSS/SCSS/Tailwind): `placement` (top/bottom/left/right),
   `alignment` (start/center/end), `variant` (default/minimal), `size` (sm/md/lg),
   `trigger` (click/hover), `modal`, `ariaLabel`, `showArrow`. Built on `@floating-ui/{react,vue,dom}`.

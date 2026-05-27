@@ -613,6 +613,37 @@ template: `<Card v-bind="args">Content</Card>`; // Slots may not render properly
 SCSS uses `.module.scss` files with nested BEM structure. Templates reuse framework `.tsx.hbs` files
 (DRY fallback), with only the stylesheet being SCSS-specific.
 
+### 9.7 Form System — Stateful Component Patterns
+
+`Form` is the first component that ships its own **runtime state**, so it introduces patterns the
+stateless components (Button, Input, Card…) don't need. The same dependency-free validation engine is
+realized idiomatically per framework, with **no npm peer dependencies**.
+
+- **Validation engine.** A small store owns `values` / `errors` / `touched` / `isSubmitting` and a
+  rules map (`required`, `pattern`, `min`/`max`, `minLength`/`maxLength`, custom `validate`) evaluated
+  by a shared pure `evaluateRule`. Modes: `onSubmit` / `onBlur` / `onChange` / `onTouched` / `all`.
+- **Compound + schema-driven duality** (gated by `features.compoundComponents`, see §7.4 — Angular is
+  always monolithic). Compound exposes `Root / Field / Item / Label / Control / Description / Message /
+  Submit`; monolithic renders the same internals from a `fields` config array. Both share one engine.
+- **RHF-adapter seam.** `Form.Root` (React) / `<Form>` (Vue) accept an external react-hook-form
+  `control`; `adaptExternalControl` maps it onto the **same store surface**. Internal vs external are
+  mutually exclusive — one engine is ever active, so there is no double validation and still no peer dep.
+- **Per-framework realization:**
+  - **React** — the store is an external store (refs + per-field subscriptions) read via
+    `useSyncExternalStore`. `Control` subscribes to **its own field's value and error only**, so typing
+    in one field re-renders that field, not the whole form. Compound parts are `Object.assign(FormRoot, …)`.
+  - **Vue** — the engine is a `reactive()` object exposed as a `useForm` composable; Form/Field context
+    flows via `provide` / `inject`. Compound sub-components are **named exports from the SFC**
+    (`export const FormField = defineComponent(…)`), imported alongside the default `Form`.
+  - **Angular** — validation lives in the component class (`@Input() fields`, `@Output() formSubmit` /
+    `formError`); `@if`/`@for`/`@switch` render fields; `ng-content` provides `[form-header]`/`[form-footer]`
+    projection (v18+ fallback content).
+- **Vue scoped-style gotcha.** Because the compound sub-components are **separate component instances**,
+  Vue's `<style scoped>` does not reach their DOM. The Vue Form CSS/SCSS template therefore uses a
+  **non-scoped `<style>` with every rule qualified by the `.form` ancestor** (all parts render inside
+  `<form class="form">`). Tailwind is unaffected — utility classes are inline on each element.
+- Tokens: `--form-*` (group/item gap, label, control height, error/description colors, radius) — see §4.4.
+
 ---
 
 ## 10. Template Engine
