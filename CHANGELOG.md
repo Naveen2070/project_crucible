@@ -9,76 +9,49 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Form component** (React, Vue, Angular × CSS/SCSS/Tailwind): composable form system with a
-  dependency-free validation engine (`required`, `pattern`, `min`/`max`, `minLength`/`maxLength`,
-  custom `validate`; modes `onSubmit`/`onBlur`/`onChange`/`onTouched`/`all`) and an optional
-  react-hook-form adapter (pass `control`). React/Vue expose an 8-part compound API —
-  `Root`/`Field`/`Item`/`Label`/`Control`/`Description`/`Message`/`Submit` (Vue via named exports +
-  `provide`/`inject`); when `compoundComponents` is off (always on Angular) the component is
-  schema-driven via a `fields` config array. `Control` wires `id`/`aria-describedby`/`aria-invalid`/
-  `aria-required` and supports `asChild` (React); `Message` is `role="alert"` and hidden until errored;
-  `Submit` reflects `isSubmitting`/validity. No npm peer dependencies. Stories: Default/compound,
-  Inline, validation, and schema-driven.
-- **Toast component** (React, Vue, Angular × CSS/SCSS/Tailwind): Sonner-style notifications — a global
-  `toast()` function with `success`/`error`/`warning`/`info`/`loading` shortcuts and `toast.promise`,
-  rendered by a central `<Toaster>` (React/Vue) / `ToasterComponent` (Angular, plus an injectable store).
-  Props: `position` (6 corners), `duration`, `maxToasts`, `richColors`, `closeButton`,
-  `pauseWhenPageIsHidden`, per-toast `action`. Enter/visible/exit animation states via inline keyframes
-  (no Tailwind config edit required); `role="status"`/`aria-live` wiring. No npm peer dependencies.
-- **Popover component** (React, Vue, Angular × CSS/SCSS/Tailwind): `placement` (top/bottom/left/right),
-  `alignment` (start/center/end), `variant` (default/minimal), `size` (sm/md/lg),
-  `trigger` (click/hover), `modal`, `ariaLabel`, `showArrow`. Built on `@floating-ui/{react,vue,dom}`.
-  Click trigger moves focus into the popover on open and restores it to the trigger on close;
-  `modal: true` traps Tab. `aria-haspopup` / `aria-controls` / `aria-expanded` wiring on trigger;
-  `role="dialog"` and optional `aria-modal` / `aria-label` on content. Stories: Default, AllPlacements,
-  VariantsAndSizes, Controlled, Uncontrolled, HoverTrigger, Modal, WithItems.
-- **Table component** (React, Vue, Angular × CSS/SCSS/Tailwind): `columns`, `data`, `rowKey`,
-  `variant` (default/striped/bordered/compact), `size` (sm/md/lg), client/server pagination,
-  single/multiple row selection, sortable headers, virtualization (5000+ rows), loading state,
-  custom `emptyMessage`, optional `caption` (visually-hidden by default). Stories: Default, Striped,
-  Bordered, Compact, WithPagination, WithSorting, WithSelection, Loading, Empty, Virtualized5k,
-  AllFeatures. React additionally exposes a compound API: `<Table.Header />`, `<Table.Body />`,
-  `<Table.Pagination />`.
+- **Form** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Validation: `required`/`pattern`/`min`/`max`/`minLength`/`maxLength`/custom, modes:
+    onSubmit/onBlur/onChange/onTouched/all
+  - Optional react-hook-form adapter
+  - 8-part compound API: Root/Field/Item/Label/Control/Description/Message/Submit
+  - Schema-driven mode when compound off
+  - ARIA-wired (`aria-describedby`/`aria-invalid`/`aria-required`), `asChild`, `role="alert"` on
+    Message
+  - Zero peer deps
+- **Toast** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Global `toast()` with `success`/`error`/`warning`/`info`/`loading`/`promise`
+  - `<Toaster>` props:
+    `position`/`duration`/`maxToasts`/`richColors`/`closeButton`/`pauseWhenPageIsHidden`/per-toast
+    `action`
+  - Inline keyframe animations, `aria-live`/`role="status"`
+  - Zero peer deps
+- **Popover** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Placement (top/bottom/left/right), alignment (start/center/end), variant (default/minimal), size
+    (sm/md/lg)
+  - Trigger (click/hover), modal, arrow, `@floating-ui`-powered
+  - Focus trap, focus restore, full ARIA wiring
+- **Table** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Client/server pagination, sortable headers, single/multi selection
+  - Virtualization (5000+ rows), loading state, optional `caption`
+  - React compound API: Header/Body/Pagination
 
 ### Fixed
 
-- **Popover (Vue) — open flicker at top-left**: passed `transform: false` to `useFloating` so
-  positioning uses `top`/`left` instead of `transform: translate(…)`. The `popover-show` keyframe's
-  `transform: scale(…)` was overriding the translate for the full animation duration, pinning the
-  popover at viewport (0, 0). Removed the `<Transition>` wrapper; entry animation is now CSS-driven
-  via `[data-state="open"]` which only flips on after `isPositioned` is true.
-- **Popover (React) — `Popover.Close asChild` nested-button HTML**: `PopoverClose` now supports
-  `asChild` and merges props via `cloneElement` instead of always wrapping in its own `<button>`.
-- **Table sort logic (all frameworks)**: removed the `&& onSort` guard from the `processedData`
-  memo/computed — sort now applies whenever an internal sort key is set, regardless of whether
-  a parent `onSort` callback is provided.
-- **Table compound mode (React) — columns clumped on the left**: `<Table>` with children now wraps
-  `Table.Header` and `Table.Body` in a real `<table class="table">` element so the existing
-  `width: 100%; border-collapse: collapse` applies. Previously the compound children rendered as
-  orphan `<thead>`/`<tbody>` outside any `<table>`, triggering anonymous-table-box layout where
-  columns sized to content.
-- **Table (React) — monolithic virtualization crash**: `useVirtualizer()` destructure now includes
-  `containerHeight` (was previously referenced but not destructured, causing the virtual container
-  height to be `undefined`).
-- **Table generated playgrounds (Vue + Angular) — blank headers and pagination**: replaced
-  stripped `{{ col.label }}`, `{{ sortIcon }}`, `{{ emptyMessage }}`, `{{ paginationStart }}`,
-  `{{ paginationEnd }}`, `{{ paginationTotal }}`, `{{ p }}` mustaches with `v-text="…"` (Vue) and
-  `[innerText]="…"` (Angular). The toolchain post-processor was stripping simple identifier
-  mustaches from generated files; `v-text` / `[innerText]` survive.
-- **Popover stories (all frameworks) — wrong-looking Cancel buttons**: `variant="minimal"`
-  (not a valid Button variant — falls back to unstyled base) replaced with `variant="ghost"`.
-  Angular stories now use `<app-button>` instead of raw HTML `<button class="btn">` (the
-  Angular Button's CSS is component-scoped, so raw HTML in Popover/Table stories was rendering
-  as default browser buttons).
+- **Popover (Vue)**: open-flicker — use `top`/`left` instead of `transform`; CSS-driven entry after
+  `isPositioned`
+- **Popover (React)**: `Close asChild` — `cloneElement` instead of nested `<button>`
+- **Table sort (all)**: remove `&& onSort` guard — sort works without parent callback
+- **Table compound (React)**: orphan `<thead>`/`<tbody>` → wrap in real `<table>` for correct column
+  sizing
+- **Table virtualization (React)**: add missing `containerHeight` destructure
+- **Table playgrounds (Vue/Angular)**: stripped mustaches → `v-text`/`[innerText]`
+- **Popover stories (all)**: `variant="minimal"` → `"ghost"`; Angular uses `<app-button>`
 
 ### Accessibility
 
-- **Table**: `scope="col"` on every column `<th>`; optional `caption?: string` prop renders a
-  visually-hidden `<caption>` for screen readers; `aria-busy="true"` on `<table>` while
-  `loading`; `prefers-reduced-motion` disables entry animations where applicable.
-- **Popover**: focus moves into the popover on click-open and restores to the trigger on close;
-  `tabindex="-1"` on content so it can receive programmatic focus; `aria-modal` set only when
-  `modal: true`; `prefers-reduced-motion` disables the entry animation.
+- **Table**: `scope="col"`, optional `<caption>`, `aria-busy` when loading, reduced-motion
+- **Popover**: focus move/open → restore/close, `tabindex="-1"`, `aria-modal` only when modal,
+  reduced-motion
 
 ## [1.0.4] - 2026-03-31
 
