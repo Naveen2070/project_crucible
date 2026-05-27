@@ -13,7 +13,8 @@
     "components/select.json",
     "components/table.json",
     "components/popover.json",
-    "components/toast.json"
+    "components/toast.json",
+    "components/form.json"
   ],
   "frameworks": [
     "frameworks/react.json",

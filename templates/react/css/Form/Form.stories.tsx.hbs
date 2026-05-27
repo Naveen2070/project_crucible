@@ -1,0 +1,101 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Form } from './Form';
+
+const meta: Meta<typeof Form> = {
+  title: 'Crucible/Form',
+  component: Form,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  decorators: [
+    (Story) => (
+      <div style=\{{ width: '360px' }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Form>;
+
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: () => (
+    <Form.Root
+      mode="onBlur"
+      onSubmit={(values) => alert(JSON.stringify(values, null, 2))}
+    >
+      <Form.Field name="email" rules=\{{ required: true, pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: 'Enter a valid email.' } }}>
+        <Form.Item>
+          <Form.Label>Email</Form.Label>
+          <Form.Control asChild>
+            <input type="email" placeholder="you@example.com" />
+          </Form.Control>
+          <Form.Description>We will never share your email.</Form.Description>
+          <Form.Message />
+        </Form.Item>
+      </Form.Field>
+
+      <Form.Field name="password" rules=\{{ required: true, minLength: { value: 8, message: 'At least 8 characters.' } }}>
+        <Form.Item>
+          <Form.Label>Password</Form.Label>
+          <Form.Control asChild>
+            <input type="password" placeholder="••••••••" />
+          </Form.Control>
+          <Form.Message />
+        </Form.Item>
+      </Form.Field>
+
+      <Form.Submit>Sign in</Form.Submit>
+    </Form.Root>
+  ),
+};
+
+export const Inline: Story = {
+  render: () => (
+    <Form.Root variant="inline" onSubmit={(values) => alert(JSON.stringify(values))}>
+      <Form.Field name="query" rules=\{{ required: true }}>
+        <Form.Item>
+          <Form.Label>Search</Form.Label>
+          <Form.Control asChild>
+            <input type="text" placeholder="Type to search…" />
+          </Form.Control>
+          <Form.Message />
+        </Form.Item>
+      </Form.Field>
+      <Form.Submit>Go</Form.Submit>
+    </Form.Root>
+  ),
+};
+
+export const ValidateOnChange: Story = {
+  render: () => (
+    <Form.Root mode="onChange" onSubmit={(values) => alert(JSON.stringify(values))}>
+      <Form.Field name="username" rules=\{{ required: true, minLength: { value: 3, message: 'Too short.' } }}>
+        <Form.Item>
+          <Form.Label>Username</Form.Label>
+          <Form.Control asChild>
+            <input type="text" placeholder="min 3 chars" />
+          </Form.Control>
+          <Form.Message />
+        </Form.Item>
+      </Form.Field>
+      <Form.Submit>Create account</Form.Submit>
+    </Form.Root>
+  ),
+};
+{{else}}
+export const SchemaDriven: Story = {
+  render: () => (
+    <Form
+      mode="onBlur"
+      fields={[
+        { name: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com', required: true, description: 'We will never share your email.' },
+        { name: 'password', label: 'Password', type: 'password', placeholder: '••••••••', rules: { required: true, minLength: { value: 8 } } },
+      ]}
+      onSubmit={(values) => alert(JSON.stringify(values, null, 2))}
+    />
+  ),
+};
+{{/if}}
