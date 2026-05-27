@@ -1,0 +1,65 @@
+<ol
+  [class]="wrapperClasses()"
+  [attr.data-position-side]="positionSide()"
+  aria-label="Notifications"
+>
+  @for (t of visibleToasts(); track trackById($index, t)) {
+    <li
+      [class]="toastClasses(t)"
+      [attr.data-state]="getStateAttr(t.id)"
+      [attr.role]="ariaRole(t)"
+      [attr.aria-live]="ariaLive(t)"
+      aria-atomic="true"
+      (mouseenter)="pause(t.id)"
+      (mouseleave)="resume(t)"
+      (focus)="pause(t.id)"
+      (blur)="resume(t)"
+    >
+      @if (shouldShowIcon(t)) {
+        <span class="toast-icon">
+          @if (t.variant === 'loading') {
+            <span class="toast-spinner" aria-hidden="true"></span>
+          } @else if (iconPath(t.variant)) {
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path [attr.d]="iconPath(t.variant)" />
+            </svg>
+          }
+        </span>
+      }
+      <div class="toast-body">
+        <div class="toast-title" [innerText]="t.message"></div>
+        @if (t.description) {
+          <div class="toast-description" [innerText]="t.description"></div>
+        }
+      </div>
+      @if (t.action) {
+        <button
+          type="button"
+          class="toast-action"
+          (click)="actionClick(t, $event)"
+          [innerText]="t.action.label"
+        ></button>
+      }
+      @if (closeButton) {
+        <button
+          type="button"
+          class="toast-close"
+          aria-label="Close notification"
+          (click)="handleDismiss(t)"
+        >
+          ×
+        </button>
+      }
+    </li>
+  }
+</ol>

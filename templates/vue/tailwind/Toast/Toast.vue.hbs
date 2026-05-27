@@ -1,0 +1,447 @@
+<script lang="ts">
+import { ref } from 'vue';
+
+// ===== Types =====
+export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info' | 'loading';
+export type ToastPosition =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
+
+export interface ToastAction {
+  label: string;
+  onClick: (event: MouseEvent) => void;
+}
+
+export interface ToastOptions {
+  id?: string | number;
+  description?: string;
+  duration?: number;
+  variant?: ToastVariant;
+  action?: ToastAction;
+  onDismiss?: (id: string | number) => void;
+  onAutoClose?: (id: string | number) => void;
+  className?: string;
+}
+
+export interface ToastData extends ToastOptions {
+  id: string | number;
+  message: string;
+  variant: ToastVariant;
+  createdAt: number;
+}
+
+// ===== Module-level singleton store =====
+let nextId = 1;
+export const toastsRef = ref<ToastData[]>([]);
+
+function upsert(
+  partial: Partial<ToastOptions> & { message: string; variant: ToastVariant },
+): string | number {
+  const id = partial.id ?? nextId++;
+  const idx = toastsRef.value.findIndex((t) => t.id === id);
+  if (idx >= 0) {
+    const merged = { ...toastsRef.value[idx], ...partial, id } as ToastData;
+    toastsRef.value = toastsRef.value.map((t, i) => (i === idx ? merged : t));
+  } else {
+    toastsRef.value = [
+      ...toastsRef.value,
+      { id, createdAt: Date.now(), ...partial } as ToastData,
+    ];
+  }
+  return id;
+}
+
+export function removeToast(id: string | number) {
+  toastsRef.value = toastsRef.value.filter((t) => t.id !== id);
+}
+
+function dismissImpl(id?: string | number) {
+  if (id == null) {
+    toastsRef.value.forEach((t) => t.onDismiss?.(t.id));
+    toastsRef.value = [];
+    return;
+  }
+  const t = toastsRef.value.find((x) => x.id === id);
+  if (!t) return;
+  t.onDismiss?.(t.id);
+  removeToast(id);
+}
+
+interface ToastFunction {
+  (message: string, options?: ToastOptions): string | number;
+  success: (m: string, o?: ToastOptions) => string | number;
+  error: (m: string, o?: ToastOptions) => string | number;
+  warning: (m: string, o?: ToastOptions) => string | number;
+  info: (m: string, o?: ToastOptions) => string | number;
+  loading: (m: string, o?: ToastOptions) => string | number;
+  custom: (m: string, o?: ToastOptions) => string | number;
+  dismiss: (id?: string | number) => void;
+  promise: <T>(
+    p: Promise<T>,
+    msgs: {
+      loading: string;
+      success: string | ((v: T) => string);
+      error: string | ((e: unknown) => string);
+    },
+    options?: ToastOptions,
+  ) => string | number;
+}
+
+const toastFn = ((message: string, options: ToastOptions = {}) =>
+  upsert({ ...options, message, variant: options.variant ?? 'default' })) as ToastFunction;
+
+toastFn.success = (m, o) => upsert({ ...o, message: m, variant: 'success' });
+toastFn.error = (m, o) => upsert({ ...o, message: m, variant: 'error' });
+toastFn.warning = (m, o) => upsert({ ...o, message: m, variant: 'warning' });
+toastFn.info = (m, o) => upsert({ ...o, message: m, variant: 'info' });
+toastFn.loading = (m, o) =>
+  upsert({ ...o, message: m, variant: 'loading', duration: o?.duration ?? Infinity });
+toastFn.custom = (m, o) => upsert({ ...o, message: m, variant: o?.variant ?? 'default' });
+toastFn.dismiss = dismissImpl;
+toastFn.promise = (p, msgs, options) => {
+  const id = upsert({
+    ...options,
+    message: msgs.loading,
+    variant: 'loading',
+    duration: Infinity,
+  });
+  p.then((v) =>
+    upsert({
+      id,
+      message: typeof msgs.success === 'function' ? msgs.success(v) : msgs.success,
+      variant: 'success',
+      duration: options?.duration,
+    }),
+  ).catch((err) =>
+    upsert({
+      id,
+      message: typeof msgs.error === 'function' ? msgs.error(err) : msgs.error,
+      variant: 'error',
+      duration: options?.duration,
+    }),
+  );
+  return id;
+};
+export const toast = toastFn;
+</script>
+
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+
+interface Props {
+  position?: ToastPosition;
+  duration?: number;
+  maxToasts?: number;
+  richColors?: boolean;
+  closeButton?: boolean;
+  pauseWhenPageIsHidden?: boolean;
+  className?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  position: 'bottom-right',
+  duration: 4000,
+  maxToasts: 5,
+  richColors: false,
+  closeButton: false,
+  pauseWhenPageIsHidden: true,
+  className: '',
+});
+
+const POSITION_CLASSES: Record<ToastPosition, string> = {
+  'top-left': 'top-0 left-0',
+  'top-center': 'top-0 left-1/2 -translate-x-1/2',
+  'top-right': 'top-0 right-0',
+  'bottom-left': 'bottom-0 left-0 flex-col-reverse',
+  'bottom-center': 'bottom-0 left-1/2 -translate-x-1/2 flex-col-reverse',
+  'bottom-right': 'bottom-0 right-0 flex-col-reverse',
+};
+const VARIANT_BORDER: Record<ToastVariant, string> = {
+  default: 'border-l-[3px] border-l-[var(--color-border)]',
+  success: 'border-l-[3px] border-l-[var(--color-success)]',
+  error: 'border-l-[3px] border-l-[var(--color-destructive)]',
+  warning: 'border-l-[3px] border-l-[#f59e0b]',
+  info: 'border-l-[3px] border-l-[var(--color-primary)]',
+  loading: 'border-l-[3px] border-l-[var(--color-text-muted)]',
+};
+const RICH_VARIANT: Record<ToastVariant, string> = {
+  default: '',
+  success: '!bg-[var(--color-success)] !text-white !border-transparent',
+  error: '!bg-[var(--color-destructive)] !text-white !border-transparent',
+  warning: '!bg-[#f59e0b] !text-[#1a1a2e] !border-transparent',
+  info: '!bg-[var(--color-primary)] !text-[var(--color-primary-foreground)] !border-transparent',
+  loading: '',
+};
+
+const positionSide = computed(() => (props.position.startsWith('top') ? 'top' : 'bottom'));
+
+const wrapperClasses = computed(() =>
+  [
+    'fixed z-[9999] flex flex-col gap-2 p-4 max-w-[420px] w-full list-none m-0 pointer-events-none',
+    POSITION_CLASSES[props.position],
+    props.className,
+  ]
+    .filter(Boolean)
+    .join(' '),
+);
+
+function toastBaseClasses(t: ToastData): string {
+  return [
+    'pointer-events-auto flex items-start gap-2 box-border bg-[var(--color-surface)] text-[var(--color-text)]',
+    'border border-[var(--color-border)] rounded-[var(--radius-md,8px)]',
+    'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]',
+    'p-4 text-sm leading-tight min-w-[320px] max-w-[420px] w-full motion-reduce:animate-none',
+    VARIANT_BORDER[t.variant],
+    props.richColors ? RICH_VARIANT[t.variant] : '',
+    t.className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+const visibleToasts = computed(() => {
+  const all = toastsRef.value;
+  return all.length > props.maxToasts ? all.slice(all.length - props.maxToasts) : all;
+});
+
+watch(toastsRef, (list) => {
+  if (list.length > props.maxToasts) {
+    const overflow = list.length - props.maxToasts;
+    list.slice(0, overflow).forEach((t) => removeToast(t.id));
+  }
+});
+
+interface TimerEntry {
+  timer: number | null;
+  remaining: number;
+  startedAt: number;
+  dismissed: boolean;
+  state: 'enter' | 'visible' | 'exit';
+}
+const timers = ref<Map<string | number, TimerEntry>>(new Map());
+
+function getEntry(id: string | number, duration: number): TimerEntry {
+  let entry = timers.value.get(id);
+  if (!entry) {
+    entry = {
+      timer: null,
+      remaining: duration,
+      startedAt: Date.now(),
+      dismissed: false,
+      state: 'enter',
+    };
+    timers.value.set(id, entry);
+    requestAnimationFrame(() => {
+      const e = timers.value.get(id);
+      if (e) e.state = 'visible';
+      timers.value = new Map(timers.value);
+    });
+  }
+  return entry;
+}
+
+function clearTimer(id: string | number) {
+  const e = timers.value.get(id);
+  if (e?.timer) {
+    window.clearTimeout(e.timer);
+    e.timer = null;
+  }
+}
+
+function scheduleAutoClose(t: ToastData) {
+  const duration = t.duration ?? props.duration;
+  if (duration === Infinity) return;
+  const e = getEntry(t.id, duration);
+  if (e.dismissed) return;
+  e.startedAt = Date.now();
+  clearTimer(t.id);
+  e.timer = window.setTimeout(() => handleAutoClose(t), e.remaining);
+}
+
+function pause(id: string | number) {
+  const e = timers.value.get(id);
+  if (!e || !e.timer) return;
+  window.clearTimeout(e.timer);
+  e.timer = null;
+  e.remaining = Math.max(0, e.remaining - (Date.now() - e.startedAt));
+}
+
+function resume(t: ToastData) {
+  scheduleAutoClose(t);
+}
+
+function handleDismiss(t: ToastData) {
+  const e = getEntry(t.id, t.duration ?? props.duration);
+  if (e.dismissed) return;
+  e.dismissed = true;
+  clearTimer(t.id);
+  e.state = 'exit';
+  timers.value = new Map(timers.value);
+  window.setTimeout(() => {
+    t.onDismiss?.(t.id);
+    removeToast(t.id);
+    timers.value.delete(t.id);
+  }, 150);
+}
+
+function handleAutoClose(t: ToastData) {
+  const e = timers.value.get(t.id);
+  if (!e || e.dismissed) return;
+  e.dismissed = true;
+  clearTimer(t.id);
+  e.state = 'exit';
+  timers.value = new Map(timers.value);
+  window.setTimeout(() => {
+    t.onAutoClose?.(t.id);
+    removeToast(t.id);
+    timers.value.delete(t.id);
+  }, 150);
+}
+
+function getStateAttr(id: string | number): string {
+  return timers.value.get(id)?.state ?? 'enter';
+}
+
+function animClass(id: string | number): string {
+  const s = getStateAttr(id);
+  if (s === 'enter') {
+    return positionSide.value === 'top'
+      ? 'animate-[toast-enter-top_250ms_cubic-bezier(0.16,1,0.3,1)]'
+      : 'animate-[toast-enter-bottom_250ms_cubic-bezier(0.16,1,0.3,1)]';
+  }
+  if (s === 'exit') return 'animate-[toast-exit_150ms_ease-in_forwards] pointer-events-none';
+  return '';
+}
+
+function actionClick(t: ToastData, e: MouseEvent) {
+  t.action?.onClick(e);
+  handleDismiss(t);
+}
+
+watch(
+  visibleToasts,
+  (list) => {
+    list.forEach((t) => {
+      if (!timers.value.has(t.id)) scheduleAutoClose(t);
+    });
+  },
+  { immediate: true },
+);
+
+function onVisibility() {
+  if (document.visibilityState === 'hidden') {
+    visibleToasts.value.forEach((t) => pause(t.id));
+  } else {
+    visibleToasts.value.forEach((t) => resume(t));
+  }
+}
+
+onMounted(() => {
+  if (props.pauseWhenPageIsHidden) {
+    document.addEventListener('visibilitychange', onVisibility);
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisibility);
+  timers.value.forEach((e) => {
+    if (e.timer) window.clearTimeout(e.timer);
+  });
+});
+
+function shouldShowIcon(t: ToastData): boolean {
+  return t.variant !== 'default';
+}
+
+const ICON_PATHS: Record<string, string> = {
+  success: 'M20 6L9 17l-5-5',
+  error: 'M18 6L6 18M6 6l12 12',
+  warning:
+    'M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z',
+  info: 'M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+};
+function iconPath(variant: ToastVariant): string {
+  return ICON_PATHS[variant] ?? '';
+}
+</script>
+
+<template>
+  <Teleport to="body">
+    <!-- Keyframes injected once; no Tailwind config edit required -->
+    <component :is="'style'">
+      @keyframes toast-enter-bottom { from { opacity: 0; transform: translateY(100%) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes toast-enter-top { from { opacity: 0; transform: translateY(-100%) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes toast-exit { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.96); } }
+      @keyframes toast-spin { to { transform: rotate(360deg); } }
+    </component>
+    <ol
+      :class="wrapperClasses"
+      :data-position-side="positionSide"
+      aria-label="Notifications"
+    >
+      <li
+        v-for="t in visibleToasts"
+        :key="t.id"
+        :class="[toastBaseClasses(t), animClass(t.id)]"
+        :data-state="getStateAttr(t.id)"
+        :role="t.variant === 'error' ? 'alert' : 'status'"
+        :aria-live="t.variant === 'error' ? 'assertive' : 'polite'"
+        aria-atomic="true"
+        @mouseenter="pause(t.id)"
+        @mouseleave="resume(t)"
+        @focus="pause(t.id)"
+        @blur="resume(t)"
+      >
+        <span v-if="shouldShowIcon(t)" class="shrink-0 w-[18px] h-[18px] inline-flex items-center justify-center mt-px">
+          <span
+            v-if="t.variant === 'loading'"
+            class="inline-block w-4 h-4 rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-primary)] animate-[toast-spin_0.8s_linear_infinite] motion-reduce:animate-none"
+            aria-hidden="true"
+          />
+          <svg
+            v-else-if="iconPath(t.variant)"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path :d="iconPath(t.variant)" />
+          </svg>
+        </span>
+        <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+          <div class="font-medium leading-tight break-words" v-text="t.message" />
+          <div
+            v-if="t.description"
+            class="text-[13px] text-[var(--color-text-muted)] leading-tight break-words"
+            v-text="t.description"
+          />
+        </div>
+        <button
+          v-if="t.action"
+          type="button"
+          class="shrink-0 self-start px-2.5 py-1 text-xs font-medium bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] border border-[var(--color-border)] rounded cursor-pointer transition-colors hover:bg-[var(--color-border)] focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2"
+          @click="actionClick(t, $event)"
+          v-text="t.action.label"
+        />
+        <button
+          v-if="closeButton"
+          type="button"
+          class="shrink-0 w-5 h-5 p-0 bg-transparent border-none cursor-pointer opacity-60 text-lg leading-none text-current rounded inline-flex items-center justify-center transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-1 focus-visible:opacity-100"
+          aria-label="Close notification"
+          @click="handleDismiss(t)"
+        >
+          ×
+        </button>
+      </li>
+    </ol>
+  </Teleport>
+</template>

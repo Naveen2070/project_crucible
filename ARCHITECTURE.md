@@ -219,13 +219,15 @@ and can be overridden through `config.tokens.components`.
 
 Component tokens provide per-component design values derived from global seed tokens:
 
-| Component | Token Variables                                                                                      |
-| --------- | ---------------------------------------------------------------------------------------------------- |
-| Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding`, `--card-border-radius`   |
-| Dialog    | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`, `--Dialog-shadow`, `--z-Dialog` |
-| Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`                                       |
-| Input     | `--input-height`, `--input-border-radius`, `--input-border-color`, `--input-transition`              |
-| Select    | `--select-height`, `--select-border-radius`, `--select-border-color`, `--z-select`                   |
+| Component | Token Variables                                                                                                              |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Card      | `--card-header-padding`, `--card-content-padding`, `--card-footer-padding`, `--card-border-radius`                           |
+| Dialog    | `--Dialog-padding`, `--Dialog-overlay-bg`, `--Dialog-border-radius`, `--Dialog-shadow`, `--z-Dialog`                          |
+| Button    | `--btn-border-radius`, `--btn-font-weight`, `--btn-transition`                                                               |
+| Input     | `--input-height`, `--input-border-radius`, `--input-border-color`, `--input-transition`                                      |
+| Select    | `--select-height`, `--select-border-radius`, `--select-border-color`, `--z-select`                                           |
+| Popover   | `--popover-background`, `--popover-border`, `--popover-radius`, `--popover-shadow`, `--popover-padding`, `--popover-z-index` |
+| Table     | `--table-row-height`, `--table-header-height`, `--table-border-radius`, `--table-cell-padding`, `--table-row-hover-bg`       |
 
 Users can override component tokens via `config.tokens.components`:
 
@@ -702,13 +704,15 @@ legacy `*ngIf`, `*ngFor`, `*ngSwitch` directives.
 
 All components use **BEM (Block Element Modifier)** naming:
 
-| Component | Block       | Elements                                       | Modifiers                   |
-| --------- | ----------- | ---------------------------------------------- | --------------------------- |
-| Button    | `.btn`      | —                                              | `.btn--primary`, `.btn--sm` |
-| Card      | `.card`     | `.header`, `.footer`, `.title`, `.content`     | `.card--hoverable`          |
-| Dialog    | `.Dialog`   | `.header`, `.footer`, `.body`, `.close-button` | `.Dialog--sm`               |
-| Input     | `.input`    | `.label`, `.hint`, `.error`                    | `.input--error`             |
-| Select    | `.combobox` | `.label`, `.option`, `.listbox`                | `.combobox--open`           |
+| Component | Block            | Elements                                                              | Modifiers                                                  |
+| --------- | ---------------- | --------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Button    | `.btn`           | —                                                                     | `.btn--primary`, `.btn--sm`                                |
+| Card      | `.card`          | `.header`, `.footer`, `.title`, `.content`                            | `.card--hoverable`                                         |
+| Dialog    | `.Dialog`        | `.header`, `.footer`, `.body`, `.close-button`                        | `.Dialog--sm`                                              |
+| Input     | `.input`         | `.label`, `.hint`, `.error`                                           | `.input--error`                                            |
+| Select    | `.combobox`      | `.label`, `.option`, `.listbox`                                       | `.combobox--open`                                          |
+| Popover   | `.popover`       | `.popover-trigger`, `.popover-content`, `.popover-arrow`              | `.variant-minimal`, `.size-lg`, `.arrow-top`               |
+| Table     | `.tableWrapper`  | `.table`, `.thead`, `.tbody`, `.headerCell`, `.cell`, `.pagination`   | `.tableWrapperBordered`, `.rowStriped`, `.rowSelected`     |
 
 **Angular Note:** Angular uses component-prefixed classes (`.card-header`, `.card-footer`) for view
 encapsulation.
@@ -784,10 +788,11 @@ export const CardHeader = ({ children, className }) => (
 
 Use token-based z-index values to prevent conflicts:
 
-| Component | Token        | Value  |
-| --------- | ------------ | ------ |
-| Dialog    | `--z-Dialog` | `1000` |
-| Select    | `--z-select` | `900`  |
+| Component | Token                | Value  |
+| --------- | -------------------- | ------ |
+| Dialog    | `--z-Dialog`         | `1000` |
+| Select    | `--z-select`         | `900`  |
+| Popover   | `--popover-z-index`  | `50`   |
 
 ---
 
@@ -1190,6 +1195,8 @@ enum ComponentName {
   Card = 'Card',
   Dialog = 'Dialog',
   Select = 'Select',
+  Popover = 'Popover',
+  Table = 'Table',
 }
 ```
 

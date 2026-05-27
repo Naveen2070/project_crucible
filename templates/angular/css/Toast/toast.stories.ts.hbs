@@ -1,0 +1,309 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { componentWrapperDecorator, moduleMetadata } from '@storybook/angular';
+import { ToasterComponent, toast, type ToastPosition } from './toast.component';
+import { ButtonComponent } from '../Button/button.component';
+
+const meta: Meta<ToasterComponent> = {
+  title: 'Crucible/Toast',
+  component: ToasterComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    position: {
+      control: 'select',
+      options: [
+        'top-left',
+        'top-center',
+        'top-right',
+        'bottom-left',
+        'bottom-center',
+        'bottom-right',
+      ],
+    },
+    duration: { control: 'number' },
+    maxToasts: { control: 'number' },
+    richColors: { control: 'boolean' },
+    closeButton: { control: 'boolean' },
+  },
+  args: {
+    position: 'bottom-right',
+    duration: 4000,
+    maxToasts: 5,
+    richColors: false,
+    closeButton: false,
+  },
+  parameters: { layout: 'centered' },
+  decorators: [
+    moduleMetadata({ imports: [ButtonComponent] }),
+    componentWrapperDecorator(
+      (story) => `<div style="min-height: 320px; padding: 32px;">${story}</div>`,
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<ToasterComponent>;
+
+export const Default: Story = {
+  render: (args) => ({
+    props: {
+      ...args,
+      showToast: () => toast('Event has been created'),
+      dismissAll: () => toast.dismiss(),
+    },
+    template: `
+      <app-toaster
+        [position]="position"
+        [duration]="duration"
+        [maxToasts]="maxToasts"
+        [richColors]="richColors"
+        [closeButton]="closeButton"
+      ></app-toaster>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        <app-button (click)="showToast()">Show toast</app-button>
+        <app-button variant="outline" (click)="dismissAll()">Dismiss all</app-button>
+      </div>
+      <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted, #6B6B8A);">
+        Click <strong>Show toast</strong>. Auto-dismisses after {{ duration }}ms. Hover to pause.
+      </p>
+    `,
+  }),
+};
+
+export const Variants: Story = {
+  args: { closeButton: true },
+  render: (args) => ({
+    props: {
+      ...args,
+      fireSuccess: () =>
+        toast.success('Profile updated', { description: 'Your changes have been saved.' }),
+      fireError: () =>
+        toast.error('Upload failed', { description: 'Network error — please try again.' }),
+      fireWarning: () =>
+        toast.warning('Disk almost full', { description: '85% of available space used.' }),
+      fireInfo: () =>
+        toast.info('New version available', { description: 'Version 2.0 is ready.' }),
+      fireLoading: () => toast.loading('Uploading file…', { description: 'Please wait' }),
+    },
+    template: `
+      <app-toaster
+        [position]="position"
+        [duration]="duration"
+        [maxToasts]="maxToasts"
+        [richColors]="richColors"
+        [closeButton]="closeButton"
+      ></app-toaster>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <app-button (click)="fireSuccess()">Success</app-button>
+        <app-button variant="destructive" (click)="fireError()">Error</app-button>
+        <app-button variant="outline" (click)="fireWarning()">Warning</app-button>
+        <app-button variant="outline" (click)="fireInfo()">Info</app-button>
+        <app-button variant="ghost" (click)="fireLoading()">Loading</app-button>
+      </div>
+    `,
+  }),
+};
+
+export const WithAction: Story = {
+  render: (args) => ({
+    props: {
+      ...args,
+      fireErrorWithRetry: () =>
+        toast.error('Failed to delete file', {
+          description: 'The server returned an error.',
+          action: {
+            label: 'Retry',
+            onClick: () => toast.success('File deleted', { description: 'Successful on retry' }),
+          },
+        }),
+      fireUndo: () =>
+        toast('Message archived', {
+          description: 'You can undo this action.',
+          action: { label: 'Undo', onClick: () => toast.info('Message restored') },
+          duration: 8000,
+        }),
+    },
+    template: `
+      <app-toaster
+        [position]="position"
+        [duration]="duration"
+        [maxToasts]="maxToasts"
+        [richColors]="richColors"
+        [closeButton]="closeButton"
+      ></app-toaster>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <app-button variant="destructive" (click)="fireErrorWithRetry()">Error with retry</app-button>
+        <app-button (click)="fireUndo()">Action with undo</app-button>
+      </div>
+    `,
+  }),
+};
+
+export const PromiseToast: Story = {
+  render: (args) => {
+    const runPromise = (shouldFail = false) => {
+      const p = new Promise<{ name: string }>((resolve, reject) =>
+        window.setTimeout(() => {
+          if (shouldFail) reject(new Error('Network error'));
+          else resolve({ name: 'document.pdf' });
+        }, 2000),
+      );
+      toast.promise(p, {
+        loading: 'Saving file…',
+        success: (data) => `${data.name} saved successfully`,
+        error: (err) => `Error: ${(err as Error).message}`,
+      });
+    };
+    return {
+      props: { ...args, runOk: () => runPromise(false), runFail: () => runPromise(true) },
+      template: `
+        <app-toaster
+          [position]="position"
+          [duration]="duration"
+          [maxToasts]="maxToasts"
+          [richColors]="richColors"
+          [closeButton]="closeButton"
+        ></app-toaster>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <app-button (click)="runOk()">Run promise (succeeds)</app-button>
+          <app-button variant="destructive" (click)="runFail()">Run promise (fails)</app-button>
+        </div>
+        <p style="margin: 8px 0 0 0; font-size: 0.875rem; color: var(--color-text-muted, #6B6B8A);">
+          Loading toast appears immediately, then replaces in place after 2s.
+        </p>
+      `,
+    };
+  },
+};
+
+export const AllPositions: Story = {
+  render: (args) => {
+    const positions: ToastPosition[] = [
+      'top-left',
+      'top-center',
+      'top-right',
+      'bottom-left',
+      'bottom-center',
+      'bottom-right',
+    ];
+    return {
+      props: {
+        ...args,
+        positions,
+        activePos: args.position,
+        switchTo(this: any, p: ToastPosition) {
+          this.activePos = p;
+          window.setTimeout(() => toast(`Toast at ${p}`), 50);
+        },
+      },
+      template: `
+        <app-toaster
+          [position]="activePos"
+          [duration]="duration"
+          [maxToasts]="maxToasts"
+          [richColors]="richColors"
+          [closeButton]="closeButton"
+        ></app-toaster>
+        <p style="margin: 0 0 12px 0; font-size: 0.875rem;">
+          Active position: <code [innerText]="activePos"></code>
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          @for (p of positions; track p) {
+            <app-button
+              [variant]="p === activePos ? 'default' : 'outline'"
+              (click)="switchTo(p)"
+              [innerText]="p"
+            ></app-button>
+          }
+        </div>
+      `,
+    };
+  },
+};
+
+export const UpdateInPlace: Story = {
+  render: (args) => ({
+    props: {
+      ...args,
+      saveDraft: () => {
+        const id = toast.loading('Saving draft…', { id: 'save-demo' });
+        window.setTimeout(() => {
+          toast.success('Draft saved', {
+            id,
+            description: 'All changes synced.',
+            duration: 4000,
+          });
+        }, 1500);
+      },
+    },
+    template: `
+      <app-toaster
+        [position]="position"
+        [duration]="duration"
+        [maxToasts]="maxToasts"
+        [richColors]="richColors"
+        [closeButton]="closeButton"
+      ></app-toaster>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <app-button (click)="saveDraft()">Save draft (updates in place)</app-button>
+      </div>
+      <p style="margin: 8px 0 0 0; font-size: 0.875rem; color: var(--color-text-muted, #6B6B8A);">
+        Click multiple times — same toast id reuses the same slot.
+      </p>
+    `,
+  }),
+};
+
+export const RichColors: Story = {
+  args: { richColors: true, closeButton: true },
+  render: (args) => ({
+    props: {
+      ...args,
+      fireSuccess: () => toast.success('Saved!', { description: 'Your changes are live.' }),
+      fireError: () => toast.error('Failed', { description: 'Network error.' }),
+      fireWarning: () => toast.warning('Almost full', { description: '85% disk used.' }),
+      fireInfo: () => toast.info('Heads up', { description: 'Update available.' }),
+    },
+    template: `
+      <app-toaster
+        [position]="position"
+        [duration]="duration"
+        [maxToasts]="maxToasts"
+        [richColors]="richColors"
+        [closeButton]="closeButton"
+      ></app-toaster>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <app-button (click)="fireSuccess()">Success</app-button>
+        <app-button variant="destructive" (click)="fireError()">Error</app-button>
+        <app-button variant="outline" (click)="fireWarning()">Warning</app-button>
+        <app-button variant="outline" (click)="fireInfo()">Info</app-button>
+      </div>
+    `,
+  }),
+};
+
+export const DismissAndCustom: Story = {
+  render: (args) => ({
+    props: {
+      ...args,
+      stackThree: () => {
+        toast('First');
+        window.setTimeout(() => toast.success('Second'), 200);
+        window.setTimeout(() => toast.info('Third'), 400);
+      },
+      dismissAll: () => toast.dismiss(),
+    },
+    template: `
+      <app-toaster
+        [position]="position"
+        [duration]="duration"
+        [maxToasts]="maxToasts"
+        [richColors]="richColors"
+        [closeButton]="closeButton"
+      ></app-toaster>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <app-button (click)="stackThree()">Stack 3 toasts</app-button>
+        <app-button variant="outline" (click)="dismissAll()">Dismiss all</app-button>
+      </div>
+    `,
+  }),
+};

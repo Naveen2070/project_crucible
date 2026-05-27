@@ -41,6 +41,8 @@ export interface TableProps<T = unknown> {
   loading?: boolean;
   emptyMessage?: string;
   className?: string;
+  /** Accessible caption announced by screen readers (visually hidden by default). */
+  caption?: string;
 }
 
 const sizeClasses: Record<string, string> = {
@@ -132,6 +134,8 @@ export interface TableContextValue<T = unknown> {
   onPageChange?: (page: number, pageSize: number) => void;
   loading?: boolean;
   emptyMessage?: string;
+  /** Accessible caption announced by screen readers (visually hidden by default). */
+  caption?: string;
 }
 
 const TableContext = React.createContext<TableContextValue | null>(null);
@@ -164,6 +168,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
   loading = false,
   emptyMessage = 'No data available',
   className,
+  caption,
   children,
 }: TableProps<T> & { children?: React.ReactNode }) => {
   const [internalPage, setInternalPage] = useState(page);
@@ -173,7 +178,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
 
   const processedData = useMemo(() => {
     let result = [...data];
-    if (internalSortKey && onSort) {
+    if (internalSortKey) {
       result = sort(result, internalSortKey, internalSortDir);
     }
     return result;
@@ -306,6 +311,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
             <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
+                aria-label={isSelected ? 'Deselect row' : 'Select row'}
                 checked={isSelected}
                 onChange={() => handleSelect(row)}
                 className={styles.checkbox}
@@ -361,6 +367,7 @@ export const TableRoot = <T extends Record<string, unknown>>({
                 isBordered ? styles.headerCellBordered : '',
               ].filter(Boolean).join(' ')}
               style={col.width ? { width: col.width } : undefined}
+              scope="col"
               onClick={() => col.sortable && handleSort(col.key)}
               role={col.sortable ? 'columnheader' : undefined}
               aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
@@ -413,7 +420,12 @@ export const TableRoot = <T extends Record<string, unknown>>({
 
     return (
       <>
-        <table className={[styles.table, loading && styles.tableLoading].filter(Boolean).join(' ')} role="grid">
+        <table
+          className={[styles.table, loading && styles.tableLoading].filter(Boolean).join(' ')}
+          role="grid"
+          aria-busy={loading || undefined}
+        >
+          {caption && <caption className={styles.srOnly}>{caption}</caption>}
           {renderHeader()}
           <tbody className={styles.tbody}>{renderRows()}</tbody>
         </table>
@@ -425,7 +437,30 @@ export const TableRoot = <T extends Record<string, unknown>>({
   return (
     <TableContext.Provider value={contextValue}>
       <div className={wrapperClasses}>
-        {children ? children : renderDefaultContent()}
+        <span aria-live="polite" className="sr-only" style={ { position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0 } }>
+          {sortKey ? `Sorted by ${sortKey} ${sortDirection}` : ''}
+        </span>
+        {children ? (
+          <>
+            <table
+              className={[styles.table, loading && styles.tableLoading].filter(Boolean).join(' ')}
+              role="grid"
+              aria-busy={loading || undefined}
+            >
+              {caption && <caption className={styles.srOnly}>{caption}</caption>}
+              {React.Children.toArray(children).filter((child) => {
+                const type = (child as any)?.type;
+                return type === TableHeader || type === TableBody;
+              })}
+            </table>
+            {React.Children.toArray(children).filter((child) => {
+              const type = (child as any)?.type;
+              return type !== TableHeader && type !== TableBody;
+            })}
+          </>
+        ) : (
+          renderDefaultContent()
+        )}
       </div>
     </TableContext.Provider>
   );
@@ -523,6 +558,7 @@ export const TableBody = ({ children, className }: { children?: React.ReactNode;
             <td className={[styles.cell, isCompact ? styles.cellCompact : '', isBordered ? styles.cellBordered : ''].filter(Boolean).join(' ')}>
               <input
                 type="checkbox"
+                aria-label={isSelected ? 'Deselect row' : 'Select row'}
                 checked={isSelected}
                 onChange={() => onSelect?.([key])}
                 className={styles.checkbox}
@@ -661,9 +697,10 @@ export const Table = <T extends Record<string, unknown>>({
   loading = false,
   emptyMessage = 'No data available',
   className,
+  caption,
 }: TableProps<T>) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { shouldVirtualize, virtualState, handleScroll } = useVirtualizer(
+  const { shouldVirtualize, virtualState, handleScroll, containerHeight } = useVirtualizer(
     data.length,
     containerRef,
     { itemHeight, virtualizationThreshold, virtualize }
@@ -679,7 +716,7 @@ export const Table = <T extends Record<string, unknown>>({
 
   const processedData = useMemo(() => {
     let result = [...data];
-    if (internalSortKey && onSort) {
+    if (internalSortKey) {
       result = sort(result, internalSortKey, internalSortDir);
     }
     return result;
@@ -880,7 +917,13 @@ export const Table = <T extends Record<string, unknown>>({
       <div ref={containerRef} className={showVirtualContainer ? styles.tableContainer : undefined} onScroll={showVirtualContainer ? handleScroll : undefined} style={containerStyle}>
         {showVirtualContainer ? (
           <div style={virtualContainerStyle}>
-            <table className={tableClasses} role="grid" style={stickyTableStyle}>
+            <table
+              className={tableClasses}
+              role="grid"
+              style={stickyTableStyle}
+              aria-busy={loading || undefined}
+            >
+              {caption && <caption className={styles.srOnly}>{caption}</caption>}
               <thead className={styles.thead}>
                 <tr className={styles.headerRow}>
                   {selectionMode !== 'none' && (
@@ -898,6 +941,7 @@ export const Table = <T extends Record<string, unknown>>({
                       key={col.key}
                       className={headerCellClasses(col)}
                       style={col.width ? { width: col.width } : undefined}
+                      scope="col"
                       onClick={() => handleSort(col)}
                       role={col.sortable ? 'columnheader' : undefined}
                       aria-sort={internalSortKey === col.key ? (internalSortDir === 'asc' ? 'ascending' : 'descending') : undefined}
@@ -916,7 +960,12 @@ export const Table = <T extends Record<string, unknown>>({
             </table>
           </div>
         ) : (
-          <table className={tableClasses} role="grid">
+          <table
+            className={tableClasses}
+            role="grid"
+            aria-busy={loading || undefined}
+          >
+            {caption && <caption className={styles.srOnly}>{caption}</caption>}
             <thead className={styles.thead}>
               <tr className={styles.headerRow}>
                   {selectionMode !== 'none' && (
@@ -933,6 +982,7 @@ export const Table = <T extends Record<string, unknown>>({
                   <th
                     key={col.key}
                     className={headerCellClasses(col)}
+                    scope="col"
                     style={col.width ? { width: col.width } : undefined}
                     onClick={() => handleSort(col)}
                     role={col.sortable ? 'columnheader' : undefined}

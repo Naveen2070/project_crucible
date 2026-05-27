@@ -92,8 +92,8 @@ New components are added in parallel with version milestones. Each component req
 
 | Component       | Target Version | Status       |
 | --------------- | -------------- | ------------ |
-| **Table**       | v1.1           | **Priority** |
-| **Popover**     | v1.1           | **Priority** |
+| **Table**       | v1.1           | ✅ Landed    |
+| **Popover**     | v1.1           | ✅ Landed    |
 | **Toast**       | v1.1           | **Priority** |
 | **Form System** | v1.1           | **Priority** |
 | Tabs            | v1.1           | Planned      |

@@ -1,12 +1,23 @@
 <div [ngClass]="getWrapperClasses()">
+  <span aria-live="polite" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
+    \{{ internalSortKey() ? 'Sorted by ' + internalSortKey() + ' ' + internalSortDir() : '' }}
+  </span>
   <div [ngClass]="tableContainer">
-    <table [ngClass]="getTableClasses()" role="grid">
+    <table
+      [ngClass]="getTableClasses()"
+      role="grid"
+      [attr.aria-busy]="loading ? 'true' : null"
+    >
+      @if (caption) {
+        <caption class="sr-only" [innerText]="caption"></caption>
+      }
       <thead [ngClass]="thead">
         <tr [ngClass]="headerRow">
           @if (selectionMode !== 'none') {
             <th [ngClass]="[headerCell, sizeClasses[size], isBordered() ? 'headerCellBordered' : '']">
               <input
                 type="checkbox"
+                aria-label="Select all rows"
                 [checked]="internalSelected().length === displayData().length && displayData().length > 0"
                 (change)="handleSelectAll()"
                 [ngClass]="checkbox" />
@@ -16,12 +27,13 @@
             <th
               [ngClass]="getHeaderCellClasses(col)"
               [style.width]="col.width"
+              scope="col"
               (click)="handleSort(col)"
               [attr.role]="col.sortable ? 'columnheader' : null"
               [attr.aria-sort]="getAriaSort(col.key)">
-              {{ col.label }}
+              <span [innerText]="col.label"></span>
               @if (col.sortable && shouldShowSortIcon(col.key)) {
-                <span class="sort-icon">{{ sortIcon }}</span>
+                <span class="sort-icon" [innerText]="sortIcon"></span>
               }
             </th>
           }
@@ -32,9 +44,9 @@
           <tr>
             <td
               [colSpan]="columns.length + (selectionMode !== 'none' ? 1 : 0)"
-              [ngClass]="emptyRow">
-              {{ emptyMessage }}
-            </td>
+              [ngClass]="emptyRow"
+              [innerText]="emptyMessage"
+            ></td>
           </tr>
         }
         @for (row of displayData(); track trackByIndex($index, row); let idx = $index) {
@@ -43,6 +55,7 @@
               <td [ngClass]="getCellClass()">
                 <input
                   type="checkbox"
+                  [attr.aria-label]="'Select row ' + idx"
                   [checked]="internalSelected().includes(String(row[rowKey]))"
                   (change)="handleSelect(row)"
                   [ngClass]="checkbox" />
@@ -65,7 +78,13 @@
     @if (info.totalPages > 1) {
       <div [ngClass]="pagination">
         <div [ngClass]="paginationInfo">
-          Showing {{ pageStart }} to {{ pageEnd }} of {{ totalItems }} results
+          Showing
+          <span [innerText]="pageStart"></span>
+          to
+          <span [innerText]="pageEnd"></span>
+          of
+          <span [innerText]="totalItems"></span>
+          results
         </div>
         <div [ngClass]="paginationButtons">
           <button
@@ -77,9 +96,9 @@
           @for (p of pageNumbers(); track trackByPage($index, p)) {
             <button
               (click)="onPageChange(p)"
-              [ngClass]="[paginationBtn, p === internalPage() ? paginationBtnActive : '']">
-              {{ p }}
-            </button>
+              [ngClass]="[paginationBtn, p === internalPage() ? paginationBtnActive : '']"
+              [innerText]="p"
+            ></button>
           }
           <button
             (click)="onPageChange(internalPage() + 1)"

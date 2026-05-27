@@ -22,7 +22,7 @@
   "prefix": "table",
   "noClassName": true,
   "behaviours": [],
-  "a11y": { "role": "table", "keyboardNav": true, "dynamicRowCount": true },
+  "a11y": { "role": "table", "dynamicRowCount": true },
   "utils": ["virtualizer", "table-sorter", "table-paginator"],
   "dependencies": ["Button"],
   "tailwindDefaults": {

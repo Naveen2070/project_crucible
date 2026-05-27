@@ -31,7 +31,7 @@ describe('Popover Component Snapshots', () => {
 
     expect(output['Popover.tsx']).toContain('export const Popover');
     expect(output['Popover.tsx']).toContain('export const PopoverRoot');
-    expect(output['Popover.module.css']).toContain('.popover');
+    expect(output['Popover.module.css']).toContain('.content');
     expect(output).toMatchSnapshot();
   });
 
@@ -43,6 +43,7 @@ describe('Popover Component Snapshots', () => {
 
     expect(output['Popover.tsx']).not.toContain('export const PopoverRoot');
     expect(output['Popover.tsx']).toContain('export const Popover');
+    expect(output['Popover.module.css']).toContain('.content');
     expect(output).toMatchSnapshot();
   });
 
@@ -52,8 +53,8 @@ describe('Popover Component Snapshots', () => {
     const model = buildComponentModel(ComponentName.Popover, tokens, tailwindConfig as any, false);
     const output = await renderComponent(model);
 
-    expect(output['Popover.tsx']).toContain('bg-[var(--color-surface)]');
-    expect(output['Popover.tsx']).toContain('shadow-lg');
+    expect(output['Popover.tsx']).toContain('data-[state=open]:animate-in');
+    expect(output['Popover.tsx']).toContain('bg-[var(--popover-background');
     expect(output['Popover.module.css']).toBeUndefined();
     expect(output).toMatchSnapshot();
   });

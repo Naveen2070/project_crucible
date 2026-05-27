@@ -1,6 +1,11 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { computePosition, autoUpdate, offset, flip, shift, Placement } from '@floating-ui/dom';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } from '@floating-ui/dom';
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+let popoverIdCounter = 0;
 
 @Component({
   selector: 'app-popover',
@@ -9,8 +14,27 @@ import { computePosition, autoUpdate, offset, flip, shift, Placement } from '@fl
   templateUrl: './popover.component.html',
   styleUrls: ['./popover.component.css']
 })
-export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
-  @Input() isOpen = false;
+export class PopoverComponent implements AfterViewInit, OnDestroy {
+  private _isOpen = false;
+  private isViewInit = false;
+  private previouslyFocused: HTMLElement | null = null;
+
+  @Input()
+  get isOpen(): boolean {
+    return this._isOpen;
+  }
+  set isOpen(value: boolean) {
+    const prev = this._isOpen;
+    this._isOpen = value;
+    if (prev !== value) {
+      this.handleOpenStateChange(value);
+    }
+  }
+
+  isPositioned = false;
+  arrowSide = 'bottom';
+  readonly contentId = `popover-content-${++popoverIdCounter}`;
+
   @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
   @Input() alignment: 'start' | 'center' | 'end' = 'center';
   @Input() variant: 'default' | 'minimal' = 'default';
@@ -19,54 +43,128 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() closeOnClickOutside = true;
   @Input() closeOnEscape = true;
   @Input() className = '';
+  @Input() showArrow = true;
+  @Input() modal = false;
+  @Input() ariaLabel?: string;
 
   @Output() isOpenChange = new EventEmitter<boolean>();
 
   @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
   @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('arrowRef') arrowRef?: ElementRef<HTMLElement>;
 
   private cleanupFloating?: () => void;
+  private contentMoved = false;
+  private closeTimeout?: any;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngAfterViewInit() {
+    this.isViewInit = true;
     if (this.isOpen) {
       this.initFloating();
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['isOpen']) {
-      if (this.isOpen) {
-        // use setTimeout to ensure view is updated before initializing floating-ui
-        setTimeout(() => this.initFloating(), 0);
-      } else {
-        this.destroyFloating();
+  private handleOpenStateChange(isOpen: boolean) {
+    if (!this.isViewInit) return;
+    if (isOpen) {
+      if (this.trigger === 'click' && isPlatformBrowser(this.platformId)) {
+        this.previouslyFocused = document.activeElement as HTMLElement | null;
       }
+      setTimeout(() => {
+        this.initFloating();
+        this.focusContent();
+      }, 0);
+    } else {
+      this.destroyFloating();
+      this.restoreFocus();
     }
+  }
+
+  private focusContent() {
+    if (this.trigger !== 'click') return;
+    if (!this.contentRef?.nativeElement) return;
+    const focusable = this.contentRef.nativeElement.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    (focusable ?? this.contentRef.nativeElement).focus({ preventScroll: true });
+  }
+
+  private restoreFocus() {
+    if (this.previouslyFocused && typeof this.previouslyFocused.focus === 'function') {
+      this.previouslyFocused.focus({ preventScroll: true });
+    }
+    this.previouslyFocused = null;
   }
 
   ngOnDestroy() {
     this.destroyFloating();
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
   }
 
   private initFloating() {
+    if (!isPlatformBrowser(this.platformId)) return;
     if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
-    
+
     this.destroyFloating();
-    
+
     const triggerEl = this.triggerRef.nativeElement;
     const contentEl = this.contentRef.nativeElement;
-    
+
+    if (!this.contentMoved) {
+      this.renderer.appendChild(document.body, contentEl);
+      this.contentMoved = true;
+    }
+
     const floatingPlacement = `${this.placement}${this.alignment === 'center' ? '' : '-' + this.alignment}` as Placement;
-    
+
     this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      const middleware = [
+        offset(this.showArrow ? 12 : 8),
+        flip(),
+        shift({ padding: 8 }),
+      ];
+
+      if (this.showArrow && this.arrowRef) {
+        middleware.push(arrow({ element: this.arrowRef.nativeElement }));
+      }
+
       computePosition(triggerEl, contentEl, {
         placement: floatingPlacement,
-        middleware: [offset(8), flip(), shift({ padding: 8 })],
-      }).then(({ x, y }) => {
+        middleware,
+      }).then(({ x, y, placement, middlewareData }) => {
         Object.assign(contentEl.style, {
           left: `${x}px`,
           top: `${y}px`,
+          position: 'absolute',
+          visibility: 'visible',
         });
+
+        this.arrowSide = placement.split('-')[0];
+
+        if (this.showArrow && this.arrowRef && middlewareData.arrow) {
+          const { x: arrowX, y: arrowY } = middlewareData.arrow;
+          const staticSide = {
+            top: 'bottom',
+            right: 'left',
+            bottom: 'top',
+            left: 'right',
+          }[this.arrowSide];
+
+          Object.assign(this.arrowRef.nativeElement.style, {
+            left: arrowX != null ? `${arrowX}px` : '',
+            top: arrowY != null ? `${arrowY}px` : '',
+            right: '',
+            bottom: '',
+            [staticSide as string]: '-4px',
+          });
+        }
+
+        this.isPositioned = true;
       });
     });
   }
@@ -76,6 +174,13 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.cleanupFloating();
       this.cleanupFloating = undefined;
     }
+
+    if (this.contentMoved && this.contentRef?.nativeElement) {
+      this.renderer.removeChild(document.body, this.contentRef.nativeElement);
+      this.contentMoved = false;
+    }
+
+    this.isPositioned = false;
   }
 
   toggle() {
@@ -92,6 +197,10 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   onMouseEnter() {
     if (this.trigger === 'hover') {
+      if (this.closeTimeout) {
+        clearTimeout(this.closeTimeout);
+        this.closeTimeout = undefined;
+      }
       this.isOpen = true;
       this.isOpenChange.emit(this.isOpen);
     }
@@ -99,8 +208,10 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   onMouseLeave() {
     if (this.trigger === 'hover') {
-      this.isOpen = false;
-      this.isOpenChange.emit(this.isOpen);
+      this.closeTimeout = setTimeout(() => {
+        this.isOpen = false;
+        this.isOpenChange.emit(this.isOpen);
+      }, 150);
     }
   }
 
@@ -118,11 +229,38 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscape() {
-    if (!this.closeOnEscape) return;
-    if (this.isOpen) {
+  @HostListener('document:keydown', ['$event'])
+  handleDocumentKeydown(event: KeyboardEvent) {
+    if (!this.isOpen) return;
+
+    if (this.closeOnEscape && event.key === 'Escape') {
       this.close();
+      return;
+    }
+
+    if (event.key === 'Tab' && this.modal && this.contentRef?.nativeElement) {
+      const focusables = Array.from(
+        this.contentRef.nativeElement.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => el.offsetParent !== null);
+
+      if (focusables.length === 0) {
+        event.preventDefault();
+        this.contentRef.nativeElement.focus();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const contentEl = this.contentRef.nativeElement;
+
+      if (event.shiftKey && (active === first || !contentEl.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
   }
 
@@ -131,7 +269,7 @@ export class PopoverComponent implements AfterViewInit, OnDestroy, OnChanges {
       'popover-content': true,
       ['variant-' + this.variant]: true,
       ['size-' + this.size]: true,
-      'content-open': this.isOpen
+      [this.className]: !!this.className,
     };
   }
 }

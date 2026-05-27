@@ -1038,6 +1038,161 @@ async function runE2E() {
       throw new Error('Angular Popover missing computePosition logic');
     }
     results.push({ phase: 'Popover + Angular + CSS', passed: true });
+
+    // Toast + React + CSS
+    console.log(ansis.cyan('📦 Phase 32: Toast + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Toast'));
+    runCLI('add Toast -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.tsx')))) {
+      throw new Error('Missing: Toast/Toast.tsx');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.module.css')))) {
+      throw new Error('Missing: Toast/Toast.module.css');
+    }
+    const toastReactTsx = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.tsx'),
+      'utf-8',
+    );
+    if (!toastReactTsx.includes('export const toast') || !toastReactTsx.includes('export function Toaster')) {
+      throw new Error('React Toast missing Toaster + toast exports');
+    }
+    if (!toastReactTsx.includes('createPortal')) {
+      throw new Error('React Toast missing createPortal');
+    }
+    results.push({ phase: 'Toast + React + CSS', passed: true });
+
+    // Toast + Vue + SCSS
+    console.log(ansis.cyan('📦 Phase 33: Toast + Vue + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Toast'));
+    runCLI('add Toast -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.vue')))) {
+      throw new Error('Missing: Toast/Toast.vue');
+    }
+    const toastVueScss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.vue'),
+      'utf-8',
+    );
+    if (!toastVueScss.includes('lang="scss"')) {
+      throw new Error('Vue Toast missing SCSS lang declaration');
+    }
+    if (!toastVueScss.includes('export const toast')) {
+      throw new Error('Vue Toast missing toast named export');
+    }
+    results.push({ phase: 'Toast + Vue + SCSS', passed: true });
+
+    // Toast + Vue + Tailwind
+    console.log(ansis.cyan('📦 Phase 34: Toast + Vue + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Toast'));
+    runCLI('add Toast -y');
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.vue')))) {
+      throw new Error('Missing: Toast/Toast.vue');
+    }
+    const toastVueTailwind = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Toast', 'Toast.vue'),
+      'utf-8',
+    );
+    if (!toastVueTailwind.includes('@keyframes toast-enter-bottom')) {
+      throw new Error('Vue Tailwind Toast missing inline keyframes');
+    }
+    results.push({ phase: 'Toast + Vue + Tailwind', passed: true });
+
+    // Toast + Angular + CSS
+    console.log(ansis.cyan('📦 Phase 35: Toast + Angular + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: {
+          focusRingStyle: 'outline',
+          focusRingColor: 'var(--color-primary)',
+          focusRingWidth: '2px',
+          focusRingOffset: '2px',
+          reduceMotion: true,
+        },
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Toast'));
+    runCLI('add Toast -y');
+    const toastAngularFiles = [
+      'Toast/toast.component.ts',
+      'Toast/toast.component.html',
+      'Toast/toast.component.css',
+    ];
+    for (const file of toastAngularFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const toastAngularTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Toast', 'toast.component.ts'),
+      'utf-8',
+    );
+    if (!toastAngularTs.includes('toastsSignal') || !toastAngularTs.includes('export class ToasterComponent')) {
+      throw new Error('Angular Toast missing signal store or ToasterComponent');
+    }
+    if (!toastAngularTs.includes('export const toast')) {
+      throw new Error('Angular Toast missing toast named export');
+    }
+    results.push({ phase: 'Toast + Angular + CSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
