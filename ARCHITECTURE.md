@@ -644,6 +644,38 @@ realized idiomatically per framework, with **no npm peer dependencies**.
   `<form class="form">`). Tailwind is unaffected — utility classes are inline on each element.
 - Tokens: `--form-*` (group/item gap, label, control height, error/description colors, radius) — see §4.4.
 
+### 9.8 Tabs — Roving tabindex + manual/automatic activation
+
+`Tabs` implements the **WAI-ARIA tabs pattern** with no peer dependencies. The state surface is small
+(one `value` string), but the keyboard contract is the source of complexity.
+
+- **Roving tabindex.** Exactly one trigger has `tabIndex=0` (the active one); all others are `-1`.
+  This keeps the tablist as a single Tab-stop. Implemented by reading `value` in each `Trigger` and
+  setting `tabIndex={isActive ? 0 : -1}`.
+- **Keyboard nav lives on `List`.** Arrow keys (orientation-aware: Left/Right horizontal, Up/Down
+  vertical), Home, End move focus through **enabled** triggers only, wrapping around. The list owns the
+  handler so triggers don't need per-element key wiring.
+- **Manual vs automatic activation.** `activationMode='manual'` (default) moves focus only — selection
+  requires click or Enter/Space. `'automatic'` selects-on-focus (shadcn default). Manual is safer for
+  panels that fetch data on activation.
+- **Always-mounted content with `hidden`.** `Content` renders even when inactive, with the `hidden`
+  attribute, so panel state (form inputs, scroll position) survives tab switches. Users who need DOM
+  removal pass `forceMount={false}` (React/Vue) — the default of `hidden` matches Radix and shadcn.
+- **Compound + schema-driven duality.** Compound exposes `Root / List / Trigger / Content`; monolithic
+  (`compoundComponents:false`) renders the same internals from an `items` config array. Angular is
+  always monolithic per §7.4.
+- **Per-framework realization:**
+  - **React** — `useTabs` returns `{value, setValue, registerTrigger, moveFocus, focusEdge}` from a
+    `useRef<Map>` of trigger nodes. Sub-components consume via `useTabsContext()`. `Object.assign(TabsRoot, …)`
+    publishes the 4-part API.
+  - **Vue** — `reactive()` state + `provide`/`inject` of a `TabsApi` object. Compound sub-components are
+    named exports from the SFC (`export const TabsList/TabsTrigger/TabsContent = defineComponent(…)`).
+    `<style>` is non-scoped and qualified by `.tabs-root` for the same reason §9.7 documents for Form.
+  - **Angular** — schema-driven with `@Input() items` + `@Output() valueChange`; `@ViewChildren('triggerEl')`
+    gives the keyboard handler direct DOM access to focus enabled triggers by index.
+- Tokens: `--tabs-*` (list gap, trigger height per size, padding/radius, color/active color, hover bg,
+  active indicator, content padding) — see §4.4.
+
 ---
 
 ## 10. Template Engine

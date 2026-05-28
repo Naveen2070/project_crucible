@@ -9,6 +9,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Tabs** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - WAI-ARIA tabs pattern: `role="tablist"`/`role="tab"`/`role="tabpanel"`, roving tabindex
+  - 4-part compound API: Root/List/Trigger/Content (Object.assign on Root)
+  - Schema-driven monolithic mode when compound off (`items={[{value,label,content,disabled?}]}`)
+  - Controlled (`value`) + uncontrolled (`defaultValue`) state
+  - `orientation="horizontal" | "vertical"` and `activationMode="manual" | "automatic"`
+  - Variants: default, underline, pills · Sizes: sm/md/lg
+  - Keyboard nav: Arrow keys (orientation-aware), Home/End, skip-disabled wrap-around
+  - Always-mounted with `hidden` attr (preserves panel state); `forceMount` escape hatch
+  - Custom highlight via `--tabs-*` CSS vars (active-indicator, active-bg, hover-bg, thickness)
+  - Custom item rendering across all frameworks:
+    - **React**: `label`/`content` typed as `ReactNode` in monolithic `items`; children-as-anything in compound
+    - **Vue monolithic**: named slots `#trigger-{value}` / `#content-{value}` per tab, with `item` slot prop (string label remains the fallback)
+    - **Angular**: `TabTemplateDirective` on `<ng-template>` (`appTabTemplate="value" appTabTemplateSlot="trigger|content"`) for per-tab template refs; falls back to `item.label`/`item.content`
+  - Zero peer deps
 - **Form** (React/Vue/Angular × CSS/SCSS/Tailwind)
   - Validation: `required`/`pattern`/`min`/`max`/`minLength`/`maxLength`/custom, modes:
     onSubmit/onBlur/onChange/onTouched/all

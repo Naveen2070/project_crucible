@@ -54,7 +54,7 @@ npx crucible add Button
 | **Dependency Resolution** | Auto-scaffolds Button for Select/Dialog                 |
 | **Interactive CLI**       | Guided setup with @inquirer/prompts                     |
 | **Prettier Integration**  | Auto-format all generated code                          |
-| **Test Coverage**         | 359 unit tests + 39 E2E phases                          |
+| **Test Coverage**         | 362 unit tests + 43 E2E phases                          |
 
 <p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
 
@@ -99,6 +99,7 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 | `Table`   | default, striped, bordered, compact                            | sm, md, lg           | loading, empty              | Client/server pagination, sorting, single/multi selection, virtualization (5k+ rows), optional caption                                                             |
 | `Toast`   | default, success, error, warning, info, loading                | sm, md, lg           | enter, visible, exit        | Sonner-style notifications: global `toast()` + `<Toaster>`, 6 positions, auto-dismiss, action button, rich colors, pause-on-hide                                   |
 | `Form`    | default, inline                                                | sm, md, lg           | disabled, error, submitting | Dependency-free validation engine, react-hook-form adapter, compound (Root/Field/Item/Label/Control/Description/Message/Submit) + schema-driven modes, aria wiring |
+| `Tabs`    | default, underline, pills                                      | sm, md, lg           | disabled                    | WAI-ARIA tabs pattern: compound (Root/List/Trigger/Content) + schema-driven, controlled/uncontrolled, manual/automatic activation, horizontal/vertical, roving tabindex; per-tab custom rendering (React ReactNode · Vue named slots · Angular `TabTemplateDirective`) |
 
 ---
 
@@ -200,7 +201,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 359 tests across 31 files
+- All tests pass (`npm test`) — 362 tests across 32 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
@@ -223,7 +224,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version      | Status       | Description                                                                                   |
 | ------------ | ------------ | --------------------------------------------------------------------------------------------- |
-| _unreleased_ | 🚧 In-flight | Added **Popover**, **Table**, **Toast**, and **Form** components; fixed sort/positioning bugs across all frameworks |
+| _unreleased_ | 🚧 In-flight | Added **Popover**, **Table**, **Toast**, **Form**, and **Tabs** components; fixed sort/positioning bugs across all frameworks |
 | v1.0.4       | ✅ Stable    | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                |
 | v1.0.3       | ✅ Stable    | Manual dark mode strategy, Vue SCSS template fixes                                            |
 | v1.0.0       | ✅ Stable    | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases               |
