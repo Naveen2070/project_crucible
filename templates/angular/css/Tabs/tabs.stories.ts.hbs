@@ -1,0 +1,159 @@
+import { moduleMetadata } from '@storybook/angular';
+import type { Meta, StoryObj } from '@storybook/angular';
+import { TabsComponent, TabTemplateDirective } from './tabs.component';
+
+const meta: Meta<TabsComponent> = {
+  title: 'Crucible/Tabs',
+  component: TabsComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'underline', 'pills'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    activationMode: { control: 'select', options: ['manual', 'automatic'] },
+  },
+  args: { variant: 'default', size: 'md', orientation: 'horizontal', activationMode: 'manual' },
+};
+
+export default meta;
+type Story = StoryObj<TabsComponent>;
+
+const onValueChange = (value: string) => console.log('Tab changed:', value);
+
+const baseItems = [
+  { value: 'overview', label: 'Overview', content: 'Overview panel content.' },
+  { value: 'analytics', label: 'Analytics', content: 'Analytics panel.' },
+  { value: 'settings', label: 'Settings', content: 'Settings panel.' },
+];
+
+export const Default: Story = {
+  args: { items: baseItems, defaultValue: 'overview' },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-tabs
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      [orientation]="orientation"
+      [activationMode]="activationMode"
+      (valueChange)="onValueChange($event)"
+    ></app-tabs>`,
+  }),
+};
+
+export const Underline: Story = {
+  args: {
+    variant: 'underline',
+    items: [
+      { value: 'docs', label: 'Documents', content: 'Your documents.' },
+      { value: 'shared', label: 'Shared', content: 'Shared with you.' },
+      { value: 'trash', label: 'Trash', content: 'Recently deleted.' },
+    ],
+    defaultValue: 'docs',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-tabs
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      [orientation]="orientation"
+      [activationMode]="activationMode"
+      (valueChange)="onValueChange($event)"
+    ></app-tabs>`,
+  }),
+};
+
+export const WithDisabled: Story = {
+  args: {
+    items: [
+      { value: 't1', label: 'Available', content: 'Use arrow keys.' },
+      { value: 't2', label: 'Coming soon', content: 'Not yet.', disabled: true },
+      { value: 't3', label: 'Available', content: 'Wrapping skips disabled.' },
+    ],
+    defaultValue: 't1',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-tabs
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      [orientation]="orientation"
+      [activationMode]="activationMode"
+      (valueChange)="onValueChange($event)"
+    ></app-tabs>`,
+  }),
+};
+
+export const Vertical: Story = {
+  args: {
+    orientation: 'vertical',
+    items: [
+      { value: 'general', label: 'General', content: 'General settings.' },
+      { value: 'security', label: 'Security', content: 'Security.' },
+      { value: 'billing', label: 'Billing', content: 'Billing.' },
+    ],
+    defaultValue: 'general',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-tabs
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      [orientation]="orientation"
+      [activationMode]="activationMode"
+      (valueChange)="onValueChange($event)"
+    ></app-tabs>`,
+  }),
+};
+
+/**
+ * Custom per-tab content + trigger via the `appTabTemplate` directive on `<ng-template>`.
+ * Falls back to `item.label` / `item.content` when no template is provided for a tab.
+ */
+export const WithTemplates: Story = {
+  args: {
+    items: [
+      { value: 'home', label: 'Home', content: 'Default home panel.' },
+      { value: 'profile', label: 'Profile', content: 'Default profile panel.' },
+      { value: 'inbox', label: 'Inbox', content: 'Default inbox panel.' },
+    ],
+    defaultValue: 'home',
+  },
+  decorators: [moduleMetadata({ imports: [TabTemplateDirective] })],
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-tabs
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      [orientation]="orientation"
+      [activationMode]="activationMode"
+      (valueChange)="onValueChange($event)"
+    >
+      <ng-template appTabTemplate="home" appTabTemplateSlot="trigger">
+        <span style="display:inline-flex; align-items:center; gap:6px">
+          <span style="width:8px; height:8px; border-radius:9999px; background: var(--color-primary)"></span>
+          Home
+        </span>
+      </ng-template>
+      <ng-template appTabTemplate="inbox" appTabTemplateSlot="trigger" let-item>
+        <span style="display:inline-flex; align-items:center; gap:6px">
+          ✋ {{ item.label }} <strong style="font-size:0.75rem">3</strong>
+        </span>
+      </ng-template>
+      <ng-template appTabTemplate="profile" appTabTemplateSlot="content">
+        <div style="padding: 12px; border: 1px dashed var(--color-border); border-radius: 8px">
+          <strong>Custom profile panel</strong> — supplied via appTabTemplate.
+        </div>
+      </ng-template>
+    </app-tabs>`,
+  }),
+};

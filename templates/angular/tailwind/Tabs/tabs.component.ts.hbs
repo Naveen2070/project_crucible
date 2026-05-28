@@ -1,0 +1,192 @@
+import {
+  Component,
+  Directive,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  OnChanges,
+  SimpleChanges,
+  ViewChildren,
+  ContentChildren,
+  QueryList,
+  ElementRef,
+  TemplateRef,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export type TabsVariant = 'default' | 'underline' | 'pills';
+export type TabsSize = 'sm' | 'md' | 'lg';
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'manual' | 'automatic';
+export type TabTemplateSlot = 'trigger' | 'content';
+
+export interface TabsItem {
+  value: string;
+  label: string;
+  content?: string;
+  disabled?: boolean;
+}
+
+/**
+ * Per-tab template override. See appTabTemplate usage in stories.
+ */
+@Directive({
+  selector: '[appTabTemplate]',
+  standalone: true,
+})
+export class TabTemplateDirective {
+  @Input('appTabTemplate') value!: string;
+  @Input('appTabTemplateSlot') slot: TabTemplateSlot = 'content';
+  constructor(public readonly template: TemplateRef<{ $implicit: TabsItem }>) {}
+}
+
+let tabsUid = 0;
+
+@Component({
+  selector: 'app-tabs',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './tabs.component.html',
+})
+export class TabsComponent implements AfterViewInit, OnChanges {
+  @Input() items: TabsItem[] = [];
+  @Input() value?: string;
+  @Input() defaultValue?: string;
+  @Input() variant: TabsVariant = 'default';
+  @Input() size: TabsSize = 'md';
+  @Input() orientation: TabsOrientation = 'horizontal';
+  @Input() activationMode: TabsActivationMode = 'manual';
+
+  @Output() valueChange = new EventEmitter<string>();
+
+  @ViewChildren('triggerEl') triggers!: QueryList<ElementRef<HTMLButtonElement>>;
+  @ContentChildren(TabTemplateDirective) tabTemplates!: QueryList<TabTemplateDirective>;
+
+  getTemplate(value: string, slot: TabTemplateSlot): TemplateRef<{ $implicit: TabsItem }> | null {
+    const match = this.tabTemplates?.find((t) => t.value === value && t.slot === slot);
+    return match?.template ?? null;
+  }
+
+  readonly rootId = `tabs-${++tabsUid}`;
+  internalValue?: string;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['value'] && changes['value'].currentValue !== undefined) {
+      this.internalValue = changes['value'].currentValue;
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.internalValue === undefined) {
+      this.internalValue =
+        this.value ?? this.defaultValue ?? this.items.find((i) => !i.disabled)?.value;
+    }
+  }
+
+  get currentValue(): string | undefined {
+    return this.value ?? this.internalValue;
+  }
+
+  get rootClass(): string {
+    return [
+      'flex w-full flex-col',
+      'data-[orientation=vertical]:flex-row data-[orientation=vertical]:items-start',
+    ].join(' ');
+  }
+
+  get listClass(): string {
+    const variantList =
+      this.variant === 'pills' ? '' : 'border-b border-[var(--color-border)]';
+    const orientationList =
+      'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch';
+    return `flex flex-row items-center gap-[var(--tabs-list-gap,4px)] shrink-0 ${orientationList} ${variantList}`.trim();
+  }
+
+  triggerClass(item: TabsItem): string {
+    const base =
+      'inline-flex items-center justify-center whitespace-nowrap px-[var(--tabs-trigger-padding-x,12px)] rounded-[var(--tabs-trigger-radius,6px)] text-[var(--tabs-trigger-color,var(--color-text-muted))] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed hover:not-data-[disabled]:not-data-[state=active]:bg-[var(--tabs-trigger-hover-bg,var(--color-secondary))] data-[state=active]:text-[var(--tabs-trigger-active-color,var(--color-text))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]';
+    const sizeMap: Record<TabsSize, string> = {
+      sm: 'h-[var(--tabs-trigger-h,32px)] text-[0.8125rem]',
+      md: 'h-[var(--tabs-trigger-h,36px)] text-sm',
+      lg: 'h-[var(--tabs-trigger-h,44px)] text-[0.9375rem]',
+    };
+    const variantActive: Record<TabsVariant, string> = {
+      default:
+        'data-[state=active]:shadow-[inset_0_-2px_0_var(--tabs-trigger-active-indicator,var(--color-primary))]',
+      underline:
+        'data-[state=active]:shadow-[inset_0_-2px_0_var(--tabs-trigger-active-indicator,var(--color-primary))] data-[state=active]:rounded-none',
+      pills:
+        'data-[state=active]:bg-[var(--tabs-trigger-active-bg,var(--color-surface))] data-[state=active]:shadow-sm',
+    };
+    return [base, sizeMap[this.size], variantActive[this.variant]].join(' ');
+  }
+
+  get contentClass(): string {
+    return 'flex-1 py-[var(--tabs-content-padding-y,16px)] text-[var(--color-text)] outline-none data-[orientation=vertical]:py-0 data-[orientation=vertical]:px-[var(--tabs-content-padding-y,16px)]';
+  }
+
+  isActive(item: TabsItem): boolean {
+    return this.currentValue === item.value;
+  }
+
+  triggerId(item: TabsItem): string {
+    return `${this.rootId}-trigger-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  contentId(item: TabsItem): string {
+    return `${this.rootId}-content-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  selectTab(item: TabsItem): void {
+    if (item.disabled) return;
+    this.setValue(item.value);
+  }
+
+  private setValue(next: string): void {
+    if (this.value === undefined) this.internalValue = next;
+    this.valueChange.emit(next);
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+    const currentValue = target.getAttribute('data-value') ?? this.currentValue ?? '';
+    const isHorizontal = this.orientation === 'horizontal';
+    const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
+    const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
+    let nextValue: string | null = null;
+    if (event.key === nextKey) { event.preventDefault(); nextValue = this.moveFocus(currentValue, 1); }
+    else if (event.key === prevKey) { event.preventDefault(); nextValue = this.moveFocus(currentValue, -1); }
+    else if (event.key === 'Home') { event.preventDefault(); nextValue = this.focusEdge('first'); }
+    else if (event.key === 'End') { event.preventDefault(); nextValue = this.focusEdge('last'); }
+    if (nextValue && this.activationMode === 'automatic') this.setValue(nextValue);
+  }
+
+  private enabledOrder(): string[] {
+    return this.items.filter((i) => !i.disabled).map((i) => i.value);
+  }
+
+  private focusByValue(value: string): void {
+    const idx = this.items.findIndex((i) => i.value === value);
+    if (idx < 0) return;
+    this.triggers.toArray()[idx]?.nativeElement?.focus();
+  }
+
+  private moveFocus(current: string, direction: 1 | -1): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const idx = order.indexOf(current);
+    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
+    const next = order[nextIdx];
+    this.focusByValue(next);
+    return next;
+  }
+
+  private focusEdge(edge: 'first' | 'last'): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const next = edge === 'first' ? order[0] : order[order.length - 1];
+    this.focusByValue(next);
+    return next;
+  }
+}

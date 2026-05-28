@@ -31,6 +31,7 @@ export const ComponentName = {
   Popover: 'Popover',
   Toast: 'Toast',
   Form: 'Form',
+  Tabs: 'Tabs',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

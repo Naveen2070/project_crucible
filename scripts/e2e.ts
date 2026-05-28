@@ -1314,6 +1314,140 @@ async function runE2E() {
       throw new Error('Angular Form missing FormComponent or scss styleUrls');
     }
     results.push({ phase: 'Form + Angular + SCSS', passed: true });
+
+    // ---- Tabs ----
+    const tabsA11y = {
+      focusRingStyle: 'outline',
+      focusRingColor: 'var(--color-primary)',
+      focusRingWidth: '2px',
+      focusRingOffset: '2px',
+      reduceMotion: true,
+    };
+
+    // Tabs + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 40: Tabs + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.tsx'),
+      'utf-8',
+    );
+    if (!tabsReactCss.includes('export const TabsRoot') || !tabsReactCss.includes('Object.assign(TabsRoot')) {
+      throw new Error('React Tabs missing compound exports');
+    }
+    if (!tabsReactCss.includes('role="tablist"') || !tabsReactCss.includes('role="tab"') || !tabsReactCss.includes('role="tabpanel"')) {
+      throw new Error('React Tabs missing WAI-ARIA roles');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.module.css')))) {
+      throw new Error('Missing: Tabs/Tabs.module.css');
+    }
+    results.push({ phase: 'Tabs + React + CSS (compound)', passed: true });
+
+    // Tabs + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 41: Tabs + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.tsx'),
+      'utf-8',
+    );
+    if (!tabsReactTw.includes('data-[state=active]') || !tabsReactTw.includes('var(--tabs-')) {
+      throw new Error('React Tailwind Tabs missing inline token utility classes');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.module.css'))) {
+      throw new Error('Tailwind Tabs should not emit a CSS module');
+    }
+    results.push({ phase: 'Tabs + React + Tailwind', passed: true });
+
+    // Tabs + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 42: Tabs + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.vue'),
+      'utf-8',
+    );
+    if (!tabsVue.includes('export const TabsList') || !tabsVue.includes('export const TabsTrigger') || !tabsVue.includes('export const TabsContent')) {
+      throw new Error('Vue Tabs missing compound sub-component exports');
+    }
+    if (!tabsVue.includes("role: 'tablist'") || !tabsVue.includes("role: 'tab'") || !tabsVue.includes("role: 'tabpanel'")) {
+      throw new Error('Vue Tabs missing WAI-ARIA roles');
+    }
+    results.push({ phase: 'Tabs + Vue + CSS', passed: true });
+
+    // Tabs + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 43: Tabs + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsNgFiles = ['Tabs/tabs.component.ts', 'Tabs/tabs.component.html', 'Tabs/tabs.component.scss'];
+    for (const file of tabsNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tabsNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'tabs.component.ts'),
+      'utf-8',
+    );
+    if (!tabsNgTs.includes('export class TabsComponent') || !tabsNgTs.includes("styleUrls: ['./tabs.component.scss']")) {
+      throw new Error('Angular Tabs missing TabsComponent or scss styleUrls');
+    }
+    const tabsNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'tabs.component.html'),
+      'utf-8',
+    );
+    if (!tabsNgHtml.includes('role="tablist"') || !tabsNgHtml.includes('role="tab"') || !tabsNgHtml.includes('role="tabpanel"')) {
+      throw new Error('Angular Tabs HTML missing WAI-ARIA roles');
+    }
+    results.push({ phase: 'Tabs + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

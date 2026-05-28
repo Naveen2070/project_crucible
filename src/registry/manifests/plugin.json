@@ -14,7 +14,8 @@
     "components/table.json",
     "components/popover.json",
     "components/toast.json",
-    "components/form.json"
+    "components/form.json",
+    "components/tabs.json"
   ],
   "frameworks": [
     "frameworks/react.json",

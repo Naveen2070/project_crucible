@@ -1,0 +1,53 @@
+<div [class]="rootClass" [attr.data-orientation]="orientation" [attr.data-variant]="variant" [attr.data-size]="size">
+  <div
+    [class]="listClass"
+    role="tablist"
+    [attr.aria-orientation]="orientation"
+    [attr.data-orientation]="orientation"
+    (keydown)="onKeydown($event)"
+  >
+    @for (item of items; track item.value) {
+      <button
+        #triggerEl
+        type="button"
+        role="tab"
+        [id]="triggerId(item)"
+        [attr.aria-selected]="isActive(item)"
+        [attr.aria-controls]="contentId(item)"
+        [attr.data-state]="isActive(item) ? 'active' : 'inactive'"
+        [attr.data-value]="item.value"
+        [attr.data-disabled]="item.disabled ? '' : null"
+        [disabled]="item.disabled"
+        [attr.tabindex]="isActive(item) ? 0 : -1"
+        [class]="triggerClass(item)"
+        (click)="selectTab(item)"
+      >
+        @if (getTemplate(item.value, 'trigger'); as tpl) {
+          <ng-container *ngTemplateOutlet="tpl; context: { $implicit: item }"></ng-container>
+        } @else {
+          \{{ item.label }}
+        }
+      </button>
+    }
+  </div>
+
+  @for (item of items; track item.value) {
+    @if (isActive(item)) {
+      <div
+        [class]="contentClass"
+        role="tabpanel"
+        [id]="contentId(item)"
+        [attr.aria-labelledby]="triggerId(item)"
+        [attr.data-state]="'active'"
+        [attr.data-orientation]="orientation"
+        tabindex="0"
+      >
+        @if (getTemplate(item.value, 'content'); as tpl) {
+          <ng-container *ngTemplateOutlet="tpl; context: { $implicit: item }"></ng-container>
+        } @else if (item.content) {
+          <p class="m-0">\{{ item.content }}</p>
+        }
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,186 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Tabs } from './Tabs';
+
+const meta: Meta<typeof Tabs> = {
+  title: 'Crucible/Tabs',
+  component: Tabs,
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof Tabs>;
+
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Tabs defaultValue="overview">
+        <Tabs.List>
+          <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
+          <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
+          <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="overview">
+          <p style=\{{ margin: 0 }}>Overview panel content goes here.</p>
+        </Tabs.Content>
+        <Tabs.Content value="analytics">
+          <p style=\{{ margin: 0 }}>Analytics panel with charts and KPIs.</p>
+        </Tabs.Content>
+        <Tabs.Content value="settings">
+          <p style=\{{ margin: 0 }}>Settings panel with configuration form.</p>
+        </Tabs.Content>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const Underline: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Tabs defaultValue="tab1" variant="underline">
+        <Tabs.List>
+          <Tabs.Trigger value="tab1">Documents</Tabs.Trigger>
+          <Tabs.Trigger value="tab2">Shared</Tabs.Trigger>
+          <Tabs.Trigger value="tab3">Trash</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="tab1">Your documents.</Tabs.Content>
+        <Tabs.Content value="tab2">Shared with you.</Tabs.Content>
+        <Tabs.Content value="tab3">Recently deleted.</Tabs.Content>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const Pills: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px', padding: '8px', background: 'var(--color-background-subtle, #f5f5f7)', borderRadius: '12px' }}>
+      <Tabs defaultValue="tab1" variant="pills">
+        <Tabs.List>
+          <Tabs.Trigger value="tab1">Daily</Tabs.Trigger>
+          <Tabs.Trigger value="tab2">Weekly</Tabs.Trigger>
+          <Tabs.Trigger value="tab3">Monthly</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="tab1">Daily breakdown.</Tabs.Content>
+        <Tabs.Content value="tab2">Weekly breakdown.</Tabs.Content>
+        <Tabs.Content value="tab3">Monthly breakdown.</Tabs.Content>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const Vertical: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '600px' }}>
+      <Tabs defaultValue="general" orientation="vertical">
+        <Tabs.List>
+          <Tabs.Trigger value="general">General</Tabs.Trigger>
+          <Tabs.Trigger value="security">Security</Tabs.Trigger>
+          <Tabs.Trigger value="billing">Billing</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="general">
+          <h4 style=\{{ marginTop: 0 }}>General settings</h4>
+          <p style=\{{ margin: 0 }}>Application preferences and defaults.</p>
+        </Tabs.Content>
+        <Tabs.Content value="security">
+          <h4 style=\{{ marginTop: 0 }}>Security</h4>
+          <p style=\{{ margin: 0 }}>Password, 2FA, and session management.</p>
+        </Tabs.Content>
+        <Tabs.Content value="billing">
+          <h4 style=\{{ marginTop: 0 }}>Billing</h4>
+          <p style=\{{ margin: 0 }}>Plan, invoices, and payment method.</p>
+        </Tabs.Content>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const WithDisabled: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Tabs defaultValue="tab1">
+        <Tabs.List>
+          <Tabs.Trigger value="tab1">Available</Tabs.Trigger>
+          <Tabs.Trigger value="tab2" disabled>Coming soon</Tabs.Trigger>
+          <Tabs.Trigger value="tab3">Available</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="tab1">Use arrow keys — the disabled tab is skipped.</Tabs.Content>
+        <Tabs.Content value="tab3">Wrapping back is also skipped over disabled tabs.</Tabs.Content>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const Automatic: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Tabs defaultValue="one" activationMode="automatic">
+        <Tabs.List>
+          <Tabs.Trigger value="one">One</Tabs.Trigger>
+          <Tabs.Trigger value="two">Two</Tabs.Trigger>
+          <Tabs.Trigger value="three">Three</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="one">Arrow keys activate as focus moves.</Tabs.Content>
+        <Tabs.Content value="two">Useful for static panels that don't fetch data.</Tabs.Content>
+        <Tabs.Content value="three">Press Tab to leave the tablist.</Tabs.Content>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const Controlled: Story = {
+  render: function ControlledStory() {
+    const [value, setValue] = React.useState('one');
+    return (
+      <div style=\{{ maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style=\{{ display: 'flex', gap: '8px' }}>
+          <button type="button" onClick={() => setValue('one')}>Force One</button>
+          <button type="button" onClick={() => setValue('two')}>Force Two</button>
+          <button type="button" onClick={() => setValue('three')}>Force Three</button>
+        </div>
+        <Tabs value={value} onValueChange={setValue}>
+          <Tabs.List>
+            <Tabs.Trigger value="one">One</Tabs.Trigger>
+            <Tabs.Trigger value="two">Two</Tabs.Trigger>
+            <Tabs.Trigger value="three">Three</Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="one">Current value: <strong>{value}</strong></Tabs.Content>
+          <Tabs.Content value="two">Current value: <strong>{value}</strong></Tabs.Content>
+          <Tabs.Content value="three">Current value: <strong>{value}</strong></Tabs.Content>
+        </Tabs>
+      </div>
+    );
+  },
+};
+{{else}}
+export const SchemaDriven: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Tabs
+        defaultValue="overview"
+        items={[
+          { value: 'overview', label: 'Overview', content: <p style=\{{ margin: 0 }}>Overview panel.</p> },
+          { value: 'analytics', label: 'Analytics', content: <p style=\{{ margin: 0 }}>Analytics panel.</p> },
+          { value: 'settings', label: 'Settings', content: <p style=\{{ margin: 0 }}>Settings panel.</p> },
+        ]}
+      />
+    </div>
+  ),
+};
+
+export const SchemaUnderline: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Tabs
+        defaultValue="tab1"
+        variant="underline"
+        items={[
+          { value: 'tab1', label: 'Documents', content: <p style=\{{ margin: 0 }}>Documents.</p> },
+          { value: 'tab2', label: 'Shared', content: <p style=\{{ margin: 0 }}>Shared.</p> },
+          { value: 'tab3', label: 'Trash', content: <p style=\{{ margin: 0 }}>Trash.</p>, disabled: true },
+        ]}
+      />
+    </div>
+  ),
+};
+{{/if}}
