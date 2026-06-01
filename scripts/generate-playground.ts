@@ -33,6 +33,7 @@ const COMPONENTS = [
   'Toast',
   'Form',
   'Tabs',
+  'Tooltip',
 ];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,

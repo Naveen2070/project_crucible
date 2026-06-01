@@ -9,6 +9,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Tooltip** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Floating label positioned via `@floating-ui` (`offset`/`flip`/`shift`/`arrow`)
+  - `role="tooltip"` with `aria-describedby` wiring on the trigger
+  - Triggers: hover (default) + keyboard focus for a11y parity, or click
+  - Compound API: Root/Trigger/Portal/Content/Arrow (React/Vue); Angular monolithic
+  - Variants: default, minimal · Sizes: sm/md/lg · default placement `top`
+  - No focus trap and no Close (lightweight Popover variant); Escape dismisses
+  - Custom theming via `--tooltip-*` CSS vars (background/border/text/shadow/radius/z-index)
+  - Zero peer deps (import `@floating-ui/*` as needed)
 - **Tabs** (React/Vue/Angular × CSS/SCSS/Tailwind)
   - WAI-ARIA tabs pattern: `role="tablist"`/`role="tab"`/`role="tabpanel"`, roving tabindex
   - 4-part compound API: Root/List/Trigger/Content (Object.assign on Root)

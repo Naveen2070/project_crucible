@@ -676,6 +676,24 @@ realized idiomatically per framework, with **no npm peer dependencies**.
 - Tokens: `--tabs-*` (list gap, trigger height per size, padding/radius, color/active color, hover bg,
   active indicator, content padding) — see §4.4.
 
+### 9.9 Tooltip — Focus-trap-free floating label
+
+`Tooltip` is a lightweight variant of Popover (§ floating components): same `@floating-ui` positioning
+stack (`offset`/`flip`/`shift`/`arrow`) but a smaller behaviour surface tuned for the ARIA tooltip role.
+
+- **`role="tooltip"` + `aria-describedby`.** Unlike Popover's `role="dialog"`, the content is a
+  describing label. React wires this through `useRole(context, { role: 'tooltip' })`; Vue/Angular set
+  `role="tooltip"` on content and `aria-describedby` on the trigger while open.
+- **Hover + focus, not just pointer.** Default trigger is `hover`, but keyboard focus on the trigger
+  always reveals the tooltip (`useFocus` in React; `focusin`/`focusout` in Vue/Angular) so the label is
+  reachable without a mouse. `click` is also supported. Escape dismisses.
+- **No focus trap, no Close.** Tooltips never steal or trap focus, so the Popover `FloatingFocusManager`,
+  `modal`, focus-restore, and `Close` sub-component are all dropped. Content is `pointer-events: none`.
+- **Compound + schema-driven duality.** Compound exposes `Root / Trigger / Portal / Content / Arrow`
+  (React/Vue); Angular is always monolithic per §7.4.
+- Tokens: `--tooltip-*` (background, border, text, shadow, radius, padding, z-index) — see §4.4. Default
+  placement is `top`; `z-index` (60) sits above Popover (50) so a tooltip on a popover trigger wins.
+
 ---
 
 ## 10. Template Engine

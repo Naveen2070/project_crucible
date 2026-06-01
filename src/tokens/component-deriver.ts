@@ -74,6 +74,15 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     padding: 'calc(var(--spacing-unit) * 2)',
     zIndex: '50',
   },
+  tooltip: {
+    background: 'var(--color-surface)',
+    border: 'var(--color-border)',
+    text: 'var(--color-text)',
+    shadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
+    radius: 'var(--radius-md)',
+    padding: 'calc(var(--spacing-unit) * 2)',
+    zIndex: '60',
+  },
   toast: {
     background: 'var(--color-surface)',
     border: 'var(--color-border)',

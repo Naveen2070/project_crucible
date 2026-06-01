@@ -1,0 +1,294 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useClick,
+  useHover,
+  useFocus,
+  useDismiss,
+  useRole,
+  useInteractions,
+  safePolygon,
+  Placement,
+  FloatingPortal,
+  FloatingArrow,
+  arrow,
+  useMergeRefs,
+  limitShift,
+} from '@floating-ui/react';
+
+export type TooltipSize = 'sm' | 'md' | 'lg';
+export type TooltipVariant = 'default' | 'minimal';
+
+export interface TooltipOptions {
+  initialOpen?: boolean;
+  placement?: Placement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: 'click' | 'hover';
+  offset?: number;
+}
+
+export function useTooltip({
+  initialOpen = false,
+  placement = 'top',
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  trigger = 'hover',
+  offset: offsetValue = 8,
+}: TooltipOptions = {}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen);
+  const [arrowElement, setArrowElement] = useState<SVGSVGElement | null>(null);
+
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = useCallback(
+    (open: boolean) => {
+      if (controlledOpen === undefined) {
+        setUncontrolledOpen(open);
+      }
+      setControlledOpen?.(open);
+    },
+    [controlledOpen, setControlledOpen]
+  );
+
+  const data = useFloating({
+    placement,
+    open,
+    onOpenChange: setOpen,
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(offsetValue),
+      flip({
+        fallbackAxisSideDirection: 'end',
+        padding: 5,
+      }),
+      shift({ padding: 5, limiter: limitShift() }),
+      arrow({
+        element: arrowElement,
+      }),
+    ],
+  });
+
+  const context = data.context;
+
+  const click = useClick(context, {
+    enabled: trigger === 'click',
+  });
+  const hover = useHover(context, {
+    enabled: trigger === 'hover',
+    move: false,
+    handleClose: safePolygon(),
+  });
+  // Keyboard parity: a focused trigger always shows the tooltip (a11y).
+  const focus = useFocus(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: 'tooltip' });
+
+  const interactions = useInteractions([click, hover, focus, dismiss, role]);
+
+  return useMemo(
+    () => ({
+      open,
+      setOpen,
+      ...interactions,
+      ...data,
+      arrowElement,
+      setArrowElement,
+    }),
+    [open, setOpen, interactions, data, arrowElement]
+  );
+}
+
+type ContextType = ReturnType<typeof useTooltip> | null;
+
+const TooltipContext = createContext<ContextType>(null);
+
+const useTooltipContext = () => {
+  const context = useContext(TooltipContext);
+  if (context == null) {
+    throw new Error("Tooltip components must be wrapped in <Tooltip.Root />");
+  }
+  return context;
+};
+
+const SIZE_CLASSES: Record<TooltipSize, string> = {
+  sm: 'text-xs px-2 py-1',
+  md: 'text-[0.8125rem] px-2.5 py-1.5',
+  lg: 'text-sm px-3 py-2',
+};
+
+const VARIANT_CLASSES: Record<TooltipVariant, string> = {
+  default:
+    'border border-[var(--tooltip-border,var(--color-border))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]',
+  minimal:
+    'shadow-[0_2px_4px_-1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.04)]',
+};
+
+/**
+ * Internal Tooltip Components
+ */
+const InternalRoot = ({
+  children,
+  ...options
+}: {
+  children: React.ReactNode;
+} & TooltipOptions) => {
+  const tooltip = useTooltip(options);
+  return (
+    <TooltipContext.Provider value={tooltip}>
+      {children}
+    </TooltipContext.Provider>
+  );
+};
+
+const InternalTrigger = React.forwardRef<
+  HTMLElement,
+  React.HTMLProps<HTMLElement> & { asChild?: boolean }
+>(function TooltipTrigger({ children, asChild = false, className, ...props }, propRef) {
+  const context = useTooltipContext();
+  const childrenRef = (children as any).ref;
+  const ref = useMergeRefs([context.refs.setReference, propRef, childrenRef]);
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(
+      children,
+      context.getReferenceProps({
+        ref,
+        ...props,
+        ...children.props,
+        "data-state": context.open ? "open" : "closed",
+      })
+    );
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={`inline-flex items-center justify-center cursor-pointer focus:outline-none ${className || ''}`}
+      data-state={context.open ? "open" : "closed"}
+      {...context.getReferenceProps(props)}
+    >
+      {children}
+    </button>
+  );
+});
+
+const InternalPortal = ({ children }: { children: React.ReactNode }) => (
+  <FloatingPortal>{children}</FloatingPortal>
+);
+
+interface TooltipContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: TooltipSize;
+  variant?: TooltipVariant;
+}
+
+const InternalContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
+  function TooltipContent(
+    { style, className, children, size = 'md', variant = 'default', ...props },
+    propRef
+  ) {
+    const { context: floatingContext, isPositioned, ...context } = useTooltipContext();
+    const ref = useMergeRefs([context.refs.setFloating, propRef]);
+
+    if (!floatingContext.open) return null;
+
+    const side = floatingContext.placement.split('-')[0];
+
+    return (
+      <div
+        ref={ref}
+        style=\{{
+          position: floatingContext.strategy,
+          top: floatingContext.y ?? 0,
+          left: floatingContext.x ?? 0,
+          visibility: isPositioned ? 'visible' : 'hidden',
+          ...style,
+        }}
+        className={`
+          z-[var(--tooltip-z-index,60)] rounded-[var(--tooltip-radius,8px)] bg-[var(--tooltip-background,var(--color-surface,white))] text-[var(--tooltip-text,var(--color-text,#1A1A2E))] leading-snug outline-none pointer-events-none max-w-[280px]
+          data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
+          data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
+          ${SIZE_CLASSES[size]} ${VARIANT_CLASSES[variant]} ${className || ''}
+        `}
+        data-state={context.open && isPositioned ? "open" : "closed"}
+        data-placement={floatingContext.placement}
+        data-side={side}
+        {...context.getFloatingProps(props)}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+const InternalArrow = React.forwardRef<
+  SVGSVGElement,
+  React.SVGProps<SVGSVGElement>
+>(function TooltipArrow({ className, ...props }, propRef) {
+  const { context: floatingContext, setArrowElement } = useTooltipContext();
+  const ref = useMergeRefs([setArrowElement, propRef]);
+
+  return (
+    <FloatingArrow
+      ref={ref}
+      context={floatingContext}
+      className={`fill-[var(--tooltip-background,var(--color-surface,white))] stroke-[var(--tooltip-border,var(--color-border))] ${className || ''}`}
+      strokeWidth={1}
+      {...props}
+    />
+  );
+});
+
+{{#if features.compoundComponents}}
+export const TooltipRoot = InternalRoot;
+export const TooltipTrigger = InternalTrigger;
+export const TooltipPortal = InternalPortal;
+export const TooltipContent = InternalContent;
+export const TooltipArrow = InternalArrow;
+
+/**
+ * Tooltip - Main export with compound components
+ */
+export const Tooltip = Object.assign(TooltipRoot, {
+  Root: TooltipRoot,
+  Trigger: TooltipTrigger,
+  Portal: TooltipPortal,
+  Content: TooltipContent,
+  Arrow: TooltipArrow,
+});
+{{else}}
+/**
+ * Tooltip - Monolithic wrapper for the compound components
+ */
+export const Tooltip: React.FC<TooltipOptions & { children: React.ReactNode }> = ({
+  children,
+  ...options
+}) => {
+  const childrenArray = React.Children.toArray(children);
+  const trigger = childrenArray[0];
+  const content = childrenArray.slice(1);
+
+  return (
+    <InternalRoot {...options}>
+      <InternalTrigger asChild>{trigger}</InternalTrigger>
+      <InternalPortal>
+        <InternalContent>
+          {content}
+        </InternalContent>
+      </InternalPortal>
+    </InternalRoot>
+  );
+};
+{{/if}}
+
+export default Tooltip;

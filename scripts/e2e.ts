@@ -1448,6 +1448,131 @@ async function runE2E() {
       throw new Error('Angular Tabs HTML missing WAI-ARIA roles');
     }
     results.push({ phase: 'Tabs + Angular + SCSS', passed: true });
+
+    // Tooltip + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 44: Tooltip + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.tsx'),
+      'utf-8',
+    );
+    if (!tooltipReactCss.includes('export const TooltipRoot') || !tooltipReactCss.includes('Object.assign(TooltipRoot')) {
+      throw new Error('React Tooltip missing compound exports');
+    }
+    if (!tooltipReactCss.includes("role: 'tooltip'")) {
+      throw new Error('React Tooltip missing tooltip role');
+    }
+    if (tooltipReactCss.includes('FloatingFocusManager')) {
+      throw new Error('React Tooltip should not trap focus');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.module.css')))) {
+      throw new Error('Missing: Tooltip/Tooltip.module.css');
+    }
+    results.push({ phase: 'Tooltip + React + CSS (compound)', passed: true });
+
+    // Tooltip + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 45: Tooltip + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.tsx'),
+      'utf-8',
+    );
+    if (!tooltipReactTw.includes('data-[state=open]:animate-in') || !tooltipReactTw.includes('var(--tooltip-')) {
+      throw new Error('React Tailwind Tooltip missing inline token utility classes');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.module.css'))) {
+      throw new Error('Tailwind Tooltip should not emit a CSS module');
+    }
+    results.push({ phase: 'Tooltip + React + Tailwind', passed: true });
+
+    // Tooltip + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 46: Tooltip + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.vue'),
+      'utf-8',
+    );
+    if (!tooltipVue.includes('role="tooltip"') || !tooltipVue.includes('tooltip-content')) {
+      throw new Error('Vue Tooltip missing tooltip role or content class');
+    }
+    results.push({ phase: 'Tooltip + Vue + CSS', passed: true });
+
+    // Tooltip + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 47: Tooltip + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipNgFiles = ['Tooltip/tooltip.component.ts', 'Tooltip/tooltip.component.html', 'Tooltip/tooltip.component.scss'];
+    for (const file of tooltipNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tooltipNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'tooltip.component.ts'),
+      'utf-8',
+    );
+    if (!tooltipNgTs.includes('export class TooltipComponent') || !tooltipNgTs.includes("styleUrls: ['./tooltip.component.scss']")) {
+      throw new Error('Angular Tooltip missing TooltipComponent or scss styleUrls');
+    }
+    const tooltipNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'tooltip.component.html'),
+      'utf-8',
+    );
+    if (!tooltipNgHtml.includes('role="tooltip"')) {
+      throw new Error('Angular Tooltip HTML missing tooltip role');
+    }
+    results.push({ phase: 'Tooltip + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

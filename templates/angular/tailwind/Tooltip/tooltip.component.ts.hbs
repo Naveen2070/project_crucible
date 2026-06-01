@@ -1,0 +1,242 @@
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } from '@floating-ui/dom';
+
+let tooltipIdCounter = 0;
+
+@Component({
+  selector: 'app-tooltip',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './tooltip.component.html'
+})
+export class TooltipComponent implements AfterViewInit, OnDestroy {
+  private _isOpen = false;
+  private isViewInit = false;
+
+  @Input()
+  get isOpen(): boolean {
+    return this._isOpen;
+  }
+  set isOpen(value: boolean) {
+    const prev = this._isOpen;
+    this._isOpen = value;
+    if (prev !== value) {
+      this.handleOpenStateChange(value);
+    }
+  }
+
+  isPositioned = false;
+  arrowSide = 'bottom';
+  readonly contentId = `tooltip-content-${++tooltipIdCounter}`;
+
+  @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'top';
+  @Input() alignment: 'start' | 'center' | 'end' = 'center';
+  @Input() variant: 'default' | 'minimal' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() trigger: 'click' | 'hover' = 'hover';
+  @Input() closeOnEscape = true;
+  @Input() className = '';
+  @Input() showArrow = true;
+
+  @Output() isOpenChange = new EventEmitter<boolean>();
+
+  @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
+  @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('arrowRef') arrowRef?: ElementRef<HTMLElement>;
+
+  private cleanupFloating?: () => void;
+  private contentMoved = false;
+  private closeTimeout?: any;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  ngAfterViewInit() {
+    this.isViewInit = true;
+    if (this.isOpen) {
+      this.initFloating();
+    }
+  }
+
+  private handleOpenStateChange(isOpen: boolean) {
+    if (!this.isViewInit) return;
+    if (isOpen) {
+      setTimeout(() => {
+        this.initFloating();
+      }, 0);
+    } else {
+      this.destroyFloating();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroyFloating();
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
+  }
+
+  private initFloating() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
+
+    this.destroyFloating();
+
+    const triggerEl = this.triggerRef.nativeElement;
+    const contentEl = this.contentRef.nativeElement;
+
+    if (!this.contentMoved) {
+      this.renderer.appendChild(document.body, contentEl);
+      this.contentMoved = true;
+    }
+
+    const floatingPlacement = `${this.placement}${this.alignment === 'center' ? '' : '-' + this.alignment}` as Placement;
+
+    this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      const middleware = [
+        offset(this.showArrow ? 12 : 8),
+        flip(),
+        shift({ padding: 8 }),
+      ];
+
+      if (this.showArrow && this.arrowRef) {
+        middleware.push(arrow({ element: this.arrowRef.nativeElement }));
+      }
+
+      computePosition(triggerEl, contentEl, {
+        placement: floatingPlacement,
+        middleware,
+      }).then(({ x, y, placement, middlewareData }) => {
+        Object.assign(contentEl.style, {
+          left: `${x}px`,
+          top: `${y}px`,
+          position: 'absolute',
+          visibility: 'visible',
+        });
+
+        this.arrowSide = placement.split('-')[0];
+
+        if (this.showArrow && this.arrowRef && middlewareData.arrow) {
+          const { x: arrowX, y: arrowY } = middlewareData.arrow;
+          const staticSide = {
+            top: 'bottom',
+            right: 'left',
+            bottom: 'top',
+            left: 'right',
+          }[this.arrowSide];
+
+          Object.assign(this.arrowRef.nativeElement.style, {
+            left: arrowX != null ? `${arrowX}px` : '',
+            top: arrowY != null ? `${arrowY}px` : '',
+            right: '',
+            bottom: '',
+            [staticSide as string]: '-4px',
+          });
+        }
+
+        this.isPositioned = true;
+      });
+    });
+  }
+
+  private destroyFloating() {
+    if (this.cleanupFloating) {
+      this.cleanupFloating();
+      this.cleanupFloating = undefined;
+    }
+
+    if (this.contentMoved && this.contentRef?.nativeElement) {
+      this.renderer.removeChild(document.body, this.contentRef.nativeElement);
+      this.contentMoved = false;
+    }
+
+    this.isPositioned = false;
+  }
+
+  toggle() {
+    if (this.trigger === 'click') {
+      this.isOpen = !this.isOpen;
+      this.isOpenChange.emit(this.isOpen);
+    }
+  }
+
+  close() {
+    this.isOpen = false;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  onMouseEnter() {
+    if (this.trigger === 'hover') {
+      if (this.closeTimeout) {
+        clearTimeout(this.closeTimeout);
+        this.closeTimeout = undefined;
+      }
+      this.isOpen = true;
+      this.isOpenChange.emit(this.isOpen);
+    }
+  }
+
+  onMouseLeave() {
+    if (this.trigger === 'hover') {
+      this.closeTimeout = setTimeout(() => {
+        this.isOpen = false;
+        this.isOpenChange.emit(this.isOpen);
+      }, 150);
+    }
+  }
+
+  // Keyboard parity: a focused trigger always reveals the tooltip (a11y).
+  onFocus() {
+    this.isOpen = true;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  onBlur() {
+    this.isOpen = false;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleDocumentKeydown(event: KeyboardEvent) {
+    if (!this.isOpen) return;
+    if (this.closeOnEscape && event.key === 'Escape') {
+      this.close();
+    }
+  }
+
+  getTailwindClasses() {
+    const variantClasses = {
+      default:
+        'bg-[var(--tooltip-background,var(--color-surface))] border border-[var(--tooltip-border,var(--color-border))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]',
+      minimal:
+        'bg-[var(--tooltip-background,var(--color-surface))] shadow-[0_2px_4px_-1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.04)]',
+    };
+
+    const sizeClasses = {
+      sm: 'text-xs px-2 py-1',
+      md: 'text-[0.8125rem] px-2.5 py-1.5',
+      lg: 'text-sm px-3 py-2',
+    };
+
+    return [
+      'text-[var(--tooltip-text,var(--color-text,#1A1A2E))] leading-snug pointer-events-none max-w-[280px]',
+      'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+      'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+      variantClasses[this.variant],
+      sizeClasses[this.size],
+    ].join(' ');
+  }
+
+  getArrowClasses() {
+    return {
+      'absolute w-2 h-2 rotate-45 bg-inherit border-inherit': true,
+      'border-b border-r border-[var(--tooltip-border,var(--color-border))]': this.arrowSide === 'top',
+      'border-t border-l border-[var(--tooltip-border,var(--color-border))]': this.arrowSide === 'bottom',
+      'border-t border-r border-[var(--tooltip-border,var(--color-border))]': this.arrowSide === 'left',
+      'border-b border-l border-[var(--tooltip-border,var(--color-border))]': this.arrowSide === 'right',
+    };
+  }
+}

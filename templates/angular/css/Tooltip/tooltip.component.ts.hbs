@@ -1,0 +1,219 @@
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, AfterViewInit, OnDestroy, Renderer2, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, arrow, Placement } from '@floating-ui/dom';
+
+let tooltipIdCounter = 0;
+
+@Component({
+  selector: 'app-tooltip',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './tooltip.component.html',
+  styleUrls: ['./tooltip.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}']
+})
+export class TooltipComponent implements AfterViewInit, OnDestroy {
+  private _isOpen = false;
+  private isViewInit = false;
+
+  @Input()
+  get isOpen(): boolean {
+    return this._isOpen;
+  }
+  set isOpen(value: boolean) {
+    const prev = this._isOpen;
+    this._isOpen = value;
+    if (prev !== value) {
+      this.handleOpenStateChange(value);
+    }
+  }
+
+  isPositioned = false;
+  arrowSide = 'bottom';
+  readonly contentId = `tooltip-content-${++tooltipIdCounter}`;
+
+  @Input() placement: 'top' | 'bottom' | 'left' | 'right' = 'top';
+  @Input() alignment: 'start' | 'center' | 'end' = 'center';
+  @Input() variant: 'default' | 'minimal' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() trigger: 'click' | 'hover' = 'hover';
+  @Input() closeOnEscape = true;
+  @Input() className = '';
+  @Input() showArrow = true;
+
+  @Output() isOpenChange = new EventEmitter<boolean>();
+
+  @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
+  @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('arrowRef') arrowRef?: ElementRef<HTMLElement>;
+
+  private cleanupFloating?: () => void;
+  private contentMoved = false;
+  private closeTimeout?: any;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  ngAfterViewInit() {
+    this.isViewInit = true;
+    if (this.isOpen) {
+      this.initFloating();
+    }
+  }
+
+  private handleOpenStateChange(isOpen: boolean) {
+    if (!this.isViewInit) return;
+    if (isOpen) {
+      setTimeout(() => {
+        this.initFloating();
+      }, 0);
+    } else {
+      this.destroyFloating();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroyFloating();
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
+  }
+
+  private initFloating() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
+
+    this.destroyFloating();
+
+    const triggerEl = this.triggerRef.nativeElement;
+    const contentEl = this.contentRef.nativeElement;
+
+    if (!this.contentMoved) {
+      this.renderer.appendChild(document.body, contentEl);
+      this.contentMoved = true;
+    }
+
+    const floatingPlacement = `${this.placement}${this.alignment === 'center' ? '' : '-' + this.alignment}` as Placement;
+
+    this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      const middleware = [
+        offset(this.showArrow ? 12 : 8),
+        flip(),
+        shift({ padding: 8 }),
+      ];
+
+      if (this.showArrow && this.arrowRef) {
+        middleware.push(arrow({ element: this.arrowRef.nativeElement }));
+      }
+
+      computePosition(triggerEl, contentEl, {
+        placement: floatingPlacement,
+        middleware,
+      }).then(({ x, y, placement, middlewareData }) => {
+        Object.assign(contentEl.style, {
+          left: `${x}px`,
+          top: `${y}px`,
+          position: 'absolute',
+          visibility: 'visible',
+        });
+
+        this.arrowSide = placement.split('-')[0];
+
+        if (this.showArrow && this.arrowRef && middlewareData.arrow) {
+          const { x: arrowX, y: arrowY } = middlewareData.arrow;
+          const staticSide = {
+            top: 'bottom',
+            right: 'left',
+            bottom: 'top',
+            left: 'right',
+          }[this.arrowSide];
+
+          Object.assign(this.arrowRef.nativeElement.style, {
+            left: arrowX != null ? `${arrowX}px` : '',
+            top: arrowY != null ? `${arrowY}px` : '',
+            right: '',
+            bottom: '',
+            [staticSide as string]: '-4px',
+          });
+        }
+
+        this.isPositioned = true;
+      });
+    });
+  }
+
+  private destroyFloating() {
+    if (this.cleanupFloating) {
+      this.cleanupFloating();
+      this.cleanupFloating = undefined;
+    }
+
+    if (this.contentMoved && this.contentRef?.nativeElement) {
+      this.renderer.removeChild(document.body, this.contentRef.nativeElement);
+      this.contentMoved = false;
+    }
+
+    this.isPositioned = false;
+  }
+
+  toggle() {
+    if (this.trigger === 'click') {
+      this.isOpen = !this.isOpen;
+      this.isOpenChange.emit(this.isOpen);
+    }
+  }
+
+  close() {
+    this.isOpen = false;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  onMouseEnter() {
+    if (this.trigger === 'hover') {
+      if (this.closeTimeout) {
+        clearTimeout(this.closeTimeout);
+        this.closeTimeout = undefined;
+      }
+      this.isOpen = true;
+      this.isOpenChange.emit(this.isOpen);
+    }
+  }
+
+  onMouseLeave() {
+    if (this.trigger === 'hover') {
+      this.closeTimeout = setTimeout(() => {
+        this.isOpen = false;
+        this.isOpenChange.emit(this.isOpen);
+      }, 150);
+    }
+  }
+
+  // Keyboard parity: a focused trigger always reveals the tooltip (a11y).
+  onFocus() {
+    this.isOpen = true;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  onBlur() {
+    this.isOpen = false;
+    this.isOpenChange.emit(this.isOpen);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleDocumentKeydown(event: KeyboardEvent) {
+    if (!this.isOpen) return;
+    if (this.closeOnEscape && event.key === 'Escape') {
+      this.close();
+    }
+  }
+
+  getContentClasses() {
+    return {
+      'tooltip-content': true,
+      ['variant-' + this.variant]: true,
+      ['size-' + this.size]: true,
+      [this.className]: !!this.className,
+    };
+  }
+}

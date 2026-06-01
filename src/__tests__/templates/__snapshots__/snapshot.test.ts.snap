@@ -131,6 +131,13 @@ exports[`6. Template and Snapshot Tests > 6.7: SCSS nested BEM > generates neste
   --popover-radius: var(--radius-md);
   --popover-padding: calc(var(--spacing-unit) * 2);
   --popover-z-index: 50;
+  --tooltip-background: var(--color-surface);
+  --tooltip-border: var(--color-border);
+  --tooltip-text: var(--color-text);
+  --tooltip-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-padding: calc(var(--spacing-unit) * 2);
+  --tooltip-z-index: 60;
   --toast-background: var(--color-surface);
   --toast-border: var(--color-border);
   --toast-text: var(--color-text);

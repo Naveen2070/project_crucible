@@ -1,0 +1,195 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { componentWrapperDecorator } from '@storybook/angular';
+import { TooltipComponent } from './tooltip.component';
+
+const triggerStyle =
+  'display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:8px;border:1px solid var(--color-border,#E2E1F0);background:var(--color-surface,#fff);color:var(--color-text,#1A1A2E);font:inherit;cursor:pointer;';
+
+const meta: Meta<TooltipComponent> = {
+  title: 'Crucible/Tooltip',
+  component: TooltipComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
+    },
+    trigger: {
+      control: 'select',
+      options: ['click', 'hover'],
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'minimal'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+    showArrow: { control: 'boolean' },
+    closeOnEscape: { control: 'boolean' },
+  },
+  args: {
+    placement: 'top',
+    alignment: 'center',
+    trigger: 'hover',
+    variant: 'default',
+    size: 'md',
+    showArrow: true,
+    closeOnEscape: true,
+  },
+  decorators: [
+    componentWrapperDecorator(
+      (story) =>
+        `<div style="height: 320px; display: flex; align-items: center; justify-content: center;">${story}</div>`,
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<TooltipComponent>;
+
+export const Default: Story = {
+  render: (args) => ({
+    props: { ...args, triggerStyle },
+    template: `
+      <app-tooltip
+        [placement]="placement"
+        [alignment]="alignment"
+        [trigger]="trigger"
+        [variant]="variant"
+        [size]="size"
+        [showArrow]="showArrow"
+        [closeOnEscape]="closeOnEscape"
+      >
+        <button trigger type="button" [attr.style]="triggerStyle">Hover me</button>
+        Add to library
+      </app-tooltip>
+    `,
+  }),
+};
+
+export const AllPlacements: Story = {
+  parameters: { layout: 'centered' },
+  decorators: [
+    componentWrapperDecorator(
+      (story) =>
+        `<div style="min-height: 440px; display: flex; align-items: center; justify-content: center; padding: 80px;">${story}</div>`,
+    ),
+  ],
+  render: (args) => {
+    const sides = ['top', 'bottom', 'left', 'right'] as const;
+    const alignments = ['start', 'center', 'end'] as const;
+    const placements = sides.flatMap((side) =>
+      alignments.map((alignment) => ({ side, alignment, label: `${side}-${alignment}` })),
+    );
+    return {
+      props: { ...args, placements, triggerStyle },
+      template: `
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          @for (p of placements; track p.label) {
+            <app-tooltip
+              [placement]="p.side"
+              [alignment]="p.alignment"
+              [trigger]="trigger"
+              [variant]="variant"
+              [size]="'sm'"
+              [showArrow]="showArrow"
+            >
+              <button trigger type="button" [attr.style]="triggerStyle">\{{ p.label }}</button>
+              \{{ p.label }}
+            </app-tooltip>
+          }
+        </div>
+      `,
+    };
+  },
+};
+
+export const VariantsAndSizes: Story = {
+  render: (args) => {
+    const variants = ['default', 'minimal'] as const;
+    const sizes = ['sm', 'md', 'lg'] as const;
+    const cells = variants.flatMap((variant) =>
+      sizes.map((size) => ({ variant, size, label: `${variant} / ${size}` })),
+    );
+    return {
+      props: { ...args, cells, triggerStyle },
+      template: `
+        <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 24px; align-items: center; justify-items: center;">
+          @for (cell of cells; track cell.label) {
+            <app-tooltip
+              [placement]="placement"
+              [alignment]="alignment"
+              [trigger]="trigger"
+              [variant]="cell.variant"
+              [size]="cell.size"
+              [showArrow]="showArrow"
+            >
+              <button trigger type="button" [attr.style]="triggerStyle">\{{ cell.label }}</button>
+              \{{ cell.label }}
+            </app-tooltip>
+          }
+        </div>
+      `,
+    };
+  },
+};
+
+export const Controlled: Story = {
+  render: (args) => ({
+    props: {
+      ...args,
+      triggerStyle,
+      controlledOpen: false,
+      setOpen(this: any, val: boolean) {
+        this.controlledOpen = val;
+      },
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <button type="button" [attr.style]="triggerStyle" (click)="controlledOpen = !controlledOpen">
+          External toggle &mdash; currently \{{ controlledOpen ? 'open' : 'closed' }}
+        </button>
+
+        <app-tooltip
+          [placement]="placement"
+          [alignment]="alignment"
+          [trigger]="trigger"
+          [variant]="variant"
+          [size]="size"
+          [showArrow]="showArrow"
+          [isOpen]="controlledOpen"
+          (isOpenChange)="setOpen($event)"
+        >
+          <button trigger type="button" [attr.style]="triggerStyle">Tooltip anchor</button>
+          Open state is controlled by the parent.
+        </app-tooltip>
+      </div>
+    `,
+  }),
+};
+
+export const HoverTrigger: Story = {
+  args: { trigger: 'hover' },
+  render: (args) => ({
+    props: { ...args, triggerStyle },
+    template: `
+      <app-tooltip
+        [placement]="placement"
+        [alignment]="alignment"
+        [trigger]="trigger"
+        [variant]="variant"
+        [size]="'sm'"
+        [showArrow]="showArrow"
+      >
+        <span trigger style="text-decoration: underline dotted; cursor: help;">Hover for info</span>
+        Hover or keyboard-focus the trigger to reveal this tooltip.
+      </app-tooltip>
+    `,
+  }),
+};
