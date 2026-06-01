@@ -1,0 +1,289 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, computed, getCurrentInstance } from 'vue';
+import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
+
+interface TooltipProps {
+  /** Controlled open state */
+  isOpen?: boolean;
+  /** Placement relative to trigger */
+  placement?: 'top' | 'bottom' | 'left' | 'right';
+  /** Alignment relative to trigger */
+  alignment?: 'start' | 'center' | 'end';
+  /** Visual variant */
+  variant?: 'default' | 'minimal';
+  /** Size */
+  size?: 'sm' | 'md' | 'lg';
+  /** Additional class name */
+  className?: string;
+  /** Trigger event type */
+  trigger?: 'click' | 'hover';
+  /** Whether to close when pressing Escape */
+  closeOnEscape?: boolean;
+  /** Whether to show the arrow */
+  showArrow?: boolean;
+}
+
+const props = withDefaults(defineProps<TooltipProps>(), {
+  placement: 'top',
+  alignment: 'center',
+  variant: 'default',
+  size: 'md',
+  className: '',
+  trigger: 'hover',
+  closeOnEscape: true,
+  showArrow: true,
+});
+
+const emit = defineEmits<{
+  (e: 'update:isOpen', value: boolean): void;
+}>();
+
+const instance = getCurrentInstance();
+const isControlled = computed(() => {
+  if (!instance) return false;
+  const propsObj = instance.vnode.props || {};
+  return 'isOpen' in propsObj || 'is-open' in propsObj;
+});
+
+const internalOpen = ref(false);
+const isOpen = computed({
+  get: () => (isControlled.value ? props.isOpen : internalOpen.value),
+  set: (val) => {
+    internalOpen.value = val;
+    emit('update:isOpen', val);
+  },
+});
+
+const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const contentId = `tooltip-content-${uid}`;
+
+const contentRef = ref<HTMLElement | null>(null);
+const triggerRef = ref<HTMLElement | null>(null);
+const arrowRef = ref<HTMLElement | null>(null);
+
+let closeTimeout: number | undefined;
+
+const toggle = () => {
+  if (props.trigger === 'click') {
+    isOpen.value = !isOpen.value;
+  }
+};
+
+const close = () => {
+  isOpen.value = false;
+};
+
+const handleMouseEnter = () => {
+  if (props.trigger === 'hover') {
+    if (closeTimeout) {
+      clearTimeout(closeTimeout);
+      closeTimeout = undefined;
+    }
+    isOpen.value = true;
+  }
+};
+
+const handleMouseLeave = () => {
+  if (props.trigger === 'hover') {
+    closeTimeout = window.setTimeout(() => {
+      isOpen.value = false;
+    }, 150);
+  }
+};
+
+// Keyboard parity: a focused trigger always reveals the tooltip (a11y).
+const handleFocus = () => {
+  isOpen.value = true;
+};
+
+const handleBlur = () => {
+  isOpen.value = false;
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!isOpen.value) return;
+  if (props.closeOnEscape && event.key === 'Escape') {
+    close();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown);
+  if (closeTimeout) {
+    clearTimeout(closeTimeout);
+  }
+});
+
+const floatingPlacement = computed<Placement>(
+  () =>
+    `${props.placement}${props.alignment === 'center' ? '' : '-' + props.alignment}` as Placement,
+);
+
+const middleware = computed(() => {
+  const list = [offset(props.showArrow ? 12 : 8), flip(), shift({ padding: 8 })];
+  if (props.showArrow && arrowRef.value) {
+    list.push(arrow({ element: arrowRef }));
+  }
+  return list;
+});
+
+const { floatingStyles, middlewareData, placement, isPositioned } = useFloating(
+  triggerRef,
+  contentRef,
+  {
+    placement: floatingPlacement,
+    open: isOpen,
+    middleware,
+    transform: false,
+    whileElementsMounted: autoUpdate,
+  },
+);
+
+const side = computed(() => placement.value.split('-')[0]);
+
+const arrowStyle = computed(() => {
+  const { x, y } = middlewareData.value.arrow || {};
+  const staticSide = {
+    top: 'bottom',
+    right: 'left',
+    bottom: 'top',
+    left: 'right',
+  }[side.value];
+
+  return {
+    left: x != null ? `${x}px` : '',
+    top: y != null ? `${y}px` : '',
+    [staticSide as string]: '-4px',
+  };
+});
+
+const variantClasses = {
+  default:
+    'bg-[var(--tooltip-background,var(--color-surface))] border border-[var(--tooltip-border,var(--color-border))] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]',
+  minimal:
+    'bg-[var(--tooltip-background,var(--color-surface))] shadow-[0_2px_4px_-1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.04)]',
+};
+
+const sizeClasses = {
+  sm: 'text-xs px-2 py-1',
+  md: 'text-[0.8125rem] px-2.5 py-1.5',
+  lg: 'text-sm px-3 py-2',
+};
+</script>
+
+<template>
+  <div
+    :class="['inline-block', className]"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+  >
+    <div
+      ref="triggerRef"
+      class="inline-block"
+      @click="toggle"
+      @focusin="handleFocus"
+      @focusout="handleBlur"
+      :aria-describedby="isOpen ? contentId : undefined"
+    >
+      {{#if features.compoundComponents}}
+      <slot name="trigger" :isOpen="isOpen"></slot>
+      {{else}}
+      <slot name="trigger">
+        <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+          Trigger
+        </button>
+      </slot>
+      {{/if}}
+    </div>
+
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        ref="contentRef"
+        :id="contentId"
+        :class="[
+          'tooltip-content absolute z-[var(--tooltip-z-index,60)] rounded-[var(--tooltip-radius,8px)] text-[var(--tooltip-text,var(--color-text,#1A1A2E))] leading-snug outline-none pointer-events-none max-w-[280px]',
+          variantClasses[variant],
+          sizeClasses[size],
+        ]"
+        :style="[floatingStyles, { visibility: isPositioned ? 'visible' : 'hidden' }]"
+        :data-state="isOpen && isPositioned ? 'open' : 'closed'"
+        :data-placement="placement"
+        :data-side="side"
+        role="tooltip"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
+      >
+        {{#if features.compoundComponents}}
+        <slot name="content" :close="close"></slot>
+        {{else}}
+        <slot></slot>
+        {{/if}}
+
+        <div
+          v-if="showArrow"
+          ref="arrowRef"
+          :class="[
+            'absolute w-2 h-2 rotate-45 bg-inherit border-inherit',
+            side === 'top' ? 'border-r border-b border-[var(--tooltip-border,var(--color-border))]' : '',
+            side === 'bottom' ? 'border-l border-t border-[var(--tooltip-border,var(--color-border))]' : '',
+            side === 'left' ? 'border-t border-r border-[var(--tooltip-border,var(--color-border))]' : '',
+            side === 'right' ? 'border-l border-b border-[var(--tooltip-border,var(--color-border))]' : '',
+          ]"
+          :style="arrowStyle"
+          aria-hidden="true"
+        ></div>
+      </div>
+    </Teleport>
+  </div>
+</template>
+
+<style>
+.tooltip-content[data-state='open'] {
+  animation: tooltip-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tooltip-content[data-state='open'][data-side='top'] {
+  animation-name: tooltip-slide-down;
+}
+.tooltip-content[data-state='open'][data-side='bottom'] {
+  animation-name: tooltip-slide-up;
+}
+.tooltip-content[data-state='open'][data-side='left'] {
+  animation-name: tooltip-slide-right;
+}
+.tooltip-content[data-state='open'][data-side='right'] {
+  animation-name: tooltip-slide-left;
+}
+
+@keyframes tooltip-show {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes tooltip-slide-up {
+  from { opacity: 0; transform: translateY(4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes tooltip-slide-down {
+  from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes tooltip-slide-left {
+  from { opacity: 0; transform: translateX(4px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes tooltip-slide-right {
+  from { opacity: 0; transform: translateX(-4px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip-content[data-state='open'] {
+    animation: none;
+  }
+}
+</style>

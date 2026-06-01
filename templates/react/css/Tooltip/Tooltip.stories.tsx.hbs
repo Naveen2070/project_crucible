@@ -1,0 +1,174 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Tooltip } from './Tooltip';
+
+const triggerStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '8px 14px',
+  borderRadius: '8px',
+  border: '1px solid var(--color-border, #E2E1F0)',
+  background: 'var(--color-surface, #fff)',
+  color: 'var(--color-text, #1A1A2E)',
+  font: 'inherit',
+  cursor: 'pointer',
+};
+
+const meta: Meta<typeof Tooltip> = {
+  title: 'Crucible/Tooltip',
+  component: Tooltip,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: [
+        'top', 'top-start', 'top-end',
+        'bottom', 'bottom-start', 'bottom-end',
+        'left', 'left-start', 'left-end',
+        'right', 'right-start', 'right-end',
+      ],
+    },
+    trigger: {
+      control: 'select',
+      options: ['click', 'hover'],
+    },
+  },
+  args: {
+    placement: 'top',
+    trigger: 'hover',
+  },
+  decorators: [
+    (Story) => (
+      <div style=\{{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Tooltip>;
+
+export const Default: Story = {
+  render: (args) => (
+    <Tooltip.Root {...args}>
+      <Tooltip.Trigger asChild>
+        <button type="button" style={triggerStyle}>Hover me</button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content size="md" variant="default">
+          Add to library
+          <Tooltip.Arrow />
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  ),
+};
+
+export const AllPlacements: Story = {
+  parameters: { layout: 'centered' },
+  decorators: [
+    (Story) => (
+      <div style=\{{ minHeight: '440px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px' }}>
+        <Story />
+      </div>
+    ),
+  ],
+  render: (args) => {
+    const sides = ['top', 'bottom', 'left', 'right'] as const;
+    const alignments = ['start', 'center', 'end'] as const;
+    const placements = sides.flatMap((side) =>
+      alignments.map((alignment) => ({
+        placement: (alignment === 'center' ? side : `${side}-${alignment}`) as any,
+        label: `${side}-${alignment}`,
+      }))
+    );
+    return (
+      <div style=\{{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        {placements.map((p) => (
+          <Tooltip.Root key={p.label} {...args} placement={p.placement}>
+            <Tooltip.Trigger asChild>
+              <button type="button" style={triggerStyle}>{p.label}</button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content size="sm">
+                {p.label}
+                <Tooltip.Arrow />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        ))}
+      </div>
+    );
+  },
+};
+
+export const VariantsAndSizes: Story = {
+  render: (args) => {
+    const variants = ['default', 'minimal'] as const;
+    const sizes = ['sm', 'md', 'lg'] as const;
+    const cells = variants.flatMap((variant) =>
+      sizes.map((size) => ({ variant, size, label: `${variant} / ${size}` }))
+    );
+    return (
+      <div style=\{{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: '24px', alignItems: 'center', justifyItems: 'center' }}>
+        {cells.map((cell) => (
+          <Tooltip.Root key={cell.label} {...args}>
+            <Tooltip.Trigger asChild>
+              <button type="button" style={triggerStyle}>{cell.label}</button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content size={cell.size} variant={cell.variant}>
+                {cell.variant} · {cell.size}
+                <Tooltip.Arrow />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        ))}
+      </div>
+    );
+  },
+};
+
+export const Controlled: Story = {
+  render: function ControlledStory(args) {
+    const [open, setOpen] = React.useState(false);
+    return (
+      <div style=\{{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+        <button type="button" style={triggerStyle} onClick={() => setOpen(!open)}>
+          External toggle &mdash; currently {open ? 'open' : 'closed'}
+        </button>
+
+        <Tooltip.Root {...args} open={open} onOpenChange={setOpen}>
+          <Tooltip.Trigger asChild>
+            <button type="button" style={triggerStyle}>Tooltip anchor</button>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content>
+              Open state is controlled by the parent.
+              <Tooltip.Arrow />
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      </div>
+    );
+  },
+};
+
+export const HoverTrigger: Story = {
+  args: { trigger: 'hover' },
+  render: (args) => (
+    <Tooltip.Root {...args}>
+      <Tooltip.Trigger asChild>
+        <span style=\{{ textDecoration: 'underline dotted', cursor: 'help' }}>Hover for info</span>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content size="sm">
+          Hover or keyboard-focus the trigger to reveal this tooltip.
+          <Tooltip.Arrow />
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  ),
+};
