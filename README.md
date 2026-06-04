@@ -58,9 +58,43 @@ npx crucible add Button
 | **Dependency Resolution** | Auto-scaffolds Button for Select/Dialog                 |
 | **Interactive CLI**       | Guided setup with @inquirer/prompts                     |
 | **Prettier Integration**  | Auto-format all generated code                          |
-| **Test Coverage**         | 362 unit tests + 43 E2E phases                          |
+| **Test Coverage**         | 368 unit tests + 47 E2E phases                          |
 
 <p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
+
+---
+
+## Installation
+
+Crucible is published on npm as **[`@cruciblelab/crucible`](https://www.npmjs.com/package/@cruciblelab/crucible)** and ships a single CLI binary, `crucible`. There are two ways to run it.
+
+### Option 1 — Run with `npx` (no install)
+
+Best for a quick try or one-off generation. `npx` fetches and runs the latest published version on demand; nothing is added to your project:
+
+```bash
+npx @cruciblelab/crucible@latest init
+npx @cruciblelab/crucible@latest add Button
+```
+
+### Option 2 — Add to your project (recommended)
+
+Install Crucible as a **project-local dev dependency** (not a global package). This pins the version in your `package.json` / lockfile, so every contributor and CI run generates with the exact same engine:
+
+```bash
+npm i -D @cruciblelab/crucible
+# yarn add -D @cruciblelab/crucible
+# pnpm add -D @cruciblelab/crucible
+```
+
+Then invoke the local binary with `npx crucible` — `npx` resolves it from `node_modules/.bin` (no network round-trip, no global install):
+
+```bash
+npx crucible init
+npx crucible add Button
+```
+
+> **Why not `-g` (global)?** A global install drifts from your project and isn't captured in your lockfile, so different machines can scaffold with different versions. A project-local dev dependency keeps generation reproducible. All examples below assume Option 2 and use `npx crucible …`; if you prefer the no-install route, swap `crucible` for `@cruciblelab/crucible@latest`.
 
 ---
 
@@ -104,6 +138,7 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 | `Toast`   | default, success, error, warning, info, loading                | sm, md, lg           | enter, visible, exit        | Sonner-style notifications: global `toast()` + `<Toaster>`, 6 positions, auto-dismiss, action button, rich colors, pause-on-hide                                   |
 | `Form`    | default, inline                                                | sm, md, lg           | disabled, error, submitting | Dependency-free validation engine, react-hook-form adapter, compound (Root/Field/Item/Label/Control/Description/Message/Submit) + schema-driven modes, aria wiring |
 | `Tabs`    | default, underline, pills                                      | sm, md, lg           | disabled                    | WAI-ARIA tabs pattern: compound (Root/List/Trigger/Content) + schema-driven, controlled/uncontrolled, manual/automatic activation, horizontal/vertical, roving tabindex; per-tab custom rendering (React ReactNode · Vue named slots · Angular `TabTemplateDirective`) |
+| `Tooltip` | default, minimal                                               | sm, md, lg           | open, closed                | Floating-UI label, `role="tooltip"` + `aria-describedby`, hover/focus/click triggers, compound (Root/Trigger/Portal/Content/Arrow), no focus trap, Escape to dismiss |
 
 ---
 
@@ -205,7 +240,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 362 tests across 32 files
+- All tests pass (`npm test`) — 368 tests across 33 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
@@ -228,7 +263,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version      | Status       | Description                                                                                   |
 | ------------ | ------------ | --------------------------------------------------------------------------------------------- |
-| _unreleased_ | 🚧 In-flight | Added **Popover**, **Table**, **Toast**, **Form**, and **Tabs** components; fixed sort/positioning bugs across all frameworks |
+| _unreleased_ | 🚧 In-flight | Added **Popover**, **Table**, **Toast**, **Form**, **Tabs**, and **Tooltip** components; fixed sort/positioning bugs across all frameworks |
 | v1.0.4       | ✅ Stable    | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                |
 | v1.0.3       | ✅ Stable    | Manual dark mode strategy, Vue SCSS template fixes                                            |
 | v1.0.0       | ✅ Stable    | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases               |
