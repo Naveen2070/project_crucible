@@ -1,0 +1,172 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+{{#if features.compoundComponents}}
+import Tabs, { TabsList, TabsTrigger, TabsContent } from './Tabs.vue';
+{{else}}
+import Tabs from './Tabs.vue';
+{{/if}}
+
+const meta: Meta<typeof Tabs> = {
+  title: 'Crucible/Tabs',
+  component: Tabs,
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'underline', 'pills'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    activationMode: { control: 'select', options: ['manual', 'automatic'] },
+  },
+  args: { variant: 'default', size: 'md', orientation: 'horizontal', activationMode: 'manual' },
+  decorators: [() => ({ template: '<div style="width: 480px;"><story /></div>' })],
+};
+
+export default meta;
+type Story = StoryObj<typeof Tabs>;
+
+{{#if features.compoundComponents}}
+const compound = { Tabs, TabsList, TabsTrigger, TabsContent };
+
+export const Default: Story = {
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Tabs v-bind="args" defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview"><p style="margin:0">Overview panel content.</p></TabsContent>
+        <TabsContent value="analytics"><p style="margin:0">Analytics panel.</p></TabsContent>
+        <TabsContent value="settings"><p style="margin:0">Settings panel.</p></TabsContent>
+      </Tabs>
+    `,
+  }),
+};
+
+export const Underline: Story = {
+  args: { variant: 'underline' },
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Tabs v-bind="args" defaultValue="docs">
+        <TabsList>
+          <TabsTrigger value="docs">Documents</TabsTrigger>
+          <TabsTrigger value="shared">Shared</TabsTrigger>
+          <TabsTrigger value="trash">Trash</TabsTrigger>
+        </TabsList>
+        <TabsContent value="docs">Your documents.</TabsContent>
+        <TabsContent value="shared">Shared with you.</TabsContent>
+        <TabsContent value="trash">Recently deleted.</TabsContent>
+      </Tabs>
+    `,
+  }),
+};
+
+export const WithDisabled: Story = {
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Tabs v-bind="args" defaultValue="t1">
+        <TabsList>
+          <TabsTrigger value="t1">Available</TabsTrigger>
+          <TabsTrigger value="t2" :disabled="true">Coming soon</TabsTrigger>
+          <TabsTrigger value="t3">Available</TabsTrigger>
+        </TabsList>
+        <TabsContent value="t1">Use arrow keys — disabled tabs are skipped.</TabsContent>
+        <TabsContent value="t3">Wrapping skips over disabled tabs.</TabsContent>
+      </Tabs>
+    `,
+  }),
+};
+
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Tabs v-bind="args" defaultValue="general">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
+        </TabsList>
+        <TabsContent value="general">General settings.</TabsContent>
+        <TabsContent value="security">Security options.</TabsContent>
+        <TabsContent value="billing">Billing.</TabsContent>
+      </Tabs>
+    `,
+  }),
+};
+{{else}}
+const items = [
+  { value: 'overview', label: 'Overview', content: 'Overview panel.' },
+  { value: 'analytics', label: 'Analytics', content: 'Analytics panel.' },
+  { value: 'settings', label: 'Settings', content: 'Settings panel.' },
+];
+
+export const SchemaDriven: Story = {
+  render: (args) => ({
+    components: { Tabs },
+    setup() { return { args, items }; },
+    template: `<Tabs v-bind="args" :items="items" defaultValue="overview" />`,
+  }),
+};
+
+export const SchemaUnderline: Story = {
+  args: { variant: 'underline' },
+  render: (args) => ({
+    components: { Tabs },
+    setup() {
+      const data = [
+        { value: 't1', label: 'Docs', content: 'Documents.' },
+        { value: 't2', label: 'Shared', content: 'Shared.' },
+        { value: 't3', label: 'Trash', content: 'Trash.', disabled: true },
+      ];
+      return { args, data };
+    },
+    template: `<Tabs v-bind="args" :items="data" defaultValue="t1" />`,
+  }),
+};
+
+/**
+ * Custom per-tab templates via named slots `trigger-{value}` / `content-{value}`.
+ * Each slot receives the item as `slotProps.item` and falls back to `item.label` / `item.content`.
+ */
+export const WithCustomSlots: Story = {
+  render: (args) => ({
+    components: { Tabs },
+    setup() {
+      const data = [
+        { value: 'home', label: 'Home', content: 'Default panel for Home.' },
+        { value: 'profile', label: 'Profile', content: 'Default panel for Profile.' },
+        { value: 'inbox', label: 'Inbox', content: 'Default panel for Inbox.' },
+      ];
+      return { args, data };
+    },
+    template: `
+      <Tabs v-bind="args" :items="data" defaultValue="home">
+        <template #trigger-home>
+          <span style="display:inline-flex; align-items:center; gap:6px">
+            <span style="width:8px; height:8px; border-radius:9999px; background: var(--color-primary)"></span>
+            Home
+          </span>
+        </template>
+        <template #trigger-inbox="{ item }">
+          <span style="display:inline-flex; align-items:center; gap:6px">
+            ✋ {{ item.label }} <strong style="font-size:0.75rem">3</strong>
+          </span>
+        </template>
+        <template #content-profile>
+          <div style="padding: 12px; border: 1px dashed var(--color-border); border-radius: 8px">
+            <strong>Custom profile panel</strong> — overridden via the named slot.
+          </div>
+        </template>
+      </Tabs>
+    `,
+  }),
+};
+{{/if}}

@@ -84,6 +84,6 @@ describe('buildComponentModel', () => {
   });
 
   it('throws for unknown component', () => {
-    expect(() => buildComponentModel('Tooltip' as any, mockTokens, mockConfig, false)).toThrow();
+    expect(() => buildComponentModel('NonExistentComponent' as any, mockTokens, mockConfig, false)).toThrow();
   });
 });

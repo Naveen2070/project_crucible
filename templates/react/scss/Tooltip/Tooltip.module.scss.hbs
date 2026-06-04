@@ -1,0 +1,133 @@
+.trigger {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  position: absolute;
+  z-index: var(--tooltip-z-index, {{tokens.componentTokens.tooltip.zIndex}});
+  background-color: var(--tooltip-background, {{tokens.componentTokens.tooltip.background}});
+  color: var(--tooltip-text, var(--color-text, #1A1A2E));
+  border: 1px solid var(--tooltip-border, {{tokens.componentTokens.tooltip.border}});
+  border-radius: var(--tooltip-radius, {{tokens.componentTokens.tooltip.radius}});
+  box-shadow: var(
+    --tooltip-shadow,
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06)
+  );
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  line-height: 1.4;
+  outline: none;
+  pointer-events: none;
+  max-width: 280px;
+  transform-origin: var(--floating-ui-transform-origin);
+
+  &[data-state='open'] {
+    animation: tooltip-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
+
+    &[data-side='top'] {
+      animation-name: tooltip-slide-down;
+    }
+    &[data-side='bottom'] {
+      animation-name: tooltip-slide-up;
+    }
+    &[data-side='left'] {
+      animation-name: tooltip-slide-right;
+    }
+    &[data-side='right'] {
+      animation-name: tooltip-slide-left;
+    }
+  }
+}
+
+/* Variants */
+.variant-default {
+  /* uses defaults above */
+}
+
+.variant-minimal {
+  border: none;
+  box-shadow:
+    0 2px 4px -1px rgba(0, 0, 0, 0.08),
+    0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Sizes */
+.size-sm {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+}
+
+.size-md {
+  font-size: 0.8125rem;
+  padding: 6px 10px;
+}
+
+.size-lg {
+  font-size: 0.875rem;
+  padding: 8px 12px;
+}
+
+@keyframes tooltip-show {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tooltip-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tooltip-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tooltip-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes tooltip-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content[data-state='open'] {
+    animation: none;
+  }
+}

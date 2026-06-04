@@ -1,0 +1,96 @@
+<form [class]="formClasses" role="{{a11y.role}}" novalidate (submit)="onSubmit($event)">
+  <ng-content select="[form-header]"></ng-content>
+
+  @for (field of fields; track field.name) {
+    <div class="item" [attr.data-invalid]="errors[field.name] ? 'true' : null">
+      @if (field.label) {
+        <label [attr.for]="controlId(field)" class="label" [attr.data-invalid]="errors[field.name] ? 'true' : null">
+          \{{ field.label }}
+          @if (isRequired(field)) {
+            <span class="required" aria-hidden="true">*</span>
+          }
+        </label>
+      }
+
+      @switch (field.type) {
+        @case ('textarea') {
+          <textarea
+            [id]="controlId(field)"
+            [name]="field.name"
+            class="control"
+            [placeholder]="field.placeholder || ''"
+            [value]="getValue(field.name)"
+            [disabled]="disabled"
+            [attr.aria-invalid]="errors[field.name] ? 'true' : null"
+            [attr.aria-required]="isRequired(field) ? 'true' : null"
+            [attr.aria-describedby]="describedBy(field)"
+            (input)="onFieldInput(field, $event)"
+            (blur)="onFieldBlur(field)"
+          ></textarea>
+        }
+        @case ('select') {
+          <select
+            [id]="controlId(field)"
+            [name]="field.name"
+            class="control"
+            [value]="getValue(field.name)"
+            [disabled]="disabled"
+            [attr.aria-invalid]="errors[field.name] ? 'true' : null"
+            [attr.aria-describedby]="describedBy(field)"
+            (change)="onFieldInput(field, $event)"
+            (blur)="onFieldBlur(field)"
+          >
+            @for (opt of field.options || []; track opt.value) {
+              <option [value]="opt.value">\{{ opt.label }}</option>
+            }
+          </select>
+        }
+        @case ('checkbox') {
+          <input
+            [id]="controlId(field)"
+            [name]="field.name"
+            type="checkbox"
+            [checked]="isChecked(field.name)"
+            [disabled]="disabled"
+            [attr.aria-invalid]="errors[field.name] ? 'true' : null"
+            (change)="onFieldInput(field, $event)"
+            (blur)="onFieldBlur(field)"
+          />
+        }
+        @default {
+          <input
+            [id]="controlId(field)"
+            [name]="field.name"
+            [type]="field.type || 'text'"
+            class="control"
+            [placeholder]="field.placeholder || ''"
+            [value]="getValue(field.name)"
+            [disabled]="disabled"
+            [attr.aria-invalid]="errors[field.name] ? 'true' : null"
+            [attr.aria-required]="isRequired(field) ? 'true' : null"
+            [attr.aria-describedby]="describedBy(field)"
+            (input)="onFieldInput(field, $event)"
+            (blur)="onFieldBlur(field)"
+          />
+        }
+      }
+
+      @if (field.description) {
+        <p [id]="descriptionId(field)" class="description">\{{ field.description }}</p>
+      }
+      @if (errors[field.name]) {
+        <p [id]="errorId(field)" class="message" role="alert" aria-live="polite" data-invalid="true">
+          \{{ errors[field.name] }}
+        </p>
+      }
+    </div>
+  }
+
+  <ng-content></ng-content>
+
+  <ng-content select="[form-footer]">
+    <button type="submit" class="submit" [disabled]="disabled || submitting">
+      \{{ submitting ? 'Submitting…' : submitLabel }}
+    </button>
+  </ng-content>
+</form>

@@ -613,6 +613,87 @@ template: `<Card v-bind="args">Content</Card>`; // Slots may not render properly
 SCSS uses `.module.scss` files with nested BEM structure. Templates reuse framework `.tsx.hbs` files
 (DRY fallback), with only the stylesheet being SCSS-specific.
 
+### 9.7 Form System — Stateful Component Patterns
+
+`Form` is the first component that ships its own **runtime state**, so it introduces patterns the
+stateless components (Button, Input, Card…) don't need. The same dependency-free validation engine is
+realized idiomatically per framework, with **no npm peer dependencies**.
+
+- **Validation engine.** A small store owns `values` / `errors` / `touched` / `isSubmitting` and a
+  rules map (`required`, `pattern`, `min`/`max`, `minLength`/`maxLength`, custom `validate`) evaluated
+  by a shared pure `evaluateRule`. Modes: `onSubmit` / `onBlur` / `onChange` / `onTouched` / `all`.
+- **Compound + schema-driven duality** (gated by `features.compoundComponents`, see §7.4 — Angular is
+  always monolithic). Compound exposes `Root / Field / Item / Label / Control / Description / Message /
+  Submit`; monolithic renders the same internals from a `fields` config array. Both share one engine.
+- **RHF-adapter seam.** `Form.Root` (React) / `<Form>` (Vue) accept an external react-hook-form
+  `control`; `adaptExternalControl` maps it onto the **same store surface**. Internal vs external are
+  mutually exclusive — one engine is ever active, so there is no double validation and still no peer dep.
+- **Per-framework realization:**
+  - **React** — the store is an external store (refs + per-field subscriptions) read via
+    `useSyncExternalStore`. `Control` subscribes to **its own field's value and error only**, so typing
+    in one field re-renders that field, not the whole form. Compound parts are `Object.assign(FormRoot, …)`.
+  - **Vue** — the engine is a `reactive()` object exposed as a `useForm` composable; Form/Field context
+    flows via `provide` / `inject`. Compound sub-components are **named exports from the SFC**
+    (`export const FormField = defineComponent(…)`), imported alongside the default `Form`.
+  - **Angular** — validation lives in the component class (`@Input() fields`, `@Output() formSubmit` /
+    `formError`); `@if`/`@for`/`@switch` render fields; `ng-content` provides `[form-header]`/`[form-footer]`
+    projection (v18+ fallback content).
+- **Vue scoped-style gotcha.** Because the compound sub-components are **separate component instances**,
+  Vue's `<style scoped>` does not reach their DOM. The Vue Form CSS/SCSS template therefore uses a
+  **non-scoped `<style>` with every rule qualified by the `.form` ancestor** (all parts render inside
+  `<form class="form">`). Tailwind is unaffected — utility classes are inline on each element.
+- Tokens: `--form-*` (group/item gap, label, control height, error/description colors, radius) — see §4.4.
+
+### 9.8 Tabs — Roving tabindex + manual/automatic activation
+
+`Tabs` implements the **WAI-ARIA tabs pattern** with no peer dependencies. The state surface is small
+(one `value` string), but the keyboard contract is the source of complexity.
+
+- **Roving tabindex.** Exactly one trigger has `tabIndex=0` (the active one); all others are `-1`.
+  This keeps the tablist as a single Tab-stop. Implemented by reading `value` in each `Trigger` and
+  setting `tabIndex={isActive ? 0 : -1}`.
+- **Keyboard nav lives on `List`.** Arrow keys (orientation-aware: Left/Right horizontal, Up/Down
+  vertical), Home, End move focus through **enabled** triggers only, wrapping around. The list owns the
+  handler so triggers don't need per-element key wiring.
+- **Manual vs automatic activation.** `activationMode='manual'` (default) moves focus only — selection
+  requires click or Enter/Space. `'automatic'` selects-on-focus (shadcn default). Manual is safer for
+  panels that fetch data on activation.
+- **Always-mounted content with `hidden`.** `Content` renders even when inactive, with the `hidden`
+  attribute, so panel state (form inputs, scroll position) survives tab switches. Users who need DOM
+  removal pass `forceMount={false}` (React/Vue) — the default of `hidden` matches Radix and shadcn.
+- **Compound + schema-driven duality.** Compound exposes `Root / List / Trigger / Content`; monolithic
+  (`compoundComponents:false`) renders the same internals from an `items` config array. Angular is
+  always monolithic per §7.4.
+- **Per-framework realization:**
+  - **React** — `useTabs` returns `{value, setValue, registerTrigger, moveFocus, focusEdge}` from a
+    `useRef<Map>` of trigger nodes. Sub-components consume via `useTabsContext()`. `Object.assign(TabsRoot, …)`
+    publishes the 4-part API.
+  - **Vue** — `reactive()` state + `provide`/`inject` of a `TabsApi` object. Compound sub-components are
+    named exports from the SFC (`export const TabsList/TabsTrigger/TabsContent = defineComponent(…)`).
+    `<style>` is non-scoped and qualified by `.tabs-root` for the same reason §9.7 documents for Form.
+  - **Angular** — schema-driven with `@Input() items` + `@Output() valueChange`; `@ViewChildren('triggerEl')`
+    gives the keyboard handler direct DOM access to focus enabled triggers by index.
+- Tokens: `--tabs-*` (list gap, trigger height per size, padding/radius, color/active color, hover bg,
+  active indicator, content padding) — see §4.4.
+
+### 9.9 Tooltip — Focus-trap-free floating label
+
+`Tooltip` is a lightweight variant of Popover (§ floating components): same `@floating-ui` positioning
+stack (`offset`/`flip`/`shift`/`arrow`) but a smaller behaviour surface tuned for the ARIA tooltip role.
+
+- **`role="tooltip"` + `aria-describedby`.** Unlike Popover's `role="dialog"`, the content is a
+  describing label. React wires this through `useRole(context, { role: 'tooltip' })`; Vue/Angular set
+  `role="tooltip"` on content and `aria-describedby` on the trigger while open.
+- **Hover + focus, not just pointer.** Default trigger is `hover`, but keyboard focus on the trigger
+  always reveals the tooltip (`useFocus` in React; `focusin`/`focusout` in Vue/Angular) so the label is
+  reachable without a mouse. `click` is also supported. Escape dismisses.
+- **No focus trap, no Close.** Tooltips never steal or trap focus, so the Popover `FloatingFocusManager`,
+  `modal`, focus-restore, and `Close` sub-component are all dropped. Content is `pointer-events: none`.
+- **Compound + schema-driven duality.** Compound exposes `Root / Trigger / Portal / Content / Arrow`
+  (React/Vue); Angular is always monolithic per §7.4.
+- Tokens: `--tooltip-*` (background, border, text, shadow, radius, padding, z-index) — see §4.4. Default
+  placement is `top`; `z-index` (60) sits above Popover (50) so a tooltip on a popover trigger wins.
+
 ---
 
 ## 10. Template Engine

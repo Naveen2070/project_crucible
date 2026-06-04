@@ -1,0 +1,3162 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Form Component Snapshots > renders Tailwind Form correctly 1`] = `
+{
+  "Form.tsx": "import React, {
+  createContext,
+  useContext,
+  useRef,
+  useMemo,
+  useId,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from 'react';
+
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+
+export type ValidationMode = 'onSubmit' | 'onBlur' | 'onChange' | 'onTouched' | 'all';
+
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSubmitHelpers<T extends FormValues = FormValues> {
+  reset: (next?: Partial<T>) => void;
+  setError: (name: string, message: string) => void;
+  setValues: (patch: Partial<T>) => void;
+}
+
+export interface FormOptions<T extends FormValues = FormValues> {
+  defaultValues?: Partial<T>;
+  mode?: ValidationMode;
+  reValidateMode?: 'onChange' | 'onBlur';
+  onSubmit?: (values: T, helpers: FormSubmitHelpers<T>) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+export interface FieldBinding {
+  name: string;
+  value?: unknown;
+  onChange: (e: unknown) => void;
+  onBlur: (e?: unknown) => void;
+  ref?: React.Ref<unknown>;
+}
+
+/**
+ * The minimal store surface shared by the dependency-free internal engine and
+ * the external (react-hook-form) adapter. Exactly one implementation is ever
+ * active per <Form> — they share a type but never co-mutate state.
+ */
+export interface FormStore {
+  readonly __crucibleInternal: boolean;
+  mode: ValidationMode;
+  getValue: (name: string) => unknown;
+  getValues: () => FormValues;
+  getError: (name: string) => string | undefined;
+  getTouched: (name: string) => boolean;
+  getIsSubmitting: () => boolean;
+  getIsValid: () => boolean;
+  getIsDirty: () => boolean;
+  setValue: (name: string, value: unknown) => void;
+  setError: (name: string, message: string | undefined) => void;
+  setTouched: (name: string, touched?: boolean) => void;
+  reset: (next?: FormValues) => void;
+  registerField: (name: string, rules?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  validateField: (name: string) => Promise<string | undefined>;
+  validateAll: () => Promise<FieldErrors>;
+  getFieldProps: (name: string) => FieldBinding;
+  setSubmitting: (value: boolean) => void;
+  runSubmit: () => Promise<FieldErrors>;
+  subscribe: (cb: () => void) => () => void;
+  subscribeField: (name: string, cb: () => void) => () => void;
+}
+
+/** react-hook-form \`control\` is structurally compatible with this shape. */
+export interface ExternalControl {
+  register: (
+    name: string,
+    rules?: unknown,
+  ) => { name: string; onChange: (e: unknown) => unknown; onBlur: (e: unknown) => unknown; ref: React.Ref<unknown> };
+  _formState?: { errors?: Record<string, { message?: string }>; isSubmitting?: boolean; isValid?: boolean };
+  getFieldState?: (name: string, formState?: unknown) => { error?: { message?: string }; isTouched?: boolean };
+  _getWatch?: (name: string) => unknown;
+  setValue?: (name: string, value: unknown) => void;
+}
+export type ExternalRegister = ExternalControl['register'];
+
+export type FormVariant = 'default' | 'inline';
+export type FormSize = 'sm' | 'md' | 'lg';
+
+export interface FormSchemaField {
+  name: string;
+  label?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'textarea' | 'checkbox' | 'select';
+  placeholder?: string;
+  description?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  options?: Array<{ label: string; value: string }>;
+  defaultValue?: unknown;
+}
+
+export interface FormRootProps<T extends FormValues = FormValues>
+  extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmit' | 'onError'> {
+  /** Pass a pre-created engine from \`useForm()\` to share/lift form state. */
+  form?: FormStore;
+  /** Supply a react-hook-form \`control\` to delegate state + validation to RHF. */
+  control?: ExternalControl;
+  defaultValues?: Partial<T>;
+  mode?: ValidationMode;
+  variant?: FormVariant;
+  size?: FormSize;
+  onSubmit?:
+    | ((values: T, helpers: FormSubmitHelpers<T>) => void | Promise<void>)
+    | React.FormEventHandler<HTMLFormElement>;
+  onError?: (errors: FieldErrors) => void;
+  children?: React.ReactNode;
+}
+
+export interface FormFieldProps {
+  name: string;
+  rules?: FieldRule;
+  required?: boolean;
+  /** Per-field RHF override; takes precedence over the root engine for this field. */
+  control?: ExternalControl;
+  children: React.ReactNode | ((field: FieldContextValue) => React.ReactNode);
+}
+
+export interface FormControlProps extends React.HTMLAttributes<HTMLElement> {
+  asChild?: boolean;
+}
+export interface FormMessageProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+export interface FormSubmitProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+  /** Disable the button while the form is invalid. Default false — the form
+   *  stays submittable so a submit attempt surfaces validation errors. */
+  disableOnInvalid?: boolean;
+}
+
+/* ============================================================================
+ * Tailwind class maps (CSS-module-free; arbitrary values read --form-* tokens)
+ * ========================================================================== */
+const FORM_VARIANT_CLASSES: Record<FormVariant, string> = {
+  default: 'flex-col',
+  inline: 'flex-row flex-wrap items-end',
+};
+const FORM_SIZE_CLASSES: Record<FormSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+const LABEL_CLASS =
+  'inline-flex items-center gap-1 text-sm font-medium text-[var(--form-label-color,var(--color-text))] data-[invalid=true]:text-[var(--form-error-color,var(--color-destructive))]';
+const CONTROL_CLASS =
+  'w-full box-border px-3 min-h-[var(--form-control-height-md)] rounded-[var(--form-radius,var(--radius-md))] border border-[var(--color-border)] bg-[var(--color-surface)] text-inherit outline-none transition-colors focus-visible:border-[var(--color-primary)] aria-[invalid=true]:border-[var(--form-error-color,var(--color-destructive))]';
+const DESCRIPTION_CLASS = 'm-0 text-xs text-[var(--form-description-color,var(--color-text-muted))]';
+const MESSAGE_CLASS = 'm-0 text-xs text-[var(--form-error-color,var(--color-destructive))]';
+const SUBMIT_CLASS =
+  'self-start min-h-[var(--form-control-height-md)] px-4 rounded-[var(--form-radius,var(--radius-md))] border-none bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium cursor-pointer transition-colors hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-[2px] focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[3px]';
+
+/* ============================================================================
+ * Pure helpers
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? \`Must be at least \${min.value}.\`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? \`Must be at most \${max.value}.\`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? \`Must be at least \${minLength.value} characters.\`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? \`Must be at most \${maxLength.value} characters.\`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+function mergeRefs<T>(refs: Array<React.Ref<T> | undefined | null>): React.RefCallback<T> {
+  return (node) => {
+    refs.forEach((ref) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref && typeof ref === 'object') (ref as React.MutableRefObject<T | null>).current = node;
+    });
+  };
+}
+
+/* ============================================================================
+ * Dependency-free form engine (a tiny external store)
+ * ========================================================================== */
+function createInternalStore(getOptions: () => FormOptions): FormStore {
+  const initialOptions = getOptions();
+  const defaults: FormValues = { ...(initialOptions.defaultValues ?? {}) };
+  let values: FormValues = { ...defaults };
+  let errors: FieldErrors = {};
+  let touched: Record<string, boolean> = {};
+  let submitting = false;
+  const rules = new Map<string, { rule?: FieldRule; required?: boolean }>();
+  const globalSubs = new Set<() => void>();
+  const fieldSubs = new Map<string, Set<() => void>>();
+  const mode: ValidationMode = initialOptions.mode ?? 'onSubmit';
+  const reValidate: 'onChange' | 'onBlur' = initialOptions.reValidateMode ?? 'onChange';
+
+  const notifyGlobal = () => globalSubs.forEach((cb) => cb());
+  const notifyField = (name: string) => fieldSubs.get(name)?.forEach((cb) => cb());
+  const notifyAllFields = () => fieldSubs.forEach((set) => set.forEach((cb) => cb()));
+
+  const composedRule = (name: string): FieldRule | undefined => {
+    const entry = rules.get(name);
+    if (!entry) return undefined;
+    if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+    return entry.rule;
+  };
+
+  const computeIsValid = (): boolean => {
+    for (const message of Object.values(errors)) if (message) return false;
+    for (const [name, entry] of rules) {
+      if (entry.required || entry.rule?.required) {
+        const value = values[name];
+        if (value === undefined || value === null || value === '' || value === false) return false;
+      }
+    }
+    return true;
+  };
+
+  const store: FormStore = {
+    __crucibleInternal: true,
+    mode,
+    getValue: (name) => values[name],
+    getValues: () => values,
+    getError: (name) => errors[name],
+    getTouched: (name) => !!touched[name],
+    getIsSubmitting: () => submitting,
+    getIsValid: () => computeIsValid(),
+    getIsDirty: () => JSON.stringify(values) !== JSON.stringify(defaults),
+    setValue: (name, value) => {
+      values = { ...values, [name]: value };
+      const shouldValidate =
+        mode === 'onChange' ||
+        mode === 'all' ||
+        (errors[name] !== undefined && reValidate === 'onChange');
+      notifyField(name);
+      notifyGlobal();
+      if (shouldValidate) void store.validateField(name);
+    },
+    setError: (name, message) => {
+      errors = { ...errors, [name]: message || undefined };
+      notifyField(name);
+      notifyGlobal();
+    },
+    setTouched: (name, value = true) => {
+      touched = { ...touched, [name]: value };
+      notifyField(name);
+    },
+    reset: (next) => {
+      values = { ...(next ?? defaults) };
+      errors = {};
+      touched = {};
+      submitting = false;
+      notifyAllFields();
+      notifyGlobal();
+    },
+    registerField: (name, rule, required) => {
+      rules.set(name, { rule, required });
+      if (!(name in values)) values = { ...values, [name]: defaults[name] ?? '' };
+    },
+    unregisterField: (name) => {
+      rules.delete(name);
+    },
+    validateField: async (name) => {
+      const message = await evaluateRule(composedRule(name), values[name], values);
+      store.setError(name, message);
+      return message;
+    },
+    validateAll: async () => {
+      const names = [...rules.keys()];
+      const results = await Promise.all(
+        names.map((name) => evaluateRule(composedRule(name), values[name], values)),
+      );
+      const next: FieldErrors = {};
+      names.forEach((name, i) => {
+        next[name] = results[i] || undefined;
+      });
+      errors = next;
+      names.forEach(notifyField);
+      notifyGlobal();
+      return next;
+    },
+    getFieldProps: (name) => ({
+      name,
+      value: values[name] ?? '',
+      onChange: (event: unknown) => {
+        const target = (event as { target?: HTMLInputElement } | undefined)?.target;
+        const nextValue = target
+          ? target.type === 'checkbox'
+            ? target.checked
+            : target.value
+          : event;
+        store.setValue(name, nextValue);
+      },
+      onBlur: () => {
+        store.setTouched(name, true);
+        if (mode === 'onBlur' || mode === 'onTouched' || mode === 'all') void store.validateField(name);
+      },
+    }),
+    setSubmitting: (value) => {
+      submitting = value;
+      notifyGlobal();
+    },
+    runSubmit: async () => {
+      [...rules.keys()].forEach((name) => {
+        touched = { ...touched, [name]: true };
+      });
+      const found = await store.validateAll();
+      if (Object.values(found).some(Boolean)) {
+        getOptions().onError?.(found);
+        return found;
+      }
+      try {
+        store.setSubmitting(true);
+        await getOptions().onSubmit?.(values, {
+          reset: store.reset,
+          setError: (name, message) => store.setError(name, message),
+          setValues: (patch) => {
+            values = { ...values, ...patch };
+            notifyAllFields();
+            notifyGlobal();
+          },
+        });
+      } finally {
+        store.setSubmitting(false);
+      }
+      return found;
+    },
+    subscribe: (cb) => {
+      globalSubs.add(cb);
+      return () => {
+        globalSubs.delete(cb);
+      };
+    },
+    subscribeField: (name, cb) => {
+      let set = fieldSubs.get(name);
+      if (!set) {
+        set = new Set();
+        fieldSubs.set(name, set);
+      }
+      set.add(cb);
+      return () => {
+        set?.delete(cb);
+      };
+    },
+  };
+  return store;
+}
+
+/**
+ * Adapts a react-hook-form \`control\` to the FormStore surface. Reactivity is
+ * best-effort via RHF's internal state subject; for full control prefer RHF's
+ * own \`<Controller>\` / \`useFormState\` inside a Field.
+ */
+function adaptExternalControl(control: ExternalControl): FormStore {
+  const subscribeSubject = (cb: () => void) => {
+    const subject = (control as unknown as { _subjects?: { state?: { subscribe?: (o: { next: () => void }) => { unsubscribe?: () => void } } } })
+      ._subjects?.state;
+    const sub = subject?.subscribe?.({ next: cb });
+    return () => sub?.unsubscribe?.();
+  };
+  return {
+    __crucibleInternal: false,
+    mode: 'onSubmit',
+    getValue: (name) => control._getWatch?.(name),
+    getValues: () => ({}),
+    getError: (name) =>
+      control._formState?.errors?.[name]?.message ?? control.getFieldState?.(name)?.error?.message,
+    getTouched: (name) => !!control.getFieldState?.(name)?.isTouched,
+    getIsSubmitting: () => !!control._formState?.isSubmitting,
+    getIsValid: () => control._formState?.isValid ?? true,
+    getIsDirty: () => false,
+    setValue: (name, value) => control.setValue?.(name, value),
+    setError: () => {},
+    setTouched: () => {},
+    reset: () => {},
+    registerField: (name, rule) => {
+      control.register(name, rule);
+    },
+    unregisterField: () => {},
+    validateField: async () => undefined,
+    validateAll: async () => ({}),
+    getFieldProps: (name) => {
+      const bound = control.register(name);
+      return { name: bound.name, onChange: bound.onChange, onBlur: bound.onBlur, ref: bound.ref };
+    },
+    setSubmitting: () => {},
+    runSubmit: async () => ({}),
+    subscribe: subscribeSubject,
+    subscribeField: (_name, cb) => subscribeSubject(cb),
+  };
+}
+
+export function useForm<T extends FormValues = FormValues>(options: FormOptions<T> = {}): FormStore {
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const storeRef = useRef<FormStore | undefined>(undefined);
+  if (!storeRef.current) {
+    storeRef.current = createInternalStore(() => optionsRef.current as FormOptions);
+  }
+  return storeRef.current;
+}
+
+/* ============================================================================
+ * Contexts
+ * ========================================================================== */
+interface FormContextValue {
+  store: FormStore;
+  isExternal: boolean;
+}
+const FormContext = createContext<FormContextValue | null>(null);
+
+export const useFormContext = (): FormContextValue => {
+  const context = useContext(FormContext);
+  if (!context) throw new Error('Form sub-components must be used within <Form> / <Form.Root>.');
+  return context;
+};
+
+export interface FieldContextValue {
+  name: string;
+  id: string;
+  formItemId: string;
+  descriptionId: string;
+  messageId: string;
+  isRequired: boolean;
+}
+const FieldContext = createContext<FieldContextValue | null>(null);
+
+export const useFormField = (): FieldContextValue => {
+  const context = useContext(FieldContext);
+  if (!context) throw new Error('Form field sub-components must be used within <Form.Field>.');
+  return context;
+};
+
+/** Subscribes to a single field's error only — typing in one field does not
+ *  re-render other fields' messages. */
+function useFieldError(name: string): string | undefined {
+  const { store } = useFormContext();
+  return useSyncExternalStore(
+    useCallback((cb) => store.subscribeField(name, cb), [store, name]),
+    () => store.getError(name),
+    () => store.getError(name),
+  );
+}
+
+/** Subscribes to a single field's value so a controlled Control re-renders on
+ *  every keystroke — scoped to this field only (no whole-form re-render). */
+function useFieldValue(name: string): unknown {
+  const { store } = useFormContext();
+  return useSyncExternalStore(
+    useCallback((cb) => store.subscribeField(name, cb), [store, name]),
+    () => store.getValue(name),
+    () => store.getValue(name),
+  );
+}
+
+function useFormFlags(): { isValid: boolean; isSubmitting: boolean } {
+  const { store } = useFormContext();
+  const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store]);
+  const snapshot = () => \`\${store.getIsValid()}|\${store.getIsSubmitting()}\`;
+  useSyncExternalStore(subscribe, snapshot, snapshot);
+  return { isValid: store.getIsValid(), isSubmitting: store.getIsSubmitting() };
+}
+
+/* ============================================================================
+ * Internal components (shared by both compound and monolithic exports)
+ * ========================================================================== */
+const InternalRoot = React.forwardRef<HTMLFormElement, FormRootProps>(function FormRoot(
+  { form, control, defaultValues, mode, variant = 'default', size = 'md', onSubmit, onError, className, children, ...rest },
+  ref,
+) {
+  const internal = useForm({ defaultValues, mode, onSubmit: onSubmit as FormOptions['onSubmit'], onError });
+  const external = useMemo(() => (control ? adaptExternalControl(control) : null), [control]);
+  const isExternal = !!control;
+  const store = external ?? form ?? internal;
+
+  const contextValue = useMemo<FormContextValue>(() => ({ store, isExternal }), [store, isExternal]);
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const setRef = useMemo(() => mergeRefs<HTMLFormElement>([ref, formRef]), [ref]);
+
+  const handleSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      if (isExternal) {
+        (onSubmit as React.FormEventHandler<HTMLFormElement> | undefined)?.(event);
+        return;
+      }
+      event.preventDefault();
+      void store.runSubmit().then((found) => {
+        if (Object.values(found).some(Boolean)) {
+          requestAnimationFrame(() => {
+            formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+          });
+        }
+      });
+    },
+    [isExternal, onSubmit, store],
+  );
+
+  const classes = [
+    'flex w-full gap-[var(--form-group-gap)] font-[inherit]',
+    FORM_VARIANT_CLASSES[variant],
+    FORM_SIZE_CLASSES[size],
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <form ref={setRef} className={classes} role="form" noValidate onSubmit={handleSubmit} {...rest}>
+        {children}
+      </form>
+    </FormContext.Provider>
+  );
+});
+
+const InternalField: React.FC<FormFieldProps> = ({ name, rules, required = false, control, children }) => {
+  const parent = useFormContext();
+  const override = useMemo(() => (control ? adaptExternalControl(control) : null), [control]);
+  const contextValue = useMemo<FormContextValue>(
+    () => (override ? { store: override, isExternal: true } : parent),
+    [override, parent],
+  );
+  const store = contextValue.store;
+
+  const reactId = useId();
+  const fieldContext = useMemo<FieldContextValue>(
+    () => ({
+      name,
+      id: reactId,
+      formItemId: \`\${reactId}-form-item\`,
+      descriptionId: \`\${reactId}-form-item-description\`,
+      messageId: \`\${reactId}-form-item-message\`,
+      isRequired: !!required || !!rules?.required,
+    }),
+    [name, reactId, required, rules],
+  );
+
+  useEffect(() => {
+    store.registerField(name, rules, required);
+    return () => store.unregisterField(name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  const content = typeof children === 'function' ? children(fieldContext) : children;
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <FieldContext.Provider value={fieldContext}>{content}</FieldContext.Provider>
+    </FormContext.Provider>
+  );
+};
+
+const InternalItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function FormItem({ className, children, ...props }, ref) {
+    const { name } = useFormField();
+    const error = useFieldError(name);
+    return (
+      <div
+        ref={ref}
+        className={['flex flex-col gap-[var(--form-item-gap)] w-full', className].filter(Boolean).join(' ')}
+        data-invalid={error ? 'true' : undefined}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+const InternalLabel = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
+  function FormLabel({ className, children, ...props }, ref) {
+    const { formItemId, isRequired, name } = useFormField();
+    const error = useFieldError(name);
+    return (
+      <label
+        ref={ref}
+        htmlFor={formItemId}
+        className={[LABEL_CLASS, className].filter(Boolean).join(' ')}
+        data-invalid={error ? 'true' : undefined}
+        {...props}
+      >
+        {children}
+        {isRequired && (
+          <span className="text-[var(--form-required-color,var(--color-destructive))]" aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+    );
+  },
+);
+
+const InternalControl = React.forwardRef<HTMLElement, FormControlProps>(function FormControl(
+  { asChild = false, className, children, ...props },
+  propRef,
+) {
+  const { store, isExternal } = useFormContext();
+  const { name, formItemId, descriptionId, messageId, isRequired } = useFormField();
+  const error = useFieldError(name);
+  const value = useFieldValue(name);
+  const binding = store.getFieldProps(name);
+
+  const describedBy = [descriptionId, error ? messageId : null].filter(Boolean).join(' ') || undefined;
+  const aria: Record<string, unknown> = {
+    id: formItemId,
+    'aria-invalid': error ? true : undefined,
+    'aria-required': isRequired || undefined,
+    'aria-describedby': describedBy,
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = (child.props ?? {}) as Record<string, unknown>;
+    const isCheckbox = childProps.type === 'checkbox';
+    const mergedRef = mergeRefs([propRef as React.Ref<unknown>, (child as { ref?: React.Ref<unknown> }).ref, binding.ref]);
+    const valueProps = isExternal
+      ? {}
+      : isCheckbox
+        ? { checked: !!value }
+        : { value: (value ?? '') as string | number };
+    return React.cloneElement(child, {
+      ref: mergedRef,
+      ...childProps,
+      name: binding.name,
+      ...aria,
+      ...props,
+      ...valueProps,
+      onChange: (event: unknown) => {
+        (childProps.onChange as ((e: unknown) => void) | undefined)?.(event);
+        binding.onChange(event);
+      },
+      onBlur: (event: unknown) => {
+        (childProps.onBlur as ((e: unknown) => void) | undefined)?.(event);
+        binding.onBlur(event);
+      },
+    } as Record<string, unknown>);
+  }
+
+  const isCheckbox = (props as Record<string, unknown>).type === 'checkbox';
+  const valueProps = isExternal
+    ? {}
+    : isCheckbox
+      ? { checked: !!value }
+      : { value: (value ?? '') as string | number };
+  return (
+    <input
+      ref={mergeRefs([propRef as React.Ref<unknown>, binding.ref]) as React.RefCallback<HTMLInputElement>}
+      name={binding.name}
+      className={[CONTROL_CLASS, className].filter(Boolean).join(' ')}
+      {...aria}
+      {...valueProps}
+      onChange={binding.onChange}
+      onBlur={binding.onBlur}
+      {...props}
+    />
+  );
+});
+
+const InternalDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  function FormDescription({ className, children, ...props }, ref) {
+    const { descriptionId } = useFormField();
+    return (
+      <p ref={ref} id={descriptionId} className={[DESCRIPTION_CLASS, className].filter(Boolean).join(' ')} {...props}>
+        {children}
+      </p>
+    );
+  },
+);
+
+const InternalMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>(function FormMessage(
+  { className, children, ...props },
+  ref,
+) {
+  const { name, messageId } = useFormField();
+  const error = useFieldError(name);
+  const body = error ?? children;
+  if (!body) return null;
+  return (
+    <p
+      ref={ref}
+      id={messageId}
+      role="alert"
+      aria-live="polite"
+      data-invalid={error ? 'true' : undefined}
+      className={[MESSAGE_CLASS, className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {body}
+    </p>
+  );
+});
+
+const InternalSubmit = React.forwardRef<HTMLButtonElement, FormSubmitProps>(function FormSubmit(
+  { asChild = false, disableOnInvalid = false, disabled, className, children, ...props },
+  ref,
+) {
+  const { isValid, isSubmitting } = useFormFlags();
+  const isDisabled = disabled || isSubmitting || (disableOnInvalid && !isValid);
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = (child.props ?? {}) as Record<string, unknown>;
+    return React.cloneElement(child, {
+      ref,
+      type: 'submit',
+      disabled: isDisabled,
+      'data-state': isSubmitting ? 'submitting' : 'idle',
+      ...props,
+      ...childProps,
+      className: [SUBMIT_CLASS, childProps.className, className].filter(Boolean).join(' '),
+    } as Record<string, unknown>);
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="submit"
+      disabled={isDisabled}
+      data-state={isSubmitting ? 'submitting' : 'idle'}
+      className={[SUBMIT_CLASS, className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+});
+
+export const FormRoot = InternalRoot;
+export const FormField = InternalField;
+export const FormItem = InternalItem;
+export const FormLabel = InternalLabel;
+export const FormControl = InternalControl;
+export const FormDescription = InternalDescription;
+export const FormMessage = InternalMessage;
+export const FormSubmit = InternalSubmit;
+
+/**
+ * Form — compound API. Compose freely:
+ *   <Form.Root onSubmit={handleSubmit}>
+ *     <Form.Field name="email" rules={emailRules}>
+ *       <Form.Item>
+ *         <Form.Label>Email</Form.Label>
+ *         <Form.Control asChild><input type="email" /></Form.Control>
+ *         <Form.Description>We never share it.</Form.Description>
+ *         <Form.Message />
+ *       </Form.Item>
+ *     </Form.Field>
+ *     <Form.Submit>Save</Form.Submit>
+ *   </Form.Root>
+ */
+export const Form = Object.assign(FormRoot, {
+  Root: FormRoot,
+  Field: FormField,
+  Item: FormItem,
+  Label: FormLabel,
+  Control: FormControl,
+  Description: FormDescription,
+  Message: FormMessage,
+  Submit: FormSubmit,
+});
+
+FormRoot.displayName = 'Form.Root';
+FormField.displayName = 'Form.Field';
+FormItem.displayName = 'Form.Item';
+FormLabel.displayName = 'Form.Label';
+FormControl.displayName = 'Form.Control';
+FormDescription.displayName = 'Form.Description';
+FormMessage.displayName = 'Form.Message';
+FormSubmit.displayName = 'Form.Submit';
+
+export default Form;
+",
+  "README.md": "# Form
+
+Generated by Crucible v1.0.0 | Theme: minimal | Framework: react
+
+## Variants
+- \`default\`- \`inline\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`- \`error\`- \`submitting\`
+
+## CSS Variables Used
+
+\`\`\`css
+:root {
+  --card-header-padding: calc(var(--spacing-unit) * 6);
+  --card-content-padding: calc(var(--spacing-unit) * 6);
+  --card-footer-padding: calc(var(--spacing-unit) * 6);
+  --card-border-radius: var(--radius-lg);
+  --card-background-color: var(--color-surface);
+  --card-border-color: var(--color-border);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --button-height-sm: calc(var(--spacing-unit) * 9);
+  --button-height-md: calc(var(--spacing-unit) * 10);
+  --button-height-lg: calc(var(--spacing-unit) * 11);
+  --button-padding-x-sm: calc(var(--spacing-unit) * 3);
+  --button-padding-x-md: calc(var(--spacing-unit) * 4);
+  --button-padding-x-lg: calc(var(--spacing-unit) * 8);
+  --button-border-radius: var(--radius-md);
+  --button-font-weight: 500;
+  --button-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  --input-height: calc(var(--spacing-unit) * 10);
+  --input-padding-x: calc(var(--spacing-unit) * 3);
+  --input-border-radius: var(--radius-md);
+  --input-border-color: var(--color-border);
+  --input-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  --form-group-gap: calc(var(--spacing-unit) * 5);
+  --form-item-gap: calc(var(--spacing-unit) * 1.5);
+  --form-label-color: var(--color-text);
+  --form-label-weight: 500;
+  --form-required-color: var(--color-destructive);
+  --form-control-height-sm: calc(var(--spacing-unit) * 9);
+  --form-control-height-md: calc(var(--spacing-unit) * 10);
+  --form-control-height-lg: calc(var(--spacing-unit) * 11);
+  --form-error-color: var(--color-destructive);
+  --form-description-color: var(--color-text-muted);
+  --form-description-size: 0.75rem;
+  --form-radius: var(--radius-md);
+  --form-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  --Dialog-padding: calc(var(--spacing-unit) * 6);
+  --Dialog-border-radius: var(--radius-lg);
+  --Dialog-overlay-bg: rgba(0, 0, 0, 0.4);
+  --Dialog-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  --Dialog-z-index: 1000;
+  --select-height: calc(var(--spacing-unit) * 10);
+  --select-padding-x: calc(var(--spacing-unit) * 3);
+  --select-border-radius: var(--radius-md);
+  --select-option-padding: calc(var(--spacing-unit) * 2.5);
+  --select-dropdown-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --select-z-index: 900;
+  --table-row-height: calc(var(--spacing-unit) * 10);
+  --table-header-height: calc(var(--spacing-unit) * 10);
+  --table-border-radius: var(--radius-md);
+  --table-pagination-height: calc(var(--spacing-unit) * 8);
+  --table-virtual-overscan: 5;
+  --table-cell-padding: calc(var(--spacing-unit) * 3);
+  --table-row-hover-bg: var(--color-secondary);
+  --table-striped-bg: var(--color-background);
+  --popover-background: var(--color-surface);
+  --popover-border: var(--color-border);
+  --popover-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --popover-radius: var(--radius-md);
+  --popover-padding: calc(var(--spacing-unit) * 2);
+  --popover-z-index: 50;
+  --tooltip-background: var(--color-surface);
+  --tooltip-border: var(--color-border);
+  --tooltip-text: var(--color-text);
+  --tooltip-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-padding: calc(var(--spacing-unit) * 2);
+  --tooltip-z-index: 60;
+  --toast-background: var(--color-surface);
+  --toast-border: var(--color-border);
+  --toast-text: var(--color-text);
+  --toast-text-muted: var(--color-text-muted);
+  --toast-radius: var(--radius-md);
+  --toast-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --toast-padding: calc(var(--spacing-unit) * 4);
+  --toast-gap: calc(var(--spacing-unit) * 2);
+  --toast-z-index: 9999;
+  --toast-success-bg: var(--color-success);
+  --toast-error-bg: var(--color-destructive);
+  --toast-warning-bg: #f59e0b;
+  --toast-info-bg: var(--color-primary);
+  --tabs-list-gap: calc(var(--spacing-unit) * 1);
+  --tabs-trigger-height-sm: calc(var(--spacing-unit) * 8);
+  --tabs-trigger-height-md: calc(var(--spacing-unit) * 9);
+  --tabs-trigger-height-lg: calc(var(--spacing-unit) * 11);
+  --tabs-trigger-padding-x: calc(var(--spacing-unit) * 3);
+  --tabs-trigger-radius: var(--radius-md);
+  --tabs-trigger-color: var(--color-text-muted);
+  --tabs-trigger-active-color: var(--color-text);
+  --tabs-trigger-hover-bg: var(--color-secondary);
+  --tabs-trigger-active-bg: var(--color-surface);
+  --tabs-trigger-active-indicator: var(--color-primary);
+  --tabs-indicator-thickness: 2px;
+  --tabs-content-padding-y: calc(var(--spacing-unit) * 4);
+  --tabs-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  --color-primary: #000;
+  --color-secondary: #F3F2FF;
+  --color-surface: #fff;
+  --color-background: #F8F9FA;
+  --color-border: #E2E1F0;
+  --color-text: #1A1A2E;
+  --color-text-muted: #6B6B8A;
+  --color-destructive: #E24B4A;
+  --color-success: #1D9E75;
+  --color-primary-foreground: #fff;
+  --color-secondary-foreground: #1A1A2E;
+  --color-destructive-foreground: #fff;
+  --color-accent-foreground: #1A1A2E;
+  --foreground: #1A1A2E;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 12px;
+  --spacing-unit: 4px;
+  --font-family: system-ui, sans-serif;
+  --font-size-base: 16px;
+}
+\`\`\`
+
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
+exports[`Form Component Snapshots > renders compound Form correctly 1`] = `
+{
+  "Form.module.css": "/* Generated by Crucible — edit freely, re-generate with --force */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-group-gap, calc(var(--spacing-unit) * 5));
+  width: 100%;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+}
+
+/* Layout variants */
+.variant-default {
+  /* vertical stack (default) */
+}
+
+.variant-inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+/* Sizes drive control height + base font-size */
+.size-sm {
+  --form-control-h: var(--form-control-height-sm, calc(var(--spacing-unit) * 9));
+  font-size: 0.8125rem;
+}
+.size-md {
+  --form-control-h: var(--form-control-height-md, calc(var(--spacing-unit) * 10));
+  font-size: 0.875rem;
+}
+.size-lg {
+  --form-control-h: var(--form-control-height-lg, calc(var(--spacing-unit) * 11));
+  font-size: 0.9375rem;
+}
+
+/* Field is a provider only — it must not introduce a layout box */
+.field {
+  display: contents;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-item-gap, calc(var(--spacing-unit) * 1.5));
+  width: 100%;
+}
+.variant-inline .item {
+  width: auto;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 0.5);
+  font-size: 0.875rem;
+  font-weight: var(--form-label-weight, 500);
+  color: var(--form-label-color, var(--color-text));
+}
+.label[data-invalid='true'] {
+  color: var(--form-error-color, var(--color-destructive));
+}
+
+.required {
+  color: var(--form-required-color, var(--color-destructive));
+}
+
+.control {
+  min-height: var(--form-control-h, var(--form-control-height-md, calc(var(--spacing-unit) * 10)));
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 calc(var(--spacing-unit, 4px) * 3);
+  border: 1px solid var(--color-border, #e2e1f0);
+  border-radius: var(--form-radius, var(--radius-md));
+  background: var(--color-surface, #fff);
+  color: inherit;
+  font: inherit;
+  transition: var(--form-transition, border-color 0.2s ease, box-shadow 0.2s ease);
+}
+.control:focus-visible {
+  outline: none;
+  border-color: var(--color-primary, #6c63ff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6c63ff) 20%, transparent);
+}
+.control[aria-invalid='true'] {
+  border-color: var(--form-error-color, var(--color-destructive));
+}
+
+.description {
+  margin: 0;
+  font-size: var(--form-description-size, 0.75rem);
+  color: var(--form-description-color, var(--color-text-muted));
+}
+
+.message {
+  margin: 0;
+  font-size: var(--form-description-size, 0.75rem);
+  color: var(--form-error-color, var(--color-destructive));
+}
+.message:empty {
+  display: none;
+}
+.message[data-invalid='true'] {
+  animation: form-message-in 120ms ease-out;
+}
+
+.submit {
+  align-self: flex-start;
+  min-height: var(--form-control-h, var(--form-control-height-md, calc(var(--spacing-unit) * 10)));
+  padding: 0 calc(var(--spacing-unit, 4px) * 4);
+  border: none;
+  border-radius: var(--form-radius, var(--radius-md));
+  background: var(--color-primary, #6c63ff);
+  color: var(--color-primary-foreground, #fff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+.submit:hover:not(:disabled) {
+  background: var(--color-primary-hover, var(--color-primary, #6c63ff));
+}
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.submit:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@keyframes form-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message[data-invalid='true'] {
+    animation: none;
+  }
+}
+",
+  "Form.tsx": "import React, {
+  createContext,
+  useContext,
+  useRef,
+  useMemo,
+  useId,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from 'react';
+import styles from './Form.module.css';
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+
+export type ValidationMode = 'onSubmit' | 'onBlur' | 'onChange' | 'onTouched' | 'all';
+
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSubmitHelpers<T extends FormValues = FormValues> {
+  reset: (next?: Partial<T>) => void;
+  setError: (name: string, message: string) => void;
+  setValues: (patch: Partial<T>) => void;
+}
+
+export interface FormOptions<T extends FormValues = FormValues> {
+  defaultValues?: Partial<T>;
+  mode?: ValidationMode;
+  reValidateMode?: 'onChange' | 'onBlur';
+  onSubmit?: (values: T, helpers: FormSubmitHelpers<T>) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+export interface FieldBinding {
+  name: string;
+  value?: unknown;
+  onChange: (e: unknown) => void;
+  onBlur: (e?: unknown) => void;
+  ref?: React.Ref<unknown>;
+}
+
+/**
+ * The minimal store surface shared by the dependency-free internal engine and
+ * the external (react-hook-form) adapter. Exactly one implementation is ever
+ * active per <Form> — they share a type but never co-mutate state.
+ */
+export interface FormStore {
+  readonly __crucibleInternal: boolean;
+  mode: ValidationMode;
+  getValue: (name: string) => unknown;
+  getValues: () => FormValues;
+  getError: (name: string) => string | undefined;
+  getTouched: (name: string) => boolean;
+  getIsSubmitting: () => boolean;
+  getIsValid: () => boolean;
+  getIsDirty: () => boolean;
+  setValue: (name: string, value: unknown) => void;
+  setError: (name: string, message: string | undefined) => void;
+  setTouched: (name: string, touched?: boolean) => void;
+  reset: (next?: FormValues) => void;
+  registerField: (name: string, rules?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  validateField: (name: string) => Promise<string | undefined>;
+  validateAll: () => Promise<FieldErrors>;
+  getFieldProps: (name: string) => FieldBinding;
+  setSubmitting: (value: boolean) => void;
+  runSubmit: () => Promise<FieldErrors>;
+  subscribe: (cb: () => void) => () => void;
+  subscribeField: (name: string, cb: () => void) => () => void;
+}
+
+/** react-hook-form \`control\` is structurally compatible with this shape. */
+export interface ExternalControl {
+  register: (
+    name: string,
+    rules?: unknown,
+  ) => { name: string; onChange: (e: unknown) => unknown; onBlur: (e: unknown) => unknown; ref: React.Ref<unknown> };
+  _formState?: { errors?: Record<string, { message?: string }>; isSubmitting?: boolean; isValid?: boolean };
+  getFieldState?: (name: string, formState?: unknown) => { error?: { message?: string }; isTouched?: boolean };
+  _getWatch?: (name: string) => unknown;
+  setValue?: (name: string, value: unknown) => void;
+}
+export type ExternalRegister = ExternalControl['register'];
+
+export type FormVariant = 'default' | 'inline';
+export type FormSize = 'sm' | 'md' | 'lg';
+
+export interface FormSchemaField {
+  name: string;
+  label?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'textarea' | 'checkbox' | 'select';
+  placeholder?: string;
+  description?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  options?: Array<{ label: string; value: string }>;
+  defaultValue?: unknown;
+}
+
+export interface FormRootProps<T extends FormValues = FormValues>
+  extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmit' | 'onError'> {
+  /** Pass a pre-created engine from \`useForm()\` to share/lift form state. */
+  form?: FormStore;
+  /** Supply a react-hook-form \`control\` to delegate state + validation to RHF. */
+  control?: ExternalControl;
+  defaultValues?: Partial<T>;
+  mode?: ValidationMode;
+  variant?: FormVariant;
+  size?: FormSize;
+  onSubmit?:
+    | ((values: T, helpers: FormSubmitHelpers<T>) => void | Promise<void>)
+    | React.FormEventHandler<HTMLFormElement>;
+  onError?: (errors: FieldErrors) => void;
+  children?: React.ReactNode;
+}
+
+export interface FormFieldProps {
+  name: string;
+  rules?: FieldRule;
+  required?: boolean;
+  /** Per-field RHF override; takes precedence over the root engine for this field. */
+  control?: ExternalControl;
+  children: React.ReactNode | ((field: FieldContextValue) => React.ReactNode);
+}
+
+export interface FormControlProps extends React.HTMLAttributes<HTMLElement> {
+  asChild?: boolean;
+}
+export interface FormMessageProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+export interface FormSubmitProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+  /** Disable the button while the form is invalid. Default false — the form
+   *  stays submittable so a submit attempt surfaces validation errors. */
+  disableOnInvalid?: boolean;
+}
+
+/* ============================================================================
+ * Pure helpers
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? \`Must be at least \${min.value}.\`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? \`Must be at most \${max.value}.\`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? \`Must be at least \${minLength.value} characters.\`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? \`Must be at most \${maxLength.value} characters.\`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+function mergeRefs<T>(refs: Array<React.Ref<T> | undefined | null>): React.RefCallback<T> {
+  return (node) => {
+    refs.forEach((ref) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref && typeof ref === 'object') (ref as React.MutableRefObject<T | null>).current = node;
+    });
+  };
+}
+
+/* ============================================================================
+ * Dependency-free form engine (a tiny external store)
+ * ========================================================================== */
+function createInternalStore(getOptions: () => FormOptions): FormStore {
+  const initialOptions = getOptions();
+  const defaults: FormValues = { ...(initialOptions.defaultValues ?? {}) };
+  let values: FormValues = { ...defaults };
+  let errors: FieldErrors = {};
+  let touched: Record<string, boolean> = {};
+  let submitting = false;
+  const rules = new Map<string, { rule?: FieldRule; required?: boolean }>();
+  const globalSubs = new Set<() => void>();
+  const fieldSubs = new Map<string, Set<() => void>>();
+  const mode: ValidationMode = initialOptions.mode ?? 'onSubmit';
+  const reValidate: 'onChange' | 'onBlur' = initialOptions.reValidateMode ?? 'onChange';
+
+  const notifyGlobal = () => globalSubs.forEach((cb) => cb());
+  const notifyField = (name: string) => fieldSubs.get(name)?.forEach((cb) => cb());
+  const notifyAllFields = () => fieldSubs.forEach((set) => set.forEach((cb) => cb()));
+
+  const composedRule = (name: string): FieldRule | undefined => {
+    const entry = rules.get(name);
+    if (!entry) return undefined;
+    if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+    return entry.rule;
+  };
+
+  const computeIsValid = (): boolean => {
+    for (const message of Object.values(errors)) if (message) return false;
+    for (const [name, entry] of rules) {
+      if (entry.required || entry.rule?.required) {
+        const value = values[name];
+        if (value === undefined || value === null || value === '' || value === false) return false;
+      }
+    }
+    return true;
+  };
+
+  const store: FormStore = {
+    __crucibleInternal: true,
+    mode,
+    getValue: (name) => values[name],
+    getValues: () => values,
+    getError: (name) => errors[name],
+    getTouched: (name) => !!touched[name],
+    getIsSubmitting: () => submitting,
+    getIsValid: () => computeIsValid(),
+    getIsDirty: () => JSON.stringify(values) !== JSON.stringify(defaults),
+    setValue: (name, value) => {
+      values = { ...values, [name]: value };
+      const shouldValidate =
+        mode === 'onChange' ||
+        mode === 'all' ||
+        (errors[name] !== undefined && reValidate === 'onChange');
+      notifyField(name);
+      notifyGlobal();
+      if (shouldValidate) void store.validateField(name);
+    },
+    setError: (name, message) => {
+      errors = { ...errors, [name]: message || undefined };
+      notifyField(name);
+      notifyGlobal();
+    },
+    setTouched: (name, value = true) => {
+      touched = { ...touched, [name]: value };
+      notifyField(name);
+    },
+    reset: (next) => {
+      values = { ...(next ?? defaults) };
+      errors = {};
+      touched = {};
+      submitting = false;
+      notifyAllFields();
+      notifyGlobal();
+    },
+    registerField: (name, rule, required) => {
+      rules.set(name, { rule, required });
+      if (!(name in values)) values = { ...values, [name]: defaults[name] ?? '' };
+    },
+    unregisterField: (name) => {
+      rules.delete(name);
+    },
+    validateField: async (name) => {
+      const message = await evaluateRule(composedRule(name), values[name], values);
+      store.setError(name, message);
+      return message;
+    },
+    validateAll: async () => {
+      const names = [...rules.keys()];
+      const results = await Promise.all(
+        names.map((name) => evaluateRule(composedRule(name), values[name], values)),
+      );
+      const next: FieldErrors = {};
+      names.forEach((name, i) => {
+        next[name] = results[i] || undefined;
+      });
+      errors = next;
+      names.forEach(notifyField);
+      notifyGlobal();
+      return next;
+    },
+    getFieldProps: (name) => ({
+      name,
+      value: values[name] ?? '',
+      onChange: (event: unknown) => {
+        const target = (event as { target?: HTMLInputElement } | undefined)?.target;
+        const nextValue = target
+          ? target.type === 'checkbox'
+            ? target.checked
+            : target.value
+          : event;
+        store.setValue(name, nextValue);
+      },
+      onBlur: () => {
+        store.setTouched(name, true);
+        if (mode === 'onBlur' || mode === 'onTouched' || mode === 'all') void store.validateField(name);
+      },
+    }),
+    setSubmitting: (value) => {
+      submitting = value;
+      notifyGlobal();
+    },
+    runSubmit: async () => {
+      [...rules.keys()].forEach((name) => {
+        touched = { ...touched, [name]: true };
+      });
+      const found = await store.validateAll();
+      if (Object.values(found).some(Boolean)) {
+        getOptions().onError?.(found);
+        return found;
+      }
+      try {
+        store.setSubmitting(true);
+        await getOptions().onSubmit?.(values, {
+          reset: store.reset,
+          setError: (name, message) => store.setError(name, message),
+          setValues: (patch) => {
+            values = { ...values, ...patch };
+            notifyAllFields();
+            notifyGlobal();
+          },
+        });
+      } finally {
+        store.setSubmitting(false);
+      }
+      return found;
+    },
+    subscribe: (cb) => {
+      globalSubs.add(cb);
+      return () => {
+        globalSubs.delete(cb);
+      };
+    },
+    subscribeField: (name, cb) => {
+      let set = fieldSubs.get(name);
+      if (!set) {
+        set = new Set();
+        fieldSubs.set(name, set);
+      }
+      set.add(cb);
+      return () => {
+        set?.delete(cb);
+      };
+    },
+  };
+  return store;
+}
+
+/**
+ * Adapts a react-hook-form \`control\` to the FormStore surface. Reactivity is
+ * best-effort via RHF's internal state subject; for full control prefer RHF's
+ * own \`<Controller>\` / \`useFormState\` inside a Field.
+ */
+function adaptExternalControl(control: ExternalControl): FormStore {
+  const subscribeSubject = (cb: () => void) => {
+    const subject = (control as unknown as { _subjects?: { state?: { subscribe?: (o: { next: () => void }) => { unsubscribe?: () => void } } } })
+      ._subjects?.state;
+    const sub = subject?.subscribe?.({ next: cb });
+    return () => sub?.unsubscribe?.();
+  };
+  return {
+    __crucibleInternal: false,
+    mode: 'onSubmit',
+    getValue: (name) => control._getWatch?.(name),
+    getValues: () => ({}),
+    getError: (name) =>
+      control._formState?.errors?.[name]?.message ?? control.getFieldState?.(name)?.error?.message,
+    getTouched: (name) => !!control.getFieldState?.(name)?.isTouched,
+    getIsSubmitting: () => !!control._formState?.isSubmitting,
+    getIsValid: () => control._formState?.isValid ?? true,
+    getIsDirty: () => false,
+    setValue: (name, value) => control.setValue?.(name, value),
+    setError: () => {},
+    setTouched: () => {},
+    reset: () => {},
+    registerField: (name, rule) => {
+      control.register(name, rule);
+    },
+    unregisterField: () => {},
+    validateField: async () => undefined,
+    validateAll: async () => ({}),
+    getFieldProps: (name) => {
+      const bound = control.register(name);
+      return { name: bound.name, onChange: bound.onChange, onBlur: bound.onBlur, ref: bound.ref };
+    },
+    setSubmitting: () => {},
+    runSubmit: async () => ({}),
+    subscribe: subscribeSubject,
+    subscribeField: (_name, cb) => subscribeSubject(cb),
+  };
+}
+
+export function useForm<T extends FormValues = FormValues>(options: FormOptions<T> = {}): FormStore {
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const storeRef = useRef<FormStore | undefined>(undefined);
+  if (!storeRef.current) {
+    storeRef.current = createInternalStore(() => optionsRef.current as FormOptions);
+  }
+  return storeRef.current;
+}
+
+/* ============================================================================
+ * Contexts
+ * ========================================================================== */
+interface FormContextValue {
+  store: FormStore;
+  isExternal: boolean;
+}
+const FormContext = createContext<FormContextValue | null>(null);
+
+export const useFormContext = (): FormContextValue => {
+  const context = useContext(FormContext);
+  if (!context) throw new Error('Form sub-components must be used within <Form> / <Form.Root>.');
+  return context;
+};
+
+export interface FieldContextValue {
+  name: string;
+  id: string;
+  formItemId: string;
+  descriptionId: string;
+  messageId: string;
+  isRequired: boolean;
+}
+const FieldContext = createContext<FieldContextValue | null>(null);
+
+export const useFormField = (): FieldContextValue => {
+  const context = useContext(FieldContext);
+  if (!context) throw new Error('Form field sub-components must be used within <Form.Field>.');
+  return context;
+};
+
+/** Subscribes to a single field's error only — typing in one field does not
+ *  re-render other fields' messages. */
+function useFieldError(name: string): string | undefined {
+  const { store } = useFormContext();
+  return useSyncExternalStore(
+    useCallback((cb) => store.subscribeField(name, cb), [store, name]),
+    () => store.getError(name),
+    () => store.getError(name),
+  );
+}
+
+/** Subscribes to a single field's value so a controlled Control re-renders on
+ *  every keystroke — scoped to this field only (no whole-form re-render). */
+function useFieldValue(name: string): unknown {
+  const { store } = useFormContext();
+  return useSyncExternalStore(
+    useCallback((cb) => store.subscribeField(name, cb), [store, name]),
+    () => store.getValue(name),
+    () => store.getValue(name),
+  );
+}
+
+function useFormFlags(): { isValid: boolean; isSubmitting: boolean } {
+  const { store } = useFormContext();
+  const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store]);
+  const snapshot = () => \`\${store.getIsValid()}|\${store.getIsSubmitting()}\`;
+  useSyncExternalStore(subscribe, snapshot, snapshot);
+  return { isValid: store.getIsValid(), isSubmitting: store.getIsSubmitting() };
+}
+
+/* ============================================================================
+ * Internal components (shared by both compound and monolithic exports)
+ * ========================================================================== */
+const InternalRoot = React.forwardRef<HTMLFormElement, FormRootProps>(function FormRoot(
+  { form, control, defaultValues, mode, variant = 'default', size = 'md', onSubmit, onError, className, children, ...rest },
+  ref,
+) {
+  const internal = useForm({ defaultValues, mode, onSubmit: onSubmit as FormOptions['onSubmit'], onError });
+  const external = useMemo(() => (control ? adaptExternalControl(control) : null), [control]);
+  const isExternal = !!control;
+  const store = external ?? form ?? internal;
+
+  const contextValue = useMemo<FormContextValue>(() => ({ store, isExternal }), [store, isExternal]);
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const setRef = useMemo(() => mergeRefs<HTMLFormElement>([ref, formRef]), [ref]);
+
+  const handleSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      if (isExternal) {
+        (onSubmit as React.FormEventHandler<HTMLFormElement> | undefined)?.(event);
+        return;
+      }
+      event.preventDefault();
+      void store.runSubmit().then((found) => {
+        if (Object.values(found).some(Boolean)) {
+          requestAnimationFrame(() => {
+            formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+          });
+        }
+      });
+    },
+    [isExternal, onSubmit, store],
+  );
+
+  const classes = [styles.form, styles[\`variant-\${variant}\`], styles[\`size-\${size}\`], className]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <form ref={setRef} className={classes} role="form" noValidate onSubmit={handleSubmit} {...rest}>
+        {children}
+      </form>
+    </FormContext.Provider>
+  );
+});
+
+const InternalField: React.FC<FormFieldProps> = ({ name, rules, required = false, control, children }) => {
+  const parent = useFormContext();
+  const override = useMemo(() => (control ? adaptExternalControl(control) : null), [control]);
+  const contextValue = useMemo<FormContextValue>(
+    () => (override ? { store: override, isExternal: true } : parent),
+    [override, parent],
+  );
+  const store = contextValue.store;
+
+  const reactId = useId();
+  const fieldContext = useMemo<FieldContextValue>(
+    () => ({
+      name,
+      id: reactId,
+      formItemId: \`\${reactId}-form-item\`,
+      descriptionId: \`\${reactId}-form-item-description\`,
+      messageId: \`\${reactId}-form-item-message\`,
+      isRequired: !!required || !!rules?.required,
+    }),
+    [name, reactId, required, rules],
+  );
+
+  useEffect(() => {
+    store.registerField(name, rules, required);
+    return () => store.unregisterField(name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  const content = typeof children === 'function' ? children(fieldContext) : children;
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <FieldContext.Provider value={fieldContext}>{content}</FieldContext.Provider>
+    </FormContext.Provider>
+  );
+};
+
+const InternalItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function FormItem({ className, children, ...props }, ref) {
+    const { name } = useFormField();
+    const error = useFieldError(name);
+    return (
+      <div
+        ref={ref}
+        className={[styles.item, className].filter(Boolean).join(' ')}
+        data-invalid={error ? 'true' : undefined}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+const InternalLabel = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
+  function FormLabel({ className, children, ...props }, ref) {
+    const { formItemId, isRequired, name } = useFormField();
+    const error = useFieldError(name);
+    return (
+      <label
+        ref={ref}
+        htmlFor={formItemId}
+        className={[styles.label, className].filter(Boolean).join(' ')}
+        data-invalid={error ? 'true' : undefined}
+        {...props}
+      >
+        {children}
+        {isRequired && (
+          <span className={styles.required} aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+    );
+  },
+);
+
+const InternalControl = React.forwardRef<HTMLElement, FormControlProps>(function FormControl(
+  { asChild = false, className, children, ...props },
+  propRef,
+) {
+  const { store, isExternal } = useFormContext();
+  const { name, formItemId, descriptionId, messageId, isRequired } = useFormField();
+  const error = useFieldError(name);
+  const value = useFieldValue(name);
+  const binding = store.getFieldProps(name);
+
+  const describedBy = [descriptionId, error ? messageId : null].filter(Boolean).join(' ') || undefined;
+  const aria: Record<string, unknown> = {
+    id: formItemId,
+    'aria-invalid': error ? true : undefined,
+    'aria-required': isRequired || undefined,
+    'aria-describedby': describedBy,
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = (child.props ?? {}) as Record<string, unknown>;
+    const isCheckbox = childProps.type === 'checkbox';
+    const mergedRef = mergeRefs([propRef as React.Ref<unknown>, (child as { ref?: React.Ref<unknown> }).ref, binding.ref]);
+    const valueProps = isExternal
+      ? {}
+      : isCheckbox
+        ? { checked: !!value }
+        : { value: (value ?? '') as string | number };
+    return React.cloneElement(child, {
+      ref: mergedRef,
+      ...childProps,
+      name: binding.name,
+      ...aria,
+      ...props,
+      ...valueProps,
+      onChange: (event: unknown) => {
+        (childProps.onChange as ((e: unknown) => void) | undefined)?.(event);
+        binding.onChange(event);
+      },
+      onBlur: (event: unknown) => {
+        (childProps.onBlur as ((e: unknown) => void) | undefined)?.(event);
+        binding.onBlur(event);
+      },
+    } as Record<string, unknown>);
+  }
+
+  const isCheckbox = (props as Record<string, unknown>).type === 'checkbox';
+  const valueProps = isExternal
+    ? {}
+    : isCheckbox
+      ? { checked: !!value }
+      : { value: (value ?? '') as string | number };
+  return (
+    <input
+      ref={mergeRefs([propRef as React.Ref<unknown>, binding.ref]) as React.RefCallback<HTMLInputElement>}
+      name={binding.name}
+      className={[styles.control, className].filter(Boolean).join(' ')}
+      {...aria}
+      {...valueProps}
+      onChange={binding.onChange}
+      onBlur={binding.onBlur}
+      {...props}
+    />
+  );
+});
+
+const InternalDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  function FormDescription({ className, children, ...props }, ref) {
+    const { descriptionId } = useFormField();
+    return (
+      <p ref={ref} id={descriptionId} className={[styles.description, className].filter(Boolean).join(' ')} {...props}>
+        {children}
+      </p>
+    );
+  },
+);
+
+const InternalMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>(function FormMessage(
+  { className, children, ...props },
+  ref,
+) {
+  const { name, messageId } = useFormField();
+  const error = useFieldError(name);
+  const body = error ?? children;
+  if (!body) return null;
+  return (
+    <p
+      ref={ref}
+      id={messageId}
+      role="alert"
+      aria-live="polite"
+      data-invalid={error ? 'true' : undefined}
+      className={[styles.message, className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {body}
+    </p>
+  );
+});
+
+const InternalSubmit = React.forwardRef<HTMLButtonElement, FormSubmitProps>(function FormSubmit(
+  { asChild = false, disableOnInvalid = false, disabled, className, children, ...props },
+  ref,
+) {
+  const { isValid, isSubmitting } = useFormFlags();
+  const isDisabled = disabled || isSubmitting || (disableOnInvalid && !isValid);
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = (child.props ?? {}) as Record<string, unknown>;
+    return React.cloneElement(child, {
+      ref,
+      type: 'submit',
+      disabled: isDisabled,
+      'data-state': isSubmitting ? 'submitting' : 'idle',
+      ...props,
+      ...childProps,
+      className: [styles.submit, childProps.className, className].filter(Boolean).join(' '),
+    } as Record<string, unknown>);
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="submit"
+      disabled={isDisabled}
+      data-state={isSubmitting ? 'submitting' : 'idle'}
+      className={[styles.submit, className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+});
+
+export const FormRoot = InternalRoot;
+export const FormField = InternalField;
+export const FormItem = InternalItem;
+export const FormLabel = InternalLabel;
+export const FormControl = InternalControl;
+export const FormDescription = InternalDescription;
+export const FormMessage = InternalMessage;
+export const FormSubmit = InternalSubmit;
+
+/**
+ * Form — compound API. Compose freely:
+ *   <Form.Root onSubmit={handleSubmit}>
+ *     <Form.Field name="email" rules={emailRules}>
+ *       <Form.Item>
+ *         <Form.Label>Email</Form.Label>
+ *         <Form.Control asChild><input type="email" /></Form.Control>
+ *         <Form.Description>We never share it.</Form.Description>
+ *         <Form.Message />
+ *       </Form.Item>
+ *     </Form.Field>
+ *     <Form.Submit>Save</Form.Submit>
+ *   </Form.Root>
+ */
+export const Form = Object.assign(FormRoot, {
+  Root: FormRoot,
+  Field: FormField,
+  Item: FormItem,
+  Label: FormLabel,
+  Control: FormControl,
+  Description: FormDescription,
+  Message: FormMessage,
+  Submit: FormSubmit,
+});
+
+FormRoot.displayName = 'Form.Root';
+FormField.displayName = 'Form.Field';
+FormItem.displayName = 'Form.Item';
+FormLabel.displayName = 'Form.Label';
+FormControl.displayName = 'Form.Control';
+FormDescription.displayName = 'Form.Description';
+FormMessage.displayName = 'Form.Message';
+FormSubmit.displayName = 'Form.Submit';
+
+export default Form;
+",
+  "README.md": "# Form
+
+Generated by Crucible v1.0.0 | Theme: minimal | Framework: react
+
+## Variants
+- \`default\`- \`inline\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`- \`error\`- \`submitting\`
+
+## CSS Variables Used
+
+\`\`\`css
+:root {
+  --card-header-padding: calc(var(--spacing-unit) * 6);
+  --card-content-padding: calc(var(--spacing-unit) * 6);
+  --card-footer-padding: calc(var(--spacing-unit) * 6);
+  --card-border-radius: var(--radius-lg);
+  --card-background-color: var(--color-surface);
+  --card-border-color: var(--color-border);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --button-height-sm: calc(var(--spacing-unit) * 9);
+  --button-height-md: calc(var(--spacing-unit) * 10);
+  --button-height-lg: calc(var(--spacing-unit) * 11);
+  --button-padding-x-sm: calc(var(--spacing-unit) * 3);
+  --button-padding-x-md: calc(var(--spacing-unit) * 4);
+  --button-padding-x-lg: calc(var(--spacing-unit) * 8);
+  --button-border-radius: var(--radius-md);
+  --button-font-weight: 500;
+  --button-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  --input-height: calc(var(--spacing-unit) * 10);
+  --input-padding-x: calc(var(--spacing-unit) * 3);
+  --input-border-radius: var(--radius-md);
+  --input-border-color: var(--color-border);
+  --input-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  --form-group-gap: calc(var(--spacing-unit) * 5);
+  --form-item-gap: calc(var(--spacing-unit) * 1.5);
+  --form-label-color: var(--color-text);
+  --form-label-weight: 500;
+  --form-required-color: var(--color-destructive);
+  --form-control-height-sm: calc(var(--spacing-unit) * 9);
+  --form-control-height-md: calc(var(--spacing-unit) * 10);
+  --form-control-height-lg: calc(var(--spacing-unit) * 11);
+  --form-error-color: var(--color-destructive);
+  --form-description-color: var(--color-text-muted);
+  --form-description-size: 0.75rem;
+  --form-radius: var(--radius-md);
+  --form-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  --Dialog-padding: calc(var(--spacing-unit) * 6);
+  --Dialog-border-radius: var(--radius-lg);
+  --Dialog-overlay-bg: rgba(0, 0, 0, 0.4);
+  --Dialog-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  --Dialog-z-index: 1000;
+  --select-height: calc(var(--spacing-unit) * 10);
+  --select-padding-x: calc(var(--spacing-unit) * 3);
+  --select-border-radius: var(--radius-md);
+  --select-option-padding: calc(var(--spacing-unit) * 2.5);
+  --select-dropdown-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --select-z-index: 900;
+  --table-row-height: calc(var(--spacing-unit) * 10);
+  --table-header-height: calc(var(--spacing-unit) * 10);
+  --table-border-radius: var(--radius-md);
+  --table-pagination-height: calc(var(--spacing-unit) * 8);
+  --table-virtual-overscan: 5;
+  --table-cell-padding: calc(var(--spacing-unit) * 3);
+  --table-row-hover-bg: var(--color-secondary);
+  --table-striped-bg: var(--color-background);
+  --popover-background: var(--color-surface);
+  --popover-border: var(--color-border);
+  --popover-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --popover-radius: var(--radius-md);
+  --popover-padding: calc(var(--spacing-unit) * 2);
+  --popover-z-index: 50;
+  --tooltip-background: var(--color-surface);
+  --tooltip-border: var(--color-border);
+  --tooltip-text: var(--color-text);
+  --tooltip-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-padding: calc(var(--spacing-unit) * 2);
+  --tooltip-z-index: 60;
+  --toast-background: var(--color-surface);
+  --toast-border: var(--color-border);
+  --toast-text: var(--color-text);
+  --toast-text-muted: var(--color-text-muted);
+  --toast-radius: var(--radius-md);
+  --toast-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --toast-padding: calc(var(--spacing-unit) * 4);
+  --toast-gap: calc(var(--spacing-unit) * 2);
+  --toast-z-index: 9999;
+  --toast-success-bg: var(--color-success);
+  --toast-error-bg: var(--color-destructive);
+  --toast-warning-bg: #f59e0b;
+  --toast-info-bg: var(--color-primary);
+  --tabs-list-gap: calc(var(--spacing-unit) * 1);
+  --tabs-trigger-height-sm: calc(var(--spacing-unit) * 8);
+  --tabs-trigger-height-md: calc(var(--spacing-unit) * 9);
+  --tabs-trigger-height-lg: calc(var(--spacing-unit) * 11);
+  --tabs-trigger-padding-x: calc(var(--spacing-unit) * 3);
+  --tabs-trigger-radius: var(--radius-md);
+  --tabs-trigger-color: var(--color-text-muted);
+  --tabs-trigger-active-color: var(--color-text);
+  --tabs-trigger-hover-bg: var(--color-secondary);
+  --tabs-trigger-active-bg: var(--color-surface);
+  --tabs-trigger-active-indicator: var(--color-primary);
+  --tabs-indicator-thickness: 2px;
+  --tabs-content-padding-y: calc(var(--spacing-unit) * 4);
+  --tabs-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  --color-primary: #000;
+  --color-secondary: #F3F2FF;
+  --color-surface: #fff;
+  --color-background: #F8F9FA;
+  --color-border: #E2E1F0;
+  --color-text: #1A1A2E;
+  --color-text-muted: #6B6B8A;
+  --color-destructive: #E24B4A;
+  --color-success: #1D9E75;
+  --color-primary-foreground: #fff;
+  --color-secondary-foreground: #1A1A2E;
+  --color-destructive-foreground: #fff;
+  --color-accent-foreground: #1A1A2E;
+  --foreground: #1A1A2E;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 12px;
+  --spacing-unit: 4px;
+  --font-family: system-ui, sans-serif;
+  --font-size-base: 16px;
+}
+\`\`\`
+
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
+exports[`Form Component Snapshots > renders monolithic (schema-driven) Form correctly 1`] = `
+{
+  "Form.module.css": "/* Generated by Crucible — edit freely, re-generate with --force */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-group-gap, calc(var(--spacing-unit) * 5));
+  width: 100%;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+}
+
+/* Layout variants */
+.variant-default {
+  /* vertical stack (default) */
+}
+
+.variant-inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+/* Sizes drive control height + base font-size */
+.size-sm {
+  --form-control-h: var(--form-control-height-sm, calc(var(--spacing-unit) * 9));
+  font-size: 0.8125rem;
+}
+.size-md {
+  --form-control-h: var(--form-control-height-md, calc(var(--spacing-unit) * 10));
+  font-size: 0.875rem;
+}
+.size-lg {
+  --form-control-h: var(--form-control-height-lg, calc(var(--spacing-unit) * 11));
+  font-size: 0.9375rem;
+}
+
+/* Field is a provider only — it must not introduce a layout box */
+.field {
+  display: contents;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-item-gap, calc(var(--spacing-unit) * 1.5));
+  width: 100%;
+}
+.variant-inline .item {
+  width: auto;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 0.5);
+  font-size: 0.875rem;
+  font-weight: var(--form-label-weight, 500);
+  color: var(--form-label-color, var(--color-text));
+}
+.label[data-invalid='true'] {
+  color: var(--form-error-color, var(--color-destructive));
+}
+
+.required {
+  color: var(--form-required-color, var(--color-destructive));
+}
+
+.control {
+  min-height: var(--form-control-h, var(--form-control-height-md, calc(var(--spacing-unit) * 10)));
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 calc(var(--spacing-unit, 4px) * 3);
+  border: 1px solid var(--color-border, #e2e1f0);
+  border-radius: var(--form-radius, var(--radius-md));
+  background: var(--color-surface, #fff);
+  color: inherit;
+  font: inherit;
+  transition: var(--form-transition, border-color 0.2s ease, box-shadow 0.2s ease);
+}
+.control:focus-visible {
+  outline: none;
+  border-color: var(--color-primary, #6c63ff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6c63ff) 20%, transparent);
+}
+.control[aria-invalid='true'] {
+  border-color: var(--form-error-color, var(--color-destructive));
+}
+
+.description {
+  margin: 0;
+  font-size: var(--form-description-size, 0.75rem);
+  color: var(--form-description-color, var(--color-text-muted));
+}
+
+.message {
+  margin: 0;
+  font-size: var(--form-description-size, 0.75rem);
+  color: var(--form-error-color, var(--color-destructive));
+}
+.message:empty {
+  display: none;
+}
+.message[data-invalid='true'] {
+  animation: form-message-in 120ms ease-out;
+}
+
+.submit {
+  align-self: flex-start;
+  min-height: var(--form-control-h, var(--form-control-height-md, calc(var(--spacing-unit) * 10)));
+  padding: 0 calc(var(--spacing-unit, 4px) * 4);
+  border: none;
+  border-radius: var(--form-radius, var(--radius-md));
+  background: var(--color-primary, #6c63ff);
+  color: var(--color-primary-foreground, #fff);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+.submit:hover:not(:disabled) {
+  background: var(--color-primary-hover, var(--color-primary, #6c63ff));
+}
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.submit:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@keyframes form-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message[data-invalid='true'] {
+    animation: none;
+  }
+}
+",
+  "Form.tsx": "import React, {
+  createContext,
+  useContext,
+  useRef,
+  useMemo,
+  useId,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from 'react';
+import styles from './Form.module.css';
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+
+export type ValidationMode = 'onSubmit' | 'onBlur' | 'onChange' | 'onTouched' | 'all';
+
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSubmitHelpers<T extends FormValues = FormValues> {
+  reset: (next?: Partial<T>) => void;
+  setError: (name: string, message: string) => void;
+  setValues: (patch: Partial<T>) => void;
+}
+
+export interface FormOptions<T extends FormValues = FormValues> {
+  defaultValues?: Partial<T>;
+  mode?: ValidationMode;
+  reValidateMode?: 'onChange' | 'onBlur';
+  onSubmit?: (values: T, helpers: FormSubmitHelpers<T>) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+export interface FieldBinding {
+  name: string;
+  value?: unknown;
+  onChange: (e: unknown) => void;
+  onBlur: (e?: unknown) => void;
+  ref?: React.Ref<unknown>;
+}
+
+/**
+ * The minimal store surface shared by the dependency-free internal engine and
+ * the external (react-hook-form) adapter. Exactly one implementation is ever
+ * active per <Form> — they share a type but never co-mutate state.
+ */
+export interface FormStore {
+  readonly __crucibleInternal: boolean;
+  mode: ValidationMode;
+  getValue: (name: string) => unknown;
+  getValues: () => FormValues;
+  getError: (name: string) => string | undefined;
+  getTouched: (name: string) => boolean;
+  getIsSubmitting: () => boolean;
+  getIsValid: () => boolean;
+  getIsDirty: () => boolean;
+  setValue: (name: string, value: unknown) => void;
+  setError: (name: string, message: string | undefined) => void;
+  setTouched: (name: string, touched?: boolean) => void;
+  reset: (next?: FormValues) => void;
+  registerField: (name: string, rules?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  validateField: (name: string) => Promise<string | undefined>;
+  validateAll: () => Promise<FieldErrors>;
+  getFieldProps: (name: string) => FieldBinding;
+  setSubmitting: (value: boolean) => void;
+  runSubmit: () => Promise<FieldErrors>;
+  subscribe: (cb: () => void) => () => void;
+  subscribeField: (name: string, cb: () => void) => () => void;
+}
+
+/** react-hook-form \`control\` is structurally compatible with this shape. */
+export interface ExternalControl {
+  register: (
+    name: string,
+    rules?: unknown,
+  ) => { name: string; onChange: (e: unknown) => unknown; onBlur: (e: unknown) => unknown; ref: React.Ref<unknown> };
+  _formState?: { errors?: Record<string, { message?: string }>; isSubmitting?: boolean; isValid?: boolean };
+  getFieldState?: (name: string, formState?: unknown) => { error?: { message?: string }; isTouched?: boolean };
+  _getWatch?: (name: string) => unknown;
+  setValue?: (name: string, value: unknown) => void;
+}
+export type ExternalRegister = ExternalControl['register'];
+
+export type FormVariant = 'default' | 'inline';
+export type FormSize = 'sm' | 'md' | 'lg';
+
+export interface FormSchemaField {
+  name: string;
+  label?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'textarea' | 'checkbox' | 'select';
+  placeholder?: string;
+  description?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  options?: Array<{ label: string; value: string }>;
+  defaultValue?: unknown;
+}
+
+export interface FormRootProps<T extends FormValues = FormValues>
+  extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmit' | 'onError'> {
+  /** Pass a pre-created engine from \`useForm()\` to share/lift form state. */
+  form?: FormStore;
+  /** Supply a react-hook-form \`control\` to delegate state + validation to RHF. */
+  control?: ExternalControl;
+  defaultValues?: Partial<T>;
+  mode?: ValidationMode;
+  variant?: FormVariant;
+  size?: FormSize;
+  onSubmit?:
+    | ((values: T, helpers: FormSubmitHelpers<T>) => void | Promise<void>)
+    | React.FormEventHandler<HTMLFormElement>;
+  onError?: (errors: FieldErrors) => void;
+  children?: React.ReactNode;
+}
+
+export interface FormFieldProps {
+  name: string;
+  rules?: FieldRule;
+  required?: boolean;
+  /** Per-field RHF override; takes precedence over the root engine for this field. */
+  control?: ExternalControl;
+  children: React.ReactNode | ((field: FieldContextValue) => React.ReactNode);
+}
+
+export interface FormControlProps extends React.HTMLAttributes<HTMLElement> {
+  asChild?: boolean;
+}
+export interface FormMessageProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+export interface FormSubmitProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+  /** Disable the button while the form is invalid. Default false — the form
+   *  stays submittable so a submit attempt surfaces validation errors. */
+  disableOnInvalid?: boolean;
+}
+
+/* ============================================================================
+ * Pure helpers
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? \`Must be at least \${min.value}.\`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? \`Must be at most \${max.value}.\`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? \`Must be at least \${minLength.value} characters.\`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? \`Must be at most \${maxLength.value} characters.\`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+function mergeRefs<T>(refs: Array<React.Ref<T> | undefined | null>): React.RefCallback<T> {
+  return (node) => {
+    refs.forEach((ref) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref && typeof ref === 'object') (ref as React.MutableRefObject<T | null>).current = node;
+    });
+  };
+}
+
+/* ============================================================================
+ * Dependency-free form engine (a tiny external store)
+ * ========================================================================== */
+function createInternalStore(getOptions: () => FormOptions): FormStore {
+  const initialOptions = getOptions();
+  const defaults: FormValues = { ...(initialOptions.defaultValues ?? {}) };
+  let values: FormValues = { ...defaults };
+  let errors: FieldErrors = {};
+  let touched: Record<string, boolean> = {};
+  let submitting = false;
+  const rules = new Map<string, { rule?: FieldRule; required?: boolean }>();
+  const globalSubs = new Set<() => void>();
+  const fieldSubs = new Map<string, Set<() => void>>();
+  const mode: ValidationMode = initialOptions.mode ?? 'onSubmit';
+  const reValidate: 'onChange' | 'onBlur' = initialOptions.reValidateMode ?? 'onChange';
+
+  const notifyGlobal = () => globalSubs.forEach((cb) => cb());
+  const notifyField = (name: string) => fieldSubs.get(name)?.forEach((cb) => cb());
+  const notifyAllFields = () => fieldSubs.forEach((set) => set.forEach((cb) => cb()));
+
+  const composedRule = (name: string): FieldRule | undefined => {
+    const entry = rules.get(name);
+    if (!entry) return undefined;
+    if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+    return entry.rule;
+  };
+
+  const computeIsValid = (): boolean => {
+    for (const message of Object.values(errors)) if (message) return false;
+    for (const [name, entry] of rules) {
+      if (entry.required || entry.rule?.required) {
+        const value = values[name];
+        if (value === undefined || value === null || value === '' || value === false) return false;
+      }
+    }
+    return true;
+  };
+
+  const store: FormStore = {
+    __crucibleInternal: true,
+    mode,
+    getValue: (name) => values[name],
+    getValues: () => values,
+    getError: (name) => errors[name],
+    getTouched: (name) => !!touched[name],
+    getIsSubmitting: () => submitting,
+    getIsValid: () => computeIsValid(),
+    getIsDirty: () => JSON.stringify(values) !== JSON.stringify(defaults),
+    setValue: (name, value) => {
+      values = { ...values, [name]: value };
+      const shouldValidate =
+        mode === 'onChange' ||
+        mode === 'all' ||
+        (errors[name] !== undefined && reValidate === 'onChange');
+      notifyField(name);
+      notifyGlobal();
+      if (shouldValidate) void store.validateField(name);
+    },
+    setError: (name, message) => {
+      errors = { ...errors, [name]: message || undefined };
+      notifyField(name);
+      notifyGlobal();
+    },
+    setTouched: (name, value = true) => {
+      touched = { ...touched, [name]: value };
+      notifyField(name);
+    },
+    reset: (next) => {
+      values = { ...(next ?? defaults) };
+      errors = {};
+      touched = {};
+      submitting = false;
+      notifyAllFields();
+      notifyGlobal();
+    },
+    registerField: (name, rule, required) => {
+      rules.set(name, { rule, required });
+      if (!(name in values)) values = { ...values, [name]: defaults[name] ?? '' };
+    },
+    unregisterField: (name) => {
+      rules.delete(name);
+    },
+    validateField: async (name) => {
+      const message = await evaluateRule(composedRule(name), values[name], values);
+      store.setError(name, message);
+      return message;
+    },
+    validateAll: async () => {
+      const names = [...rules.keys()];
+      const results = await Promise.all(
+        names.map((name) => evaluateRule(composedRule(name), values[name], values)),
+      );
+      const next: FieldErrors = {};
+      names.forEach((name, i) => {
+        next[name] = results[i] || undefined;
+      });
+      errors = next;
+      names.forEach(notifyField);
+      notifyGlobal();
+      return next;
+    },
+    getFieldProps: (name) => ({
+      name,
+      value: values[name] ?? '',
+      onChange: (event: unknown) => {
+        const target = (event as { target?: HTMLInputElement } | undefined)?.target;
+        const nextValue = target
+          ? target.type === 'checkbox'
+            ? target.checked
+            : target.value
+          : event;
+        store.setValue(name, nextValue);
+      },
+      onBlur: () => {
+        store.setTouched(name, true);
+        if (mode === 'onBlur' || mode === 'onTouched' || mode === 'all') void store.validateField(name);
+      },
+    }),
+    setSubmitting: (value) => {
+      submitting = value;
+      notifyGlobal();
+    },
+    runSubmit: async () => {
+      [...rules.keys()].forEach((name) => {
+        touched = { ...touched, [name]: true };
+      });
+      const found = await store.validateAll();
+      if (Object.values(found).some(Boolean)) {
+        getOptions().onError?.(found);
+        return found;
+      }
+      try {
+        store.setSubmitting(true);
+        await getOptions().onSubmit?.(values, {
+          reset: store.reset,
+          setError: (name, message) => store.setError(name, message),
+          setValues: (patch) => {
+            values = { ...values, ...patch };
+            notifyAllFields();
+            notifyGlobal();
+          },
+        });
+      } finally {
+        store.setSubmitting(false);
+      }
+      return found;
+    },
+    subscribe: (cb) => {
+      globalSubs.add(cb);
+      return () => {
+        globalSubs.delete(cb);
+      };
+    },
+    subscribeField: (name, cb) => {
+      let set = fieldSubs.get(name);
+      if (!set) {
+        set = new Set();
+        fieldSubs.set(name, set);
+      }
+      set.add(cb);
+      return () => {
+        set?.delete(cb);
+      };
+    },
+  };
+  return store;
+}
+
+/**
+ * Adapts a react-hook-form \`control\` to the FormStore surface. Reactivity is
+ * best-effort via RHF's internal state subject; for full control prefer RHF's
+ * own \`<Controller>\` / \`useFormState\` inside a Field.
+ */
+function adaptExternalControl(control: ExternalControl): FormStore {
+  const subscribeSubject = (cb: () => void) => {
+    const subject = (control as unknown as { _subjects?: { state?: { subscribe?: (o: { next: () => void }) => { unsubscribe?: () => void } } } })
+      ._subjects?.state;
+    const sub = subject?.subscribe?.({ next: cb });
+    return () => sub?.unsubscribe?.();
+  };
+  return {
+    __crucibleInternal: false,
+    mode: 'onSubmit',
+    getValue: (name) => control._getWatch?.(name),
+    getValues: () => ({}),
+    getError: (name) =>
+      control._formState?.errors?.[name]?.message ?? control.getFieldState?.(name)?.error?.message,
+    getTouched: (name) => !!control.getFieldState?.(name)?.isTouched,
+    getIsSubmitting: () => !!control._formState?.isSubmitting,
+    getIsValid: () => control._formState?.isValid ?? true,
+    getIsDirty: () => false,
+    setValue: (name, value) => control.setValue?.(name, value),
+    setError: () => {},
+    setTouched: () => {},
+    reset: () => {},
+    registerField: (name, rule) => {
+      control.register(name, rule);
+    },
+    unregisterField: () => {},
+    validateField: async () => undefined,
+    validateAll: async () => ({}),
+    getFieldProps: (name) => {
+      const bound = control.register(name);
+      return { name: bound.name, onChange: bound.onChange, onBlur: bound.onBlur, ref: bound.ref };
+    },
+    setSubmitting: () => {},
+    runSubmit: async () => ({}),
+    subscribe: subscribeSubject,
+    subscribeField: (_name, cb) => subscribeSubject(cb),
+  };
+}
+
+export function useForm<T extends FormValues = FormValues>(options: FormOptions<T> = {}): FormStore {
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const storeRef = useRef<FormStore | undefined>(undefined);
+  if (!storeRef.current) {
+    storeRef.current = createInternalStore(() => optionsRef.current as FormOptions);
+  }
+  return storeRef.current;
+}
+
+/* ============================================================================
+ * Contexts
+ * ========================================================================== */
+interface FormContextValue {
+  store: FormStore;
+  isExternal: boolean;
+}
+const FormContext = createContext<FormContextValue | null>(null);
+
+export const useFormContext = (): FormContextValue => {
+  const context = useContext(FormContext);
+  if (!context) throw new Error('Form sub-components must be used within <Form> / <Form.Root>.');
+  return context;
+};
+
+export interface FieldContextValue {
+  name: string;
+  id: string;
+  formItemId: string;
+  descriptionId: string;
+  messageId: string;
+  isRequired: boolean;
+}
+const FieldContext = createContext<FieldContextValue | null>(null);
+
+export const useFormField = (): FieldContextValue => {
+  const context = useContext(FieldContext);
+  if (!context) throw new Error('Form field sub-components must be used within <Form.Field>.');
+  return context;
+};
+
+/** Subscribes to a single field's error only — typing in one field does not
+ *  re-render other fields' messages. */
+function useFieldError(name: string): string | undefined {
+  const { store } = useFormContext();
+  return useSyncExternalStore(
+    useCallback((cb) => store.subscribeField(name, cb), [store, name]),
+    () => store.getError(name),
+    () => store.getError(name),
+  );
+}
+
+/** Subscribes to a single field's value so a controlled Control re-renders on
+ *  every keystroke — scoped to this field only (no whole-form re-render). */
+function useFieldValue(name: string): unknown {
+  const { store } = useFormContext();
+  return useSyncExternalStore(
+    useCallback((cb) => store.subscribeField(name, cb), [store, name]),
+    () => store.getValue(name),
+    () => store.getValue(name),
+  );
+}
+
+function useFormFlags(): { isValid: boolean; isSubmitting: boolean } {
+  const { store } = useFormContext();
+  const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store]);
+  const snapshot = () => \`\${store.getIsValid()}|\${store.getIsSubmitting()}\`;
+  useSyncExternalStore(subscribe, snapshot, snapshot);
+  return { isValid: store.getIsValid(), isSubmitting: store.getIsSubmitting() };
+}
+
+/* ============================================================================
+ * Internal components (shared by both compound and monolithic exports)
+ * ========================================================================== */
+const InternalRoot = React.forwardRef<HTMLFormElement, FormRootProps>(function FormRoot(
+  { form, control, defaultValues, mode, variant = 'default', size = 'md', onSubmit, onError, className, children, ...rest },
+  ref,
+) {
+  const internal = useForm({ defaultValues, mode, onSubmit: onSubmit as FormOptions['onSubmit'], onError });
+  const external = useMemo(() => (control ? adaptExternalControl(control) : null), [control]);
+  const isExternal = !!control;
+  const store = external ?? form ?? internal;
+
+  const contextValue = useMemo<FormContextValue>(() => ({ store, isExternal }), [store, isExternal]);
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const setRef = useMemo(() => mergeRefs<HTMLFormElement>([ref, formRef]), [ref]);
+
+  const handleSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      if (isExternal) {
+        (onSubmit as React.FormEventHandler<HTMLFormElement> | undefined)?.(event);
+        return;
+      }
+      event.preventDefault();
+      void store.runSubmit().then((found) => {
+        if (Object.values(found).some(Boolean)) {
+          requestAnimationFrame(() => {
+            formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+          });
+        }
+      });
+    },
+    [isExternal, onSubmit, store],
+  );
+
+  const classes = [styles.form, styles[\`variant-\${variant}\`], styles[\`size-\${size}\`], className]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <form ref={setRef} className={classes} role="form" noValidate onSubmit={handleSubmit} {...rest}>
+        {children}
+      </form>
+    </FormContext.Provider>
+  );
+});
+
+const InternalField: React.FC<FormFieldProps> = ({ name, rules, required = false, control, children }) => {
+  const parent = useFormContext();
+  const override = useMemo(() => (control ? adaptExternalControl(control) : null), [control]);
+  const contextValue = useMemo<FormContextValue>(
+    () => (override ? { store: override, isExternal: true } : parent),
+    [override, parent],
+  );
+  const store = contextValue.store;
+
+  const reactId = useId();
+  const fieldContext = useMemo<FieldContextValue>(
+    () => ({
+      name,
+      id: reactId,
+      formItemId: \`\${reactId}-form-item\`,
+      descriptionId: \`\${reactId}-form-item-description\`,
+      messageId: \`\${reactId}-form-item-message\`,
+      isRequired: !!required || !!rules?.required,
+    }),
+    [name, reactId, required, rules],
+  );
+
+  useEffect(() => {
+    store.registerField(name, rules, required);
+    return () => store.unregisterField(name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  const content = typeof children === 'function' ? children(fieldContext) : children;
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <FieldContext.Provider value={fieldContext}>{content}</FieldContext.Provider>
+    </FormContext.Provider>
+  );
+};
+
+const InternalItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function FormItem({ className, children, ...props }, ref) {
+    const { name } = useFormField();
+    const error = useFieldError(name);
+    return (
+      <div
+        ref={ref}
+        className={[styles.item, className].filter(Boolean).join(' ')}
+        data-invalid={error ? 'true' : undefined}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+const InternalLabel = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
+  function FormLabel({ className, children, ...props }, ref) {
+    const { formItemId, isRequired, name } = useFormField();
+    const error = useFieldError(name);
+    return (
+      <label
+        ref={ref}
+        htmlFor={formItemId}
+        className={[styles.label, className].filter(Boolean).join(' ')}
+        data-invalid={error ? 'true' : undefined}
+        {...props}
+      >
+        {children}
+        {isRequired && (
+          <span className={styles.required} aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+    );
+  },
+);
+
+const InternalControl = React.forwardRef<HTMLElement, FormControlProps>(function FormControl(
+  { asChild = false, className, children, ...props },
+  propRef,
+) {
+  const { store, isExternal } = useFormContext();
+  const { name, formItemId, descriptionId, messageId, isRequired } = useFormField();
+  const error = useFieldError(name);
+  const value = useFieldValue(name);
+  const binding = store.getFieldProps(name);
+
+  const describedBy = [descriptionId, error ? messageId : null].filter(Boolean).join(' ') || undefined;
+  const aria: Record<string, unknown> = {
+    id: formItemId,
+    'aria-invalid': error ? true : undefined,
+    'aria-required': isRequired || undefined,
+    'aria-describedby': describedBy,
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = (child.props ?? {}) as Record<string, unknown>;
+    const isCheckbox = childProps.type === 'checkbox';
+    const mergedRef = mergeRefs([propRef as React.Ref<unknown>, (child as { ref?: React.Ref<unknown> }).ref, binding.ref]);
+    const valueProps = isExternal
+      ? {}
+      : isCheckbox
+        ? { checked: !!value }
+        : { value: (value ?? '') as string | number };
+    return React.cloneElement(child, {
+      ref: mergedRef,
+      ...childProps,
+      name: binding.name,
+      ...aria,
+      ...props,
+      ...valueProps,
+      onChange: (event: unknown) => {
+        (childProps.onChange as ((e: unknown) => void) | undefined)?.(event);
+        binding.onChange(event);
+      },
+      onBlur: (event: unknown) => {
+        (childProps.onBlur as ((e: unknown) => void) | undefined)?.(event);
+        binding.onBlur(event);
+      },
+    } as Record<string, unknown>);
+  }
+
+  const isCheckbox = (props as Record<string, unknown>).type === 'checkbox';
+  const valueProps = isExternal
+    ? {}
+    : isCheckbox
+      ? { checked: !!value }
+      : { value: (value ?? '') as string | number };
+  return (
+    <input
+      ref={mergeRefs([propRef as React.Ref<unknown>, binding.ref]) as React.RefCallback<HTMLInputElement>}
+      name={binding.name}
+      className={[styles.control, className].filter(Boolean).join(' ')}
+      {...aria}
+      {...valueProps}
+      onChange={binding.onChange}
+      onBlur={binding.onBlur}
+      {...props}
+    />
+  );
+});
+
+const InternalDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  function FormDescription({ className, children, ...props }, ref) {
+    const { descriptionId } = useFormField();
+    return (
+      <p ref={ref} id={descriptionId} className={[styles.description, className].filter(Boolean).join(' ')} {...props}>
+        {children}
+      </p>
+    );
+  },
+);
+
+const InternalMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>(function FormMessage(
+  { className, children, ...props },
+  ref,
+) {
+  const { name, messageId } = useFormField();
+  const error = useFieldError(name);
+  const body = error ?? children;
+  if (!body) return null;
+  return (
+    <p
+      ref={ref}
+      id={messageId}
+      role="alert"
+      aria-live="polite"
+      data-invalid={error ? 'true' : undefined}
+      className={[styles.message, className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {body}
+    </p>
+  );
+});
+
+const InternalSubmit = React.forwardRef<HTMLButtonElement, FormSubmitProps>(function FormSubmit(
+  { asChild = false, disableOnInvalid = false, disabled, className, children, ...props },
+  ref,
+) {
+  const { isValid, isSubmitting } = useFormFlags();
+  const isDisabled = disabled || isSubmitting || (disableOnInvalid && !isValid);
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = (child.props ?? {}) as Record<string, unknown>;
+    return React.cloneElement(child, {
+      ref,
+      type: 'submit',
+      disabled: isDisabled,
+      'data-state': isSubmitting ? 'submitting' : 'idle',
+      ...props,
+      ...childProps,
+      className: [styles.submit, childProps.className, className].filter(Boolean).join(' '),
+    } as Record<string, unknown>);
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="submit"
+      disabled={isDisabled}
+      data-state={isSubmitting ? 'submitting' : 'idle'}
+      className={[styles.submit, className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+});
+
+function renderSchemaControl(field: FormSchemaField): React.ReactElement {
+  const common = { placeholder: field.placeholder };
+  if (field.type === 'textarea') return <textarea {...common} />;
+  if (field.type === 'select') {
+    return (
+      <select>
+        {(field.options ?? []).map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  if (field.type === 'checkbox') return <input type="checkbox" />;
+  return <input type={field.type ?? 'text'} {...common} />;
+}
+
+export interface FormProps<T extends FormValues = FormValues> extends FormRootProps<T> {
+  /** Schema-driven field list; rendered automatically in monolithic mode. */
+  fields?: FormSchemaField[];
+}
+
+/**
+ * Form — schema-driven monolithic wrapper. Renders fields from a config array,
+ * reusing the same internal field/control/message components.
+ *   <Form fields={[{ name: 'email', label: 'Email', type: 'email', required: true }]} onSubmit={...} />
+ */
+export const Form = <T extends FormValues = FormValues>({
+  fields = [],
+  defaultValues,
+  children,
+  ...props
+}: FormProps<T>) => {
+  const seededDefaults = React.useMemo(() => {
+    const seeded: Record<string, unknown> = {};
+    for (const field of fields) {
+      if (field.defaultValue !== undefined) seeded[field.name] = field.defaultValue;
+    }
+    return { ...seeded, ...(defaultValues as object) } as Partial<T>;
+  }, [fields, defaultValues]);
+
+  return (
+    <InternalRoot defaultValues={seededDefaults as Partial<FormValues>} {...(props as FormRootProps)}>
+      {fields.map((field) => (
+        <InternalField key={field.name} name={field.name} rules={field.rules} required={field.required}>
+          <InternalItem>
+            {field.label && <InternalLabel>{field.label}</InternalLabel>}
+            <InternalControl asChild>{renderSchemaControl(field)}</InternalControl>
+            {field.description && <InternalDescription>{field.description}</InternalDescription>}
+            <InternalMessage />
+          </InternalItem>
+        </InternalField>
+      ))}
+      {children}
+      <InternalSubmit>Submit</InternalSubmit>
+    </InternalRoot>
+  );
+};
+
+Form.displayName = 'Form';
+
+export default Form;
+",
+  "README.md": "# Form
+
+Generated by Crucible v1.0.0 | Theme: minimal | Framework: react
+
+## Variants
+- \`default\`- \`inline\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`- \`error\`- \`submitting\`
+
+## CSS Variables Used
+
+\`\`\`css
+:root {
+  --card-header-padding: calc(var(--spacing-unit) * 6);
+  --card-content-padding: calc(var(--spacing-unit) * 6);
+  --card-footer-padding: calc(var(--spacing-unit) * 6);
+  --card-border-radius: var(--radius-lg);
+  --card-background-color: var(--color-surface);
+  --card-border-color: var(--color-border);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --button-height-sm: calc(var(--spacing-unit) * 9);
+  --button-height-md: calc(var(--spacing-unit) * 10);
+  --button-height-lg: calc(var(--spacing-unit) * 11);
+  --button-padding-x-sm: calc(var(--spacing-unit) * 3);
+  --button-padding-x-md: calc(var(--spacing-unit) * 4);
+  --button-padding-x-lg: calc(var(--spacing-unit) * 8);
+  --button-border-radius: var(--radius-md);
+  --button-font-weight: 500;
+  --button-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  --input-height: calc(var(--spacing-unit) * 10);
+  --input-padding-x: calc(var(--spacing-unit) * 3);
+  --input-border-radius: var(--radius-md);
+  --input-border-color: var(--color-border);
+  --input-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  --form-group-gap: calc(var(--spacing-unit) * 5);
+  --form-item-gap: calc(var(--spacing-unit) * 1.5);
+  --form-label-color: var(--color-text);
+  --form-label-weight: 500;
+  --form-required-color: var(--color-destructive);
+  --form-control-height-sm: calc(var(--spacing-unit) * 9);
+  --form-control-height-md: calc(var(--spacing-unit) * 10);
+  --form-control-height-lg: calc(var(--spacing-unit) * 11);
+  --form-error-color: var(--color-destructive);
+  --form-description-color: var(--color-text-muted);
+  --form-description-size: 0.75rem;
+  --form-radius: var(--radius-md);
+  --form-transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  --Dialog-padding: calc(var(--spacing-unit) * 6);
+  --Dialog-border-radius: var(--radius-lg);
+  --Dialog-overlay-bg: rgba(0, 0, 0, 0.4);
+  --Dialog-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  --Dialog-z-index: 1000;
+  --select-height: calc(var(--spacing-unit) * 10);
+  --select-padding-x: calc(var(--spacing-unit) * 3);
+  --select-border-radius: var(--radius-md);
+  --select-option-padding: calc(var(--spacing-unit) * 2.5);
+  --select-dropdown-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --select-z-index: 900;
+  --table-row-height: calc(var(--spacing-unit) * 10);
+  --table-header-height: calc(var(--spacing-unit) * 10);
+  --table-border-radius: var(--radius-md);
+  --table-pagination-height: calc(var(--spacing-unit) * 8);
+  --table-virtual-overscan: 5;
+  --table-cell-padding: calc(var(--spacing-unit) * 3);
+  --table-row-hover-bg: var(--color-secondary);
+  --table-striped-bg: var(--color-background);
+  --popover-background: var(--color-surface);
+  --popover-border: var(--color-border);
+  --popover-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --popover-radius: var(--radius-md);
+  --popover-padding: calc(var(--spacing-unit) * 2);
+  --popover-z-index: 50;
+  --tooltip-background: var(--color-surface);
+  --tooltip-border: var(--color-border);
+  --tooltip-text: var(--color-text);
+  --tooltip-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-padding: calc(var(--spacing-unit) * 2);
+  --tooltip-z-index: 60;
+  --toast-background: var(--color-surface);
+  --toast-border: var(--color-border);
+  --toast-text: var(--color-text);
+  --toast-text-muted: var(--color-text-muted);
+  --toast-radius: var(--radius-md);
+  --toast-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --toast-padding: calc(var(--spacing-unit) * 4);
+  --toast-gap: calc(var(--spacing-unit) * 2);
+  --toast-z-index: 9999;
+  --toast-success-bg: var(--color-success);
+  --toast-error-bg: var(--color-destructive);
+  --toast-warning-bg: #f59e0b;
+  --toast-info-bg: var(--color-primary);
+  --tabs-list-gap: calc(var(--spacing-unit) * 1);
+  --tabs-trigger-height-sm: calc(var(--spacing-unit) * 8);
+  --tabs-trigger-height-md: calc(var(--spacing-unit) * 9);
+  --tabs-trigger-height-lg: calc(var(--spacing-unit) * 11);
+  --tabs-trigger-padding-x: calc(var(--spacing-unit) * 3);
+  --tabs-trigger-radius: var(--radius-md);
+  --tabs-trigger-color: var(--color-text-muted);
+  --tabs-trigger-active-color: var(--color-text);
+  --tabs-trigger-hover-bg: var(--color-secondary);
+  --tabs-trigger-active-bg: var(--color-surface);
+  --tabs-trigger-active-indicator: var(--color-primary);
+  --tabs-indicator-thickness: 2px;
+  --tabs-content-padding-y: calc(var(--spacing-unit) * 4);
+  --tabs-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  --color-primary: #000;
+  --color-secondary: #F3F2FF;
+  --color-surface: #fff;
+  --color-background: #F8F9FA;
+  --color-border: #E2E1F0;
+  --color-text: #1A1A2E;
+  --color-text-muted: #6B6B8A;
+  --color-destructive: #E24B4A;
+  --color-success: #1D9E75;
+  --color-primary-foreground: #fff;
+  --color-secondary-foreground: #1A1A2E;
+  --color-destructive-foreground: #fff;
+  --color-accent-foreground: #1A1A2E;
+  --foreground: #1A1A2E;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 12px;
+  --spacing-unit: 4px;
+  --font-family: system-ui, sans-serif;
+  --font-size-base: 16px;
+}
+\`\`\`
+
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;

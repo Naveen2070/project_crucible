@@ -1,0 +1,23 @@
+{
+  "id": "Tooltip",
+  "name": "Tooltip",
+  "description": "Floating tooltip label component",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "minimal"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["open", "closed"],
+  "props": ["isOpen", "onOpenChange", "placement", "alignment", "trigger"],
+  "prefix": "tooltip",
+  "a11y": { "role": "tooltip" },
+  "dependencies": [],
+  "peerDependencies": {
+    "react": ["@floating-ui/react"],
+    "vue": ["@floating-ui/vue"],
+    "angular": ["@floating-ui/dom"]
+  },
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border-[var(--color-border)] shadow-md",
+    "minimal": "bg-[var(--color-surface)] shadow-sm"
+  }
+}

@@ -1,0 +1,138 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+{{#if features.compoundComponents}}
+import Form, {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormSubmit,
+} from './Form.vue';
+{{else}}
+import Form from './Form.vue';
+{{/if}}
+
+const meta: Meta<typeof Form> = {
+  title: 'Crucible/Form',
+  component: Form,
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'inline'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    mode: { control: 'select', options: ['onSubmit', 'onBlur', 'onChange'] },
+  },
+  args: { variant: 'default', size: 'md', mode: 'onBlur' },
+  decorators: [() => ({ template: '<div style="width: 360px;"><story /></div>' })],
+};
+
+export default meta;
+type Story = StoryObj<typeof Form>;
+
+{{#if features.compoundComponents}}
+const compoundComponents = { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormSubmit };
+
+export const Default: Story = {
+  render: (args) => ({
+    components: compoundComponents,
+    setup() {
+      const onSubmit = (values: Record<string, unknown>) => alert(JSON.stringify(values, null, 2));
+      return { args, onSubmit };
+    },
+    template: `
+      <Form v-bind="args" @submit="onSubmit">
+        <FormField name="email" :rules="{ required: true, pattern: { value: /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/, message: 'Enter a valid email.' } }">
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl type="email" placeholder="you@example.com" />
+            <FormDescription>We will never share your email.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField name="password" :rules="{ required: true, minLength: { value: 8, message: 'At least 8 characters.' } }">
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl type="password" placeholder="********" />
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormSubmit>Sign in</FormSubmit>
+      </Form>
+    `,
+  }),
+};
+
+export const Inline: Story = {
+  args: { variant: 'inline' },
+  render: (args) => ({
+    components: compoundComponents,
+    setup() {
+      const onSubmit = (values: Record<string, unknown>) => alert(JSON.stringify(values));
+      return { args, onSubmit };
+    },
+    template: `
+      <Form v-bind="args" @submit="onSubmit">
+        <FormField name="query" :rules="{ required: true }">
+          <FormItem>
+            <FormLabel>Search</FormLabel>
+            <FormControl type="text" placeholder="Type to search…" />
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormSubmit>Go</FormSubmit>
+      </Form>
+    `,
+  }),
+};
+
+export const ValidateOnChange: Story = {
+  args: { mode: 'onChange' },
+  render: (args) => ({
+    components: compoundComponents,
+    setup() {
+      const onSubmit = (values: Record<string, unknown>) => alert(JSON.stringify(values));
+      return { args, onSubmit };
+    },
+    template: `
+      <Form v-bind="args" @submit="onSubmit">
+        <FormField name="username" :rules="{ required: true, minLength: { value: 3, message: 'Too short.' } }">
+          <FormItem>
+            <FormLabel>Username</FormLabel>
+            <FormControl type="text" placeholder="min 3 chars" />
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormSubmit>Create account</FormSubmit>
+      </Form>
+    `,
+  }),
+};
+{{else}}
+export const SchemaDriven: Story = {
+  render: (args) => ({
+    components: { Form },
+    setup() {
+      const fields = [
+        { name: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com', required: true, description: 'We will never share your email.' },
+        { name: 'password', label: 'Password', type: 'password', placeholder: '********', rules: { required: true, minLength: { value: 8 } } },
+      ];
+      const onSubmit = (values: Record<string, unknown>) => alert(JSON.stringify(values, null, 2));
+      return { args, fields, onSubmit };
+    },
+    template: `<Form v-bind="args" :fields="fields" @submit="onSubmit" />`,
+  }),
+};
+
+export const Inline: Story = {
+  args: { variant: 'inline' },
+  render: (args) => ({
+    components: { Form },
+    setup() {
+      const fields = [{ name: 'query', label: 'Search', type: 'text', placeholder: 'Type to search…', required: true }];
+      const onSubmit = (values: Record<string, unknown>) => alert(JSON.stringify(values));
+      return { args, fields, onSubmit };
+    },
+    template: `<Form v-bind="args" :fields="fields" @submit="onSubmit" />`,
+  }),
+};
+{{/if}}

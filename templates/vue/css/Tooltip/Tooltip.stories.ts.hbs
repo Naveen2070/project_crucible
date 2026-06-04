@@ -1,0 +1,199 @@
+import { ref } from 'vue';
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Tooltip from './Tooltip.vue';
+
+const triggerStyle =
+  'display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:8px;border:1px solid var(--color-border,#E2E1F0);background:var(--color-surface,#fff);color:var(--color-text,#1A1A2E);font:inherit;cursor:pointer;';
+
+const meta: Meta<typeof Tooltip> = {
+  title: 'Crucible/Tooltip',
+  component: Tooltip,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: ['top', 'bottom', 'left', 'right'],
+    },
+    alignment: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
+    },
+    trigger: {
+      control: 'select',
+      options: ['click', 'hover'],
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'minimal'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+    showArrow: { control: 'boolean' },
+    closeOnEscape: { control: 'boolean' },
+  },
+  args: {
+    placement: 'top',
+    alignment: 'center',
+    trigger: 'hover',
+    variant: 'default',
+    size: 'md',
+    showArrow: true,
+    closeOnEscape: true,
+  },
+  decorators: [
+    () => ({
+      template: '<div style="height: 320px; display: flex; align-items: center; justify-content: center;"><story /></div>',
+    }),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof Tooltip>;
+
+export const Default: Story = {
+  render: (args) => ({
+    components: { Tooltip },
+    setup() {
+      return { args, triggerStyle };
+    },
+    template: `
+      <Tooltip v-bind="args">
+        <template #trigger>
+          <button type="button" :style="triggerStyle">Hover me</button>
+        </template>
+        {{#if features.compoundComponents}}
+        <template #content>Add to library</template>
+        {{else}}
+        Add to library
+        {{/if}}
+      </Tooltip>
+    `,
+  }),
+};
+
+export const AllPlacements: Story = {
+  parameters: { layout: 'centered' },
+  decorators: [
+    () => ({
+      template: '<div style="min-height: 440px; display: flex; align-items: center; justify-content: center; padding: 80px;"><story /></div>',
+    }),
+  ],
+  render: (args) => ({
+    components: { Tooltip },
+    setup() {
+      const sides = ['top', 'bottom', 'left', 'right'] as const;
+      const alignments = ['start', 'center', 'end'] as const;
+      const placements = sides.flatMap((side) =>
+        alignments.map((alignment) => ({ side, alignment, label: `${side}-${alignment}` })),
+      );
+      return { args, placements, triggerStyle };
+    },
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <Tooltip
+          v-for="p in placements"
+          :key="p.label"
+          v-bind="args"
+          :placement="p.side"
+          :alignment="p.alignment"
+          size="sm"
+        >
+          <template #trigger>
+            <button type="button" :style="triggerStyle" v-text="p.label"></button>
+          </template>
+          {{#if features.compoundComponents}}
+          <template #content><span v-text="p.label"></span></template>
+          {{else}}
+          <span v-text="p.label"></span>
+          {{/if}}
+        </Tooltip>
+      </div>
+    `,
+  }),
+};
+
+export const VariantsAndSizes: Story = {
+  render: (args) => ({
+    components: { Tooltip },
+    setup() {
+      const variants = ['default', 'minimal'] as const;
+      const sizes = ['sm', 'md', 'lg'] as const;
+      const cells = variants.flatMap((variant) =>
+        sizes.map((size) => ({ variant, size, label: `${variant} / ${size}` })),
+      );
+      return { args, cells, triggerStyle };
+    },
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 24px; align-items: center; justify-items: center;">
+        <Tooltip
+          v-for="cell in cells"
+          :key="cell.label"
+          v-bind="args"
+          :variant="cell.variant"
+          :size="cell.size"
+        >
+          <template #trigger>
+            <button type="button" :style="triggerStyle" v-text="cell.label"></button>
+          </template>
+          {{#if features.compoundComponents}}
+          <template #content><span v-text="cell.label"></span></template>
+          {{else}}
+          <span v-text="cell.label"></span>
+          {{/if}}
+        </Tooltip>
+      </div>
+    `,
+  }),
+};
+
+export const Controlled: Story = {
+  render: (args) => ({
+    components: { Tooltip },
+    setup() {
+      const isOpen = ref(false);
+      return { args, isOpen, triggerStyle };
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <button type="button" :style="triggerStyle" @click="isOpen = !isOpen">
+          External toggle &mdash; currently \{{ isOpen ? 'open' : 'closed' }}
+        </button>
+
+        <Tooltip v-bind="args" v-model:isOpen="isOpen">
+          <template #trigger>
+            <button type="button" :style="triggerStyle">Tooltip anchor</button>
+          </template>
+          {{#if features.compoundComponents}}
+          <template #content>Open state is controlled by the parent.</template>
+          {{else}}
+          Open state is controlled by the parent.
+          {{/if}}
+        </Tooltip>
+      </div>
+    `,
+  }),
+};
+
+export const HoverTrigger: Story = {
+  args: { trigger: 'hover' },
+  render: (args) => ({
+    components: { Tooltip },
+    setup() {
+      return { args };
+    },
+    template: `
+      <Tooltip v-bind="args" size="sm">
+        <template #trigger>
+          <span style="text-decoration: underline dotted; cursor: help;">Hover for info</span>
+        </template>
+        {{#if features.compoundComponents}}
+        <template #content>Hover or keyboard-focus the trigger to reveal this tooltip.</template>
+        {{else}}
+        Hover or keyboard-focus the trigger to reveal this tooltip.
+        {{/if}}
+      </Tooltip>
+    `,
+  }),
+};

@@ -30,6 +30,9 @@ export const ComponentName = {
   Table: 'Table',
   Popover: 'Popover',
   Toast: 'Toast',
+  Form: 'Form',
+  Tabs: 'Tabs',
+  Tooltip: 'Tooltip',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

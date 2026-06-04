@@ -1,0 +1,50 @@
+<div [class]="'tooltip-root ' + className" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div
+    #triggerRef
+    class="tooltip-trigger"
+    (click)="toggle()"
+    (focusin)="onFocus()"
+    (focusout)="onBlur()"
+    [attr.aria-describedby]="isOpen ? contentId : null"
+  >
+    {{#if features.compoundComponents}}
+    <ng-content select="[tooltip-trigger]"></ng-content>
+    {{else}}
+    <ng-content select="[trigger]">
+      <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+        Trigger
+      </button>
+    </ng-content>
+    {{/if}}
+  </div>
+
+  @if (isOpen) {
+    <div
+      #contentRef
+      [id]="contentId"
+      [ngClass]="getContentClasses()"
+      [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      [attr.data-placement]="placement"
+      [attr.data-side]="arrowSide"
+      [attr.data-state]="isOpen && isPositioned ? 'open' : 'closed'"
+      role="tooltip"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+    >
+      {{#if features.compoundComponents}}
+      <ng-content select="[tooltip-content]"></ng-content>
+      {{else}}
+      <ng-content></ng-content>
+      {{/if}}
+
+      @if (showArrow) {
+        <div
+          #arrowRef
+          class="tooltip-arrow"
+          [ngClass]="'arrow-' + arrowSide"
+          aria-hidden="true"
+        ></div>
+      }
+    </div>
+  }
+</div>

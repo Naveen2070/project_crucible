@@ -1,0 +1,24 @@
+{
+  "id": "Tabs",
+  "name": "Tabs",
+  "description": "Tabbed content navigation with full WAI-ARIA tabs pattern (roving tabindex + keyboard nav)",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "underline", "pills"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled"],
+  "props": ["value", "defaultValue", "onValueChange", "orientation", "activationMode"],
+  "prefix": "tabs",
+  "a11y": { "role": "tablist", "keyboardNav": true },
+  "dependencies": [],
+  "peerDependencies": {
+    "react": [],
+    "vue": [],
+    "angular": []
+  },
+  "tailwindDefaults": {
+    "default": "border-b border-[var(--color-border)]",
+    "underline": "border-b border-[var(--color-border)]",
+    "pills": "gap-[var(--tabs-list-gap)]"
+  }
+}

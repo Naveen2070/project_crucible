@@ -1193,6 +1193,386 @@ async function runE2E() {
       throw new Error('Angular Toast missing toast named export');
     }
     results.push({ phase: 'Toast + Angular + CSS', passed: true });
+
+    // ---- Form ----
+    const formA11y = {
+      focusRingStyle: 'outline',
+      focusRingColor: 'var(--color-primary)',
+      focusRingWidth: '2px',
+      focusRingOffset: '2px',
+      reduceMotion: true,
+    };
+
+    // Form + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 36: Form + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'Form.tsx'),
+      'utf-8',
+    );
+    if (!formReactCss.includes('export const FormControl') || !formReactCss.includes('Object.assign(FormRoot')) {
+      throw new Error('React Form missing compound exports');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Form', 'Form.module.css')))) {
+      throw new Error('Missing: Form/Form.module.css');
+    }
+    results.push({ phase: 'Form + React + CSS (compound)', passed: true });
+
+    // Form + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 37: Form + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'Form.tsx'),
+      'utf-8',
+    );
+    if (!formReactTw.includes('gap-[var(--form-group-gap)]')) {
+      throw new Error('React Tailwind Form missing inline token utility classes');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Form', 'Form.module.css'))) {
+      throw new Error('Tailwind Form should not emit a CSS module');
+    }
+    results.push({ phase: 'Form + React + Tailwind', passed: true });
+
+    // Form + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 38: Form + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'Form.vue'),
+      'utf-8',
+    );
+    if (!formVue.includes('export function useForm') || !formVue.includes('export const FormField')) {
+      throw new Error('Vue Form missing useForm composable or FormField sub-component');
+    }
+    results.push({ phase: 'Form + Vue + CSS', passed: true });
+
+    // Form + Angular + CSS
+    console.log(ansis.cyan('📦 Phase 39: Form + Angular + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: formA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Form'));
+    runCLI('add Form -y');
+    const formNgFiles = ['Form/form.component.ts', 'Form/form.component.html', 'Form/form.component.scss'];
+    for (const file of formNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const formNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Form', 'form.component.ts'),
+      'utf-8',
+    );
+    if (!formNgTs.includes('export class FormComponent') || !formNgTs.includes("styleUrls: ['./form.component.scss']")) {
+      throw new Error('Angular Form missing FormComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Form + Angular + SCSS', passed: true });
+
+    // ---- Tabs ----
+    const tabsA11y = {
+      focusRingStyle: 'outline',
+      focusRingColor: 'var(--color-primary)',
+      focusRingWidth: '2px',
+      focusRingOffset: '2px',
+      reduceMotion: true,
+    };
+
+    // Tabs + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 40: Tabs + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.tsx'),
+      'utf-8',
+    );
+    if (!tabsReactCss.includes('export const TabsRoot') || !tabsReactCss.includes('Object.assign(TabsRoot')) {
+      throw new Error('React Tabs missing compound exports');
+    }
+    if (!tabsReactCss.includes('role="tablist"') || !tabsReactCss.includes('role="tab"') || !tabsReactCss.includes('role="tabpanel"')) {
+      throw new Error('React Tabs missing WAI-ARIA roles');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.module.css')))) {
+      throw new Error('Missing: Tabs/Tabs.module.css');
+    }
+    results.push({ phase: 'Tabs + React + CSS (compound)', passed: true });
+
+    // Tabs + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 41: Tabs + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.tsx'),
+      'utf-8',
+    );
+    if (!tabsReactTw.includes('data-[state=active]') || !tabsReactTw.includes('var(--tabs-')) {
+      throw new Error('React Tailwind Tabs missing inline token utility classes');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.module.css'))) {
+      throw new Error('Tailwind Tabs should not emit a CSS module');
+    }
+    results.push({ phase: 'Tabs + React + Tailwind', passed: true });
+
+    // Tabs + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 42: Tabs + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'Tabs.vue'),
+      'utf-8',
+    );
+    if (!tabsVue.includes('export const TabsList') || !tabsVue.includes('export const TabsTrigger') || !tabsVue.includes('export const TabsContent')) {
+      throw new Error('Vue Tabs missing compound sub-component exports');
+    }
+    if (!tabsVue.includes("role: 'tablist'") || !tabsVue.includes("role: 'tab'") || !tabsVue.includes("role: 'tabpanel'")) {
+      throw new Error('Vue Tabs missing WAI-ARIA roles');
+    }
+    results.push({ phase: 'Tabs + Vue + CSS', passed: true });
+
+    // Tabs + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 43: Tabs + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tabs'));
+    runCLI('add Tabs -y');
+    const tabsNgFiles = ['Tabs/tabs.component.ts', 'Tabs/tabs.component.html', 'Tabs/tabs.component.scss'];
+    for (const file of tabsNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tabsNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'tabs.component.ts'),
+      'utf-8',
+    );
+    if (!tabsNgTs.includes('export class TabsComponent') || !tabsNgTs.includes("styleUrls: ['./tabs.component.scss']")) {
+      throw new Error('Angular Tabs missing TabsComponent or scss styleUrls');
+    }
+    const tabsNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tabs', 'tabs.component.html'),
+      'utf-8',
+    );
+    if (!tabsNgHtml.includes('role="tablist"') || !tabsNgHtml.includes('role="tab"') || !tabsNgHtml.includes('role="tabpanel"')) {
+      throw new Error('Angular Tabs HTML missing WAI-ARIA roles');
+    }
+    results.push({ phase: 'Tabs + Angular + SCSS', passed: true });
+
+    // Tooltip + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 44: Tooltip + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.tsx'),
+      'utf-8',
+    );
+    if (!tooltipReactCss.includes('export const TooltipRoot') || !tooltipReactCss.includes('Object.assign(TooltipRoot')) {
+      throw new Error('React Tooltip missing compound exports');
+    }
+    if (!tooltipReactCss.includes("role: 'tooltip'")) {
+      throw new Error('React Tooltip missing tooltip role');
+    }
+    if (tooltipReactCss.includes('FloatingFocusManager')) {
+      throw new Error('React Tooltip should not trap focus');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.module.css')))) {
+      throw new Error('Missing: Tooltip/Tooltip.module.css');
+    }
+    results.push({ phase: 'Tooltip + React + CSS (compound)', passed: true });
+
+    // Tooltip + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 45: Tooltip + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.tsx'),
+      'utf-8',
+    );
+    if (!tooltipReactTw.includes('data-[state=open]:animate-in') || !tooltipReactTw.includes('var(--tooltip-')) {
+      throw new Error('React Tailwind Tooltip missing inline token utility classes');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.module.css'))) {
+      throw new Error('Tailwind Tooltip should not emit a CSS module');
+    }
+    results.push({ phase: 'Tooltip + React + Tailwind', passed: true });
+
+    // Tooltip + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 46: Tooltip + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'Tooltip.vue'),
+      'utf-8',
+    );
+    if (!tooltipVue.includes('role="tooltip"') || !tooltipVue.includes('tooltip-content')) {
+      throw new Error('Vue Tooltip missing tooltip role or content class');
+    }
+    results.push({ phase: 'Tooltip + Vue + CSS', passed: true });
+
+    // Tooltip + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 47: Tooltip + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Tooltip'));
+    runCLI('add Tooltip -y');
+    const tooltipNgFiles = ['Tooltip/tooltip.component.ts', 'Tooltip/tooltip.component.html', 'Tooltip/tooltip.component.scss'];
+    for (const file of tooltipNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const tooltipNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'tooltip.component.ts'),
+      'utf-8',
+    );
+    if (!tooltipNgTs.includes('export class TooltipComponent') || !tooltipNgTs.includes("styleUrls: ['./tooltip.component.scss']")) {
+      throw new Error('Angular Tooltip missing TooltipComponent or scss styleUrls');
+    }
+    const tooltipNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Tooltip', 'tooltip.component.html'),
+      'utf-8',
+    );
+    if (!tooltipNgHtml.includes('role="tooltip"')) {
+      throw new Error('Angular Tooltip HTML missing tooltip role');
+    }
+    results.push({ phase: 'Tooltip + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
