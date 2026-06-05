@@ -124,6 +124,18 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     destructiveBg: 'var(--color-destructive)',
     onColor: '#ffffff',
   },
+  skeleton: {
+    baseColor: 'var(--color-secondary)',
+    highlightColor: 'var(--color-background)',
+    radius: 'var(--radius-md)',
+    duration: '1.5s',
+  },
+  avatar: {
+    radius: 'var(--radius-md)',
+    fallbackBg: 'var(--color-secondary)',
+    fallbackColor: 'var(--color-text)',
+    fontWeight: '600',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',

@@ -1,0 +1,23 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-skeleton',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './skeleton.component.html',
+  styleUrls: ['./skeleton.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class SkeletonComponent {
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() width?: string | number;
+  @Input() height?: string | number;
+  @Input() animated = true;
+
+  get sizeStyle() {
+    return {
+      width: typeof this.width === 'number' ? `${this.width}px` : this.width,
+      height: typeof this.height === 'number' ? `${this.height}px` : this.height,
+    };
+  }
+}

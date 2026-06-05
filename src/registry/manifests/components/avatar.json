@@ -1,0 +1,14 @@
+{
+  "id": "Avatar",
+  "name": "Avatar",
+  "description": "User avatar image with initials fallback",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["circle", "square"],
+  "sizes": ["xs", "sm", "md", "lg"],
+  "states": [],
+  "props": ["src", "alt", "fallback"],
+  "prefix": "avatar",
+  "a11y": { "role": "img" },
+  "tailwindDefaults": {}
+}

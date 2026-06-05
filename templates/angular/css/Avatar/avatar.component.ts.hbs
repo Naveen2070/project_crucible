@@ -1,0 +1,31 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-avatar',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './avatar.component.html',
+  styleUrls: ['./avatar.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class AvatarComponent {
+  @Input() src = '';
+  @Input() alt = '';
+  @Input() fallback = '';
+  @Input() variant: {{> shared/variant-types}} = 'circle';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  errored = false;
+
+  get showImage(): boolean {
+    return !!this.src && !this.errored;
+  }
+
+  get initials(): string {
+    return (this.fallback || this.alt || '').trim().slice(0, 2).toUpperCase();
+  }
+
+  onError(): void {
+    this.errored = true;
+  }
+}

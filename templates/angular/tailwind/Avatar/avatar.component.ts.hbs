@@ -1,0 +1,51 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-avatar',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './avatar.component.html',
+})
+export class AvatarComponent {
+  @Input() src = '';
+  @Input() alt = '';
+  @Input() fallback = '';
+  @Input() variant: {{> shared/variant-types}} = 'circle';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  errored = false;
+
+  get showImage(): boolean {
+    return !!this.src && !this.errored;
+  }
+
+  get initials(): string {
+    return (this.fallback || this.alt || '').trim().slice(0, 2).toUpperCase();
+  }
+
+  onError(): void {
+    this.errored = true;
+  }
+
+  getTailwindClasses() {
+    const shapeClasses: Record<string, string> = {
+      circle: 'rounded-full',
+      square: 'rounded-[var(--avatar-radius,var(--radius-md))]',
+    };
+
+    const sizeClasses: Record<string, string> = {
+      xs: 'w-6 h-6 text-[0.625rem]',
+      sm: 'w-8 h-8 text-xs',
+      md: 'w-10 h-10 text-sm',
+      lg: 'w-14 h-14 text-lg',
+    };
+
+    return [
+      'inline-flex items-center justify-center shrink-0 overflow-hidden select-none font-semibold leading-none',
+      'bg-[var(--avatar-fallback-bg,var(--color-secondary))] text-[var(--avatar-fallback-color,var(--color-text))]',
+      shapeClasses[this.variant],
+      sizeClasses[this.size],
+    ].join(' ');
+  }
+}

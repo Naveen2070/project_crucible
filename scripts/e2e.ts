@@ -1929,6 +1929,247 @@ async function runE2E() {
       throw new Error('Angular Badge missing BadgeComponent or scss styleUrls');
     }
     results.push({ phase: 'Badge + Angular + SCSS', passed: true });
+
+    // Skeleton + React + CSS
+    console.log(ansis.cyan('📦 Phase 60: Skeleton + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Skeleton'));
+    runCLI('add Skeleton -y');
+    const skelReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Skeleton', 'Skeleton.tsx'),
+      'utf-8',
+    );
+    if (!skelReactCss.includes('export const Skeleton') || !skelReactCss.includes('aria-busy="true"')) {
+      throw new Error('React Skeleton missing export or aria-busy');
+    }
+    if (skelReactCss.includes('Object.assign')) {
+      throw new Error('Skeleton should be monolithic');
+    }
+    const skelReactCssMod = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Skeleton', 'Skeleton.module.css'),
+      'utf-8',
+    );
+    if (!skelReactCssMod.includes('@keyframes skeleton-pulse')) {
+      throw new Error('Skeleton CSS missing pulse keyframes');
+    }
+    results.push({ phase: 'Skeleton + React + CSS', passed: true });
+
+    // Skeleton + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 61: Skeleton + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Skeleton'));
+    runCLI('add Skeleton -y');
+    const skelReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Skeleton', 'Skeleton.tsx'),
+      'utf-8',
+    );
+    if (!skelReactTw.includes('motion-safe:animate-pulse')) {
+      throw new Error('React Tailwind Skeleton missing pulse animation class');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Skeleton', 'Skeleton.module.css'))) {
+      throw new Error('Tailwind Skeleton should not emit a CSS module');
+    }
+    results.push({ phase: 'Skeleton + React + Tailwind', passed: true });
+
+    // Skeleton + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 62: Skeleton + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Skeleton'));
+    runCLI('add Skeleton -y');
+    const skelVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Skeleton', 'Skeleton.vue'),
+      'utf-8',
+    );
+    if (!skelVue.includes('aria-busy="true"') || !skelVue.includes('@keyframes skeleton-pulse')) {
+      throw new Error('Vue Skeleton missing aria-busy or pulse keyframes');
+    }
+    results.push({ phase: 'Skeleton + Vue + CSS', passed: true });
+
+    // Skeleton + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 63: Skeleton + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Skeleton'));
+    runCLI('add Skeleton -y');
+    const skelNgFiles = ['Skeleton/skeleton.component.ts', 'Skeleton/skeleton.component.html', 'Skeleton/skeleton.component.scss'];
+    for (const file of skelNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const skelNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Skeleton', 'skeleton.component.ts'),
+      'utf-8',
+    );
+    if (!skelNgTs.includes('export class SkeletonComponent') || !skelNgTs.includes("styleUrls: ['./skeleton.component.scss']")) {
+      throw new Error('Angular Skeleton missing SkeletonComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Skeleton + Angular + SCSS', passed: true });
+
+    // Avatar + React + CSS
+    console.log(ansis.cyan('📦 Phase 64: Avatar + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Avatar'));
+    runCLI('add Avatar -y');
+    const avReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Avatar', 'Avatar.tsx'),
+      'utf-8',
+    );
+    if (!avReactCss.includes('export const Avatar') || !avReactCss.includes('role="img"') || !avReactCss.includes('onError')) {
+      throw new Error('React Avatar missing export, img role, or onError fallback');
+    }
+    if (avReactCss.includes('Object.assign')) {
+      throw new Error('Avatar should be monolithic');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Avatar', 'Avatar.module.css')))) {
+      throw new Error('Missing: Avatar/Avatar.module.css');
+    }
+    results.push({ phase: 'Avatar + React + CSS', passed: true });
+
+    // Avatar + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 65: Avatar + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Avatar'));
+    runCLI('add Avatar -y');
+    const avReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Avatar', 'Avatar.tsx'),
+      'utf-8',
+    );
+    if (!avReactTw.includes('object-cover') || avReactTw.includes('Avatar.module')) {
+      throw new Error('React Tailwind Avatar missing inline classes or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Avatar', 'Avatar.module.css'))) {
+      throw new Error('Tailwind Avatar should not emit a CSS module');
+    }
+    results.push({ phase: 'Avatar + React + Tailwind', passed: true });
+
+    // Avatar + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 66: Avatar + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Avatar'));
+    runCLI('add Avatar -y');
+    const avVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Avatar', 'Avatar.vue'),
+      'utf-8',
+    );
+    if (!avVue.includes('role="img"') || !avVue.includes('@error')) {
+      throw new Error('Vue Avatar missing img role or error fallback handler');
+    }
+    results.push({ phase: 'Avatar + Vue + CSS', passed: true });
+
+    // Avatar + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 67: Avatar + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Avatar'));
+    runCLI('add Avatar -y');
+    const avNgFiles = ['Avatar/avatar.component.ts', 'Avatar/avatar.component.html', 'Avatar/avatar.component.scss'];
+    for (const file of avNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const avNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Avatar', 'avatar.component.ts'),
+      'utf-8',
+    );
+    if (!avNgTs.includes('export class AvatarComponent') || !avNgTs.includes("styleUrls: ['./avatar.component.scss']")) {
+      throw new Error('Angular Avatar missing AvatarComponent or scss styleUrls');
+    }
+    const avNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Avatar', 'avatar.component.html'),
+      'utf-8',
+    );
+    if (!avNgHtml.includes('(error)="onError()"')) {
+      throw new Error('Angular Avatar HTML missing image error fallback');
+    }
+    results.push({ phase: 'Avatar + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

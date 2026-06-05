@@ -19,7 +19,9 @@
     "components/tooltip.json",
     "components/label.json",
     "components/separator.json",
-    "components/badge.json"
+    "components/badge.json",
+    "components/skeleton.json",
+    "components/avatar.json"
   ],
   "frameworks": [
     "frameworks/react.json",

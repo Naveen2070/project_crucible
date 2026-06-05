@@ -1,0 +1,13 @@
+{
+  "id": "Skeleton",
+  "name": "Skeleton",
+  "description": "Loading placeholder with a pulse animation",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "text", "circle", "rect"],
+  "sizes": [],
+  "states": [],
+  "props": ["width", "height", "animated"],
+  "prefix": "skeleton",
+  "tailwindDefaults": {}
+}

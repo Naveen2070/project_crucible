@@ -1,0 +1,33 @@
+import { Meta, StoryObj } from '@storybook/angular';
+import { SkeletonComponent } from './skeleton.component';
+
+const meta: Meta<SkeletonComponent> = {
+  title: 'Crucible/Skeleton',
+  component: SkeletonComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    animated: { control: 'boolean' },
+    width:    { control: 'text' },
+    height:   { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<SkeletonComponent>;
+
+export const Default: Story = {
+  args: { variant: 'default', width: 240, height: 16 },
+};
+
+export const Text: Story = {
+  args: { variant: 'text', width: 200 },
+};
+
+export const Circle: Story = {
+  args: { variant: 'circle' },
+};
+
+export const Rect: Story = {
+  args: { variant: 'rect', width: 280, height: 140 },
+};
