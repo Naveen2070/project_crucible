@@ -1,0 +1,90 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--radio-group-gap, {{tokens.componentTokens.radio.groupGap}});
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+}
+
+.root[data-orientation='horizontal'] {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--radio-gap, {{tokens.componentTokens.radio.gap}});
+  cursor: pointer;
+}
+
+.item[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control {
+  all: unset;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--radio-size, {{tokens.componentTokens.radio.size}});
+  height: var(--radio-size, {{tokens.componentTokens.radio.size}});
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: 50%;
+  background-color: var(--color-surface, #ffffff);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.control[data-state='checked'] {
+  border-color: var(--radio-accent, {{tokens.componentTokens.radio.accent}});
+}
+
+.control[data-disabled] {
+  cursor: not-allowed;
+}
+
+.indicator {
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  background-color: var(--radio-accent, {{tokens.componentTokens.radio.accent}});
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+
+.control[data-state='checked'] .indicator {
+  transform: scale(1);
+}
+
+.label {
+  color: var(--radio-label-color, {{tokens.componentTokens.radio.labelColor}});
+  line-height: 1.4;
+  font-size: 0.875rem;
+}
+
+{{#if a11y.focusRing}}
+.control:focus-visible {
+  outline: {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
+  outline-offset: {{a11y.focusRingOffset}};
+}
+{{/if}}
+
+.size-sm .control { width: calc(var(--radio-size, {{tokens.componentTokens.radio.size}}) * 0.8); height: calc(var(--radio-size, {{tokens.componentTokens.radio.size}}) * 0.8); }
+.size-sm .label { font-size: 0.8125rem; }
+.size-md .control { width: var(--radio-size, {{tokens.componentTokens.radio.size}}); height: var(--radio-size, {{tokens.componentTokens.radio.size}}); }
+.size-md .label { font-size: 0.875rem; }
+.size-lg .control { width: calc(var(--radio-size, {{tokens.componentTokens.radio.size}}) * 1.25); height: calc(var(--radio-size, {{tokens.componentTokens.radio.size}}) * 1.25); }
+.size-lg .label { font-size: 0.9375rem; }
+
+{{#if a11y.reduceMotion}}
+@media (prefers-reduced-motion: reduce) {
+  .control,
+  .indicator {
+    transition: none;
+  }
+}
+{{/if}}

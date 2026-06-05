@@ -1,0 +1,149 @@
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  OnChanges,
+  SimpleChanges,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export type RadioGroupSize = {{> shared/size-types}};
+export type RadioGroupOrientation = 'vertical' | 'horizontal';
+
+export interface RadioGroupItem {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+let radioGroupUid = 0;
+
+@Component({
+  selector: 'app-radio-group',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './radiogroup.component.html',
+  styleUrls: ['./radiogroup.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class RadioGroupComponent implements AfterViewInit, OnChanges {
+  @Input() items: RadioGroupItem[] = [];
+  @Input() value?: string;
+  @Input() defaultValue?: string;
+  @Input() size: RadioGroupSize = 'md';
+  @Input() orientation: RadioGroupOrientation = 'vertical';
+  @Input() name?: string;
+
+  @Output() valueChange = new EventEmitter<string>();
+
+  @ViewChildren('radioEl') radios!: QueryList<ElementRef<HTMLButtonElement>>;
+
+  readonly rootId = `radio-${++radioGroupUid}`;
+  internalValue?: string;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['value'] && changes['value'].currentValue !== undefined) {
+      this.internalValue = changes['value'].currentValue;
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.internalValue === undefined) {
+      this.internalValue = this.value ?? this.defaultValue;
+    }
+  }
+
+  get currentValue(): string | undefined {
+    return this.value ?? this.internalValue;
+  }
+
+  get rootClass(): string {
+    return ['radio-group-root', `size-${this.size}`].join(' ');
+  }
+
+  isSelected(item: RadioGroupItem): boolean {
+    return this.currentValue === item.value;
+  }
+
+  isTabStop(item: RadioGroupItem): boolean {
+    if (this.isSelected(item)) return true;
+    if (this.currentValue !== undefined) return false;
+    return this.firstEnabled() === item.value;
+  }
+
+  itemId(item: RadioGroupItem): string {
+    return `${this.rootId}-radio-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  selectItem(item: RadioGroupItem): void {
+    if (item.disabled) return;
+    this.setValue(item.value);
+  }
+
+  private setValue(next: string): void {
+    if (this.value === undefined) this.internalValue = next;
+    this.valueChange.emit(next);
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+    const currentValue = target.getAttribute('data-value') ?? this.currentValue ?? '';
+    const isHorizontal = this.orientation === 'horizontal';
+    const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
+    const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
+
+    let nextValue: string | null = null;
+    if (event.key === nextKey) {
+      event.preventDefault();
+      nextValue = this.moveFocus(currentValue, 1);
+    } else if (event.key === prevKey) {
+      event.preventDefault();
+      nextValue = this.moveFocus(currentValue, -1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      nextValue = this.focusEdge('first');
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      nextValue = this.focusEdge('last');
+    }
+    if (nextValue) {
+      this.setValue(nextValue);
+    }
+  }
+
+  private enabledOrder(): string[] {
+    return this.items.filter((i) => !i.disabled).map((i) => i.value);
+  }
+
+  private firstEnabled(): string | null {
+    return this.enabledOrder()[0] ?? null;
+  }
+
+  private focusByValue(value: string): void {
+    const idx = this.items.findIndex((i) => i.value === value);
+    if (idx < 0) return;
+    this.radios.toArray()[idx]?.nativeElement?.focus();
+  }
+
+  private moveFocus(current: string, direction: 1 | -1): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const idx = order.indexOf(current);
+    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
+    const next = order[nextIdx];
+    this.focusByValue(next);
+    return next;
+  }
+
+  private focusEdge(edge: 'first' | 'last'): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const next = edge === 'first' ? order[0] : order[order.length - 1];
+    this.focusByValue(next);
+    return next;
+  }
+}
