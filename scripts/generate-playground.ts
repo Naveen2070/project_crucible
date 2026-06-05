@@ -42,6 +42,9 @@ const COMPONENTS = [
   'Textarea',
   'Checkbox',
   'Switch',
+  'Alert',
+  'Progress',
+  'Breadcrumb',
 ];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,

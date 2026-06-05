@@ -24,7 +24,10 @@
     "components/avatar.json",
     "components/textarea.json",
     "components/checkbox.json",
-    "components/switch.json"
+    "components/switch.json",
+    "components/alert.json",
+    "components/progress.json",
+    "components/breadcrumb.json"
   ],
   "frameworks": [
     "frameworks/react.json",

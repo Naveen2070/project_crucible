@@ -41,6 +41,9 @@ export const ComponentName = {
   Textarea: 'Textarea',
   Checkbox: 'Checkbox',
   Switch: 'Switch',
+  Alert: 'Alert',
+  Progress: 'Progress',
+  Breadcrumb: 'Breadcrumb',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];
