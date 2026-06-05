@@ -1,0 +1,33 @@
+<div class="textarea-container">
+  @if (label) {
+    <label [attr.for]="id" class="label">
+      \{{ label }}
+      @if (required) {
+        <span class="required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <textarea
+    [id]="id"
+    class="textarea"
+    [class.textarea--sm]="size === 'sm'"
+    [class.textarea--md]="size === 'md'"
+    [class.textarea--lg]="size === 'lg'"
+    [class.textarea--error]="isError"
+    [class.textarea--disabled]="disabled"
+    [rows]="rows"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [value]="value"
+    [attr.aria-invalid]="!!error"
+    [attr.aria-required]="required"
+  ></textarea>
+
+  @if (hint && !error) {
+    <span class="hint">\{{ hint }}</span>
+  }
+  @if (error) {
+    <span class="error" role="alert">\{{ error }}</span>
+  }
+</div>

@@ -1,0 +1,28 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-textarea',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './textarea.component.html',
+  styleUrls: ['./textarea.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class TextareaComponent {
+  @Input() label = '';
+  @Input() placeholder = '';
+  @Input() value = '';
+  @Input() error = '';
+  @Input() hint = '';
+  @Input() disabled = false;
+  @Input() required = false;
+  @Input() rows = 4;
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  id = 'textarea-' + Math.random().toString(36).substring(2, 9);
+
+  get isError(): boolean {
+    return this.variant === 'error' || !!this.error;
+  }
+}

@@ -1,0 +1,28 @@
+<div class="flex flex-col gap-1.5">
+  @if (label) {
+    <label [attr.for]="id" class="text-sm font-medium text-[var(--color-text)]">
+      \{{ label }}
+      @if (required) {
+        <span class="ml-0.5 text-[var(--color-destructive)]" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <textarea
+    [id]="id"
+    [class]="getTailwindClasses()"
+    [rows]="rows"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [value]="value"
+    [attr.aria-invalid]="!!error"
+    [attr.aria-required]="required"
+  ></textarea>
+
+  @if (hint && !error) {
+    <span class="text-xs text-[var(--color-text-muted)]">\{{ hint }}</span>
+  }
+  @if (error) {
+    <span class="text-xs text-[var(--color-destructive)]" role="alert">\{{ error }}</span>
+  }
+</div>

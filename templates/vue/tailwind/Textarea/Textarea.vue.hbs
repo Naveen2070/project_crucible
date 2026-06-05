@@ -1,0 +1,97 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type TextareaVariant = {{> shared/variant-types}};
+export type TextareaSize    = {{> shared/size-types}};
+
+interface Props {
+  id?:          string;
+  modelValue?:  string;
+  label?:       string;
+  placeholder?: string;
+  variant?:     TextareaVariant;
+  size?:        TextareaSize;
+  error?:       string;
+  hint?:        string;
+  disabled?:    boolean;
+  required?:    boolean;
+  rows?:        number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: '',
+  modelValue: '',
+  label: '',
+  placeholder: '',
+  variant: 'default',
+  size: 'md',
+  error: '',
+  hint: '',
+  disabled: false,
+  required: false,
+  rows: 4,
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const generatedId = `textarea-${Math.floor(Math.random() * 1000000)}`;
+const textareaId = computed(() => props.id || generatedId);
+const errorId = computed(() => `${textareaId.value}-error`);
+const hintId = computed(() => `${textareaId.value}-hint`);
+
+const describedBy = computed(() => {
+  const ids = [];
+  if (props.error) ids.push(errorId.value);
+  if (props.hint) ids.push(hintId.value);
+  return ids.join(' ') || undefined;
+});
+
+const onInput = (event: Event) => {
+  emit('update:modelValue', (event.target as HTMLTextAreaElement).value);
+};
+
+const variantClasses: Record<TextareaVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+const sizeClasses: Record<TextareaSize, string> = {
+  sm: 'text-[0.8125rem] min-h-[4rem]',
+  md: 'text-sm min-h-[5rem]',
+  lg: 'text-base min-h-[7rem]',
+};
+
+const textareaClasses = computed(() => [
+  'w-full rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2 leading-relaxed resize-y outline-none transition-colors',
+  'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30',
+  'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[var(--color-background)]',
+  'placeholder:text-[var(--color-text-muted)]',
+  props.error || props.variant === 'error' ? variantClasses.error : variantClasses[props.variant],
+  sizeClasses[props.size],
+]);
+</script>
+
+<template>
+  <div class="flex flex-col gap-1.5">
+    <label v-if="label" :for="textareaId" class="text-sm font-medium text-[var(--color-text)]">
+      \{{ label }}
+      <span v-if="required" class="ml-0.5 text-[var(--color-destructive)]" aria-hidden="true">*</span>
+    </label>
+
+    <textarea
+      :id="textareaId"
+      :class="textareaClasses"
+      :rows="rows"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :value="modelValue"
+      @input="onInput"
+      :aria-invalid="!!error"
+      :aria-required="required"
+      :aria-describedby="describedBy"
+    />
+
+    <span v-if="hint && !error" :id="hintId" class="text-xs text-[var(--color-text-muted)]">\{{ hint }}</span>
+    <span v-if="error" :id="errorId" class="text-xs text-[var(--color-destructive)]" role="alert">\{{ error }}</span>
+  </div>
+</template>
