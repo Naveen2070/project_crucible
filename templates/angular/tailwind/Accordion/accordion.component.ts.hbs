@@ -1,0 +1,189 @@
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  OnChanges,
+  SimpleChanges,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export type AccordionVariant = {{> shared/variant-types}};
+export type AccordionSize = {{> shared/size-types}};
+export type AccordionType = 'single' | 'multiple';
+
+export interface AccordionItem {
+  value: string;
+  label: string;
+  content?: string;
+  disabled?: boolean;
+}
+
+let accordionUid = 0;
+
+@Component({
+  selector: 'app-accordion',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './accordion.component.html',
+})
+export class AccordionComponent implements AfterViewInit, OnChanges {
+  @Input() items: AccordionItem[] = [];
+  @Input() type: AccordionType = 'single';
+  @Input() value?: string | string[];
+  @Input() defaultValue?: string | string[];
+  @Input() collapsible = true;
+  @Input() variant: AccordionVariant = 'default';
+  @Input() size: AccordionSize = 'md';
+
+  @Output() valueChange = new EventEmitter<string | string[]>();
+
+  @ViewChildren('triggerEl') triggers!: QueryList<ElementRef<HTMLButtonElement>>;
+
+  readonly rootId = `accordion-${++accordionUid}`;
+  internalValue?: string | string[];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['value'] && changes['value'].currentValue !== undefined) {
+      this.internalValue = changes['value'].currentValue;
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.internalValue === undefined) {
+      this.internalValue = this.value ?? this.defaultValue;
+    }
+  }
+
+  get currentValue(): string | string[] | undefined {
+    return this.value ?? this.internalValue;
+  }
+
+  private get openSet(): Set<string> {
+    const v = this.currentValue;
+    if (v == null) return new Set<string>();
+    return new Set<string>(Array.isArray(v) ? v : [v]);
+  }
+
+  get rootClass(): string {
+    const variantRoot: Record<AccordionVariant, string> = {
+      default: '',
+      bordered: 'border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden',
+      separated: 'gap-2',
+    };
+    return ['flex w-full flex-col', variantRoot[this.variant]].join(' ').trim();
+  }
+
+  get itemClass(): string {
+    const variantItem: Record<AccordionVariant, string> = {
+      default: '',
+      bordered: 'last:border-b-0',
+      separated:
+        'border border-[var(--accordion-border-color,var(--color-border))] rounded-[var(--radius-md)] overflow-hidden',
+    };
+    return ['border-b border-[var(--accordion-border-color,var(--color-border))]', variantItem[this.variant]]
+      .join(' ')
+      .trim();
+  }
+
+  get triggerClass(): string {
+    const base =
+      'group/trigger flex w-full items-center justify-between gap-2 text-left px-[var(--accordion-trigger-padding-x,8px)] py-[var(--accordion-trigger-padding-y,12px)] text-[var(--accordion-trigger-color,var(--color-text))] font-medium transition-colors hover:not-data-[disabled]:bg-[var(--accordion-trigger-hover-bg,var(--color-secondary))] disabled:opacity-50 disabled:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--color-primary)]';
+    const sizeMap: Record<AccordionSize, string> = {
+      sm: 'text-[0.8125rem]',
+      md: 'text-sm',
+      lg: 'text-[0.9375rem]',
+    };
+    return [base, sizeMap[this.size]].join(' ');
+  }
+
+  get chevronClass(): string {
+    return 'shrink-0 transition-transform duration-200 group-data-[state=open]/trigger:rotate-180';
+  }
+
+  get contentClass(): string {
+    return 'py-[var(--accordion-content-padding-y,12px)] px-[var(--accordion-trigger-padding-x,8px)] text-[var(--color-text)]';
+  }
+
+  isOpen(item: AccordionItem): boolean {
+    return this.openSet.has(item.value);
+  }
+
+  triggerId(item: AccordionItem): string {
+    return `${this.rootId}-trigger-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  contentId(item: AccordionItem): string {
+    return `${this.rootId}-content-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  toggle(item: AccordionItem): void {
+    if (item.disabled) return;
+    const open = this.openSet;
+    if (this.type === 'multiple') {
+      const next = new Set(open);
+      if (next.has(item.value)) next.delete(item.value);
+      else next.add(item.value);
+      this.setValue(Array.from(next));
+      return;
+    }
+    if (open.has(item.value)) {
+      this.setValue(this.collapsible ? '' : item.value);
+    } else {
+      this.setValue(item.value);
+    }
+  }
+
+  private setValue(next: string | string[]): void {
+    if (this.value === undefined) this.internalValue = next;
+    this.valueChange.emit(next);
+  }
+
+  onKeydown(event: KeyboardEvent, item: AccordionItem): void {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.moveFocus(item.value, 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.moveFocus(item.value, -1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      this.focusEdge('first');
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      this.focusEdge('last');
+    }
+  }
+
+  private enabledOrder(): string[] {
+    return this.items.filter((i) => !i.disabled).map((i) => i.value);
+  }
+
+  private focusByValue(value: string): void {
+    const allIdx = this.items.findIndex((i) => i.value === value);
+    if (allIdx < 0) return;
+    this.triggers.toArray()[allIdx]?.nativeElement?.focus();
+  }
+
+  private moveFocus(current: string, direction: 1 | -1): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const idx = order.indexOf(current);
+    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
+    const next = order[nextIdx];
+    this.focusByValue(next);
+    return next;
+  }
+
+  private focusEdge(edge: 'first' | 'last'): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const next = edge === 'first' ? order[0] : order[order.length - 1];
+    this.focusByValue(next);
+    return next;
+  }
+}

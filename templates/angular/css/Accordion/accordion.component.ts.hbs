@@ -1,0 +1,158 @@
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  OnChanges,
+  SimpleChanges,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export type AccordionVariant = {{> shared/variant-types}};
+export type AccordionSize = {{> shared/size-types}};
+export type AccordionType = 'single' | 'multiple';
+
+export interface AccordionItem {
+  value: string;
+  label: string;
+  content?: string;
+  disabled?: boolean;
+}
+
+let accordionUid = 0;
+
+@Component({
+  selector: 'app-accordion',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './accordion.component.html',
+  styleUrls: ['./accordion.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class AccordionComponent implements AfterViewInit, OnChanges {
+  @Input() items: AccordionItem[] = [];
+  @Input() type: AccordionType = 'single';
+  @Input() value?: string | string[];
+  @Input() defaultValue?: string | string[];
+  @Input() collapsible = true;
+  @Input() variant: AccordionVariant = 'default';
+  @Input() size: AccordionSize = 'md';
+
+  @Output() valueChange = new EventEmitter<string | string[]>();
+
+  @ViewChildren('triggerEl') triggers!: QueryList<ElementRef<HTMLButtonElement>>;
+
+  readonly rootId = `accordion-${++accordionUid}`;
+  internalValue?: string | string[];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['value'] && changes['value'].currentValue !== undefined) {
+      this.internalValue = changes['value'].currentValue;
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.internalValue === undefined) {
+      this.internalValue = this.value ?? this.defaultValue;
+    }
+  }
+
+  get currentValue(): string | string[] | undefined {
+    return this.value ?? this.internalValue;
+  }
+
+  private get openSet(): Set<string> {
+    const v = this.currentValue;
+    if (v == null) return new Set<string>();
+    return new Set<string>(Array.isArray(v) ? v : [v]);
+  }
+
+  get rootClass(): string {
+    return ['accordion-root', `variant-${this.variant}`, `size-${this.size}`].join(' ');
+  }
+
+  isOpen(item: AccordionItem): boolean {
+    return this.openSet.has(item.value);
+  }
+
+  triggerId(item: AccordionItem): string {
+    return `${this.rootId}-trigger-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  contentId(item: AccordionItem): string {
+    return `${this.rootId}-content-${item.value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  toggle(item: AccordionItem): void {
+    if (item.disabled) return;
+    const open = this.openSet;
+    if (this.type === 'multiple') {
+      const next = new Set(open);
+      if (next.has(item.value)) next.delete(item.value);
+      else next.add(item.value);
+      this.setValue(Array.from(next));
+      return;
+    }
+    if (open.has(item.value)) {
+      this.setValue(this.collapsible ? '' : item.value);
+    } else {
+      this.setValue(item.value);
+    }
+  }
+
+  private setValue(next: string | string[]): void {
+    if (this.value === undefined) this.internalValue = next;
+    this.valueChange.emit(next);
+  }
+
+  onKeydown(event: KeyboardEvent, item: AccordionItem): void {
+    let nextValue: string | null = null;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      nextValue = this.moveFocus(item.value, 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      nextValue = this.moveFocus(item.value, -1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      nextValue = this.focusEdge('first');
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      nextValue = this.focusEdge('last');
+    }
+    void nextValue;
+  }
+
+  private enabledOrder(): string[] {
+    return this.items.filter((i) => !i.disabled).map((i) => i.value);
+  }
+
+  private focusByValue(value: string): void {
+    const enabled = this.items.filter((i) => !i.disabled);
+    const enabledIdx = enabled.findIndex((i) => i.value === value);
+    if (enabledIdx < 0) return;
+    const allIdx = this.items.findIndex((i) => i.value === value);
+    this.triggers.toArray()[allIdx]?.nativeElement?.focus();
+  }
+
+  private moveFocus(current: string, direction: 1 | -1): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const idx = order.indexOf(current);
+    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
+    const next = order[nextIdx];
+    this.focusByValue(next);
+    return next;
+  }
+
+  private focusEdge(edge: 'first' | 'last'): string | null {
+    const order = this.enabledOrder();
+    if (order.length === 0) return null;
+    const next = edge === 'first' ? order[0] : order[order.length - 1];
+    this.focusByValue(next);
+    return next;
+  }
+}
