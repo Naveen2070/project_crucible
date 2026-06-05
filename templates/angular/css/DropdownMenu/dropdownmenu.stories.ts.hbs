@@ -1,0 +1,81 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { DropdownMenuComponent } from './dropdownmenu.component';
+
+const meta: Meta<DropdownMenuComponent> = {
+  title: 'Crucible/DropdownMenu',
+  component: DropdownMenuComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: { control: 'text' },
+    variant: {
+      control: 'select',
+      options: {{> shared/variant-options}},
+    },
+    size: {
+      control: 'select',
+      options: {{> shared/size-options}},
+    },
+    closeOnSelect: { control: 'boolean' },
+  },
+  args: {
+    triggerLabel: 'Actions',
+    placement: 'bottom-start',
+    variant: 'default',
+    size: 'md',
+    closeOnSelect: true,
+    items: [
+      { value: 'edit', label: 'Edit' },
+      { value: 'duplicate', label: 'Duplicate' },
+      { value: 'archive', label: 'Archive', disabled: true, separatorBefore: true },
+      { value: 'delete', label: 'Delete' },
+    ],
+  },
+  decorators: [],
+};
+
+export default meta;
+type Story = StoryObj<DropdownMenuComponent>;
+
+export const Default: Story = {
+  render: (args) => ({
+    props: args,
+    template: `
+      <div style="height: 320px; display: flex; align-items: flex-start; justify-content: center; padding-top: 40px;">
+        <app-dropdown-menu
+          [triggerLabel]="triggerLabel"
+          [items]="items"
+          [placement]="placement"
+          [variant]="variant"
+          [size]="size"
+          [closeOnSelect]="closeOnSelect"
+          (select)="select($event)"
+        ></app-dropdown-menu>
+      </div>
+    `,
+  }),
+};
+
+export const VariantsAndSizes: Story = {
+  render: (args) => {
+    const variants = {{> shared/variant-options}} as const;
+    const sizes = {{> shared/size-options}} as const;
+    const cells = variants.flatMap((variant) =>
+      sizes.map((size) => ({ variant, size, label: `${variant} / ${size}` })),
+    );
+    return {
+      props: { ...args, cells },
+      template: `
+        <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 24px; justify-items: center; padding: 40px;">
+          @for (cell of cells; track cell.label) {
+            <app-dropdown-menu
+              [triggerLabel]="cell.label"
+              [items]="items"
+              [variant]="cell.variant"
+              [size]="cell.size"
+            ></app-dropdown-menu>
+          }
+        </div>
+      `,
+    };
+  },
+};
