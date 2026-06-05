@@ -1,0 +1,21 @@
+{
+  "id": "Badge",
+  "name": "Badge",
+  "description": "Small status or category label",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "primary", "secondary", "outline", "success", "warning", "destructive"],
+  "sizes": ["sm", "md", "lg"],
+  "states": [],
+  "props": [],
+  "prefix": "badge",
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-secondary)] text-[var(--color-text)]",
+    "primary": "bg-[var(--color-primary)] text-white",
+    "secondary": "bg-[var(--color-secondary)] text-[var(--color-text)]",
+    "outline": "bg-transparent border border-[var(--color-border)] text-[var(--color-text)]",
+    "success": "bg-[var(--color-success)] text-white",
+    "warning": "bg-[#f59e0b] text-white",
+    "destructive": "bg-[var(--color-destructive)] text-white"
+  }
+}

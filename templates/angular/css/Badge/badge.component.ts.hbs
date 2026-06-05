@@ -1,0 +1,14 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-badge',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './badge.component.html',
+  styleUrls: ['./badge.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class BadgeComponent {
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() size: {{> shared/size-types}} = 'md';
+}

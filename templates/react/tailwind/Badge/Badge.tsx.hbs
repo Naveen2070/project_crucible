@@ -1,0 +1,41 @@
+import React from 'react';
+
+export type BadgeVariant = {{> shared/variant-types}};
+export type BadgeSize    = {{> shared/size-types}};
+
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  /** Visual style of the badge */
+  variant?: BadgeVariant;
+  /** Size of the badge */
+  size?: BadgeSize;
+}
+
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+const SIZE_CLASSES: Record<BadgeSize, string> = {
+  sm: 'text-[0.6875rem] px-1.5 py-0.5',
+  md: 'text-xs px-2 py-0.5',
+  lg: 'text-[0.8125rem] px-2.5 py-1',
+};
+
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  ({ variant = 'default', size = 'md', className, children, ...props }, ref) => {
+    const cls = [
+      'inline-flex items-center justify-center gap-1 rounded-[var(--radius-sm)] font-medium leading-none whitespace-nowrap',
+      VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <span ref={ref} className={cls} {...props}>
+        {children}
+      </span>
+    );
+  }
+);
+
+Badge.displayName = 'Badge';
