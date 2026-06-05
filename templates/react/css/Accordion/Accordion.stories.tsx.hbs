@@ -1,0 +1,175 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Accordion } from './Accordion';
+
+const meta: Meta<typeof Accordion> = {
+  title: 'Crucible/Accordion',
+  component: Accordion,
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof Accordion>;
+
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion type="single" defaultValue="item-1">
+        <Accordion.Item value="item-1">
+          <Accordion.Trigger>What is Crucible?</Accordion.Trigger>
+          <Accordion.Content>
+            <p style=\{{ margin: 0 }}>A multi-framework component generator.</p>
+          </Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="item-2">
+          <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
+          <Accordion.Content>
+            <p style=\{{ margin: 0 }}>Yes — it follows the WAI-ARIA accordion pattern.</p>
+          </Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="item-3">
+          <Accordion.Trigger>Can I theme it?</Accordion.Trigger>
+          <Accordion.Content>
+            <p style=\{{ margin: 0 }}>All tokens are exposed as CSS variables.</p>
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </div>
+  ),
+};
+
+export const Bordered: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion type="single" variant="bordered" defaultValue="a">
+        <Accordion.Item value="a">
+          <Accordion.Trigger>Shipping</Accordion.Trigger>
+          <Accordion.Content>Ships within 2 business days.</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="b">
+          <Accordion.Trigger>Returns</Accordion.Trigger>
+          <Accordion.Content>30-day return window.</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </div>
+  ),
+};
+
+export const Separated: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion type="multiple" variant="separated" defaultValue={['one']}>
+        <Accordion.Item value="one">
+          <Accordion.Trigger>First section</Accordion.Trigger>
+          <Accordion.Content>Multiple sections can be open at once.</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="two">
+          <Accordion.Trigger>Second section</Accordion.Trigger>
+          <Accordion.Content>Each card is independently bordered.</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </div>
+  ),
+};
+
+export const WithDisabled: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion type="single" defaultValue="first">
+        <Accordion.Item value="first">
+          <Accordion.Trigger>Available</Accordion.Trigger>
+          <Accordion.Content>Use arrow keys — the disabled item is skipped.</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="locked" disabled>
+          <Accordion.Trigger>Locked</Accordion.Trigger>
+          <Accordion.Content>Not reachable.</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="last">
+          <Accordion.Trigger>Available</Accordion.Trigger>
+          <Accordion.Content>Wrapping skips the disabled item.</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </div>
+  ),
+};
+
+export const Multiple: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion type="multiple" defaultValue={['a', 'c']}>
+        <Accordion.Item value="a">
+          <Accordion.Trigger>Alpha</Accordion.Trigger>
+          <Accordion.Content>Open by default.</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="b">
+          <Accordion.Trigger>Beta</Accordion.Trigger>
+          <Accordion.Content>Closed by default.</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item value="c">
+          <Accordion.Trigger>Gamma</Accordion.Trigger>
+          <Accordion.Content>Also open by default.</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </div>
+  ),
+};
+
+export const Controlled: Story = {
+  render: function ControlledStory() {
+    const [value, setValue] = React.useState<string | string[]>('one');
+    return (
+      <div style=\{{ maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style=\{{ display: 'flex', gap: '8px' }}>
+          <button type="button" onClick={() => setValue('one')}>Open One</button>
+          <button type="button" onClick={() => setValue('two')}>Open Two</button>
+          <button type="button" onClick={() => setValue('')}>Close all</button>
+        </div>
+        <Accordion type="single" value={value} onValueChange={setValue}>
+          <Accordion.Item value="one">
+            <Accordion.Trigger>One</Accordion.Trigger>
+            <Accordion.Content>Current value: <strong>{String(value)}</strong></Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item value="two">
+            <Accordion.Trigger>Two</Accordion.Trigger>
+            <Accordion.Content>Current value: <strong>{String(value)}</strong></Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      </div>
+    );
+  },
+};
+{{else}}
+export const SchemaDriven: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion
+        type="single"
+        defaultValue="item-1"
+        items={[
+          { value: 'item-1', label: 'What is Crucible?', content: <p style=\{{ margin: 0 }}>A component generator.</p> },
+          { value: 'item-2', label: 'Is it accessible?', content: <p style=\{{ margin: 0 }}>Yes, WAI-ARIA.</p> },
+          { value: 'item-3', label: 'Can I theme it?', content: <p style=\{{ margin: 0 }}>Via CSS variables.</p> },
+        ]}
+      />
+    </div>
+  ),
+};
+
+export const SchemaSeparated: Story = {
+  render: () => (
+    <div style=\{{ maxWidth: '480px' }}>
+      <Accordion
+        type="multiple"
+        variant="separated"
+        defaultValue={['one']}
+        items={[
+          { value: 'one', label: 'First section', content: <p style=\{{ margin: 0 }}>First.</p> },
+          { value: 'two', label: 'Second section', content: <p style=\{{ margin: 0 }}>Second.</p> },
+          { value: 'three', label: 'Locked', content: <p style=\{{ margin: 0 }}>Disabled.</p>, disabled: true },
+        ]}
+      />
+    </div>
+  ),
+};
+{{/if}}

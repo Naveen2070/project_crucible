@@ -1,0 +1,18 @@
+{
+  "id": "Accordion",
+  "name": "Accordion",
+  "description": "Collapsible disclosure sections, single or multiple open (WAI-ARIA accordion)",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "bordered", "separated"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled"],
+  "props": ["type", "value", "defaultValue", "onValueChange", "collapsible"],
+  "prefix": "accordion",
+  "a11y": { "role": "region", "keyboardNav": true },
+  "tailwindDefaults": {
+    "default": "",
+    "bordered": "border border-[var(--color-border)] rounded-[var(--radius-md)] divide-y divide-[var(--color-border)]",
+    "separated": "flex flex-col gap-2"
+  }
+}

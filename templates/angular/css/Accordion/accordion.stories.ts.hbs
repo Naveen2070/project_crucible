@@ -1,0 +1,108 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { AccordionComponent } from './accordion.component';
+
+const meta: Meta<AccordionComponent> = {
+  title: 'Crucible/Accordion',
+  component: AccordionComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+    size: { control: 'select', options: {{> shared/size-options}} },
+    type: { control: 'select', options: ['single', 'multiple'] },
+  },
+  args: { variant: 'default', size: 'md', type: 'single' },
+};
+
+export default meta;
+type Story = StoryObj<AccordionComponent>;
+
+const onValueChange = (value: string | string[]) => console.log('Accordion changed:', value);
+
+const baseItems = [
+  { value: 'item-1', label: 'What is Crucible?', content: 'A component generator.' },
+  { value: 'item-2', label: 'Is it accessible?', content: 'Yes, WAI-ARIA.' },
+  { value: 'item-3', label: 'Can I theme it?', content: 'Via CSS variables.' },
+];
+
+export const Default: Story = {
+  args: { items: baseItems, defaultValue: 'item-1' },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-accordion
+      [items]="items"
+      [type]="type"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      (valueChange)="onValueChange($event)"
+    ></app-accordion>`,
+  }),
+};
+
+export const Bordered: Story = {
+  args: {
+    variant: 'bordered',
+    items: [
+      { value: 'a', label: 'Shipping', content: 'Ships within 2 business days.' },
+      { value: 'b', label: 'Returns', content: '30-day return window.' },
+    ],
+    defaultValue: 'a',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-accordion
+      [items]="items"
+      [type]="type"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      (valueChange)="onValueChange($event)"
+    ></app-accordion>`,
+  }),
+};
+
+export const WithDisabled: Story = {
+  args: {
+    items: [
+      { value: 'first', label: 'Available', content: 'Use arrow keys.' },
+      { value: 'locked', label: 'Locked', content: 'Not reachable.', disabled: true },
+      { value: 'last', label: 'Available', content: 'Wrapping skips disabled.' },
+    ],
+    defaultValue: 'first',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-accordion
+      [items]="items"
+      [type]="type"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      (valueChange)="onValueChange($event)"
+    ></app-accordion>`,
+  }),
+};
+
+export const Multiple: Story = {
+  args: {
+    type: 'multiple',
+    variant: 'separated',
+    items: [
+      { value: 'a', label: 'Alpha', content: 'Open by default.' },
+      { value: 'b', label: 'Beta', content: 'Closed by default.' },
+      { value: 'c', label: 'Gamma', content: 'Also open by default.' },
+    ],
+    defaultValue: ['a', 'c'],
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-accordion
+      [items]="items"
+      [type]="type"
+      [defaultValue]="defaultValue"
+      [variant]="variant"
+      [size]="size"
+      (valueChange)="onValueChange($event)"
+    ></app-accordion>`,
+  }),
+};

@@ -1,0 +1,55 @@
+<div [class]="rootClass">
+  @for (item of items; track item.value) {
+    <div
+      class="item"
+      [attr.data-state]="isOpen(item) ? 'open' : 'closed'"
+      [attr.data-disabled]="item.disabled ? '' : null"
+    >
+      <h3 class="header">
+        <button
+          #triggerEl
+          type="button"
+          class="trigger"
+          [id]="triggerId(item)"
+          [attr.aria-expanded]="isOpen(item)"
+          [attr.aria-controls]="contentId(item)"
+          [attr.data-state]="isOpen(item) ? 'open' : 'closed'"
+          [attr.data-value]="item.value"
+          [attr.data-disabled]="item.disabled ? '' : null"
+          [disabled]="item.disabled"
+          (click)="toggle(item)"
+          (keydown)="onKeydown($event, item)"
+        >
+          <span class="label">\{{ item.label }}</span>
+          <svg
+            class="chevron"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </h3>
+      @if (isOpen(item)) {
+        <div
+          class="content"
+          role="region"
+          [id]="contentId(item)"
+          [attr.aria-labelledby]="triggerId(item)"
+          [attr.data-state]="'open'"
+        >
+          @if (item.content) {
+            <p style="margin: 0">\{{ item.content }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

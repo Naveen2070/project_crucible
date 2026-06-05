@@ -1,0 +1,146 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+{{#if features.compoundComponents}}
+import Accordion, { AccordionItem, AccordionTrigger, AccordionContent } from './Accordion.vue';
+{{else}}
+import Accordion from './Accordion.vue';
+{{/if}}
+
+const meta: Meta<typeof Accordion> = {
+  title: 'Crucible/Accordion',
+  component: Accordion,
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+    size: { control: 'select', options: {{> shared/size-options}} },
+    type: { control: 'select', options: ['single', 'multiple'] },
+  },
+  args: { variant: 'default', size: 'md', type: 'single' },
+  decorators: [() => ({ template: '<div style="width: 480px;"><story /></div>' })],
+};
+
+export default meta;
+type Story = StoryObj<typeof Accordion>;
+
+{{#if features.compoundComponents}}
+const compound = { Accordion, AccordionItem, AccordionTrigger, AccordionContent };
+
+export const Default: Story = {
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Accordion v-bind="args" defaultValue="item-1">
+        <AccordionItem value="item-1">
+          <AccordionTrigger>What is Crucible?</AccordionTrigger>
+          <AccordionContent><p style="margin:0">A component generator.</p></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-2">
+          <AccordionTrigger>Is it accessible?</AccordionTrigger>
+          <AccordionContent><p style="margin:0">Yes, WAI-ARIA.</p></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-3">
+          <AccordionTrigger>Can I theme it?</AccordionTrigger>
+          <AccordionContent><p style="margin:0">Via CSS variables.</p></AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    `,
+  }),
+};
+
+export const Bordered: Story = {
+  args: { variant: 'bordered' },
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Accordion v-bind="args" defaultValue="a">
+        <AccordionItem value="a">
+          <AccordionTrigger>Shipping</AccordionTrigger>
+          <AccordionContent>Ships within 2 business days.</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="b">
+          <AccordionTrigger>Returns</AccordionTrigger>
+          <AccordionContent>30-day return window.</AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    `,
+  }),
+};
+
+export const WithDisabled: Story = {
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Accordion v-bind="args" defaultValue="first">
+        <AccordionItem value="first">
+          <AccordionTrigger>Available</AccordionTrigger>
+          <AccordionContent>Use arrow keys — disabled items are skipped.</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="locked" :disabled="true">
+          <AccordionTrigger>Locked</AccordionTrigger>
+          <AccordionContent>Not reachable.</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="last">
+          <AccordionTrigger>Available</AccordionTrigger>
+          <AccordionContent>Wrapping skips the disabled item.</AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    `,
+  }),
+};
+
+export const Multiple: Story = {
+  args: { type: 'multiple', variant: 'separated' },
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <Accordion v-bind="args" :defaultValue="['a', 'c']">
+        <AccordionItem value="a">
+          <AccordionTrigger>Alpha</AccordionTrigger>
+          <AccordionContent>Open by default.</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="b">
+          <AccordionTrigger>Beta</AccordionTrigger>
+          <AccordionContent>Closed by default.</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="c">
+          <AccordionTrigger>Gamma</AccordionTrigger>
+          <AccordionContent>Also open by default.</AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    `,
+  }),
+};
+{{else}}
+const items = [
+  { value: 'item-1', label: 'What is Crucible?', content: 'A component generator.' },
+  { value: 'item-2', label: 'Is it accessible?', content: 'Yes, WAI-ARIA.' },
+  { value: 'item-3', label: 'Can I theme it?', content: 'Via CSS variables.' },
+];
+
+export const SchemaDriven: Story = {
+  render: (args) => ({
+    components: { Accordion },
+    setup() { return { args, items }; },
+    template: `<Accordion v-bind="args" :items="items" defaultValue="item-1" />`,
+  }),
+};
+
+export const SchemaSeparated: Story = {
+  args: { variant: 'separated', type: 'multiple' },
+  render: (args) => ({
+    components: { Accordion },
+    setup() {
+      const data = [
+        { value: 'one', label: 'First section', content: 'First.' },
+        { value: 'two', label: 'Second section', content: 'Second.' },
+        { value: 'three', label: 'Locked', content: 'Disabled.', disabled: true },
+      ];
+      return { args, data };
+    },
+    template: `<Accordion v-bind="args" :items="data" :defaultValue="['one']" />`,
+  }),
+};
+{{/if}}
