@@ -8,7 +8,11 @@
 
 export const Default: Story = {
   args: { orientation: 'horizontal' },
-  render: (args) => <Separator {...args} />,
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
 };
 
 export const Vertical: Story = {
@@ -24,10 +28,18 @@ export const Vertical: Story = {
 
 export const WithLabel: Story = {
   args: { orientation: 'horizontal', label: 'OR' },
-  render: (args) => <Separator {...args} />,
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
 };
 
 export const Decorative: Story = {
   args: { orientation: 'horizontal', decorative: true },
-  render: (args) => <Separator {...args} />,
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
 };

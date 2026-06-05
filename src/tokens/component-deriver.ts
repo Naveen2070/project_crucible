@@ -159,6 +159,27 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     labelColor: 'var(--color-text)',
     gap: 'calc(var(--spacing-unit) * 2)',
   },
+  alert: {
+    padding: 'calc(var(--spacing-unit) * 3)',
+    radius: 'var(--radius-md)',
+    gap: 'calc(var(--spacing-unit) * 3)',
+    infoAccent: 'var(--color-primary)',
+    successAccent: 'var(--color-success)',
+    warningAccent: '#f59e0b',
+    destructiveAccent: 'var(--color-destructive)',
+  },
+  progress: {
+    radius: '9999px',
+    trackBg: 'var(--color-secondary)',
+    barBg: 'var(--color-primary)',
+    transition: 'width 0.3s ease',
+  },
+  breadcrumb: {
+    gap: 'calc(var(--spacing-unit) * 2)',
+    linkColor: 'var(--color-text-muted)',
+    activeColor: 'var(--color-text)',
+    separatorColor: 'var(--color-text-muted)',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',

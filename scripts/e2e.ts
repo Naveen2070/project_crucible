@@ -2523,6 +2523,307 @@ async function runE2E() {
       throw new Error('Angular Switch HTML missing switch role');
     }
     results.push({ phase: 'Switch + Angular + SCSS', passed: true });
+
+    // Alert + React + CSS
+    console.log(ansis.cyan('📦 Phase 80: Alert + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Alert'));
+    runCLI('add Alert -y');
+    const alReactCss = await readFile(path.join(TEST_DIR, 'src/components', 'Alert', 'Alert.tsx'), 'utf-8');
+    if (!alReactCss.includes('export const Alert') || !alReactCss.includes('role="alert"')) {
+      throw new Error('React Alert missing export or alert role');
+    }
+    if (alReactCss.includes('Object.assign')) {
+      throw new Error('Alert should be monolithic');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Alert', 'Alert.module.css')))) {
+      throw new Error('Missing: Alert/Alert.module.css');
+    }
+    results.push({ phase: 'Alert + React + CSS', passed: true });
+
+    // Alert + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 81: Alert + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Alert'));
+    runCLI('add Alert -y');
+    const alReactTw = await readFile(path.join(TEST_DIR, 'src/components', 'Alert', 'Alert.tsx'), 'utf-8');
+    if (!alReactTw.includes('VARIANT_CLASSES') || alReactTw.includes('Alert.module')) {
+      throw new Error('React Tailwind Alert missing variant map or still imports a CSS module');
+    }
+    results.push({ phase: 'Alert + React + Tailwind', passed: true });
+
+    // Alert + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 82: Alert + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Alert'));
+    runCLI('add Alert -y');
+    const alVue = await readFile(path.join(TEST_DIR, 'src/components', 'Alert', 'Alert.vue'), 'utf-8');
+    if (!alVue.includes('role="alert"')) {
+      throw new Error('Vue Alert missing alert role');
+    }
+    results.push({ phase: 'Alert + Vue + CSS', passed: true });
+
+    // Alert + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 83: Alert + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Alert'));
+    runCLI('add Alert -y');
+    const alNgFiles = ['Alert/alert.component.ts', 'Alert/alert.component.html', 'Alert/alert.component.scss'];
+    for (const file of alNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const alNgTs = await readFile(path.join(TEST_DIR, 'src/components', 'Alert', 'alert.component.ts'), 'utf-8');
+    if (!alNgTs.includes('export class AlertComponent') || !alNgTs.includes("styleUrls: ['./alert.component.scss']")) {
+      throw new Error('Angular Alert missing AlertComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Alert + Angular + SCSS', passed: true });
+
+    // Progress + React + CSS
+    console.log(ansis.cyan('📦 Phase 84: Progress + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Progress'));
+    runCLI('add Progress -y');
+    const prReactCss = await readFile(path.join(TEST_DIR, 'src/components', 'Progress', 'Progress.tsx'), 'utf-8');
+    if (!prReactCss.includes('export const Progress') || !prReactCss.includes("role: 'progressbar'")) {
+      throw new Error('React Progress missing export or progressbar role');
+    }
+    if (!prReactCss.includes("variant === 'circular'") || !prReactCss.includes('strokeDashoffset')) {
+      throw new Error('React Progress missing circular variant');
+    }
+    if (prReactCss.includes('Object.assign')) {
+      throw new Error('Progress should be monolithic');
+    }
+    results.push({ phase: 'Progress + React + CSS', passed: true });
+
+    // Progress + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 85: Progress + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Progress'));
+    runCLI('add Progress -y');
+    const prReactTw = await readFile(path.join(TEST_DIR, 'src/components', 'Progress', 'Progress.tsx'), 'utf-8');
+    if (!prReactTw.includes("role: 'progressbar'") || prReactTw.includes('Progress.module')) {
+      throw new Error('React Tailwind Progress missing progressbar role or still imports a CSS module');
+    }
+    results.push({ phase: 'Progress + React + Tailwind', passed: true });
+
+    // Progress + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 86: Progress + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Progress'));
+    runCLI('add Progress -y');
+    const prVue = await readFile(path.join(TEST_DIR, 'src/components', 'Progress', 'Progress.vue'), 'utf-8');
+    if (!prVue.includes('role="progressbar"')) {
+      throw new Error('Vue Progress missing progressbar role');
+    }
+    results.push({ phase: 'Progress + Vue + CSS', passed: true });
+
+    // Progress + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 87: Progress + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Progress'));
+    runCLI('add Progress -y');
+    const prNgFiles = ['Progress/progress.component.ts', 'Progress/progress.component.html', 'Progress/progress.component.scss'];
+    for (const file of prNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const prNgTs = await readFile(path.join(TEST_DIR, 'src/components', 'Progress', 'progress.component.ts'), 'utf-8');
+    if (!prNgTs.includes('export class ProgressComponent') || !prNgTs.includes("styleUrls: ['./progress.component.scss']")) {
+      throw new Error('Angular Progress missing ProgressComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Progress + Angular + SCSS', passed: true });
+
+    // Breadcrumb + React + CSS
+    console.log(ansis.cyan('📦 Phase 88: Breadcrumb + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Breadcrumb'));
+    runCLI('add Breadcrumb -y');
+    const bcReactCss = await readFile(path.join(TEST_DIR, 'src/components', 'Breadcrumb', 'Breadcrumb.tsx'), 'utf-8');
+    if (!bcReactCss.includes('export const Breadcrumb') || !bcReactCss.includes('aria-label="Breadcrumb"')) {
+      throw new Error('React Breadcrumb missing export or nav aria-label');
+    }
+    if (bcReactCss.includes('Object.assign')) {
+      throw new Error('Breadcrumb should be monolithic');
+    }
+    results.push({ phase: 'Breadcrumb + React + CSS', passed: true });
+
+    // Breadcrumb + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 89: Breadcrumb + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Breadcrumb'));
+    runCLI('add Breadcrumb -y');
+    const bcReactTw = await readFile(path.join(TEST_DIR, 'src/components', 'Breadcrumb', 'Breadcrumb.tsx'), 'utf-8');
+    if (!bcReactTw.includes('aria-label="Breadcrumb"') || bcReactTw.includes('Breadcrumb.module')) {
+      throw new Error('React Tailwind Breadcrumb missing nav aria-label or still imports a CSS module');
+    }
+    results.push({ phase: 'Breadcrumb + React + Tailwind', passed: true });
+
+    // Breadcrumb + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 90: Breadcrumb + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Breadcrumb'));
+    runCLI('add Breadcrumb -y');
+    const bcVue = await readFile(path.join(TEST_DIR, 'src/components', 'Breadcrumb', 'Breadcrumb.vue'), 'utf-8');
+    if (!bcVue.includes('aria-label="Breadcrumb"') || !bcVue.includes('v-for')) {
+      throw new Error('Vue Breadcrumb missing nav aria-label or item loop');
+    }
+    results.push({ phase: 'Breadcrumb + Vue + CSS', passed: true });
+
+    // Breadcrumb + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 91: Breadcrumb + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Breadcrumb'));
+    runCLI('add Breadcrumb -y');
+    const bcNgFiles = ['Breadcrumb/breadcrumb.component.ts', 'Breadcrumb/breadcrumb.component.html', 'Breadcrumb/breadcrumb.component.scss'];
+    for (const file of bcNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const bcNgTs = await readFile(path.join(TEST_DIR, 'src/components', 'Breadcrumb', 'breadcrumb.component.ts'), 'utf-8');
+    if (!bcNgTs.includes('export class BreadcrumbComponent') || !bcNgTs.includes("styleUrls: ['./breadcrumb.component.scss']")) {
+      throw new Error('Angular Breadcrumb missing BreadcrumbComponent or scss styleUrls');
+    }
+    const bcNgHtml = await readFile(path.join(TEST_DIR, 'src/components', 'Breadcrumb', 'breadcrumb.component.html'), 'utf-8');
+    if (!bcNgHtml.includes('aria-label="Breadcrumb"') || !bcNgHtml.includes('@for')) {
+      throw new Error('Angular Breadcrumb HTML missing nav aria-label or @for loop');
+    }
+    results.push({ phase: 'Breadcrumb + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
