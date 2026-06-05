@@ -1,0 +1,12 @@
+<div role="alert" [class]="'alert alert--' + variant">
+  <span class="alert-icon" aria-hidden="true">\{{ displayIcon }}</span>
+  <div class="alert-content">
+    @if (title) {
+      <div class="alert-title">\{{ title }}</div>
+    }
+    <div class="alert-description"><ng-content></ng-content></div>
+  </div>
+  @if (closeable) {
+    <button type="button" class="alert-close" aria-label="Dismiss" (click)="close.emit()">×</button>
+  }
+</div>

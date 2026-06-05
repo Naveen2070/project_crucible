@@ -1,0 +1,89 @@
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--alert-gap, {{tokens.componentTokens.alert.gap}});
+  padding: var(--alert-padding, {{tokens.componentTokens.alert.padding}});
+  border: 1px solid transparent;
+  border-radius: var(--alert-radius, {{tokens.componentTokens.alert.radius}});
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1A1A2E);
+
+  &--default {
+    background-color: var(--color-surface, #FFFFFF);
+    border-color: var(--color-border, #E2E1F0);
+  }
+
+  &--info {
+    background-color: color-mix(in srgb, var(--alert-info-accent, {{tokens.componentTokens.alert.infoAccent}}) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-info-accent, {{tokens.componentTokens.alert.infoAccent}});
+
+    .alert-icon {
+      color: var(--alert-info-accent, {{tokens.componentTokens.alert.infoAccent}});
+    }
+  }
+
+  &--success {
+    background-color: color-mix(in srgb, var(--alert-success-accent, {{tokens.componentTokens.alert.successAccent}}) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-success-accent, {{tokens.componentTokens.alert.successAccent}});
+
+    .alert-icon {
+      color: var(--alert-success-accent, {{tokens.componentTokens.alert.successAccent}});
+    }
+  }
+
+  &--warning {
+    background-color: color-mix(in srgb, var(--alert-warning-accent, {{tokens.componentTokens.alert.warningAccent}}) 12%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-warning-accent, {{tokens.componentTokens.alert.warningAccent}});
+
+    .alert-icon {
+      color: var(--alert-warning-accent, {{tokens.componentTokens.alert.warningAccent}});
+    }
+  }
+
+  &--destructive {
+    background-color: color-mix(in srgb, var(--alert-destructive-accent, {{tokens.componentTokens.alert.destructiveAccent}}) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-destructive-accent, {{tokens.componentTokens.alert.destructiveAccent}});
+
+    .alert-icon {
+      color: var(--alert-destructive-accent, {{tokens.componentTokens.alert.destructiveAccent}});
+    }
+  }
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  line-height: 1.4;
+  font-size: 1rem;
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.alert-description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.alert-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
