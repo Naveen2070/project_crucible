@@ -1,0 +1,53 @@
+import React from 'react';
+{{> react/styles-import}}
+
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Layout direction of the divider */
+  orientation?: SeparatorOrientation;
+  /** Purely visual — removes the divider from the accessibility tree */
+  decorative?: boolean;
+  /** Optional centered label (horizontal orientation only) */
+  label?: string;
+}
+
+export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
+  ({ orientation = 'horizontal', decorative = false, label, className, children, ...props }, ref) => {
+    const content = label ?? children;
+
+    if (content && orientation === 'horizontal' && !decorative) {
+      return (
+        <div
+          ref={ref}
+          className={[styles.separator, styles['separator--labelled'], className].filter(Boolean).join(' ')}
+          role="separator"
+          aria-orientation="horizontal"
+          {...props}
+        >
+          <span className={styles['separator-line']} aria-hidden="true" />
+          <span className={styles['separator-label']}>{content}</span>
+          <span className={styles['separator-line']} aria-hidden="true" />
+        </div>
+      );
+    }
+
+    const cls = [
+      styles.separator,
+      styles[`separator--${orientation}`],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        role={decorative ? 'none' : 'separator'}
+        aria-orientation={decorative ? undefined : orientation}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = 'Separator';

@@ -1,0 +1,49 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Separator from './Separator.vue';
+
+const meta: Meta<typeof Separator> = {
+  title: 'Crucible/{{name}}',
+  component: Separator,
+  tags: ['autodocs'],
+  argTypes: {
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    decorative:  { control: 'boolean' },
+    label:       { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Separator>;
+
+export const Default: Story = {
+  args: { orientation: 'horizontal' },
+  render: (args) => ({
+    components: { Separator },
+    setup() {
+      return { args };
+    },
+    template: `<Separator v-bind="args" />`,
+  }),
+};
+
+export const WithLabel: Story = {
+  args: { orientation: 'horizontal', label: 'OR' },
+  render: (args) => ({
+    components: { Separator },
+    setup() {
+      return { args };
+    },
+    template: `<Separator v-bind="args" />`,
+  }),
+};
+
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => ({
+    components: { Separator },
+    setup() {
+      return { args };
+    },
+    template: `<div style="display:flex;align-items:center;height:40px;gap:12px"><span>Home</span><Separator v-bind="args" /><span>Docs</span></div>`,
+  }),
+};

@@ -156,6 +156,11 @@ exports[`6. Template and Snapshot Tests > 6.7: SCSS nested BEM > generates neste
   --label-required-color: var(--color-destructive);
   --label-gap: calc(var(--spacing-unit) * 1);
   --label-disabled-opacity: 0.6;
+  --separator-color: var(--color-border);
+  --separator-thickness: 1px;
+  --separator-spacing: calc(var(--spacing-unit) * 2);
+  --separator-label-color: var(--color-text-muted);
+  --separator-label-gap: calc(var(--spacing-unit) * 2);
   --tabs-list-gap: calc(var(--spacing-unit) * 1);
   --tabs-trigger-height-sm: calc(var(--spacing-unit) * 8);
   --tabs-trigger-height-md: calc(var(--spacing-unit) * 9);
