@@ -224,6 +224,16 @@ exports[`6. Template and Snapshot Tests > 6.7: SCSS nested BEM > generates neste
   --accordion-content-padding-y: calc(var(--spacing-unit) * 3);
   --accordion-radius: var(--radius-md);
   --accordion-transition: background-color 0.2s ease;
+  --menu-background: var(--color-surface);
+  --menu-border: var(--color-border);
+  --menu-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --menu-radius: var(--radius-md);
+  --menu-item-padding-x: calc(var(--spacing-unit) * 3);
+  --menu-item-padding-y: calc(var(--spacing-unit) * 2);
+  --menu-item-hover-bg: var(--color-secondary);
+  --menu-label-color: var(--color-text-muted);
+  --menu-min-width: 180px;
+  --menu-z-index: 50;
   --tabs-list-gap: calc(var(--spacing-unit) * 1);
   --tabs-trigger-height-sm: calc(var(--spacing-unit) * 8);
   --tabs-trigger-height-md: calc(var(--spacing-unit) * 9);

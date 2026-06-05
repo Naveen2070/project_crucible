@@ -3040,6 +3040,119 @@ async function runE2E() {
       throw new Error('Angular Accordion HTML missing aria-expanded');
     }
     results.push({ phase: 'Accordion + Angular + SCSS', passed: true });
+
+    // DropdownMenu + React + CSS (compound, depends on Button + floating-ui)
+    console.log(ansis.cyan('📦 Phase 100: DropdownMenu + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'DropdownMenu'));
+    runCLI('add DropdownMenu -y');
+    const dmReactCss = await readFile(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'DropdownMenu.tsx'), 'utf-8');
+    if (!dmReactCss.includes('export const DropdownMenu') || !dmReactCss.includes('Object.assign(DropdownMenuRoot')) {
+      throw new Error('React DropdownMenu missing compound exports');
+    }
+    if (!dmReactCss.includes("role: 'menu'") || !dmReactCss.includes('role="menuitem"') || !dmReactCss.includes('useListNavigation')) {
+      throw new Error('React DropdownMenu missing menu roles or list navigation');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'DropdownMenu.module.css')))) {
+      throw new Error('Missing: DropdownMenu/DropdownMenu.module.css');
+    }
+    results.push({ phase: 'DropdownMenu + React + CSS (compound)', passed: true });
+
+    // DropdownMenu + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 101: DropdownMenu + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'DropdownMenu'));
+    runCLI('add DropdownMenu -y');
+    const dmReactTw = await readFile(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'DropdownMenu.tsx'), 'utf-8');
+    if (!dmReactTw.includes('useListNavigation') || dmReactTw.includes('DropdownMenu.module')) {
+      throw new Error('React Tailwind DropdownMenu missing list nav or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'DropdownMenu.module.css'))) {
+      throw new Error('Tailwind DropdownMenu should not emit a CSS module');
+    }
+    results.push({ phase: 'DropdownMenu + React + Tailwind', passed: true });
+
+    // DropdownMenu + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 102: DropdownMenu + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'DropdownMenu'));
+    runCLI('add DropdownMenu -y');
+    const dmVue = await readFile(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'DropdownMenu.vue'), 'utf-8');
+    if (!dmVue.includes('menu') || !dmVue.includes('@floating-ui/vue')) {
+      throw new Error('Vue DropdownMenu missing menu role or @floating-ui/vue');
+    }
+    results.push({ phase: 'DropdownMenu + Vue + CSS', passed: true });
+
+    // DropdownMenu + Angular + SCSS (monolithic)
+    console.log(ansis.cyan('📦 Phase 103: DropdownMenu + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'DropdownMenu'));
+    runCLI('add DropdownMenu -y');
+    const dmNgFiles = ['DropdownMenu/dropdownmenu.component.ts', 'DropdownMenu/dropdownmenu.component.html', 'DropdownMenu/dropdownmenu.component.scss'];
+    for (const file of dmNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const dmNgTs = await readFile(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'dropdownmenu.component.ts'), 'utf-8');
+    if (!dmNgTs.includes('export class DropdownMenuComponent') || !dmNgTs.includes("styleUrls: ['./dropdownmenu.component.scss']")) {
+      throw new Error('Angular DropdownMenu missing DropdownMenuComponent or scss styleUrls');
+    }
+    if (!dmNgTs.includes('@floating-ui/dom')) {
+      throw new Error('Angular DropdownMenu missing @floating-ui/dom');
+    }
+    if (dmNgTs.includes('Object.assign')) {
+      throw new Error('Angular DropdownMenu should be monolithic');
+    }
+    const dmNgHtml = await readFile(path.join(TEST_DIR, 'src/components', 'DropdownMenu', 'dropdownmenu.component.html'), 'utf-8');
+    if (!dmNgHtml.includes('role="menu"')) {
+      throw new Error('Angular DropdownMenu HTML missing role="menu"');
+    }
+    results.push({ phase: 'DropdownMenu + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

@@ -29,7 +29,8 @@
     "components/progress.json",
     "components/breadcrumb.json",
     "components/radio-group.json",
-    "components/accordion.json"
+    "components/accordion.json",
+    "components/dropdown-menu.json"
   ],
   "frameworks": [
     "frameworks/react.json",
