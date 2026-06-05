@@ -45,6 +45,8 @@ const COMPONENTS = [
   'Alert',
   'Progress',
   'Breadcrumb',
+  'RadioGroup',
+  'Accordion',
 ];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,
