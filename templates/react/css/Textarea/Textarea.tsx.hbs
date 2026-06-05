@@ -1,0 +1,73 @@
+import React, { useId } from 'react';
+{{> react/styles-import}}
+
+export type TextareaVariant = {{> shared/variant-types}};
+export type TextareaSize    = {{> shared/size-types}};
+
+export interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+  label?:    string;
+  variant?:  TextareaVariant;
+  size?:     TextareaSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    { label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, rows = 4, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = `${id}-error`;
+    const hintId = `${id}-hint`;
+
+    const cls = [
+      styles.textarea,
+      styles[`textarea--${variant}`],
+      styles[`textarea--${size}`],
+      (error || variant === 'error') && styles['textarea--error'],
+      props.disabled && styles['textarea--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    const describedBy = [
+      error ? errorId : null,
+      hint ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <div className={styles['textarea-container']}>
+        {label && (
+          <label htmlFor={id} className={styles.label}>
+            {label}
+            {required && <span className={styles.required} aria-hidden="true">*</span>}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          id={id}
+          rows={rows}
+          className={cls}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          aria-required={required}
+          {...props}
+        />
+        {hint && !error && (
+          <span id={hintId} className={styles.hint}>
+            {hint}
+          </span>
+        )}
+        {error && (
+          <span id={errorId} className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Textarea.displayName = 'Textarea';

@@ -21,7 +21,8 @@
     "components/separator.json",
     "components/badge.json",
     "components/skeleton.json",
-    "components/avatar.json"
+    "components/avatar.json",
+    "components/textarea.json"
   ],
   "frameworks": [
     "frameworks/react.json",

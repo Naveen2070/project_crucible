@@ -179,6 +179,12 @@ exports[`6. Template and Snapshot Tests > 6.7: SCSS nested BEM > generates neste
   --avatar-fallback-bg: var(--color-secondary);
   --avatar-fallback-color: var(--color-text);
   --avatar-font-weight: 600;
+  --textarea-min-height: calc(var(--spacing-unit) * 20);
+  --textarea-padding-x: calc(var(--spacing-unit) * 3);
+  --textarea-padding-y: calc(var(--spacing-unit) * 2);
+  --textarea-radius: var(--radius-md);
+  --textarea-border-color: var(--color-border);
+  --textarea-transition: border-color 0.2s ease, box-shadow 0.2s ease;
   --tabs-list-gap: calc(var(--spacing-unit) * 1);
   --tabs-trigger-height-sm: calc(var(--spacing-unit) * 8);
   --tabs-trigger-height-md: calc(var(--spacing-unit) * 9);

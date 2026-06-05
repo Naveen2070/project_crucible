@@ -38,6 +38,7 @@ export const ComponentName = {
   Badge: 'Badge',
   Skeleton: 'Skeleton',
   Avatar: 'Avatar',
+  Textarea: 'Textarea',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

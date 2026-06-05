@@ -1,0 +1,48 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-textarea',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './textarea.component.html',
+})
+export class TextareaComponent {
+  @Input() label = '';
+  @Input() placeholder = '';
+  @Input() value = '';
+  @Input() error = '';
+  @Input() hint = '';
+  @Input() disabled = false;
+  @Input() required = false;
+  @Input() rows = 4;
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  id = 'textarea-' + Math.random().toString(36).substring(2, 9);
+
+  get isError(): boolean {
+    return this.variant === 'error' || !!this.error;
+  }
+
+  getTailwindClasses() {
+    const variantClasses: Record<string, string> = {
+{{#each variants}}      {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}    };
+
+    const sizeClasses: Record<string, string> = {
+      sm: 'text-[0.8125rem] min-h-[4rem]',
+      md: 'text-sm min-h-[5rem]',
+      lg: 'text-base min-h-[7rem]',
+    };
+
+    return [
+      'w-full rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2 leading-relaxed resize-y outline-none transition-colors',
+      'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30',
+      'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[var(--color-background)]',
+      'placeholder:text-[var(--color-text-muted)]',
+      this.isError ? variantClasses['error'] : variantClasses[this.variant],
+      sizeClasses[this.size],
+    ].join(' ');
+  }
+}

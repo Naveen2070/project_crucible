@@ -136,6 +136,14 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     fallbackColor: 'var(--color-text)',
     fontWeight: '600',
   },
+  textarea: {
+    minHeight: 'calc(var(--spacing-unit) * 20)',
+    paddingX: 'calc(var(--spacing-unit) * 3)',
+    paddingY: 'calc(var(--spacing-unit) * 2)',
+    radius: 'var(--radius-md)',
+    borderColor: 'var(--color-border)',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',

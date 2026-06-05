@@ -39,6 +39,7 @@ const COMPONENTS = [
   'Badge',
   'Skeleton',
   'Avatar',
+  'Textarea',
 ];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,

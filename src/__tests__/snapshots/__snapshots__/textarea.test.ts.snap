@@ -1,0 +1,629 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Textarea snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-textarea',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './textarea.component.html',
+  styleUrls: ['./textarea.component.css'],
+})
+export class TextareaComponent {
+  @Input() label = '';
+  @Input() placeholder = '';
+  @Input() value = '';
+  @Input() error = '';
+  @Input() hint = '';
+  @Input() disabled = false;
+  @Input() required = false;
+  @Input() rows = 4;
+  @Input() variant: 'default' | 'error' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+
+  id = 'textarea-' + Math.random().toString(36).substring(2, 9);
+
+  get isError(): boolean {
+    return this.variant === 'error' || !!this.error;
+  }
+}
+"
+`;
+
+exports[`Textarea snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<div class="textarea-container">
+  @if (label) {
+    <label [attr.for]="id" class="label">
+      {{ label }}
+      @if (required) {
+        <span class="required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <textarea
+    [id]="id"
+    class="textarea"
+    [class.textarea--sm]="size === 'sm'"
+    [class.textarea--md]="size === 'md'"
+    [class.textarea--lg]="size === 'lg'"
+    [class.textarea--error]="isError"
+    [class.textarea--disabled]="disabled"
+    [rows]="rows"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [value]="value"
+    [attr.aria-invalid]="!!error"
+    [attr.aria-required]="required"
+  ></textarea>
+
+  @if (hint && !error) {
+    <span class="hint">{{ hint }}</span>
+  }
+  @if (error) {
+    <span class="error" role="alert">{{ error }}</span>
+  }
+</div>
+"
+`;
+
+exports[`Textarea snapshots > react css mode snapshot 1`] = `
+"import React, { useId } from 'react';
+import styles from './Textarea.module.css';
+export type TextareaVariant = 'default' | 'error';
+export type TextareaSize    = 'sm' | 'md' | 'lg';
+
+export interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+  label?:    string;
+  variant?:  TextareaVariant;
+  size?:     TextareaSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    { label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, rows = 4, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = \`\${id}-error\`;
+    const hintId = \`\${id}-hint\`;
+
+    const cls = [
+      styles.textarea,
+      styles[\`textarea--\${variant}\`],
+      styles[\`textarea--\${size}\`],
+      (error || variant === 'error') && styles['textarea--error'],
+      props.disabled && styles['textarea--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    const describedBy = [
+      error ? errorId : null,
+      hint ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <div className={styles['textarea-container']}>
+        {label && (
+          <label htmlFor={id} className={styles.label}>
+            {label}
+            {required && <span className={styles.required} aria-hidden="true">*</span>}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          id={id}
+          rows={rows}
+          className={cls}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          aria-required={required}
+          {...props}
+        />
+        {hint && !error && (
+          <span id={hintId} className={styles.hint}>
+            {hint}
+          </span>
+        )}
+        {error && (
+          <span id={errorId} className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Textarea.displayName = 'Textarea';
+"
+`;
+
+exports[`Textarea snapshots > react css mode snapshot 2`] = `
+".textarea-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text, #1A1A2E);
+}
+
+.required {
+  color: var(--color-destructive, #E24B4A);
+  margin-left: 2px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: var(--textarea-min-height, calc(var(--spacing-unit) * 20));
+  padding: var(--textarea-padding-y, calc(var(--spacing-unit) * 2))
+    var(--textarea-padding-x, calc(var(--spacing-unit) * 3));
+  border: 1px solid var(--textarea-border-color, var(--color-border));
+  border-radius: var(--textarea-radius, var(--radius-md));
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text, #1A1A2E);
+  background-color: var(--color-surface, #FFFFFF);
+  resize: vertical;
+  outline: none;
+  transition: var(--textarea-transition, border-color 0.2s ease, box-shadow 0.2s ease);
+}
+
+.textarea:focus-visible {
+  border-color: var(--color-primary, #6C63FF);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6C63FF) 20%, transparent);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+/* Sizes */
+.textarea--sm {
+  font-size: 0.8125rem;
+  min-height: calc(var(--spacing-unit, 4px) * 16);
+}
+
+.textarea--md {
+  font-size: 0.875rem;
+}
+
+.textarea--lg {
+  font-size: 1rem;
+  min-height: calc(var(--spacing-unit, 4px) * 28);
+}
+
+/* States */
+.textarea--error {
+  border-color: var(--color-destructive, #E24B4A);
+}
+
+.textarea--error:focus-visible {
+  border-color: var(--color-destructive, #E24B4A);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-destructive, #E24B4A) 20%, transparent);
+}
+
+.textarea--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--color-background, #F8F9FA);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}
+"
+`;
+
+exports[`Textarea snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Textarea } from './Textarea';
+
+const meta: Meta<typeof Textarea> = {
+  title: 'Crucible/Textarea',
+  component: Textarea,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:  { control: 'select', options: ['default', 'error'] },
+    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    rows:     { control: 'number' },
+    disabled: { control: 'boolean' },
+    required: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Textarea>;
+
+export const Default: Story = {
+  args: { label: 'Message', placeholder: 'Type your message…', size: 'md' },
+};
+
+export const SizeSm: Story = {
+  args: { label: 'Sm Size', size: 'sm', placeholder: 'Textarea sm' },
+};
+export const SizeMd: Story = {
+  args: { label: 'Md Size', size: 'md', placeholder: 'Textarea md' },
+};
+export const SizeLg: Story = {
+  args: { label: 'Lg Size', size: 'lg', placeholder: 'Textarea lg' },
+};
+
+export const WithHint: Story = {
+  args: { label: 'Bio', hint: 'Max 200 characters', maxLength: 200, placeholder: 'Tell us about yourself…' },
+};
+
+export const WithError: Story = {
+  args: { label: 'Feedback', variant: 'error', error: 'This field is required' },
+};
+
+export const Disabled: Story = {
+  args: { label: 'Notes', disabled: true, defaultValue: 'Read-only content' },
+};
+
+export const Required: Story = {
+  args: { label: 'Description', required: true, placeholder: 'Required field' },
+};
+"
+`;
+
+exports[`Textarea snapshots > react scss mode snapshot 1`] = `
+".textarea-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text, #1A1A2E);
+}
+
+.required {
+  color: var(--color-destructive, #E24B4A);
+  margin-left: 2px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: var(--textarea-min-height, calc(var(--spacing-unit) * 20));
+  padding: var(--textarea-padding-y, calc(var(--spacing-unit) * 2))
+    var(--textarea-padding-x, calc(var(--spacing-unit) * 3));
+  border: 1px solid var(--textarea-border-color, var(--color-border));
+  border-radius: var(--textarea-radius, var(--radius-md));
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text, #1A1A2E);
+  background-color: var(--color-surface, #FFFFFF);
+  resize: vertical;
+  outline: none;
+  transition: var(--textarea-transition, border-color 0.2s ease, box-shadow 0.2s ease);
+
+  &:focus-visible {
+    border-color: var(--color-primary, #6C63FF);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6C63FF) 20%, transparent);
+  }
+
+  &::placeholder {
+    color: var(--color-text-muted, #6B6B8A);
+  }
+
+  &--sm {
+    font-size: 0.8125rem;
+    min-height: calc(var(--spacing-unit, 4px) * 16);
+  }
+
+  &--md {
+    font-size: 0.875rem;
+  }
+
+  &--lg {
+    font-size: 1rem;
+    min-height: calc(var(--spacing-unit, 4px) * 28);
+  }
+
+  &--error {
+    border-color: var(--color-destructive, #E24B4A);
+
+    &:focus-visible {
+      border-color: var(--color-destructive, #E24B4A);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-destructive, #E24B4A) 20%, transparent);
+    }
+  }
+
+  &--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--color-background, #F8F9FA);
+  }
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}
+"
+`;
+
+exports[`Textarea snapshots > react tailwind mode snapshot 1`] = `
+"import React, { useId } from 'react';
+
+export type TextareaVariant = 'default' | 'error';
+export type TextareaSize    = 'sm' | 'md' | 'lg';
+
+export interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+  label?:    string;
+  variant?:  TextareaVariant;
+  size?:     TextareaSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+const VARIANT_CLASSES: Record<TextareaVariant, string> = {
+  default: 'border-[var(--color-border)] focus:border-[var(--color-primary)]',
+  error: 'border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
+};
+
+const SIZE_CLASSES: Record<TextareaSize, string> = {
+  sm: 'text-[0.8125rem] min-h-[4rem]',
+  md: 'text-sm min-h-[5rem]',
+  lg: 'text-base min-h-[7rem]',
+};
+
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    { label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, rows = 4, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = \`\${id}-error\`;
+    const hintId = \`\${id}-hint\`;
+
+    const cls = [
+      'w-full rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2 leading-relaxed resize-y outline-none transition-colors',
+      'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:ring-offset-0',
+      'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[var(--color-background)]',
+      'placeholder:text-[var(--color-text-muted)]',
+      (error ? 'error' : variant) === 'error' ? VARIANT_CLASSES.error : VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    const describedBy = [
+      error ? errorId : null,
+      hint ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && (
+          <label htmlFor={id} className="text-sm font-medium text-[var(--color-text)]">
+            {label}
+            {required && <span className="ml-0.5 text-[var(--color-destructive)]" aria-hidden="true">*</span>}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          id={id}
+          rows={rows}
+          className={cls}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          aria-required={required}
+          {...props}
+        />
+        {hint && !error && (
+          <span id={hintId} className="text-xs text-[var(--color-text-muted)]">
+            {hint}
+          </span>
+        )}
+        {error && (
+          <span id={errorId} className="text-xs text-[var(--color-destructive)]" role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Textarea.displayName = 'Textarea';
+"
+`;
+
+exports[`Textarea snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { computed } from 'vue';
+
+export type TextareaVariant = 'default' | 'error';
+export type TextareaSize    = 'sm' | 'md' | 'lg';
+
+interface Props {
+  id?:          string;
+  modelValue?:  string;
+  label?:       string;
+  placeholder?: string;
+  variant?:     TextareaVariant;
+  size?:        TextareaSize;
+  error?:       string;
+  hint?:        string;
+  disabled?:    boolean;
+  required?:    boolean;
+  rows?:        number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: '',
+  modelValue: '',
+  label: '',
+  placeholder: '',
+  variant: 'default',
+  size: 'md',
+  error: '',
+  hint: '',
+  disabled: false,
+  required: false,
+  rows: 4,
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const generatedId = \`textarea-\${Math.floor(Math.random() * 1000000)}\`;
+const textareaId = computed(() => props.id || generatedId);
+const errorId = computed(() => \`\${textareaId.value}-error\`);
+const hintId = computed(() => \`\${textareaId.value}-hint\`);
+
+const describedBy = computed(() => {
+  const ids = [];
+  if (props.error) ids.push(errorId.value);
+  if (props.hint) ids.push(hintId.value);
+  return ids.join(' ') || undefined;
+});
+
+const onInput = (event: Event) => {
+  emit('update:modelValue', (event.target as HTMLTextAreaElement).value);
+};
+
+const textareaClasses = computed(() => [
+  'textarea',
+  \`textarea--\${props.size}\`,
+  {
+    'textarea--error': props.variant === 'error' || !!props.error,
+    'textarea--disabled': props.disabled,
+  },
+]);
+</script>
+
+<template>
+  <div class="textarea-container">
+    <label v-if="label" :for="textareaId" class="label">
+      {{ label }}
+      <span v-if="required" class="required" aria-hidden="true">*</span>
+    </label>
+
+    <textarea
+      :id="textareaId"
+      :class="textareaClasses"
+      :rows="rows"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :value="modelValue"
+      @input="onInput"
+      :aria-invalid="!!error"
+      :aria-required="required"
+      :aria-describedby="describedBy"
+    />
+
+    <span v-if="hint && !error" :id="hintId" class="hint">{{ hint }}</span>
+    <span v-if="error" :id="errorId" class="error" role="alert">{{ error }}</span>
+  </div>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.textarea-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text, #1A1A2E);
+}
+
+.required {
+  color: var(--color-destructive, #E24B4A);
+  margin-left: 2px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: var(--textarea-min-height, calc(var(--spacing-unit) * 20));
+  padding: var(--textarea-padding-y, calc(var(--spacing-unit) * 2))
+    var(--textarea-padding-x, calc(var(--spacing-unit) * 3));
+  border: 1px solid var(--textarea-border-color, var(--color-border));
+  border-radius: var(--textarea-radius, var(--radius-md));
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text, #1A1A2E);
+  background-color: var(--color-surface, #FFFFFF);
+  resize: vertical;
+  outline: none;
+  transition: var(--textarea-transition, border-color 0.2s ease, box-shadow 0.2s ease);
+}
+
+.textarea:focus-visible {
+  border-color: var(--color-primary, #6C63FF);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6C63FF) 20%, transparent);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.textarea--sm {
+  font-size: 0.8125rem;
+  min-height: calc(var(--spacing-unit, 4px) * 16);
+}
+
+.textarea--lg {
+  font-size: 1rem;
+  min-height: calc(var(--spacing-unit, 4px) * 28);
+}
+
+.textarea--error {
+  border-color: var(--color-destructive, #E24B4A);
+}
+
+.textarea--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--color-background, #F8F9FA);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}
+</style>
+"
+`;

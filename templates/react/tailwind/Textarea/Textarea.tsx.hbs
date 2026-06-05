@@ -1,0 +1,84 @@
+import React, { useId } from 'react';
+
+export type TextareaVariant = {{> shared/variant-types}};
+export type TextareaSize    = {{> shared/size-types}};
+
+export interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+  label?:    string;
+  variant?:  TextareaVariant;
+  size?:     TextareaSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+const VARIANT_CLASSES: Record<TextareaVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+const SIZE_CLASSES: Record<TextareaSize, string> = {
+  sm: 'text-[0.8125rem] min-h-[4rem]',
+  md: 'text-sm min-h-[5rem]',
+  lg: 'text-base min-h-[7rem]',
+};
+
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    { label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, rows = 4, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = `${id}-error`;
+    const hintId = `${id}-hint`;
+
+    const cls = [
+      'w-full rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-[var(--color-text)] px-3 py-2 leading-relaxed resize-y outline-none transition-colors',
+      'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/30 focus-visible:ring-offset-0',
+      'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[var(--color-background)]',
+      'placeholder:text-[var(--color-text-muted)]',
+      (error ? 'error' : variant) === 'error' ? VARIANT_CLASSES.error : VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    const describedBy = [
+      error ? errorId : null,
+      hint ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && (
+          <label htmlFor={id} className="text-sm font-medium text-[var(--color-text)]">
+            {label}
+            {required && <span className="ml-0.5 text-[var(--color-destructive)]" aria-hidden="true">*</span>}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          id={id}
+          rows={rows}
+          className={cls}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          aria-required={required}
+          {...props}
+        />
+        {hint && !error && (
+          <span id={hintId} className="text-xs text-[var(--color-text-muted)]">
+            {hint}
+          </span>
+        )}
+        {error && (
+          <span id={errorId} className="text-xs text-[var(--color-destructive)]" role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Textarea.displayName = 'Textarea';

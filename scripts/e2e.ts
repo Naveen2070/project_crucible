@@ -2170,6 +2170,121 @@ async function runE2E() {
       throw new Error('Angular Avatar HTML missing image error fallback');
     }
     results.push({ phase: 'Avatar + Angular + SCSS', passed: true });
+
+    // Textarea + React + CSS
+    console.log(ansis.cyan('📦 Phase 68: Textarea + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Textarea'));
+    runCLI('add Textarea -y');
+    const taReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Textarea', 'Textarea.tsx'),
+      'utf-8',
+    );
+    if (!taReactCss.includes('export const Textarea') || !taReactCss.includes('<textarea') || !taReactCss.includes('aria-invalid')) {
+      throw new Error('React Textarea missing export, textarea element, or aria-invalid');
+    }
+    if (taReactCss.includes('Object.assign')) {
+      throw new Error('Textarea should be monolithic');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Textarea', 'Textarea.module.css')))) {
+      throw new Error('Missing: Textarea/Textarea.module.css');
+    }
+    results.push({ phase: 'Textarea + React + CSS', passed: true });
+
+    // Textarea + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 69: Textarea + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Textarea'));
+    runCLI('add Textarea -y');
+    const taReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Textarea', 'Textarea.tsx'),
+      'utf-8',
+    );
+    if (!taReactTw.includes('resize-y') || taReactTw.includes('Textarea.module')) {
+      throw new Error('React Tailwind Textarea missing inline classes or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Textarea', 'Textarea.module.css'))) {
+      throw new Error('Tailwind Textarea should not emit a CSS module');
+    }
+    results.push({ phase: 'Textarea + React + Tailwind', passed: true });
+
+    // Textarea + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 70: Textarea + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Textarea'));
+    runCLI('add Textarea -y');
+    const taVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Textarea', 'Textarea.vue'),
+      'utf-8',
+    );
+    if (!taVue.includes('<textarea') || !taVue.includes('update:modelValue')) {
+      throw new Error('Vue Textarea missing textarea element or v-model wiring');
+    }
+    results.push({ phase: 'Textarea + Vue + CSS', passed: true });
+
+    // Textarea + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 71: Textarea + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Textarea'));
+    runCLI('add Textarea -y');
+    const taNgFiles = ['Textarea/textarea.component.ts', 'Textarea/textarea.component.html', 'Textarea/textarea.component.scss'];
+    for (const file of taNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const taNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Textarea', 'textarea.component.ts'),
+      'utf-8',
+    );
+    if (!taNgTs.includes('export class TextareaComponent') || !taNgTs.includes("styleUrls: ['./textarea.component.scss']")) {
+      throw new Error('Angular Textarea missing TextareaComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Textarea + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
