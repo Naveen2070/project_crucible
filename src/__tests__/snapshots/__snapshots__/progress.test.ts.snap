@@ -1,0 +1,743 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Progress snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-progress',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './progress.component.html',
+  styleUrls: ['./progress.component.css'],
+})
+export class ProgressComponent {
+  @Input() value = 0;
+  @Input() max = 100;
+  @Input() label = '';
+  @Input() indeterminate = false;
+  @Input() variant: 'linear' | 'circular' = 'linear';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+
+  readonly radius = 16;
+  readonly circumference = 2 * Math.PI * 16;
+
+  get clamped(): number {
+    return Math.min(Math.max(this.value, 0), this.max);
+  }
+
+  get pct(): number {
+    return this.max > 0 ? (this.clamped / this.max) * 100 : 0;
+  }
+
+  get barWidth(): string | null {
+    return this.indeterminate ? null : \`\${this.pct}%\`;
+  }
+
+  get dashOffset(): number {
+    return this.indeterminate ? this.circumference * 0.75 : this.circumference * (1 - this.pct / 100);
+  }
+
+  get ariaNow(): number | null {
+    return this.indeterminate ? null : this.clamped;
+  }
+}
+"
+`;
+
+exports[`Progress snapshots > angular css mode snapshot (monolithic) 2`] = `
+"@if (variant === 'circular') {
+  <div
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="ariaNow"
+    [attr.aria-label]="label || null"
+    class="progress-circular"
+    [class.progress-circular--sm]="size === 'sm'"
+    [class.progress-circular--md]="size === 'md'"
+    [class.progress-circular--lg]="size === 'lg'"
+    [class.progress-circular--indeterminate]="indeterminate"
+  >
+    <svg class="progress-circular-svg" viewBox="0 0 36 36">
+      <circle class="progress-circular-track" cx="18" cy="18" r="16" fill="none"></circle>
+      <circle
+        class="progress-circular-bar"
+        cx="18"
+        cy="18"
+        r="16"
+        fill="none"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="dashOffset"
+      ></circle>
+    </svg>
+  </div>
+} @else {
+  <div
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="ariaNow"
+    [attr.aria-label]="label || null"
+    class="progress"
+    [class.progress--sm]="size === 'sm'"
+    [class.progress--md]="size === 'md'"
+    [class.progress--lg]="size === 'lg'"
+  >
+    <div class="progress-bar" [class.progress-bar--indeterminate]="indeterminate" [style.width]="barWidth"></div>
+  </div>
+}
+"
+`;
+
+exports[`Progress snapshots > react css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Progress.module.css';
+export type ProgressVariant = 'linear' | 'circular';
+export type ProgressSize    = 'sm' | 'md' | 'lg';
+
+export interface ProgressProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'role'> {
+  /** Current value (0..max) */
+  value?: number;
+  /** Maximum value */
+  max?: number;
+  /** Linear bar or circular ring */
+  variant?: ProgressVariant;
+  /** Bar thickness / ring diameter */
+  size?: ProgressSize;
+  /** Accessible label */
+  label?: string;
+  /** Show a continuous (looping) animation instead of a fixed value */
+  indeterminate?: boolean;
+}
+
+const RADIUS = 16;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ value = 0, max = 100, variant = 'linear', size = 'md', label, indeterminate = false, className, ...props }, ref) => {
+    const clamped = Math.min(Math.max(value, 0), max);
+    const pct = max > 0 ? (clamped / max) * 100 : 0;
+
+    const ariaProps = {
+      role: 'progressbar' as const,
+      'aria-valuemin': 0,
+      'aria-valuemax': max,
+      'aria-valuenow': indeterminate ? undefined : clamped,
+      'aria-label': label,
+    };
+
+    if (variant === 'circular') {
+      const dashoffset = indeterminate ? CIRCUMFERENCE * 0.75 : CIRCUMFERENCE * (1 - pct / 100);
+      const ringStyle = { strokeDasharray: CIRCUMFERENCE, strokeDashoffset: dashoffset };
+      const wrapCls = [
+        styles['progress-circular'],
+        styles[\`progress-circular--\${size}\`],
+        indeterminate && styles['progress-circular--indeterminate'],
+        className,
+      ].filter(Boolean).join(' ');
+
+      return (
+        <div ref={ref} className={wrapCls} {...ariaProps} {...props}>
+          <svg className={styles['progress-circular-svg']} viewBox="0 0 36 36">
+            <circle className={styles['progress-circular-track']} cx="18" cy="18" r={RADIUS} fill="none" />
+            <circle className={styles['progress-circular-bar']} cx="18" cy="18" r={RADIUS} fill="none" style={ringStyle} />
+          </svg>
+        </div>
+      );
+    }
+
+    const barStyle = indeterminate ? undefined : { width: \`\${pct}%\` };
+    const cls = [styles.progress, styles[\`progress--\${size}\`], className].filter(Boolean).join(' ');
+    const barCls = [
+      styles['progress-bar'],
+      indeterminate && styles['progress-bar--indeterminate'],
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} className={cls} {...ariaProps} {...props}>
+        <div className={barCls} style={barStyle} />
+      </div>
+    );
+  }
+);
+
+Progress.displayName = 'Progress';
+"
+`;
+
+exports[`Progress snapshots > react css mode snapshot 2`] = `
+"/* Linear */
+.progress {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--progress-track-bg, var(--color-secondary));
+  border-radius: var(--progress-radius, 9999px);
+}
+
+.progress--sm {
+  height: 4px;
+}
+
+.progress--md {
+  height: 8px;
+}
+
+.progress--lg {
+  height: 12px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--progress-bar-bg, var(--color-primary));
+  border-radius: inherit;
+  transition: var(--progress-transition, width 0.3s ease);
+}
+
+.progress-bar--indeterminate {
+  width: 40%;
+  animation: progress-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+/* Circular */
+.progress-circular {
+  display: inline-flex;
+}
+
+.progress-circular--sm {
+  width: 24px;
+  height: 24px;
+}
+
+.progress-circular--md {
+  width: 40px;
+  height: 40px;
+}
+
+.progress-circular--lg {
+  width: 56px;
+  height: 56px;
+}
+
+.progress-circular-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-circular:not(.progress-circular--indeterminate) .progress-circular-svg {
+  transform: rotate(-90deg);
+}
+
+.progress-circular-track {
+  stroke: var(--progress-track-bg, var(--color-secondary));
+  stroke-width: 4;
+}
+
+.progress-circular-bar {
+  stroke: var(--progress-bar-bg, var(--color-primary));
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.progress-circular--indeterminate .progress-circular-svg {
+  animation: progress-spin 0.9s linear infinite;
+}
+
+@keyframes progress-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar--indeterminate {
+    animation: none;
+    width: 100%;
+  }
+  .progress-circular--indeterminate .progress-circular-svg {
+    animation-duration: 2.4s;
+  }
+}
+"
+`;
+
+exports[`Progress snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Progress } from './Progress';
+
+const meta: Meta<typeof Progress> = {
+  title: 'Crucible/Progress',
+  component: Progress,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:       { control: 'select', options: ['linear', 'circular'] },
+    size:          { control: 'select', options: ['sm', 'md', 'lg'] },
+    value:         { control: { type: 'range', min: 0, max: 100 } },
+    indeterminate: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Progress>;
+
+export const Default: Story = {
+  args: { value: 60, max: 100, variant: 'linear', size: 'md', label: 'Upload progress' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+export const SizeSm: Story = {
+  args: { value: 50, size: 'sm', label: 'Sm progress' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+export const SizeMd: Story = {
+  args: { value: 50, size: 'md', label: 'Md progress' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+export const SizeLg: Story = {
+  args: { value: 50, size: 'lg', label: 'Lg progress' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+export const Indeterminate: Story = {
+  args: { variant: 'linear', indeterminate: true, label: 'Loading' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+export const Complete: Story = {
+  args: { variant: 'linear', value: 100, label: 'Done' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+export const Circular: Story = {
+  args: { variant: 'circular', value: 70, size: 'md', label: 'Loading 70%' },
+  render: (args) => <Progress {...args} />,
+};
+
+export const CircularLoader: Story = {
+  args: { variant: 'circular', indeterminate: true, size: 'md', label: 'Loading' },
+  render: (args) => <Progress {...args} />,
+};
+"
+`;
+
+exports[`Progress snapshots > react scss mode snapshot 1`] = `
+"/* Linear */
+.progress {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--progress-track-bg, var(--color-secondary));
+  border-radius: var(--progress-radius, 9999px);
+
+  &--sm {
+    height: 4px;
+  }
+
+  &--md {
+    height: 8px;
+  }
+
+  &--lg {
+    height: 12px;
+  }
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--progress-bar-bg, var(--color-primary));
+  border-radius: inherit;
+  transition: var(--progress-transition, width 0.3s ease);
+
+  &--indeterminate {
+    width: 40%;
+    animation: progress-indeterminate 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+/* Circular */
+.progress-circular {
+  display: inline-flex;
+
+  &--sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  &--md {
+    width: 40px;
+    height: 40px;
+  }
+
+  &--lg {
+    width: 56px;
+    height: 56px;
+  }
+
+  &:not(.progress-circular--indeterminate) .progress-circular-svg {
+    transform: rotate(-90deg);
+  }
+
+  &--indeterminate .progress-circular-svg {
+    animation: progress-spin 0.9s linear infinite;
+  }
+}
+
+.progress-circular-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-circular-track {
+  stroke: var(--progress-track-bg, var(--color-secondary));
+  stroke-width: 4;
+}
+
+.progress-circular-bar {
+  stroke: var(--progress-bar-bg, var(--color-primary));
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+@keyframes progress-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar--indeterminate {
+    animation: none;
+    width: 100%;
+  }
+  .progress-circular--indeterminate .progress-circular-svg {
+    animation-duration: 2.4s;
+  }
+}
+"
+`;
+
+exports[`Progress snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type ProgressVariant = 'linear' | 'circular';
+export type ProgressSize    = 'sm' | 'md' | 'lg';
+
+export interface ProgressProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'role'> {
+  /** Current value (0..max) */
+  value?: number;
+  /** Maximum value */
+  max?: number;
+  /** Linear bar or circular ring */
+  variant?: ProgressVariant;
+  /** Bar thickness / ring diameter */
+  size?: ProgressSize;
+  /** Accessible label */
+  label?: string;
+  /** Show a continuous (looping) animation instead of a fixed value */
+  indeterminate?: boolean;
+}
+
+const LINEAR_SIZE: Record<ProgressSize, string> = {
+  sm: 'h-1',
+  md: 'h-2',
+  lg: 'h-3',
+};
+
+const CIRCULAR_SIZE: Record<ProgressSize, string> = {
+  sm: 'w-6 h-6',
+  md: 'w-10 h-10',
+  lg: 'w-14 h-14',
+};
+
+const RADIUS = 16;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ value = 0, max = 100, variant = 'linear', size = 'md', label, indeterminate = false, className, ...props }, ref) => {
+    const clamped = Math.min(Math.max(value, 0), max);
+    const pct = max > 0 ? (clamped / max) * 100 : 0;
+
+    const ariaProps = {
+      role: 'progressbar' as const,
+      'aria-valuemin': 0,
+      'aria-valuemax': max,
+      'aria-valuenow': indeterminate ? undefined : clamped,
+      'aria-label': label,
+    };
+
+    if (variant === 'circular') {
+      const dashoffset = indeterminate ? CIRCUMFERENCE * 0.75 : CIRCUMFERENCE * (1 - pct / 100);
+      const ringStyle = { strokeDasharray: CIRCUMFERENCE, strokeDashoffset: dashoffset };
+      const wrapCls = ['inline-flex', CIRCULAR_SIZE[size], className || ''].filter(Boolean).join(' ');
+      const svgCls = ['w-full h-full', indeterminate ? 'motion-safe:animate-spin' : '-rotate-90'].join(' ');
+
+      return (
+        <div ref={ref} className={wrapCls} {...ariaProps} {...props}>
+          <svg className={svgCls} viewBox="0 0 36 36">
+            <circle
+              className="stroke-[var(--progress-track-bg,var(--color-secondary))] [stroke-width:4]"
+              cx="18"
+              cy="18"
+              r={RADIUS}
+              fill="none"
+            />
+            <circle
+              className="stroke-[var(--progress-bar-bg,var(--color-primary))] [stroke-width:4] [stroke-linecap:round] transition-[stroke-dashoffset] duration-300"
+              cx="18"
+              cy="18"
+              r={RADIUS}
+              fill="none"
+              style={ringStyle}
+            />
+          </svg>
+        </div>
+      );
+    }
+
+    const barStyle = indeterminate ? undefined : { width: \`\${pct}%\` };
+    const cls = [
+      'w-full overflow-hidden rounded-full bg-[var(--progress-track-bg,var(--color-secondary))]',
+      LINEAR_SIZE[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+    const barCls = [
+      'h-full rounded-[inherit] bg-[var(--progress-bar-bg,var(--color-primary))] transition-[width] duration-300',
+      indeterminate ? 'w-2/5 motion-safe:animate-pulse' : '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} className={cls} {...ariaProps} {...props}>
+        <div className={barCls} style={barStyle} />
+      </div>
+    );
+  }
+);
+
+Progress.displayName = 'Progress';
+"
+`;
+
+exports[`Progress snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { computed } from 'vue';
+
+export type ProgressVariant = 'linear' | 'circular';
+export type ProgressSize    = 'sm' | 'md' | 'lg';
+
+interface Props {
+  value?:         number;
+  max?:           number;
+  variant?:       ProgressVariant;
+  size?:          ProgressSize;
+  label?:         string;
+  indeterminate?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  value: 0,
+  max: 100,
+  variant: 'linear',
+  size: 'md',
+  label: '',
+  indeterminate: false,
+});
+
+const RADIUS = 16;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const clamped = computed(() => Math.min(Math.max(props.value, 0), props.max));
+const pct = computed(() => (props.max > 0 ? (clamped.value / props.max) * 100 : 0));
+const ariaNow = computed(() => (props.indeterminate ? undefined : clamped.value));
+const barStyle = computed(() => (props.indeterminate ? {} : { width: \`\${pct.value}%\` }));
+const ringStyle = computed(() => ({
+  strokeDasharray: CIRCUMFERENCE,
+  strokeDashoffset: props.indeterminate ? CIRCUMFERENCE * 0.75 : CIRCUMFERENCE * (1 - pct.value / 100),
+}));
+</script>
+
+<template>
+  <div
+    v-if="variant === 'circular'"
+    role="progressbar"
+    :aria-valuemin="0"
+    :aria-valuemax="max"
+    :aria-valuenow="ariaNow"
+    :aria-label="label || undefined"
+    :class="['progress-circular', \`progress-circular--\${size}\`, { 'progress-circular--indeterminate': indeterminate }]"
+  >
+    <svg class="progress-circular-svg" viewBox="0 0 36 36">
+      <circle class="progress-circular-track" cx="18" cy="18" r="16" fill="none" />
+      <circle class="progress-circular-bar" cx="18" cy="18" r="16" fill="none" :style="ringStyle" />
+    </svg>
+  </div>
+  <div
+    v-else
+    role="progressbar"
+    :aria-valuemin="0"
+    :aria-valuemax="max"
+    :aria-valuenow="ariaNow"
+    :aria-label="label || undefined"
+    :class="['progress', \`progress--\${size}\`]"
+  >
+    <div :class="['progress-bar', { 'progress-bar--indeterminate': indeterminate }]" :style="barStyle" />
+  </div>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.progress {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--progress-track-bg, var(--color-secondary));
+  border-radius: var(--progress-radius, 9999px);
+}
+
+.progress--sm {
+  height: 4px;
+}
+
+.progress--md {
+  height: 8px;
+}
+
+.progress--lg {
+  height: 12px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--progress-bar-bg, var(--color-primary));
+  border-radius: inherit;
+  transition: var(--progress-transition, width 0.3s ease);
+}
+
+.progress-bar--indeterminate {
+  width: 40%;
+  animation: progress-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.progress-circular {
+  display: inline-flex;
+}
+
+.progress-circular--sm {
+  width: 24px;
+  height: 24px;
+}
+
+.progress-circular--md {
+  width: 40px;
+  height: 40px;
+}
+
+.progress-circular--lg {
+  width: 56px;
+  height: 56px;
+}
+
+.progress-circular-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-circular:not(.progress-circular--indeterminate) .progress-circular-svg {
+  transform: rotate(-90deg);
+}
+
+.progress-circular-track {
+  stroke: var(--progress-track-bg, var(--color-secondary));
+  stroke-width: 4;
+}
+
+.progress-circular-bar {
+  stroke: var(--progress-bar-bg, var(--color-primary));
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.progress-circular--indeterminate .progress-circular-svg {
+  animation: progress-spin 0.9s linear infinite;
+}
+
+@keyframes progress-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar--indeterminate {
+    animation: none;
+    width: 100%;
+  }
+  .progress-circular--indeterminate .progress-circular-svg {
+    animation-duration: 2.4s;
+  }
+}
+</style>
+"
+`;

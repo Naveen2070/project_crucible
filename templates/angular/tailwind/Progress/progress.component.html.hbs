@@ -1,0 +1,34 @@
+@if (variant === 'circular') {
+  <div
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="ariaNow"
+    [attr.aria-label]="label || null"
+    [class]="getCircularClasses()"
+  >
+    <svg [class]="getSvgClasses()" viewBox="0 0 36 36">
+      <circle class="stroke-[var(--progress-track-bg,var(--color-secondary))] [stroke-width:4]" cx="18" cy="18" r="16" fill="none"></circle>
+      <circle
+        class="stroke-[var(--progress-bar-bg,var(--color-primary))] [stroke-width:4] [stroke-linecap:round] transition-[stroke-dashoffset] duration-300"
+        cx="18"
+        cy="18"
+        r="16"
+        fill="none"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="dashOffset"
+      ></circle>
+    </svg>
+  </div>
+} @else {
+  <div
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="ariaNow"
+    [attr.aria-label]="label || null"
+    [class]="getTrackClasses()"
+  >
+    <div [class]="getBarClasses()" [style.width]="barWidth"></div>
+  </div>
+}

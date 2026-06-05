@@ -1,0 +1,41 @@
+@if (variant === 'circular') {
+  <div
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="ariaNow"
+    [attr.aria-label]="label || null"
+    class="progress-circular"
+    [class.progress-circular--sm]="size === 'sm'"
+    [class.progress-circular--md]="size === 'md'"
+    [class.progress-circular--lg]="size === 'lg'"
+    [class.progress-circular--indeterminate]="indeterminate"
+  >
+    <svg class="progress-circular-svg" viewBox="0 0 36 36">
+      <circle class="progress-circular-track" cx="18" cy="18" r="16" fill="none"></circle>
+      <circle
+        class="progress-circular-bar"
+        cx="18"
+        cy="18"
+        r="16"
+        fill="none"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="dashOffset"
+      ></circle>
+    </svg>
+  </div>
+} @else {
+  <div
+    role="progressbar"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="max"
+    [attr.aria-valuenow]="ariaNow"
+    [attr.aria-label]="label || null"
+    class="progress"
+    [class.progress--sm]="size === 'sm'"
+    [class.progress--md]="size === 'md'"
+    [class.progress--lg]="size === 'lg'"
+  >
+    <div class="progress-bar" [class.progress-bar--indeterminate]="indeterminate" [style.width]="barWidth"></div>
+  </div>
+}
