@@ -1,0 +1,35 @@
+import { Meta, StoryObj } from '@storybook/angular';
+import { BreadcrumbComponent } from './breadcrumb.component';
+
+const meta: Meta<BreadcrumbComponent> = {
+  title: 'Crucible/Breadcrumb',
+  component: BreadcrumbComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    size:      { control: 'select', options: {{> shared/size-options}} },
+    separator: { control: 'text' },
+    maxItems:  { control: 'number' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<BreadcrumbComponent>;
+
+const sampleItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Products', href: '/products' },
+  { label: 'Laptops', href: '/products/laptops' },
+  { label: 'ThinkPad X1' },
+];
+
+export const Default: Story = {
+  args: { items: sampleItems, size: 'md' },
+};
+
+export const ChevronSeparator: Story = {
+  args: { items: sampleItems, separator: '›' },
+};
+
+export const Collapsed: Story = {
+  args: { items: sampleItems, maxItems: 3 },
+};

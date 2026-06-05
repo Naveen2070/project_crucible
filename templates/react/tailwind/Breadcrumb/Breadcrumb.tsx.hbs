@@ -1,0 +1,77 @@
+import React from 'react';
+
+export type BreadcrumbSize = {{> shared/size-types}};
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+type DisplayItem = BreadcrumbItem & { ellipsis?: boolean };
+
+export interface BreadcrumbProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
+  /** Ordered trail of crumbs (last item is the current page) */
+  items: BreadcrumbItem[];
+  /** Separator between crumbs */
+  separator?: React.ReactNode;
+  size?: BreadcrumbSize;
+  /** Collapse the middle of long trails to an ellipsis */
+  maxItems?: number;
+}
+
+const SIZE_CLASSES: Record<BreadcrumbSize, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+function buildDisplay(items: BreadcrumbItem[], maxItems?: number): DisplayItem[] {
+  if (maxItems && maxItems >= 2 && items.length > maxItems) {
+    return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (maxItems - 1))];
+  }
+  return items;
+}
+
+export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(
+  ({ items, separator = '/', size = 'md', maxItems, className, ...props }, ref) => {
+    const display = buildDisplay(items, maxItems);
+    const cls = ['font-sans', SIZE_CLASSES[size], className || ''].filter(Boolean).join(' ');
+
+    return (
+      <nav ref={ref} aria-label="Breadcrumb" className={cls} {...props}>
+        <ol className="flex flex-wrap items-center gap-2 m-0 p-0 list-none">
+          {display.map((item, i) => {
+            const isLast = i === display.length - 1;
+            return (
+              <li key={i} className="inline-flex items-center gap-2">
+                {item.ellipsis ? (
+                  <span className="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">
+                    {item.label}
+                  </span>
+                ) : item.href && !isLast ? (
+                  <a
+                    href={item.href}
+                    className="text-[var(--breadcrumb-link-color,var(--color-text-muted))] no-underline hover:underline hover:text-[var(--color-text)]"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <span className="font-medium text-[var(--breadcrumb-active-color,var(--color-text))]" aria-current={isLast ? 'page' : undefined}>
+                    {item.label}
+                  </span>
+                )}
+                {!isLast && (
+                  <span className="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">
+                    {separator}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    );
+  }
+);
+
+Breadcrumb.displayName = 'Breadcrumb';

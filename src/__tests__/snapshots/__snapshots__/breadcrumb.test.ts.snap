@@ -1,0 +1,499 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Breadcrumb snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+type DisplayItem = BreadcrumbItem & { ellipsis?: boolean };
+
+@Component({
+  selector: 'app-breadcrumb',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './breadcrumb.component.html',
+  styleUrls: ['./breadcrumb.component.css'],
+})
+export class BreadcrumbComponent {
+  @Input() items: BreadcrumbItem[] = [];
+  @Input() separator = '/';
+  @Input() maxItems = 0;
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+
+  get display(): DisplayItem[] {
+    const items = this.items;
+    if (this.maxItems && this.maxItems >= 2 && items.length > this.maxItems) {
+      return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (this.maxItems - 1))];
+    }
+    return items;
+  }
+}
+"
+`;
+
+exports[`Breadcrumb snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<nav
+  aria-label="Breadcrumb"
+  class="breadcrumb"
+  [class.breadcrumb--sm]="size === 'sm'"
+  [class.breadcrumb--md]="size === 'md'"
+  [class.breadcrumb--lg]="size === 'lg'"
+>
+  <ol class="breadcrumb-list">
+    @for (item of display; track $index) {
+      <li class="breadcrumb-item">
+        @if (item.ellipsis) {
+          <span class="breadcrumb-ellipsis" aria-hidden="true">{{ item.label }}</span>
+        } @else if (item.href && !$last) {
+          <a [href]="item.href" class="breadcrumb-link">{{ item.label }}</a>
+        } @else {
+          <span class="breadcrumb-current" [attr.aria-current]="$last ? 'page' : null">{{ item.label }}</span>
+        }
+        @if (!$last) {
+          <span class="breadcrumb-separator" aria-hidden="true">{{ separator }}</span>
+        }
+      </li>
+    }
+  </ol>
+</nav>
+"
+`;
+
+exports[`Breadcrumb snapshots > react css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Breadcrumb.module.css';
+export type BreadcrumbSize = 'sm' | 'md' | 'lg';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+type DisplayItem = BreadcrumbItem & { ellipsis?: boolean };
+
+export interface BreadcrumbProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
+  /** Ordered trail of crumbs (last item is the current page) */
+  items: BreadcrumbItem[];
+  /** Separator between crumbs */
+  separator?: React.ReactNode;
+  size?: BreadcrumbSize;
+  /** Collapse the middle of long trails to an ellipsis */
+  maxItems?: number;
+}
+
+function buildDisplay(items: BreadcrumbItem[], maxItems?: number): DisplayItem[] {
+  if (maxItems && maxItems >= 2 && items.length > maxItems) {
+    return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (maxItems - 1))];
+  }
+  return items;
+}
+
+export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(
+  ({ items, separator = '/', size = 'md', maxItems, className, ...props }, ref) => {
+    const display = buildDisplay(items, maxItems);
+    const cls = [styles.breadcrumb, styles[\`breadcrumb--\${size}\`], className].filter(Boolean).join(' ');
+
+    return (
+      <nav ref={ref} aria-label="Breadcrumb" className={cls} {...props}>
+        <ol className={styles['breadcrumb-list']}>
+          {display.map((item, i) => {
+            const isLast = i === display.length - 1;
+            return (
+              <li key={i} className={styles['breadcrumb-item']}>
+                {item.ellipsis ? (
+                  <span className={styles['breadcrumb-ellipsis']} aria-hidden="true">{item.label}</span>
+                ) : item.href && !isLast ? (
+                  <a href={item.href} className={styles['breadcrumb-link']}>{item.label}</a>
+                ) : (
+                  <span className={styles['breadcrumb-current']} aria-current={isLast ? 'page' : undefined}>
+                    {item.label}
+                  </span>
+                )}
+                {!isLast && (
+                  <span className={styles['breadcrumb-separator']} aria-hidden="true">
+                    {separator}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    );
+  }
+);
+
+Breadcrumb.displayName = 'Breadcrumb';
+"
+`;
+
+exports[`Breadcrumb snapshots > react css mode snapshot 2`] = `
+".breadcrumb {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+}
+
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--breadcrumb-gap, calc(var(--spacing-unit) * 2));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--breadcrumb-gap, calc(var(--spacing-unit) * 2));
+}
+
+.breadcrumb-link {
+  color: var(--breadcrumb-link-color, var(--color-text-muted));
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: var(--breadcrumb-active-color, var(--color-text));
+  text-decoration: underline;
+}
+
+.breadcrumb-link:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.breadcrumb-current {
+  color: var(--breadcrumb-active-color, var(--color-text));
+  font-weight: 500;
+}
+
+.breadcrumb-separator,
+.breadcrumb-ellipsis {
+  color: var(--breadcrumb-separator-color, var(--color-text-muted));
+  user-select: none;
+}
+
+.breadcrumb--sm {
+  font-size: 0.75rem;
+}
+
+.breadcrumb--md {
+  font-size: 0.875rem;
+}
+
+.breadcrumb--lg {
+  font-size: 1rem;
+}
+"
+`;
+
+exports[`Breadcrumb snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Breadcrumb } from './Breadcrumb';
+
+const meta: Meta<typeof Breadcrumb> = {
+  title: 'Crucible/Breadcrumb',
+  component: Breadcrumb,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    size:      { control: 'select', options: ['sm', 'md', 'lg'] },
+    separator: { control: 'text' },
+    maxItems:  { control: 'number' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Breadcrumb>;
+
+const sampleItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Products', href: '/products' },
+  { label: 'Laptops', href: '/products/laptops' },
+  { label: 'ThinkPad X1' },
+];
+
+export const Default: Story = {
+  args: { items: sampleItems, size: 'md' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+
+export const ChevronSeparator: Story = {
+  args: { items: sampleItems, separator: '›' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+
+export const Collapsed: Story = {
+  args: { items: sampleItems, maxItems: 3 },
+  render: (args) => <Breadcrumb {...args} />,
+};
+
+export const SizeSm: Story = {
+  args: { items: sampleItems, size: 'sm' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+export const SizeMd: Story = {
+  args: { items: sampleItems, size: 'md' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+export const SizeLg: Story = {
+  args: { items: sampleItems, size: 'lg' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+"
+`;
+
+exports[`Breadcrumb snapshots > react scss mode snapshot 1`] = `
+".breadcrumb {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+
+  &--sm {
+    font-size: 0.75rem;
+  }
+
+  &--md {
+    font-size: 0.875rem;
+  }
+
+  &--lg {
+    font-size: 1rem;
+  }
+}
+
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--breadcrumb-gap, calc(var(--spacing-unit) * 2));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--breadcrumb-gap, calc(var(--spacing-unit) * 2));
+}
+
+.breadcrumb-link {
+  color: var(--breadcrumb-link-color, var(--color-text-muted));
+  text-decoration: none;
+
+  &:hover {
+    color: var(--breadcrumb-active-color, var(--color-text));
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #6C63FF);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.breadcrumb-current {
+  color: var(--breadcrumb-active-color, var(--color-text));
+  font-weight: 500;
+}
+
+.breadcrumb-separator,
+.breadcrumb-ellipsis {
+  color: var(--breadcrumb-separator-color, var(--color-text-muted));
+  user-select: none;
+}
+"
+`;
+
+exports[`Breadcrumb snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type BreadcrumbSize = 'sm' | 'md' | 'lg';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+type DisplayItem = BreadcrumbItem & { ellipsis?: boolean };
+
+export interface BreadcrumbProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
+  /** Ordered trail of crumbs (last item is the current page) */
+  items: BreadcrumbItem[];
+  /** Separator between crumbs */
+  separator?: React.ReactNode;
+  size?: BreadcrumbSize;
+  /** Collapse the middle of long trails to an ellipsis */
+  maxItems?: number;
+}
+
+const SIZE_CLASSES: Record<BreadcrumbSize, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+function buildDisplay(items: BreadcrumbItem[], maxItems?: number): DisplayItem[] {
+  if (maxItems && maxItems >= 2 && items.length > maxItems) {
+    return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (maxItems - 1))];
+  }
+  return items;
+}
+
+export const Breadcrumb = React.forwardRef<HTMLElement, BreadcrumbProps>(
+  ({ items, separator = '/', size = 'md', maxItems, className, ...props }, ref) => {
+    const display = buildDisplay(items, maxItems);
+    const cls = ['font-sans', SIZE_CLASSES[size], className || ''].filter(Boolean).join(' ');
+
+    return (
+      <nav ref={ref} aria-label="Breadcrumb" className={cls} {...props}>
+        <ol className="flex flex-wrap items-center gap-2 m-0 p-0 list-none">
+          {display.map((item, i) => {
+            const isLast = i === display.length - 1;
+            return (
+              <li key={i} className="inline-flex items-center gap-2">
+                {item.ellipsis ? (
+                  <span className="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">
+                    {item.label}
+                  </span>
+                ) : item.href && !isLast ? (
+                  <a
+                    href={item.href}
+                    className="text-[var(--breadcrumb-link-color,var(--color-text-muted))] no-underline hover:underline hover:text-[var(--color-text)]"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <span className="font-medium text-[var(--breadcrumb-active-color,var(--color-text))]" aria-current={isLast ? 'page' : undefined}>
+                    {item.label}
+                  </span>
+                )}
+                {!isLast && (
+                  <span className="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">
+                    {separator}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    );
+  }
+);
+
+Breadcrumb.displayName = 'Breadcrumb';
+"
+`;
+
+exports[`Breadcrumb snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { computed } from 'vue';
+
+export type BreadcrumbSize = 'sm' | 'md' | 'lg';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items?:     BreadcrumbItem[];
+  separator?: string;
+  size?:      BreadcrumbSize;
+  maxItems?:  number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  items: () => [],
+  separator: '/',
+  size: 'md',
+  maxItems: 0,
+});
+
+const display = computed<(BreadcrumbItem & { ellipsis?: boolean })[]>(() => {
+  const items = props.items;
+  if (props.maxItems && props.maxItems >= 2 && items.length > props.maxItems) {
+    return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (props.maxItems - 1))];
+  }
+  return items.map((i) => ({ ...i }));
+});
+</script>
+
+<template>
+  <nav aria-label="Breadcrumb" :class="['breadcrumb', \`breadcrumb--\${size}\`]">
+    <ol class="breadcrumb-list">
+      <li v-for="(item, i) in display" :key="i" class="breadcrumb-item">
+        <span v-if="item.ellipsis" class="breadcrumb-ellipsis" aria-hidden="true">{{ item.label }}</span>
+        <a v-else-if="item.href && i !== display.length - 1" :href="item.href" class="breadcrumb-link">{{ item.label }}</a>
+        <span v-else class="breadcrumb-current" :aria-current="i === display.length - 1 ? 'page' : undefined">{{ item.label }}</span>
+        <span v-if="i !== display.length - 1" class="breadcrumb-separator" aria-hidden="true">{{ separator }}</span>
+      </li>
+    </ol>
+  </nav>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.breadcrumb {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+}
+
+.breadcrumb--sm {
+  font-size: 0.75rem;
+}
+
+.breadcrumb--md {
+  font-size: 0.875rem;
+}
+
+.breadcrumb--lg {
+  font-size: 1rem;
+}
+
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--breadcrumb-gap, calc(var(--spacing-unit) * 2));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--breadcrumb-gap, calc(var(--spacing-unit) * 2));
+}
+
+.breadcrumb-link {
+  color: var(--breadcrumb-link-color, var(--color-text-muted));
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: var(--breadcrumb-active-color, var(--color-text));
+  text-decoration: underline;
+}
+
+.breadcrumb-current {
+  color: var(--breadcrumb-active-color, var(--color-text));
+  font-weight: 500;
+}
+
+.breadcrumb-separator,
+.breadcrumb-ellipsis {
+  color: var(--breadcrumb-separator-color, var(--color-text-muted));
+  user-select: none;
+}
+</style>
+"
+`;
