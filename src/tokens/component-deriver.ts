@@ -144,6 +144,21 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     borderColor: 'var(--color-border)',
     transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
   },
+  checkbox: {
+    size: 'calc(var(--spacing-unit) * 4)',
+    radius: 'var(--radius-sm)',
+    accent: 'var(--color-primary)',
+    labelColor: 'var(--color-text)',
+    gap: 'calc(var(--spacing-unit) * 2)',
+  },
+  switch: {
+    trackOff: 'var(--color-secondary)',
+    trackOn: 'var(--color-primary)',
+    thumb: '#ffffff',
+    transition: 'background-color 0.2s ease, transform 0.2s ease',
+    labelColor: 'var(--color-text)',
+    gap: 'calc(var(--spacing-unit) * 2)',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',

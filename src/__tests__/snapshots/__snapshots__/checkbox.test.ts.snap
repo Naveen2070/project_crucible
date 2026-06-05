@@ -1,0 +1,588 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Checkbox snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-checkbox',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './checkbox.component.html',
+  styleUrls: ['./checkbox.component.css'],
+})
+export class CheckboxComponent {
+  @Input() label = '';
+  @Input() checked = false;
+  @Input() indeterminate = false;
+  @Input() disabled = false;
+  @Input() error = '';
+  @Input() variant: 'default' | 'error' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+
+  @Output() checkedChange = new EventEmitter<boolean>();
+
+  id = 'checkbox-' + Math.random().toString(36).substring(2, 9);
+
+  get isError(): boolean {
+    return this.variant === 'error' || !!this.error;
+  }
+
+  onChange(event: Event): void {
+    this.checkedChange.emit((event.target as HTMLInputElement).checked);
+  }
+}
+"
+`;
+
+exports[`Checkbox snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<div class="checkbox-field" [class.checkbox-field--disabled]="disabled">
+  <div class="checkbox-row">
+    <input
+      type="checkbox"
+      [id]="id"
+      class="checkbox"
+      [class.checkbox--sm]="size === 'sm'"
+      [class.checkbox--md]="size === 'md'"
+      [class.checkbox--lg]="size === 'lg'"
+      [class.checkbox--error]="isError"
+      [checked]="checked"
+      [indeterminate]="indeterminate"
+      [disabled]="disabled"
+      [attr.aria-invalid]="isError"
+      [attr.aria-describedby]="error ? id + '-error' : null"
+      (change)="onChange($event)"
+    />
+    @if (label) {
+      <label [attr.for]="id" class="label">{{ label }}</label>
+    }
+  </div>
+  @if (error) {
+    <span [id]="id + '-error'" class="error" role="alert">{{ error }}</span>
+  }
+</div>
+"
+`;
+
+exports[`Checkbox snapshots > react css mode snapshot 1`] = `
+"import React, { useId, useRef, useEffect } from 'react';
+import styles from './Checkbox.module.css';
+export type CheckboxVariant = 'default' | 'error';
+export type CheckboxSize    = 'sm' | 'md' | 'lg';
+
+export interface CheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'onChange'> {
+  label?:    string;
+  variant?:  CheckboxVariant;
+  size?:     CheckboxSize;
+  error?:    string;
+  /** Render the indeterminate (mixed) visual state */
+  indeterminate?: boolean;
+  /** Convenience change handler returning the checked boolean */
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
+  (
+    { label, variant = 'default', size = 'md', error, indeterminate = false, onCheckedChange, id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = \`\${id}-error\`;
+    const isError = !!error || variant === 'error';
+    const innerRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (innerRef.current) {
+        innerRef.current.indeterminate = indeterminate;
+      }
+    }, [indeterminate]);
+
+    const setRefs = (node: HTMLInputElement | null) => {
+      innerRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    };
+
+    const inputCls = [
+      styles.checkbox,
+      styles[\`checkbox--\${size}\`],
+      isError && styles['checkbox--error'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div className={[styles['checkbox-field'], disabled && styles['checkbox-field--disabled']].filter(Boolean).join(' ')}>
+        <div className={styles['checkbox-row']}>
+          <input
+            ref={setRefs}
+            type="checkbox"
+            id={id}
+            className={inputCls}
+            disabled={disabled}
+            aria-invalid={isError}
+            aria-describedby={error ? errorId : undefined}
+            onChange={(e) => onCheckedChange?.(e.target.checked)}
+            {...props}
+          />
+          {label && (
+            <label htmlFor={id} className={styles.label}>
+              {label}
+            </label>
+          )}
+        </div>
+        {error && (
+          <span id={errorId} className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';
+"
+`;
+
+exports[`Checkbox snapshots > react css mode snapshot 2`] = `
+".checkbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1);
+}
+
+.checkbox-field--disabled {
+  opacity: 0.6;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--checkbox-gap, calc(var(--spacing-unit) * 2));
+}
+
+.checkbox {
+  width: var(--checkbox-size, calc(var(--spacing-unit) * 4));
+  height: var(--checkbox-size, calc(var(--spacing-unit) * 4));
+  accent-color: var(--checkbox-accent, var(--color-primary));
+  border-radius: var(--checkbox-radius, var(--radius-sm));
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.checkbox:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+}
+
+.checkbox:disabled {
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.checkbox--sm {
+  width: 14px;
+  height: 14px;
+}
+
+.checkbox--md {
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox--lg {
+  width: 20px;
+  height: 20px;
+}
+
+/* States */
+.checkbox--error {
+  accent-color: var(--color-destructive, #E24B4A);
+  outline-color: var(--color-destructive, #E24B4A);
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  color: var(--checkbox-label-color, var(--color-text));
+  cursor: pointer;
+  user-select: none;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}
+"
+`;
+
+exports[`Checkbox snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Checkbox } from './Checkbox';
+
+const meta: Meta<typeof Checkbox> = {
+  title: 'Crucible/Checkbox',
+  component: Checkbox,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:       { control: 'select', options: ['default', 'error'] },
+    size:          { control: 'select', options: ['sm', 'md', 'lg'] },
+    indeterminate: { control: 'boolean' },
+    disabled:      { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Checkbox>;
+
+export const Default: Story = {
+  args: { label: 'Accept terms and conditions', size: 'md' },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const Checked: Story = {
+  args: { label: 'Subscribe to newsletter', defaultChecked: true },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const Indeterminate: Story = {
+  args: { label: 'Select all', indeterminate: true },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const SizeSm: Story = {
+  args: { label: 'Sm checkbox', size: 'sm' },
+  render: (args) => <Checkbox {...args} />,
+};
+export const SizeMd: Story = {
+  args: { label: 'Md checkbox', size: 'md' },
+  render: (args) => <Checkbox {...args} />,
+};
+export const SizeLg: Story = {
+  args: { label: 'Lg checkbox', size: 'lg' },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const WithError: Story = {
+  args: { label: 'Required option', variant: 'error', error: 'You must accept to continue' },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const Disabled: Story = {
+  args: { label: 'Unavailable option', disabled: true },
+  render: (args) => <Checkbox {...args} />,
+};
+"
+`;
+
+exports[`Checkbox snapshots > react scss mode snapshot 1`] = `
+".checkbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1);
+
+  &--disabled {
+    opacity: 0.6;
+  }
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--checkbox-gap, calc(var(--spacing-unit) * 2));
+}
+
+.checkbox {
+  width: var(--checkbox-size, calc(var(--spacing-unit) * 4));
+  height: var(--checkbox-size, calc(var(--spacing-unit) * 4));
+  accent-color: var(--checkbox-accent, var(--color-primary));
+  border-radius: var(--checkbox-radius, var(--radius-sm));
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #6C63FF);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  &--sm {
+    width: 14px;
+    height: 14px;
+  }
+
+  &--md {
+    width: 16px;
+    height: 16px;
+  }
+
+  &--lg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &--error {
+    accent-color: var(--color-destructive, #E24B4A);
+    outline-color: var(--color-destructive, #E24B4A);
+  }
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  color: var(--checkbox-label-color, var(--color-text));
+  cursor: pointer;
+  user-select: none;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}
+"
+`;
+
+exports[`Checkbox snapshots > react tailwind mode snapshot 1`] = `
+"import React, { useId, useRef, useEffect } from 'react';
+
+export type CheckboxVariant = 'default' | 'error';
+export type CheckboxSize    = 'sm' | 'md' | 'lg';
+
+export interface CheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'onChange'> {
+  label?:    string;
+  variant?:  CheckboxVariant;
+  size?:     CheckboxSize;
+  error?:    string;
+  /** Render the indeterminate (mixed) visual state */
+  indeterminate?: boolean;
+  /** Convenience change handler returning the checked boolean */
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+const VARIANT_CLASSES: Record<CheckboxVariant, string> = {
+  default: 'accent-[var(--color-primary)]',
+  error: 'accent-[var(--color-destructive)]',
+};
+
+const SIZE_CLASSES: Record<CheckboxSize, string> = {
+  sm: 'w-3.5 h-3.5',
+  md: 'w-4 h-4',
+  lg: 'w-5 h-5',
+};
+
+export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
+  (
+    { label, variant = 'default', size = 'md', error, indeterminate = false, onCheckedChange, id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = \`\${id}-error\`;
+    const isError = !!error || variant === 'error';
+    const innerRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (innerRef.current) {
+        innerRef.current.indeterminate = indeterminate;
+      }
+    }, [indeterminate]);
+
+    const setRefs = (node: HTMLInputElement | null) => {
+      innerRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    };
+
+    const inputCls = [
+      'shrink-0 m-0 cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed',
+      isError ? VARIANT_CLASSES.error : VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div className={['flex flex-col gap-1', disabled ? 'opacity-60' : ''].filter(Boolean).join(' ')}>
+        <div className="inline-flex items-center gap-2">
+          <input
+            ref={setRefs}
+            type="checkbox"
+            id={id}
+            className={inputCls}
+            disabled={disabled}
+            aria-invalid={isError}
+            aria-describedby={error ? errorId : undefined}
+            onChange={(e) => onCheckedChange?.(e.target.checked)}
+            {...props}
+          />
+          {label && (
+            <label htmlFor={id} className="text-sm text-[var(--color-text)] cursor-pointer select-none">
+              {label}
+            </label>
+          )}
+        </div>
+        {error && (
+          <span id={errorId} className="text-xs text-[var(--color-destructive)]" role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';
+"
+`;
+
+exports[`Checkbox snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+
+export type CheckboxVariant = 'default' | 'error';
+export type CheckboxSize    = 'sm' | 'md' | 'lg';
+
+interface Props {
+  id?:            string;
+  modelValue?:    boolean;
+  label?:         string;
+  variant?:       CheckboxVariant;
+  size?:          CheckboxSize;
+  error?:         string;
+  indeterminate?: boolean;
+  disabled?:      boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: '',
+  modelValue: false,
+  label: '',
+  variant: 'default',
+  size: 'md',
+  error: '',
+  indeterminate: false,
+  disabled: false,
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const inputRef = ref<HTMLInputElement | null>(null);
+const generatedId = \`checkbox-\${Math.floor(Math.random() * 1000000)}\`;
+const checkboxId = computed(() => props.id || generatedId);
+const errorId = computed(() => \`\${checkboxId.value}-error\`);
+const isError = computed(() => props.variant === 'error' || !!props.error);
+
+watch(
+  () => props.indeterminate,
+  (value) => {
+    if (inputRef.value) inputRef.value.indeterminate = value;
+  },
+  { immediate: true }
+);
+
+const onChange = (event: Event) => {
+  emit('update:modelValue', (event.target as HTMLInputElement).checked);
+};
+</script>
+
+<template>
+  <div :class="['checkbox-field', { 'checkbox-field--disabled': disabled }]">
+    <div class="checkbox-row">
+      <input
+        ref="inputRef"
+        type="checkbox"
+        :id="checkboxId"
+        :class="['checkbox', \`checkbox--\${size}\`, { 'checkbox--error': isError }]"
+        :checked="modelValue"
+        :disabled="disabled"
+        :aria-invalid="isError"
+        :aria-describedby="error ? errorId : undefined"
+        @change="onChange"
+      />
+      <label v-if="label" :for="checkboxId" class="label">{{ label }}</label>
+    </div>
+    <span v-if="error" :id="errorId" class="error" role="alert">{{ error }}</span>
+  </div>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.checkbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1);
+}
+
+.checkbox-field--disabled {
+  opacity: 0.6;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--checkbox-gap, calc(var(--spacing-unit) * 2));
+}
+
+.checkbox {
+  width: var(--checkbox-size, calc(var(--spacing-unit) * 4));
+  height: var(--checkbox-size, calc(var(--spacing-unit) * 4));
+  accent-color: var(--checkbox-accent, var(--color-primary));
+  border-radius: var(--checkbox-radius, var(--radius-sm));
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.checkbox:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+}
+
+.checkbox:disabled {
+  cursor: not-allowed;
+}
+
+.checkbox--sm {
+  width: 14px;
+  height: 14px;
+}
+
+.checkbox--md {
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox--lg {
+  width: 20px;
+  height: 20px;
+}
+
+.checkbox--error {
+  accent-color: var(--color-destructive, #E24B4A);
+  outline-color: var(--color-destructive, #E24B4A);
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  color: var(--checkbox-label-color, var(--color-text));
+  cursor: pointer;
+  user-select: none;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}
+</style>
+"
+`;

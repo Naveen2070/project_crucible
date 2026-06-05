@@ -1,0 +1,81 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type SwitchSize = {{> shared/size-types}};
+
+interface Props {
+  id?:         string;
+  modelValue?: boolean;
+  label?:      string;
+  size?:       SwitchSize;
+  disabled?:   boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: '',
+  modelValue: false,
+  label: '',
+  size: 'md',
+  disabled: false,
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const generatedId = `switch-${Math.floor(Math.random() * 1000000)}`;
+const switchId = computed(() => props.id || generatedId);
+
+const trackClasses: Record<SwitchSize, string> = {
+  sm: 'w-8 h-[18px]',
+  md: 'w-10 h-[22px]',
+  lg: 'w-12 h-[26px]',
+};
+
+const thumbClasses: Record<SwitchSize, string> = {
+  sm: 'w-3.5 h-3.5',
+  md: 'w-[18px] h-[18px]',
+  lg: 'w-[22px] h-[22px]',
+};
+
+const thumbTranslate: Record<SwitchSize, string> = {
+  sm: 'translate-x-[14px]',
+  md: 'translate-x-[18px]',
+  lg: 'translate-x-[22px]',
+};
+
+const trackClass = computed(() => [
+  'relative inline-flex items-center shrink-0 p-0 border-none rounded-full cursor-pointer transition-colors',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+  'disabled:opacity-60 disabled:cursor-not-allowed',
+  props.modelValue ? 'bg-[var(--switch-track-on,var(--color-primary))]' : 'bg-[var(--switch-track-off,var(--color-secondary))]',
+  trackClasses[props.size],
+]);
+
+const thumbClass = computed(() => [
+  'absolute left-0.5 rounded-full bg-[var(--switch-thumb,#fff)] shadow transition-transform',
+  thumbClasses[props.size],
+  props.modelValue ? thumbTranslate[props.size] : 'translate-x-0',
+]);
+
+const toggle = () => {
+  if (props.disabled) return;
+  emit('update:modelValue', !props.modelValue);
+};
+</script>
+
+<template>
+  <span class="inline-flex items-center gap-2">
+    <button
+      type="button"
+      role="switch"
+      :id="switchId"
+      :aria-checked="modelValue"
+      :aria-label="label || undefined"
+      :disabled="disabled"
+      :class="trackClass"
+      @click="toggle"
+    >
+      <span :class="thumbClass" aria-hidden="true" />
+    </button>
+    <label v-if="label" :for="switchId" class="text-sm text-[var(--color-text)] cursor-pointer select-none">\{{ label }}</label>
+  </span>
+</template>

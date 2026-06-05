@@ -1,0 +1,29 @@
+import { Meta, StoryObj } from '@storybook/angular';
+import { SwitchComponent } from './switch.component';
+
+const meta: Meta<SwitchComponent> = {
+  title: 'Crucible/Switch',
+  component: SwitchComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    label:    { control: 'text' },
+    checked:  { control: 'boolean' },
+    disabled: { control: 'boolean' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<SwitchComponent>;
+
+export const Default: Story = {
+  args: { label: 'Enable notifications', size: 'md' },
+};
+
+export const Checked: Story = {
+  args: { label: 'Dark mode', checked: true },
+};
+
+export const Disabled: Story = {
+  args: { label: 'Unavailable', disabled: true },
+};

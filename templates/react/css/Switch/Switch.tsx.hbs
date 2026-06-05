@@ -1,0 +1,67 @@
+import React, { useId, useState } from 'react';
+{{> react/styles-import}}
+
+export type SwitchSize = {{> shared/size-types}};
+
+export interface SwitchProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'type'> {
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Called with the next checked value on toggle */
+  onCheckedChange?: (checked: boolean) => void;
+  label?: string;
+  size?: SwitchSize;
+}
+
+export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
+  (
+    { checked: controlled, defaultChecked = false, onCheckedChange, label, size = 'md', id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    const cls = [
+      styles.switch,
+      styles[`switch--${size}`],
+      checked && styles['switch--checked'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <span className={styles['switch-wrapper']}>
+        <button
+          ref={ref}
+          type="button"
+          role="switch"
+          id={id}
+          aria-checked={checked}
+          aria-label={!label ? props['aria-label'] : label}
+          disabled={disabled}
+          onClick={toggle}
+          className={cls}
+          {...props}
+        >
+          <span className={styles.thumb} aria-hidden="true" />
+        </button>
+        {label && (
+          <label htmlFor={id} className={styles.label}>
+            {label}
+          </label>
+        )}
+      </span>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';

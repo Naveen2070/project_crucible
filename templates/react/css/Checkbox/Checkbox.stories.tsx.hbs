@@ -1,0 +1,40 @@
+{{> react/stories-header}}
+  argTypes: {
+    variant:       { control: 'select', options: {{> shared/variant-options}} },
+    size:          { control: 'select', options: {{> shared/size-options}} },
+    indeterminate: { control: 'boolean' },
+    disabled:      { control: 'boolean' },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { label: 'Accept terms and conditions', size: 'md' },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const Checked: Story = {
+  args: { label: 'Subscribe to newsletter', defaultChecked: true },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const Indeterminate: Story = {
+  args: { label: 'Select all', indeterminate: true },
+  render: (args) => <Checkbox {...args} />,
+};
+
+{{#each sizes}}
+export const Size{{capitalize this}}: Story = {
+  args: { label: '{{capitalize this}} checkbox', size: '{{this}}' },
+  render: (args) => <Checkbox {...args} />,
+};
+{{/each}}
+
+export const WithError: Story = {
+  args: { label: 'Required option', variant: 'error', error: 'You must accept to continue' },
+  render: (args) => <Checkbox {...args} />,
+};
+
+export const Disabled: Story = {
+  args: { label: 'Unavailable option', disabled: true },
+  render: (args) => <Checkbox {...args} />,
+};

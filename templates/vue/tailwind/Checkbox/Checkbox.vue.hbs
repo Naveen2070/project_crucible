@@ -1,0 +1,85 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+
+export type CheckboxVariant = {{> shared/variant-types}};
+export type CheckboxSize    = {{> shared/size-types}};
+
+interface Props {
+  id?:            string;
+  modelValue?:    boolean;
+  label?:         string;
+  variant?:       CheckboxVariant;
+  size?:          CheckboxSize;
+  error?:         string;
+  indeterminate?: boolean;
+  disabled?:      boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: '',
+  modelValue: false,
+  label: '',
+  variant: 'default',
+  size: 'md',
+  error: '',
+  indeterminate: false,
+  disabled: false,
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const inputRef = ref<HTMLInputElement | null>(null);
+const generatedId = `checkbox-${Math.floor(Math.random() * 1000000)}`;
+const checkboxId = computed(() => props.id || generatedId);
+const errorId = computed(() => `${checkboxId.value}-error`);
+const isError = computed(() => props.variant === 'error' || !!props.error);
+
+const variantClasses: Record<CheckboxVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+const sizeClasses: Record<CheckboxSize, string> = {
+  sm: 'w-3.5 h-3.5',
+  md: 'w-4 h-4',
+  lg: 'w-5 h-5',
+};
+
+const inputClasses = computed(() => [
+  'shrink-0 m-0 cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed',
+  isError.value ? variantClasses.error : variantClasses[props.variant],
+  sizeClasses[props.size],
+]);
+
+watch(
+  () => props.indeterminate,
+  (value) => {
+    if (inputRef.value) inputRef.value.indeterminate = value;
+  },
+  { immediate: true }
+);
+
+const onChange = (event: Event) => {
+  emit('update:modelValue', (event.target as HTMLInputElement).checked);
+};
+</script>
+
+<template>
+  <div :class="['flex flex-col gap-1', disabled ? 'opacity-60' : '']">
+    <div class="inline-flex items-center gap-2">
+      <input
+        ref="inputRef"
+        type="checkbox"
+        :id="checkboxId"
+        :class="inputClasses"
+        :checked="modelValue"
+        :disabled="disabled"
+        :aria-invalid="isError"
+        :aria-describedby="error ? errorId : undefined"
+        @change="onChange"
+      />
+      <label v-if="label" :for="checkboxId" class="text-sm text-[var(--color-text)] cursor-pointer select-none">\{{ label }}</label>
+    </div>
+    <span v-if="error" :id="errorId" class="text-xs text-[var(--color-destructive)]" role="alert">\{{ error }}</span>
+  </div>
+</template>

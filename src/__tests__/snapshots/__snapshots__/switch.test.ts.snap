@@ -1,0 +1,632 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Switch snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-switch',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './switch.component.html',
+  styleUrls: ['./switch.component.css'],
+})
+export class SwitchComponent {
+  @Input() checked = false;
+  @Input() label = '';
+  @Input() disabled = false;
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+
+  @Output() checkedChange = new EventEmitter<boolean>();
+
+  id = 'switch-' + Math.random().toString(36).substring(2, 9);
+
+  toggle(): void {
+    if (this.disabled) return;
+    this.checked = !this.checked;
+    this.checkedChange.emit(this.checked);
+  }
+}
+"
+`;
+
+exports[`Switch snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<span class="switch-wrapper">
+  <button
+    type="button"
+    role="switch"
+    [id]="id"
+    [attr.aria-checked]="checked"
+    [attr.aria-label]="label || null"
+    [disabled]="disabled"
+    class="switch"
+    [class.switch--sm]="size === 'sm'"
+    [class.switch--md]="size === 'md'"
+    [class.switch--lg]="size === 'lg'"
+    [class.switch--checked]="checked"
+    (click)="toggle()"
+  >
+    <span class="thumb" aria-hidden="true"></span>
+  </button>
+  @if (label) {
+    <label [attr.for]="id" class="label">{{ label }}</label>
+  }
+</span>
+"
+`;
+
+exports[`Switch snapshots > react css mode snapshot 1`] = `
+"import React, { useId, useState } from 'react';
+import styles from './Switch.module.css';
+export type SwitchSize = 'sm' | 'md' | 'lg';
+
+export interface SwitchProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'type'> {
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Called with the next checked value on toggle */
+  onCheckedChange?: (checked: boolean) => void;
+  label?: string;
+  size?: SwitchSize;
+}
+
+export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
+  (
+    { checked: controlled, defaultChecked = false, onCheckedChange, label, size = 'md', id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    const cls = [
+      styles.switch,
+      styles[\`switch--\${size}\`],
+      checked && styles['switch--checked'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <span className={styles['switch-wrapper']}>
+        <button
+          ref={ref}
+          type="button"
+          role="switch"
+          id={id}
+          aria-checked={checked}
+          aria-label={!label ? props['aria-label'] : label}
+          disabled={disabled}
+          onClick={toggle}
+          className={cls}
+          {...props}
+        >
+          <span className={styles.thumb} aria-hidden="true" />
+        </button>
+        {label && (
+          <label htmlFor={id} className={styles.label}>
+            {label}
+          </label>
+        )}
+      </span>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';
+"
+`;
+
+exports[`Switch snapshots > react css mode snapshot 2`] = `
+".switch-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--switch-gap, calc(var(--spacing-unit) * 2));
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background-color: var(--switch-track-off, var(--color-secondary));
+  cursor: pointer;
+  transition: var(--switch-transition, background-color 0.2s ease, transform 0.2s ease);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switch--checked {
+  background-color: var(--switch-track-on, var(--color-primary));
+}
+
+/* Sizes */
+.switch--sm {
+  width: 32px;
+  height: 18px;
+}
+
+.switch--md {
+  width: 40px;
+  height: 22px;
+}
+
+.switch--lg {
+  width: 48px;
+  height: 26px;
+}
+
+.thumb {
+  position: absolute;
+  left: 2px;
+  background-color: var(--switch-thumb, #ffffff);
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: var(--switch-transition, background-color 0.2s ease, transform 0.2s ease);
+}
+
+.switch--sm .thumb {
+  width: 14px;
+  height: 14px;
+}
+
+.switch--md .thumb {
+  width: 18px;
+  height: 18px;
+}
+
+.switch--lg .thumb {
+  width: 22px;
+  height: 22px;
+}
+
+.switch--sm.switch--checked .thumb {
+  transform: translateX(14px);
+}
+
+.switch--md.switch--checked .thumb {
+  transform: translateX(18px);
+}
+
+.switch--lg.switch--checked .thumb {
+  transform: translateX(22px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .thumb {
+    transition: none;
+  }
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  color: var(--switch-label-color, var(--color-text));
+  cursor: pointer;
+  user-select: none;
+}
+"
+`;
+
+exports[`Switch snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Switch } from './Switch';
+
+const meta: Meta<typeof Switch> = {
+  title: 'Crucible/Switch',
+  component: Switch,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    checked:  { control: 'boolean' },
+    disabled: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Switch>;
+
+export const Default: Story = {
+  args: { label: 'Enable notifications', size: 'md' },
+  render: (args) => <Switch {...args} />,
+};
+
+export const Checked: Story = {
+  args: { label: 'Dark mode', defaultChecked: true },
+  render: (args) => <Switch {...args} />,
+};
+
+export const SizeSm: Story = {
+  args: { label: 'Sm switch', size: 'sm' },
+  render: (args) => <Switch {...args} />,
+};
+export const SizeMd: Story = {
+  args: { label: 'Md switch', size: 'md' },
+  render: (args) => <Switch {...args} />,
+};
+export const SizeLg: Story = {
+  args: { label: 'Lg switch', size: 'lg' },
+  render: (args) => <Switch {...args} />,
+};
+
+export const Disabled: Story = {
+  args: { label: 'Unavailable', disabled: true },
+  render: (args) => <Switch {...args} />,
+};
+"
+`;
+
+exports[`Switch snapshots > react scss mode snapshot 1`] = `
+".switch-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--switch-gap, calc(var(--spacing-unit) * 2));
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background-color: var(--switch-track-off, var(--color-secondary));
+  cursor: pointer;
+  transition: var(--switch-transition, background-color 0.2s ease, transform 0.2s ease);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #6C63FF);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--checked {
+    background-color: var(--switch-track-on, var(--color-primary));
+  }
+
+  &--sm {
+    width: 32px;
+    height: 18px;
+  }
+
+  &--md {
+    width: 40px;
+    height: 22px;
+  }
+
+  &--lg {
+    width: 48px;
+    height: 26px;
+  }
+}
+
+.thumb {
+  position: absolute;
+  left: 2px;
+  background-color: var(--switch-thumb, #ffffff);
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: var(--switch-transition, background-color 0.2s ease, transform 0.2s ease);
+
+  .switch--sm & {
+    width: 14px;
+    height: 14px;
+  }
+
+  .switch--md & {
+    width: 18px;
+    height: 18px;
+  }
+
+  .switch--lg & {
+    width: 22px;
+    height: 22px;
+  }
+
+  .switch--sm.switch--checked & {
+    transform: translateX(14px);
+  }
+
+  .switch--md.switch--checked & {
+    transform: translateX(18px);
+  }
+
+  .switch--lg.switch--checked & {
+    transform: translateX(22px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .thumb {
+    transition: none;
+  }
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  color: var(--switch-label-color, var(--color-text));
+  cursor: pointer;
+  user-select: none;
+}
+"
+`;
+
+exports[`Switch snapshots > react tailwind mode snapshot 1`] = `
+"import React, { useId, useState } from 'react';
+
+export type SwitchSize = 'sm' | 'md' | 'lg';
+
+export interface SwitchProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'type'> {
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Called with the next checked value on toggle */
+  onCheckedChange?: (checked: boolean) => void;
+  label?: string;
+  size?: SwitchSize;
+}
+
+const TRACK_CLASSES: Record<SwitchSize, string> = {
+  sm: 'w-8 h-[18px]',
+  md: 'w-10 h-[22px]',
+  lg: 'w-12 h-[26px]',
+};
+
+const THUMB_CLASSES: Record<SwitchSize, string> = {
+  sm: 'w-3.5 h-3.5',
+  md: 'w-[18px] h-[18px]',
+  lg: 'w-[22px] h-[22px]',
+};
+
+const THUMB_TRANSLATE: Record<SwitchSize, string> = {
+  sm: 'translate-x-[14px]',
+  md: 'translate-x-[18px]',
+  lg: 'translate-x-[22px]',
+};
+
+export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
+  (
+    { checked: controlled, defaultChecked = false, onCheckedChange, label, size = 'md', id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    const trackCls = [
+      'relative inline-flex items-center shrink-0 p-0 border-none rounded-full cursor-pointer transition-colors',
+      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+      'disabled:opacity-60 disabled:cursor-not-allowed',
+      checked ? 'bg-[var(--switch-track-on,var(--color-primary))]' : 'bg-[var(--switch-track-off,var(--color-secondary))]',
+      TRACK_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    const thumbCls = [
+      'absolute left-0.5 rounded-full bg-[var(--switch-thumb,#fff)] shadow transition-transform',
+      THUMB_CLASSES[size],
+      checked ? THUMB_TRANSLATE[size] : 'translate-x-0',
+    ].join(' ');
+
+    return (
+      <span className="inline-flex items-center gap-2">
+        <button
+          ref={ref}
+          type="button"
+          role="switch"
+          id={id}
+          aria-checked={checked}
+          aria-label={!label ? props['aria-label'] : label}
+          disabled={disabled}
+          onClick={toggle}
+          className={trackCls}
+          {...props}
+        >
+          <span className={thumbCls} aria-hidden="true" />
+        </button>
+        {label && (
+          <label htmlFor={id} className="text-sm text-[var(--color-text)] cursor-pointer select-none">
+            {label}
+          </label>
+        )}
+      </span>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';
+"
+`;
+
+exports[`Switch snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { computed } from 'vue';
+
+export type SwitchSize = 'sm' | 'md' | 'lg';
+
+interface Props {
+  id?:         string;
+  modelValue?: boolean;
+  label?:      string;
+  size?:       SwitchSize;
+  disabled?:   boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  id: '',
+  modelValue: false,
+  label: '',
+  size: 'md',
+  disabled: false,
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const generatedId = \`switch-\${Math.floor(Math.random() * 1000000)}\`;
+const switchId = computed(() => props.id || generatedId);
+
+const toggle = () => {
+  if (props.disabled) return;
+  emit('update:modelValue', !props.modelValue);
+};
+</script>
+
+<template>
+  <span class="switch-wrapper">
+    <button
+      type="button"
+      role="switch"
+      :id="switchId"
+      :aria-checked="modelValue"
+      :aria-label="label || undefined"
+      :disabled="disabled"
+      :class="['switch', \`switch--\${size}\`, { 'switch--checked': modelValue }]"
+      @click="toggle"
+    >
+      <span class="thumb" aria-hidden="true" />
+    </button>
+    <label v-if="label" :for="switchId" class="label">{{ label }}</label>
+  </span>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.switch-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--switch-gap, calc(var(--spacing-unit) * 2));
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background-color: var(--switch-track-off, var(--color-secondary));
+  cursor: pointer;
+  transition: var(--switch-transition, background-color 0.2s ease, transform 0.2s ease);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--color-primary, #6C63FF);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switch--checked {
+  background-color: var(--switch-track-on, var(--color-primary));
+}
+
+.switch--sm {
+  width: 32px;
+  height: 18px;
+}
+
+.switch--md {
+  width: 40px;
+  height: 22px;
+}
+
+.switch--lg {
+  width: 48px;
+  height: 26px;
+}
+
+.thumb {
+  position: absolute;
+  left: 2px;
+  background-color: var(--switch-thumb, #ffffff);
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: var(--switch-transition, background-color 0.2s ease, transform 0.2s ease);
+}
+
+.switch--sm .thumb {
+  width: 14px;
+  height: 14px;
+}
+
+.switch--md .thumb {
+  width: 18px;
+  height: 18px;
+}
+
+.switch--lg .thumb {
+  width: 22px;
+  height: 22px;
+}
+
+.switch--sm.switch--checked .thumb {
+  transform: translateX(14px);
+}
+
+.switch--md.switch--checked .thumb {
+  transform: translateX(18px);
+}
+
+.switch--lg.switch--checked .thumb {
+  transform: translateX(22px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .thumb {
+    transition: none;
+  }
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  color: var(--switch-label-color, var(--color-text));
+  cursor: pointer;
+  user-select: none;
+}
+</style>
+"
+`;

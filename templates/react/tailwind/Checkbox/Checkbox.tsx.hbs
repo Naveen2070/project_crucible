@@ -1,0 +1,89 @@
+import React, { useId, useRef, useEffect } from 'react';
+
+export type CheckboxVariant = {{> shared/variant-types}};
+export type CheckboxSize    = {{> shared/size-types}};
+
+export interface CheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'onChange'> {
+  label?:    string;
+  variant?:  CheckboxVariant;
+  size?:     CheckboxSize;
+  error?:    string;
+  /** Render the indeterminate (mixed) visual state */
+  indeterminate?: boolean;
+  /** Convenience change handler returning the checked boolean */
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+const VARIANT_CLASSES: Record<CheckboxVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+const SIZE_CLASSES: Record<CheckboxSize, string> = {
+  sm: 'w-3.5 h-3.5',
+  md: 'w-4 h-4',
+  lg: 'w-5 h-5',
+};
+
+export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
+  (
+    { label, variant = 'default', size = 'md', error, indeterminate = false, onCheckedChange, id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = `${id}-error`;
+    const isError = !!error || variant === 'error';
+    const innerRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (innerRef.current) {
+        innerRef.current.indeterminate = indeterminate;
+      }
+    }, [indeterminate]);
+
+    const setRefs = (node: HTMLInputElement | null) => {
+      innerRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    };
+
+    const inputCls = [
+      'shrink-0 m-0 cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed',
+      isError ? VARIANT_CLASSES.error : VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div className={['flex flex-col gap-1', disabled ? 'opacity-60' : ''].filter(Boolean).join(' ')}>
+        <div className="inline-flex items-center gap-2">
+          <input
+            ref={setRefs}
+            type="checkbox"
+            id={id}
+            className={inputCls}
+            disabled={disabled}
+            aria-invalid={isError}
+            aria-describedby={error ? errorId : undefined}
+            onChange={(e) => onCheckedChange?.(e.target.checked)}
+            {...props}
+          />
+          {label && (
+            <label htmlFor={id} className="text-sm text-[var(--color-text)] cursor-pointer select-none">
+              {label}
+            </label>
+          )}
+        </div>
+        {error && (
+          <span id={errorId} className="text-xs text-[var(--color-destructive)]" role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';
