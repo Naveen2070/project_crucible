@@ -39,6 +39,8 @@ export const ComponentName = {
   Skeleton: 'Skeleton',
   Avatar: 'Avatar',
   Textarea: 'Textarea',
+  Checkbox: 'Checkbox',
+  Switch: 'Switch',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

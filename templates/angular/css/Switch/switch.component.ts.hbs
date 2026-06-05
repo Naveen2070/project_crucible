@@ -1,0 +1,26 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-switch',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './switch.component.html',
+  styleUrls: ['./switch.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class SwitchComponent {
+  @Input() checked = false;
+  @Input() label = '';
+  @Input() disabled = false;
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  @Output() checkedChange = new EventEmitter<boolean>();
+
+  id = 'switch-' + Math.random().toString(36).substring(2, 9);
+
+  toggle(): void {
+    if (this.disabled) return;
+    this.checked = !this.checked;
+    this.checkedChange.emit(this.checked);
+  }
+}

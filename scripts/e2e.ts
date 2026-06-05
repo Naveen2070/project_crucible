@@ -2285,6 +2285,244 @@ async function runE2E() {
       throw new Error('Angular Textarea missing TextareaComponent or scss styleUrls');
     }
     results.push({ phase: 'Textarea + Angular + SCSS', passed: true });
+
+    // Checkbox + React + CSS
+    console.log(ansis.cyan('📦 Phase 72: Checkbox + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Checkbox'));
+    runCLI('add Checkbox -y');
+    const cbReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Checkbox', 'Checkbox.tsx'),
+      'utf-8',
+    );
+    if (!cbReactCss.includes('export const Checkbox') || !cbReactCss.includes('type="checkbox"')) {
+      throw new Error('React Checkbox missing export or checkbox input');
+    }
+    if (!cbReactCss.includes('.indeterminate = indeterminate')) {
+      throw new Error('React Checkbox missing indeterminate ref effect');
+    }
+    if (cbReactCss.includes('Object.assign')) {
+      throw new Error('Checkbox should be monolithic');
+    }
+    results.push({ phase: 'Checkbox + React + CSS', passed: true });
+
+    // Checkbox + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 73: Checkbox + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Checkbox'));
+    runCLI('add Checkbox -y');
+    const cbReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Checkbox', 'Checkbox.tsx'),
+      'utf-8',
+    );
+    if (!cbReactTw.includes('accent-[var(--color-primary)]') || cbReactTw.includes('Checkbox.module')) {
+      throw new Error('React Tailwind Checkbox missing accent utility or still imports a CSS module');
+    }
+    results.push({ phase: 'Checkbox + React + Tailwind', passed: true });
+
+    // Checkbox + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 74: Checkbox + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Checkbox'));
+    runCLI('add Checkbox -y');
+    const cbVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Checkbox', 'Checkbox.vue'),
+      'utf-8',
+    );
+    if (!cbVue.includes('type="checkbox"') || !cbVue.includes('inputRef.value.indeterminate')) {
+      throw new Error('Vue Checkbox missing checkbox input or indeterminate wiring');
+    }
+    results.push({ phase: 'Checkbox + Vue + CSS', passed: true });
+
+    // Checkbox + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 75: Checkbox + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Checkbox'));
+    runCLI('add Checkbox -y');
+    const cbNgFiles = ['Checkbox/checkbox.component.ts', 'Checkbox/checkbox.component.html', 'Checkbox/checkbox.component.scss'];
+    for (const file of cbNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const cbNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Checkbox', 'checkbox.component.ts'),
+      'utf-8',
+    );
+    if (!cbNgTs.includes('export class CheckboxComponent') || !cbNgTs.includes("styleUrls: ['./checkbox.component.scss']")) {
+      throw new Error('Angular Checkbox missing CheckboxComponent or scss styleUrls');
+    }
+    const cbNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Checkbox', 'checkbox.component.html'),
+      'utf-8',
+    );
+    if (!cbNgHtml.includes('[indeterminate]="indeterminate"')) {
+      throw new Error('Angular Checkbox HTML missing indeterminate binding');
+    }
+    results.push({ phase: 'Checkbox + Angular + SCSS', passed: true });
+
+    // Switch + React + CSS
+    console.log(ansis.cyan('📦 Phase 76: Switch + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Switch'));
+    runCLI('add Switch -y');
+    const swReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Switch', 'Switch.tsx'),
+      'utf-8',
+    );
+    if (!swReactCss.includes('export const Switch') || !swReactCss.includes('role="switch"') || !swReactCss.includes('aria-checked')) {
+      throw new Error('React Switch missing export, switch role, or aria-checked');
+    }
+    if (swReactCss.includes('Object.assign')) {
+      throw new Error('Switch should be monolithic');
+    }
+    results.push({ phase: 'Switch + React + CSS', passed: true });
+
+    // Switch + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 77: Switch + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Switch'));
+    runCLI('add Switch -y');
+    const swReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Switch', 'Switch.tsx'),
+      'utf-8',
+    );
+    if (!swReactTw.includes('role="switch"') || swReactTw.includes('Switch.module')) {
+      throw new Error('React Tailwind Switch missing switch role or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Switch', 'Switch.module.css'))) {
+      throw new Error('Tailwind Switch should not emit a CSS module');
+    }
+    results.push({ phase: 'Switch + React + Tailwind', passed: true });
+
+    // Switch + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 78: Switch + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Switch'));
+    runCLI('add Switch -y');
+    const swVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Switch', 'Switch.vue'),
+      'utf-8',
+    );
+    if (!swVue.includes('role="switch"') || !swVue.includes('update:modelValue')) {
+      throw new Error('Vue Switch missing switch role or v-model wiring');
+    }
+    results.push({ phase: 'Switch + Vue + CSS', passed: true });
+
+    // Switch + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 79: Switch + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Switch'));
+    runCLI('add Switch -y');
+    const swNgFiles = ['Switch/switch.component.ts', 'Switch/switch.component.html', 'Switch/switch.component.scss'];
+    for (const file of swNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const swNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Switch', 'switch.component.ts'),
+      'utf-8',
+    );
+    if (!swNgTs.includes('export class SwitchComponent') || !swNgTs.includes("styleUrls: ['./switch.component.scss']")) {
+      throw new Error('Angular Switch missing SwitchComponent or scss styleUrls');
+    }
+    const swNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Switch', 'switch.component.html'),
+      'utf-8',
+    );
+    if (!swNgHtml.includes('role="switch"')) {
+      throw new Error('Angular Switch HTML missing switch role');
+    }
+    results.push({ phase: 'Switch + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

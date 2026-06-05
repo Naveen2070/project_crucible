@@ -1,0 +1,21 @@
+<span class="switch-wrapper">
+  <button
+    type="button"
+    role="switch"
+    [id]="id"
+    [attr.aria-checked]="checked"
+    [attr.aria-label]="label || null"
+    [disabled]="disabled"
+    class="switch"
+    [class.switch--sm]="size === 'sm'"
+    [class.switch--md]="size === 'md'"
+    [class.switch--lg]="size === 'lg'"
+    [class.switch--checked]="checked"
+    (click)="toggle()"
+  >
+    <span class="thumb" aria-hidden="true"></span>
+  </button>
+  @if (label) {
+    <label [attr.for]="id" class="label">\{{ label }}</label>
+  }
+</span>

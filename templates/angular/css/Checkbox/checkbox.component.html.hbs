@@ -1,0 +1,25 @@
+<div class="checkbox-field" [class.checkbox-field--disabled]="disabled">
+  <div class="checkbox-row">
+    <input
+      type="checkbox"
+      [id]="id"
+      class="checkbox"
+      [class.checkbox--sm]="size === 'sm'"
+      [class.checkbox--md]="size === 'md'"
+      [class.checkbox--lg]="size === 'lg'"
+      [class.checkbox--error]="isError"
+      [checked]="checked"
+      [indeterminate]="indeterminate"
+      [disabled]="disabled"
+      [attr.aria-invalid]="isError"
+      [attr.aria-describedby]="error ? id + '-error' : null"
+      (change)="onChange($event)"
+    />
+    @if (label) {
+      <label [attr.for]="id" class="label">\{{ label }}</label>
+    }
+  </div>
+  @if (error) {
+    <span [id]="id + '-error'" class="error" role="alert">\{{ error }}</span>
+  }
+</div>

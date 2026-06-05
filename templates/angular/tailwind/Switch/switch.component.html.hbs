@@ -1,0 +1,17 @@
+<span class="inline-flex items-center gap-2">
+  <button
+    type="button"
+    role="switch"
+    [id]="id"
+    [attr.aria-checked]="checked"
+    [attr.aria-label]="label || null"
+    [disabled]="disabled"
+    [class]="getTrackClasses()"
+    (click)="toggle()"
+  >
+    <span [class]="getThumbClasses()" aria-hidden="true"></span>
+  </button>
+  @if (label) {
+    <label [attr.for]="id" class="text-sm text-[var(--color-text)] cursor-pointer select-none">\{{ label }}</label>
+  }
+</span>

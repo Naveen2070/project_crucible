@@ -1,0 +1,14 @@
+{
+  "id": "Switch",
+  "name": "Switch",
+  "description": "Toggle switch with role=switch and controlled/uncontrolled state",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": [],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled", "checked"],
+  "props": ["checked", "defaultChecked", "onCheckedChange", "label", "id"],
+  "prefix": "switch",
+  "a11y": { "role": "switch" },
+  "tailwindDefaults": {}
+}
