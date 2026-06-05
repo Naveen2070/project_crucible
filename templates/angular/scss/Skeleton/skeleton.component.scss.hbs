@@ -1,0 +1,42 @@
+.skeleton {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  background-color: var(--skeleton-base-color, {{tokens.componentTokens.skeleton.baseColor}});
+  border-radius: var(--skeleton-radius, {{tokens.componentTokens.skeleton.radius}});
+
+  &--text {
+    height: 0.8em;
+    border-radius: var(--radius-sm, 4px);
+  }
+
+  &--circle {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+  }
+
+  &--rect {
+    border-radius: 0;
+  }
+
+  &--animated {
+    animation: skeleton-pulse var(--skeleton-duration, {{tokens.componentTokens.skeleton.duration}}) ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--animated {
+    animation: none;
+  }
+}

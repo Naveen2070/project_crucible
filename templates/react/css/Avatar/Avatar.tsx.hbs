@@ -1,0 +1,50 @@
+import React, { useState } from 'react';
+{{> react/styles-import}}
+
+export type AvatarVariant = {{> shared/variant-types}};
+export type AvatarSize    = {{> shared/size-types}};
+
+export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Image source; falls back to initials when missing or failed to load */
+  src?: string;
+  /** Accessible label and image alt text */
+  alt?: string;
+  /** Explicit fallback text (defaults to initials derived from alt) */
+  fallback?: string;
+  /** Shape of the avatar */
+  variant?: AvatarVariant;
+  /** Size of the avatar */
+  size?: AvatarSize;
+}
+
+export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
+  ({ src, alt = '', fallback, variant = 'circle', size = 'md', className, ...props }, ref) => {
+    const [errored, setErrored] = useState(false);
+    const showImage = Boolean(src) && !errored;
+    const initials = (fallback ?? alt ?? '').trim().slice(0, 2).toUpperCase();
+
+    const cls = [
+      styles.avatar,
+      styles[`avatar--${variant}`],
+      styles[`avatar--${size}`],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} className={cls} role="img" aria-label={alt || fallback || undefined} {...props}>
+        {showImage ? (
+          <img
+            className={styles['avatar-image']}
+            src={src}
+            alt={alt}
+            onError={() => setErrored(true)}
+          />
+        ) : (
+          <span className={styles['avatar-fallback']} aria-hidden="true">{initials}</span>
+        )}
+      </div>
+    );
+  }
+);
+
+Avatar.displayName = 'Avatar';

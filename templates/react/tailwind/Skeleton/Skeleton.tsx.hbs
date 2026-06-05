@@ -1,0 +1,45 @@
+import React from 'react';
+
+export type SkeletonVariant = {{> shared/variant-types}};
+
+export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Shape preset of the placeholder */
+  variant?: SkeletonVariant;
+  /** Explicit width (CSS value or number of px) */
+  width?: string | number;
+  /** Explicit height (CSS value or number of px) */
+  height?: string | number;
+  /** Toggle the pulse animation */
+  animated?: boolean;
+}
+
+const VARIANT_CLASSES: Record<SkeletonVariant, string> = {
+  default: 'w-full h-4 rounded-[var(--skeleton-radius,var(--radius-md))]',
+  text: 'w-full h-[0.8em] rounded-sm',
+  circle: 'w-10 h-10 rounded-full',
+  rect: 'w-full h-4 rounded-none',
+};
+
+export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+  ({ variant = 'default', width, height, animated = true, className, style, ...props }, ref) => {
+    const cls = [
+      'block bg-[var(--skeleton-base-color,var(--color-secondary))]',
+      VARIANT_CLASSES[variant],
+      animated ? 'motion-safe:animate-pulse' : '',
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        style=\{{ width, height, ...style }}
+        aria-busy="true"
+        aria-live="polite"
+        {...props}
+      />
+    );
+  }
+);
+
+Skeleton.displayName = 'Skeleton';

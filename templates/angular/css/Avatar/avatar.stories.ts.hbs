@@ -1,0 +1,30 @@
+import { Meta, StoryObj } from '@storybook/angular';
+import { AvatarComponent } from './avatar.component';
+
+const meta: Meta<AvatarComponent> = {
+  title: 'Crucible/Avatar',
+  component: AvatarComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    src:      { control: 'text' },
+    alt:      { control: 'text' },
+    fallback: { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<AvatarComponent>;
+
+export const Default: Story = {
+  args: { variant: 'circle', size: 'md', src: 'https://i.pravatar.cc/100', alt: 'Jane Doe' },
+};
+
+export const Fallback: Story = {
+  args: { variant: 'circle', size: 'md', fallback: 'JD', alt: 'Jane Doe' },
+};
+
+export const Square: Story = {
+  args: { variant: 'square', size: 'md', fallback: 'AB' },
+};

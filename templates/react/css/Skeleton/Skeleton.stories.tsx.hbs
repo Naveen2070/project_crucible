@@ -1,0 +1,33 @@
+{{> react/stories-header}}
+  argTypes: {
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    animated: { control: 'boolean' },
+    width:    { control: 'text' },
+    height:   { control: 'text' },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { variant: 'default', width: 240, height: 16 },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const Text: Story = {
+  args: { variant: 'text', width: 200 },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const Circle: Story = {
+  args: { variant: 'circle' },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const Rect: Story = {
+  args: { variant: 'rect', width: 280, height: 140 },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const NotAnimated: Story = {
+  args: { variant: 'default', width: 240, height: 16, animated: false },
+  render: (args) => <Skeleton {...args} />,
+};

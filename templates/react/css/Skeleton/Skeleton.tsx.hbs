@@ -1,0 +1,39 @@
+import React from 'react';
+{{> react/styles-import}}
+
+export type SkeletonVariant = {{> shared/variant-types}};
+
+export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Shape preset of the placeholder */
+  variant?: SkeletonVariant;
+  /** Explicit width (CSS value or number of px) */
+  width?: string | number;
+  /** Explicit height (CSS value or number of px) */
+  height?: string | number;
+  /** Toggle the pulse animation */
+  animated?: boolean;
+}
+
+export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+  ({ variant = 'default', width, height, animated = true, className, style, ...props }, ref) => {
+    const cls = [
+      styles.skeleton,
+      styles[`skeleton--${variant}`],
+      animated && styles['skeleton--animated'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        style=\{{ width, height, ...style }}
+        aria-busy="true"
+        aria-live="polite"
+        {...props}
+      />
+    );
+  }
+);
+
+Skeleton.displayName = 'Skeleton';
