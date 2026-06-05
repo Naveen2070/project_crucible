@@ -34,6 +34,7 @@ export const ComponentName = {
   Tabs: 'Tabs',
   Tooltip: 'Tooltip',
   Label: 'Label',
+  Separator: 'Separator',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

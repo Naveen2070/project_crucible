@@ -1,0 +1,15 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-separator',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './separator.component.html',
+  styleUrls: ['./separator.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class SeparatorComponent {
+  @Input() orientation: 'horizontal' | 'vertical' = 'horizontal';
+  @Input() decorative = false;
+  @Input() label = '';
+}

@@ -105,6 +105,13 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     gap: 'calc(var(--spacing-unit) * 1)',
     disabledOpacity: '0.6',
   },
+  separator: {
+    color: 'var(--color-border)',
+    thickness: '1px',
+    spacing: 'calc(var(--spacing-unit) * 2)',
+    labelColor: 'var(--color-text-muted)',
+    labelGap: 'calc(var(--spacing-unit) * 2)',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',

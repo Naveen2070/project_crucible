@@ -1698,6 +1698,121 @@ async function runE2E() {
       throw new Error('Angular Label HTML missing ng-content projection');
     }
     results.push({ phase: 'Label + Angular + SCSS', passed: true });
+
+    // Separator + React + CSS
+    console.log(ansis.cyan('📦 Phase 52: Separator + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Separator'));
+    runCLI('add Separator -y');
+    const sepReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Separator', 'Separator.tsx'),
+      'utf-8',
+    );
+    if (!sepReactCss.includes('export const Separator') || !sepReactCss.includes("'separator'")) {
+      throw new Error('React Separator missing export or separator role');
+    }
+    if (sepReactCss.includes('Object.assign')) {
+      throw new Error('Separator should be monolithic');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Separator', 'Separator.module.css')))) {
+      throw new Error('Missing: Separator/Separator.module.css');
+    }
+    results.push({ phase: 'Separator + React + CSS', passed: true });
+
+    // Separator + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 53: Separator + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Separator'));
+    runCLI('add Separator -y');
+    const sepReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Separator', 'Separator.tsx'),
+      'utf-8',
+    );
+    if (!sepReactTw.includes('bg-[var(--separator-color') || sepReactTw.includes('Separator.module')) {
+      throw new Error('React Tailwind Separator missing inline classes or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Separator', 'Separator.module.css'))) {
+      throw new Error('Tailwind Separator should not emit a CSS module');
+    }
+    results.push({ phase: 'Separator + React + Tailwind', passed: true });
+
+    // Separator + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 54: Separator + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Separator'));
+    runCLI('add Separator -y');
+    const sepVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Separator', 'Separator.vue'),
+      'utf-8',
+    );
+    if (!sepVue.includes('role="separator"') || !sepVue.includes('separator--labelled')) {
+      throw new Error('Vue Separator missing separator role or labelled variant');
+    }
+    results.push({ phase: 'Separator + Vue + CSS', passed: true });
+
+    // Separator + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 55: Separator + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Separator'));
+    runCLI('add Separator -y');
+    const sepNgFiles = ['Separator/separator.component.ts', 'Separator/separator.component.html', 'Separator/separator.component.scss'];
+    for (const file of sepNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const sepNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Separator', 'separator.component.ts'),
+      'utf-8',
+    );
+    if (!sepNgTs.includes('export class SeparatorComponent') || !sepNgTs.includes("styleUrls: ['./separator.component.scss']")) {
+      throw new Error('Angular Separator missing SeparatorComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Separator + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

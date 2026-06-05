@@ -17,7 +17,8 @@
     "components/form.json",
     "components/tabs.json",
     "components/tooltip.json",
-    "components/label.json"
+    "components/label.json",
+    "components/separator.json"
   ],
   "frameworks": [
     "frameworks/react.json",

@@ -1,0 +1,54 @@
+import React from 'react';
+
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Layout direction of the divider */
+  orientation?: SeparatorOrientation;
+  /** Purely visual — removes the divider from the accessibility tree */
+  decorative?: boolean;
+  /** Optional centered label (horizontal orientation only) */
+  label?: string;
+}
+
+export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
+  ({ orientation = 'horizontal', decorative = false, label, className, children, ...props }, ref) => {
+    const content = label ?? children;
+    const lineColor = 'bg-[var(--separator-color,var(--color-border))]';
+
+    if (content && orientation === 'horizontal' && !decorative) {
+      return (
+        <div
+          ref={ref}
+          className={['flex items-center gap-3 w-full my-2', className].filter(Boolean).join(' ')}
+          role="separator"
+          aria-orientation="horizontal"
+          {...props}
+        >
+          <span className={`flex-1 h-px ${lineColor}`} aria-hidden="true" />
+          <span className="shrink-0 text-sm whitespace-nowrap text-[var(--color-text-muted)]">{content}</span>
+          <span className={`flex-1 h-px ${lineColor}`} aria-hidden="true" />
+        </div>
+      );
+    }
+
+    const cls = [
+      'shrink-0',
+      lineColor,
+      orientation === 'horizontal' ? 'w-full h-px my-2' : 'self-stretch w-px min-h-[1em] mx-2',
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        role={decorative ? 'none' : 'separator'}
+        aria-orientation={decorative ? undefined : orientation}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = 'Separator';

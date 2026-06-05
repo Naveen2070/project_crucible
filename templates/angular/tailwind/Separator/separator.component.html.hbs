@@ -1,0 +1,13 @@
+@if (label && orientation === 'horizontal' && !decorative) {
+  <div class="flex items-center gap-3 w-full my-2" role="separator" aria-orientation="horizontal">
+    <span class="flex-1 h-px bg-[var(--separator-color,var(--color-border))]" aria-hidden="true"></span>
+    <span class="shrink-0 text-sm whitespace-nowrap text-[var(--color-text-muted)]">\{{ label }}</span>
+    <span class="flex-1 h-px bg-[var(--separator-color,var(--color-border))]" aria-hidden="true"></span>
+  </div>
+} @else {
+  <div
+    [class]="getBarClasses()"
+    [attr.role]="decorative ? 'none' : 'separator'"
+    [attr.aria-orientation]="decorative ? null : orientation"
+  ></div>
+}

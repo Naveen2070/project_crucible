@@ -1,0 +1,42 @@
+.separator {
+  border: none;
+  flex-shrink: 0;
+  background-color: var(--separator-color, {{tokens.componentTokens.separator.color}});
+
+  &--horizontal {
+    width: 100%;
+    height: var(--separator-thickness, {{tokens.componentTokens.separator.thickness}});
+    margin: var(--separator-spacing, {{tokens.componentTokens.separator.spacing}}) 0;
+  }
+
+  &--vertical {
+    align-self: stretch;
+    width: var(--separator-thickness, {{tokens.componentTokens.separator.thickness}});
+    min-height: 1em;
+    margin: 0 var(--separator-spacing, {{tokens.componentTokens.separator.spacing}});
+  }
+
+  &--labelled {
+    display: flex;
+    align-items: center;
+    gap: var(--separator-label-gap, {{tokens.componentTokens.separator.labelGap}});
+    width: 100%;
+    height: auto;
+    margin: var(--separator-spacing, {{tokens.componentTokens.separator.spacing}}) 0;
+    background: none;
+  }
+}
+
+.separator-line {
+  flex: 1;
+  height: var(--separator-thickness, {{tokens.componentTokens.separator.thickness}});
+  background-color: var(--separator-color, {{tokens.componentTokens.separator.color}});
+}
+
+.separator-label {
+  flex-shrink: 0;
+  color: var(--separator-label-color, {{tokens.componentTokens.separator.labelColor}});
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}

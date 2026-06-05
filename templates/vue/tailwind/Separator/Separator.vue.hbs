@@ -1,0 +1,44 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+interface Props {
+  orientation?: SeparatorOrientation;
+  decorative?:  boolean;
+  label?:       string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  orientation: 'horizontal',
+  decorative: false,
+  label: '',
+});
+
+const lineColor = 'bg-[var(--separator-color,var(--color-border))]';
+
+const barClasses = computed(() => [
+  'shrink-0',
+  lineColor,
+  props.orientation === 'horizontal' ? 'w-full h-px my-2' : 'self-stretch w-px min-h-[1em] mx-2',
+]);
+</script>
+
+<template>
+  <div
+    v-if="label && orientation === 'horizontal' && !decorative"
+    class="flex items-center gap-3 w-full my-2"
+    role="separator"
+    aria-orientation="horizontal"
+  >
+    <span :class="['flex-1 h-px', lineColor]" aria-hidden="true" />
+    <span class="shrink-0 text-sm whitespace-nowrap text-[var(--color-text-muted)]">\{{ label }}</span>
+    <span :class="['flex-1 h-px', lineColor]" aria-hidden="true" />
+  </div>
+  <div
+    v-else
+    :class="barClasses"
+    :role="decorative ? 'none' : 'separator'"
+    :aria-orientation="decorative ? undefined : orientation"
+  />
+</template>
