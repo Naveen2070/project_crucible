@@ -44,6 +44,8 @@ export const ComponentName = {
   Alert: 'Alert',
   Progress: 'Progress',
   Breadcrumb: 'Breadcrumb',
+  RadioGroup: 'RadioGroup',
+  Accordion: 'Accordion',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

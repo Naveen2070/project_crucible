@@ -2824,6 +2824,222 @@ async function runE2E() {
       throw new Error('Angular Breadcrumb HTML missing nav aria-label or @for loop');
     }
     results.push({ phase: 'Breadcrumb + Angular + SCSS', passed: true });
+
+    // RadioGroup + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 92: RadioGroup + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'RadioGroup'));
+    runCLI('add RadioGroup -y');
+    const rgReactCss = await readFile(path.join(TEST_DIR, 'src/components', 'RadioGroup', 'RadioGroup.tsx'), 'utf-8');
+    if (!rgReactCss.includes('export const RadioGroup') || !rgReactCss.includes('Object.assign(RadioGroupRoot')) {
+      throw new Error('React RadioGroup missing compound exports');
+    }
+    if (!rgReactCss.includes('role="radiogroup"') || !rgReactCss.includes('role="radio"') || !rgReactCss.includes('aria-checked')) {
+      throw new Error('React RadioGroup missing WAI-ARIA radiogroup roles');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'RadioGroup', 'RadioGroup.module.css')))) {
+      throw new Error('Missing: RadioGroup/RadioGroup.module.css');
+    }
+    results.push({ phase: 'RadioGroup + React + CSS (compound)', passed: true });
+
+    // RadioGroup + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 93: RadioGroup + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'RadioGroup'));
+    runCLI('add RadioGroup -y');
+    const rgReactTw = await readFile(path.join(TEST_DIR, 'src/components', 'RadioGroup', 'RadioGroup.tsx'), 'utf-8');
+    if (!rgReactTw.includes('role="radiogroup"') || rgReactTw.includes('RadioGroup.module')) {
+      throw new Error('React Tailwind RadioGroup missing radiogroup role or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'RadioGroup', 'RadioGroup.module.css'))) {
+      throw new Error('Tailwind RadioGroup should not emit a CSS module');
+    }
+    results.push({ phase: 'RadioGroup + React + Tailwind', passed: true });
+
+    // RadioGroup + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 94: RadioGroup + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'RadioGroup'));
+    runCLI('add RadioGroup -y');
+    const rgVue = await readFile(path.join(TEST_DIR, 'src/components', 'RadioGroup', 'RadioGroup.vue'), 'utf-8');
+    if (!rgVue.includes("role: 'radiogroup'") && !rgVue.includes('role="radiogroup"')) {
+      throw new Error('Vue RadioGroup missing radiogroup role');
+    }
+    results.push({ phase: 'RadioGroup + Vue + CSS', passed: true });
+
+    // RadioGroup + Angular + SCSS (monolithic)
+    console.log(ansis.cyan('📦 Phase 95: RadioGroup + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'RadioGroup'));
+    runCLI('add RadioGroup -y');
+    const rgNgFiles = ['RadioGroup/radiogroup.component.ts', 'RadioGroup/radiogroup.component.html', 'RadioGroup/radiogroup.component.scss'];
+    for (const file of rgNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const rgNgTs = await readFile(path.join(TEST_DIR, 'src/components', 'RadioGroup', 'radiogroup.component.ts'), 'utf-8');
+    if (!rgNgTs.includes('export class RadioGroupComponent') || !rgNgTs.includes("styleUrls: ['./radiogroup.component.scss']")) {
+      throw new Error('Angular RadioGroup missing RadioGroupComponent or scss styleUrls');
+    }
+    if (rgNgTs.includes('Object.assign')) {
+      throw new Error('Angular RadioGroup should be monolithic');
+    }
+    results.push({ phase: 'RadioGroup + Angular + SCSS', passed: true });
+
+    // Accordion + React + CSS (compound)
+    console.log(ansis.cyan('📦 Phase 96: Accordion + React + CSS (compound)'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Accordion'));
+    runCLI('add Accordion -y');
+    const acReactCss = await readFile(path.join(TEST_DIR, 'src/components', 'Accordion', 'Accordion.tsx'), 'utf-8');
+    if (!acReactCss.includes('export const Accordion') || !acReactCss.includes('Object.assign(AccordionRoot')) {
+      throw new Error('React Accordion missing compound exports');
+    }
+    if (!acReactCss.includes('aria-expanded') || !acReactCss.includes('role="region"')) {
+      throw new Error('React Accordion missing disclosure a11y wiring');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Accordion', 'Accordion.module.css')))) {
+      throw new Error('Missing: Accordion/Accordion.module.css');
+    }
+    results.push({ phase: 'Accordion + React + CSS (compound)', passed: true });
+
+    // Accordion + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 97: Accordion + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Accordion'));
+    runCLI('add Accordion -y');
+    const acReactTw = await readFile(path.join(TEST_DIR, 'src/components', 'Accordion', 'Accordion.tsx'), 'utf-8');
+    if (!acReactTw.includes('aria-expanded') || acReactTw.includes('Accordion.module')) {
+      throw new Error('React Tailwind Accordion missing aria-expanded or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Accordion', 'Accordion.module.css'))) {
+      throw new Error('Tailwind Accordion should not emit a CSS module');
+    }
+    results.push({ phase: 'Accordion + React + Tailwind', passed: true });
+
+    // Accordion + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 98: Accordion + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Accordion'));
+    runCLI('add Accordion -y');
+    const acVue = await readFile(path.join(TEST_DIR, 'src/components', 'Accordion', 'Accordion.vue'), 'utf-8');
+    if (!acVue.includes('aria-expanded')) {
+      throw new Error('Vue Accordion missing aria-expanded');
+    }
+    results.push({ phase: 'Accordion + Vue + CSS', passed: true });
+
+    // Accordion + Angular + SCSS (monolithic)
+    console.log(ansis.cyan('📦 Phase 99: Accordion + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Accordion'));
+    runCLI('add Accordion -y');
+    const acNgFiles = ['Accordion/accordion.component.ts', 'Accordion/accordion.component.html', 'Accordion/accordion.component.scss'];
+    for (const file of acNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const acNgTs = await readFile(path.join(TEST_DIR, 'src/components', 'Accordion', 'accordion.component.ts'), 'utf-8');
+    if (!acNgTs.includes('export class AccordionComponent') || !acNgTs.includes("styleUrls: ['./accordion.component.scss']")) {
+      throw new Error('Angular Accordion missing AccordionComponent or scss styleUrls');
+    }
+    if (acNgTs.includes('Object.assign')) {
+      throw new Error('Angular Accordion should be monolithic');
+    }
+    const acNgHtml = await readFile(path.join(TEST_DIR, 'src/components', 'Accordion', 'accordion.component.html'), 'utf-8');
+    if (!acNgHtml.includes('aria-expanded')) {
+      throw new Error('Angular Accordion HTML missing aria-expanded');
+    }
+    results.push({ phase: 'Accordion + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });

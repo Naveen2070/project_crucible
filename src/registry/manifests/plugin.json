@@ -27,7 +27,9 @@
     "components/switch.json",
     "components/alert.json",
     "components/progress.json",
-    "components/breadcrumb.json"
+    "components/breadcrumb.json",
+    "components/radio-group.json",
+    "components/accordion.json"
   ],
   "frameworks": [
     "frameworks/react.json",

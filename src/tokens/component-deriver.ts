@@ -180,6 +180,23 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     activeColor: 'var(--color-text)',
     separatorColor: 'var(--color-text-muted)',
   },
+  radio: {
+    size: 'calc(var(--spacing-unit) * 4)',
+    accent: 'var(--color-primary)',
+    labelColor: 'var(--color-text)',
+    gap: 'calc(var(--spacing-unit) * 2)',
+    groupGap: 'calc(var(--spacing-unit) * 2)',
+  },
+  accordion: {
+    borderColor: 'var(--color-border)',
+    triggerColor: 'var(--color-text)',
+    triggerHoverBg: 'var(--color-secondary)',
+    triggerPaddingY: 'calc(var(--spacing-unit) * 3)',
+    triggerPaddingX: 'calc(var(--spacing-unit) * 2)',
+    contentPaddingY: 'calc(var(--spacing-unit) * 3)',
+    radius: 'var(--radius-md)',
+    transition: 'background-color 0.2s ease',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',
