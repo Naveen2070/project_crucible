@@ -1155,9 +1155,9 @@ Adding a new framework is adding a template folder — **not modifying the engin
 
 ```mermaid
 graph BT
-    L1["Layer 1 — Vitest Unit Tests<br/>128 tests: resolver, model, registry"]
-    L2["Layer 2 — Vitest Snapshot Tests<br/>17 theme permutations + 62 component tests"]
-    L3["Layer 3 — E2E CLI Automation<br/>19 phases covering all commands"]
+    L1["Layer 1 — Vitest Unit Tests<br/>182 tests: resolver, model, registry, CLI, utils"]
+    L2["Layer 2 — Vitest Snapshot Tests<br/>126 theme permutations + 41 component tests"]
+    L3["Layer 3 — E2E CLI Automation<br/>47 phases covering all commands"]
     L4["Layer 4 — Storybook + Chromatic<br/>Visual regression on every PR"]
     L1 --> L2 --> L3 --> L4
 ```
@@ -1174,7 +1174,7 @@ graph BT
 
 ### 15.3 Test Suite
 
-**Current: 230 tests across 24 test files + 19 E2E phases**
+**Current: 368 tests across 33 test files + 47 E2E phases**
 
 | Test File               | Coverage                                    |
 | ----------------------- | ------------------------------------------- |
@@ -1190,32 +1190,37 @@ graph BT
 
 ### 15.4 Test Coverage Phases
 
-| Phase      | Tests   | Coverage                               |
-| ---------- | ------- | -------------------------------------- |
-| Phase 1-4  | 128     | Core engine, resolver, model, registry |
-| Phase 5    | 16      | Template audit enforcement             |
-| Phase 6    | 11      | Accessibility verification             |
-| Phase 7    | 17      | Theme permutation snapshots            |
-| Phase 8-11 | 58      | CLI commands, writer, doctor           |
-| **Total**  | **230** | **Complete**                           |
+| Category               | Tests   | Coverage                                          |
+| ---------------------- | ------- | ------------------------------------------------- |
+| Core engine            | 65      | resolver, model, registry, config, dark mode      |
+| Utility logic          | 75      | table paginator, sorter, virtualizer              |
+| Template audit         | 6       | logic-free template enforcement                   |
+| Accessibility (axe)    | 19      | per-component a11y + dark mode + interaction       |
+| Component snapshots    | 161     | full pipeline output + theme permutations          |
+| CLI / writer / doctor  | 42      | command flows, hash protection, setup validation  |
+| **Total**              | **368** | **across 33 files**                                |
 
-E2E: **19 phases** ✅
+E2E: **47 phases** ✅
 
 ### 15.5 E2E Test Phases
 
-| Phase | Coverage                                |
-| ----- | --------------------------------------- |
-| 1-2   | React CSS and Tailwind modes            |
-| 3     | Angular with TypeScript decorators      |
-| 4     | Vue framework                           |
-| 5     | SCSS style system                       |
-| 6-8   | Write protection (dry-run, force, hash) |
-| 9     | Batch component generation              |
-| 10-11 | Theme and output configuration          |
-| 12-14 | CLI commands (init, eject, list)        |
-| 15-19 | Error handling, playground, Storybook   |
+| Phase | Coverage                                              |
+| ----- | ----------------------------------------------------- |
+| 1-3   | React × CSS, SCSS, Tailwind                            |
+| 4-6   | Angular × CSS, SCSS, Tailwind                          |
+| 7-9   | Vue × CSS, SCSS, Tailwind                              |
+| 10-12 | Write protection (dry-run, force, hash)               |
+| 13-15 | Multi-component generation, theme presets, output dir |
+| 16-18 | CLI commands (init, eject, list)                      |
+| 19    | Error handling                                        |
+| 20-27 | Table × all frameworks and style systems              |
+| 28-31 | Popover × React/Vue/Angular                           |
+| 32-35 | Toast × React/Vue/Angular                             |
+| 36-39 | Form × React/Vue/Angular                              |
+| 40-43 | Tabs × React/Vue/Angular                              |
+| 44-47 | Tooltip × React/Vue/Angular                           |
 
-**Total: 19 E2E phases** ✅
+**Total: 47 E2E phases** ✅
 
 ---
 

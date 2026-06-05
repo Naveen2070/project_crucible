@@ -34,6 +34,7 @@ const COMPONENTS = [
   'Form',
   'Tabs',
   'Tooltip',
+  'Label',
 ];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,

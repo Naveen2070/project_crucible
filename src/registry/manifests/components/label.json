@@ -1,0 +1,13 @@
+{
+  "id": "Label",
+  "name": "Label",
+  "description": "Accessible form label with size variants and a required marker",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": [],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled"],
+  "props": ["htmlFor", "required"],
+  "prefix": "label",
+  "tailwindDefaults": {}
+}

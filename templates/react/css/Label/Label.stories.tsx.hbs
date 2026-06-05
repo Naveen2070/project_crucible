@@ -1,0 +1,38 @@
+{{> react/stories-header}}
+  argTypes: {
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    required: { control: 'boolean' },
+    disabled: { control: 'boolean' },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { size: 'md' },
+  render: (args) => <Label {...args}>Email address</Label>,
+};
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => <Label {...args}>{{capitalize this}} label</Label>,
+};
+{{/each}}
+
+export const Required: Story = {
+  args: { required: true },
+  render: (args) => <Label {...args}>Full name</Label>,
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => <Label {...args}>Disabled field</Label>,
+};
+
+export const WithControl: Story = {
+  args: { required: true },
+  render: (args) => (
+    <Label {...args} htmlFor="demo-input">
+      Username
+    </Label>
+  ),
+};

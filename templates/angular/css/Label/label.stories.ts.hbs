@@ -1,0 +1,51 @@
+import { Meta, StoryObj } from '@storybook/angular';
+import { LabelComponent } from './label.component';
+
+const meta: Meta<LabelComponent> = {
+  title: 'Crucible/Label',
+  component: LabelComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    required: { control: 'boolean' },
+    disabled: { control: 'boolean' },
+    htmlFor:  { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<LabelComponent>;
+
+export const Default: Story = {
+  args: { size: 'md' },
+  render: (args) => ({
+    props: args,
+    template: `<app-label [size]="size" [required]="required" [disabled]="disabled">Email address</app-label>`,
+  }),
+};
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => ({
+    props: args,
+    template: `<app-label [size]="size" [required]="required" [disabled]="disabled">{{capitalize this}} label</app-label>`,
+  }),
+};
+{{/each}}
+
+export const Required: Story = {
+  args: { required: true },
+  render: (args) => ({
+    props: args,
+    template: `<app-label [size]="size" [required]="required" [disabled]="disabled">Full name</app-label>`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => ({
+    props: args,
+    template: `<app-label [size]="size" [required]="required" [disabled]="disabled">Disabled field</app-label>`,
+  }),
+};

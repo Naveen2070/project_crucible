@@ -1573,6 +1573,131 @@ async function runE2E() {
       throw new Error('Angular Tooltip HTML missing tooltip role');
     }
     results.push({ phase: 'Tooltip + Angular + SCSS', passed: true });
+
+    // Label + React + CSS
+    console.log(ansis.cyan('📦 Phase 48: Label + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Label'));
+    runCLI('add Label -y');
+    const labelReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Label', 'Label.tsx'),
+      'utf-8',
+    );
+    if (!labelReactCss.includes('export const Label') || !labelReactCss.includes('aria-hidden="true"')) {
+      throw new Error('React Label missing export or required marker');
+    }
+    if (labelReactCss.includes('Object.assign')) {
+      throw new Error('Label should be monolithic (no compound exports)');
+    }
+    if (!(await pathExists(path.join(TEST_DIR, 'src/components', 'Label', 'Label.module.css')))) {
+      throw new Error('Missing: Label/Label.module.css');
+    }
+    results.push({ phase: 'Label + React + CSS', passed: true });
+
+    // Label + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 49: Label + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Label'));
+    runCLI('add Label -y');
+    const labelReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Label', 'Label.tsx'),
+      'utf-8',
+    );
+    if (!labelReactTw.includes('inline-flex items-center') || labelReactTw.includes('Label.module')) {
+      throw new Error('React Tailwind Label missing inline utility classes or still imports a CSS module');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Label', 'Label.module.css'))) {
+      throw new Error('Tailwind Label should not emit a CSS module');
+    }
+    results.push({ phase: 'Label + React + Tailwind', passed: true });
+
+    // Label + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 50: Label + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Label'));
+    runCLI('add Label -y');
+    const labelVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Label', 'Label.vue'),
+      'utf-8',
+    );
+    if (!labelVue.includes('<label') || !labelVue.includes('aria-hidden="true"')) {
+      throw new Error('Vue Label missing label element or required marker');
+    }
+    results.push({ phase: 'Label + Vue + CSS', passed: true });
+
+    // Label + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 51: Label + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Label'));
+    runCLI('add Label -y');
+    const labelNgFiles = ['Label/label.component.ts', 'Label/label.component.html', 'Label/label.component.scss'];
+    for (const file of labelNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const labelNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Label', 'label.component.ts'),
+      'utf-8',
+    );
+    if (!labelNgTs.includes('export class LabelComponent') || !labelNgTs.includes("styleUrls: ['./label.component.scss']")) {
+      throw new Error('Angular Label missing LabelComponent or scss styleUrls');
+    }
+    if (labelNgTs.includes('Object.assign')) {
+      throw new Error('Angular Label should be monolithic');
+    }
+    const labelNgHtml = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Label', 'label.component.html'),
+      'utf-8',
+    );
+    if (!labelNgHtml.includes('<ng-content></ng-content>')) {
+      throw new Error('Angular Label HTML missing ng-content projection');
+    }
+    results.push({ phase: 'Label + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
