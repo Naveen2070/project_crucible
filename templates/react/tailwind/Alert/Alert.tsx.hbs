@@ -1,0 +1,63 @@
+import React from 'react';
+
+export type AlertVariant = {{> shared/variant-types}};
+
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Severity / visual style */
+  variant?: AlertVariant;
+  /** Bold heading shown above the message */
+  title?: string;
+  /** Show a dismiss button */
+  closeable?: boolean;
+  /** Called when the dismiss button is clicked */
+  onClose?: () => void;
+  /** Custom leading icon (falls back to a per-variant glyph) */
+  icon?: React.ReactNode;
+}
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+const VARIANT_CLASSES: Record<AlertVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ variant = 'default', title, closeable = false, onClose, icon, className, children, ...props }, ref) => {
+    const cls = [
+      'flex items-start gap-3 p-3 rounded-[var(--radius-md)] border',
+      VARIANT_CLASSES[variant],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} role="alert" className={cls} {...props}>
+        <span className="shrink-0 leading-snug" aria-hidden="true">
+          {icon ?? DEFAULT_ICONS[variant]}
+        </span>
+        <div className="flex-1 min-w-0">
+          {title && <div className="font-semibold text-sm mb-0.5">{title}</div>}
+          {children && <div className="text-[0.8125rem] text-[var(--color-text-muted)]">{children}</div>}
+        </div>
+        {closeable && (
+          <button
+            type="button"
+            className="shrink-0 border-none bg-transparent cursor-pointer text-lg leading-none opacity-70 hover:opacity-100"
+            aria-label="Dismiss"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+
+Alert.displayName = 'Alert';

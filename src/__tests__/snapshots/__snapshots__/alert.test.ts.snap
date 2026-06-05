@@ -1,0 +1,566 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Alert snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-alert',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './alert.component.html',
+  styleUrls: ['./alert.component.css'],
+})
+export class AlertComponent {
+  @Input() variant: 'default' | 'info' | 'success' | 'warning' | 'destructive' = 'default';
+  @Input() title = '';
+  @Input() closeable = false;
+  @Input() icon = '';
+
+  @Output() close = new EventEmitter<void>();
+
+  private readonly defaultIcons: Record<string, string> = {
+    default: 'ℹ',
+    info: 'ℹ',
+    success: '✓',
+    warning: '⚠',
+    destructive: '✕',
+  };
+
+  get displayIcon(): string {
+    return this.icon || this.defaultIcons[this.variant];
+  }
+}
+"
+`;
+
+exports[`Alert snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<div role="alert" [class]="'alert alert--' + variant">
+  <span class="alert-icon" aria-hidden="true">{{ displayIcon }}</span>
+  <div class="alert-content">
+    @if (title) {
+      <div class="alert-title">{{ title }}</div>
+    }
+    <div class="alert-description"><ng-content></ng-content></div>
+  </div>
+  @if (closeable) {
+    <button type="button" class="alert-close" aria-label="Dismiss" (click)="close.emit()">×</button>
+  }
+</div>
+"
+`;
+
+exports[`Alert snapshots > react css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Alert.module.css';
+export type AlertVariant = 'default' | 'info' | 'success' | 'warning' | 'destructive';
+
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Severity / visual style */
+  variant?: AlertVariant;
+  /** Bold heading shown above the message */
+  title?: string;
+  /** Show a dismiss button */
+  closeable?: boolean;
+  /** Called when the dismiss button is clicked */
+  onClose?: () => void;
+  /** Custom leading icon (falls back to a per-variant glyph) */
+  icon?: React.ReactNode;
+}
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ variant = 'default', title, closeable = false, onClose, icon, className, children, ...props }, ref) => {
+    const cls = [styles.alert, styles[\`alert--\${variant}\`], className].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} role="alert" className={cls} {...props}>
+        <span className={styles['alert-icon']} aria-hidden="true">
+          {icon ?? DEFAULT_ICONS[variant]}
+        </span>
+        <div className={styles['alert-content']}>
+          {title && <div className={styles['alert-title']}>{title}</div>}
+          {children && <div className={styles['alert-description']}>{children}</div>}
+        </div>
+        {closeable && (
+          <button type="button" className={styles['alert-close']} aria-label="Dismiss" onClick={onClose}>
+            ×
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+
+Alert.displayName = 'Alert';
+"
+`;
+
+exports[`Alert snapshots > react css mode snapshot 2`] = `
+".alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--alert-gap, calc(var(--spacing-unit) * 3));
+  padding: var(--alert-padding, calc(var(--spacing-unit) * 3));
+  border: 1px solid transparent;
+  border-radius: var(--alert-radius, var(--radius-md));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1A1A2E);
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  line-height: 1.4;
+  font-size: 1rem;
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.alert-description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.alert-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+.alert-close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Variants */
+.alert--default {
+  background-color: var(--color-surface, #FFFFFF);
+  border-color: var(--color-border, #E2E1F0);
+}
+
+.alert--info {
+  background-color: color-mix(in srgb, var(--alert-info-accent, var(--color-primary)) 10%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-info-accent, var(--color-primary));
+}
+
+.alert--info .alert-icon {
+  color: var(--alert-info-accent, var(--color-primary));
+}
+
+.alert--success {
+  background-color: color-mix(in srgb, var(--alert-success-accent, var(--color-success)) 10%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-success-accent, var(--color-success));
+}
+
+.alert--success .alert-icon {
+  color: var(--alert-success-accent, var(--color-success));
+}
+
+.alert--warning {
+  background-color: color-mix(in srgb, var(--alert-warning-accent, #f59e0b) 12%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-warning-accent, #f59e0b);
+}
+
+.alert--warning .alert-icon {
+  color: var(--alert-warning-accent, #f59e0b);
+}
+
+.alert--destructive {
+  background-color: color-mix(in srgb, var(--alert-destructive-accent, var(--color-destructive)) 10%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-destructive-accent, var(--color-destructive));
+}
+
+.alert--destructive .alert-icon {
+  color: var(--alert-destructive-accent, var(--color-destructive));
+}
+"
+`;
+
+exports[`Alert snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Alert } from './Alert';
+
+const meta: Meta<typeof Alert> = {
+  title: 'Crucible/Alert',
+  component: Alert,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:   { control: 'select', options: ['default', 'info', 'success', 'warning', 'destructive'] },
+    title:     { control: 'text' },
+    closeable: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Alert>;
+
+export const Default: Story = {
+  args: { variant: 'default', title: 'Heads up', children: 'This is a general message for your attention.' },
+  render: ({ children, ...args }) => <Alert {...args}>{children}</Alert>,
+};
+
+export const Info: Story = {
+  args: { variant: 'info', title: 'Info', children: 'This is a info alert message.' },
+  render: ({ children, ...args }) => <Alert {...args}>{children}</Alert>,
+};
+export const Success: Story = {
+  args: { variant: 'success', title: 'Success', children: 'This is a success alert message.' },
+  render: ({ children, ...args }) => <Alert {...args}>{children}</Alert>,
+};
+export const Warning: Story = {
+  args: { variant: 'warning', title: 'Warning', children: 'This is a warning alert message.' },
+  render: ({ children, ...args }) => <Alert {...args}>{children}</Alert>,
+};
+export const Destructive: Story = {
+  args: { variant: 'destructive', title: 'Destructive', children: 'This is a destructive alert message.' },
+  render: ({ children, ...args }) => <Alert {...args}>{children}</Alert>,
+};
+
+export const Closeable: Story = {
+  args: { variant: 'info', title: 'Dismissible', children: 'Click the × to dismiss this alert.', closeable: true },
+  render: ({ children, ...args }) => <Alert {...args}>{children}</Alert>,
+};
+
+export const TitleOnly: Story = {
+  args: { variant: 'success', title: 'Saved successfully' },
+  render: (args) => <Alert {...args} />,
+};
+"
+`;
+
+exports[`Alert snapshots > react scss mode snapshot 1`] = `
+".alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--alert-gap, calc(var(--spacing-unit) * 3));
+  padding: var(--alert-padding, calc(var(--spacing-unit) * 3));
+  border: 1px solid transparent;
+  border-radius: var(--alert-radius, var(--radius-md));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1A1A2E);
+
+  &--default {
+    background-color: var(--color-surface, #FFFFFF);
+    border-color: var(--color-border, #E2E1F0);
+  }
+
+  &--info {
+    background-color: color-mix(in srgb, var(--alert-info-accent, var(--color-primary)) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-info-accent, var(--color-primary));
+
+    .alert-icon {
+      color: var(--alert-info-accent, var(--color-primary));
+    }
+  }
+
+  &--success {
+    background-color: color-mix(in srgb, var(--alert-success-accent, var(--color-success)) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-success-accent, var(--color-success));
+
+    .alert-icon {
+      color: var(--alert-success-accent, var(--color-success));
+    }
+  }
+
+  &--warning {
+    background-color: color-mix(in srgb, var(--alert-warning-accent, #f59e0b) 12%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-warning-accent, #f59e0b);
+
+    .alert-icon {
+      color: var(--alert-warning-accent, #f59e0b);
+    }
+  }
+
+  &--destructive {
+    background-color: color-mix(in srgb, var(--alert-destructive-accent, var(--color-destructive)) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-destructive-accent, var(--color-destructive));
+
+    .alert-icon {
+      color: var(--alert-destructive-accent, var(--color-destructive));
+    }
+  }
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  line-height: 1.4;
+  font-size: 1rem;
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.alert-description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.alert-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+"
+`;
+
+exports[`Alert snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type AlertVariant = 'default' | 'info' | 'success' | 'warning' | 'destructive';
+
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Severity / visual style */
+  variant?: AlertVariant;
+  /** Bold heading shown above the message */
+  title?: string;
+  /** Show a dismiss button */
+  closeable?: boolean;
+  /** Called when the dismiss button is clicked */
+  onClose?: () => void;
+  /** Custom leading icon (falls back to a per-variant glyph) */
+  icon?: React.ReactNode;
+}
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+const VARIANT_CLASSES: Record<AlertVariant, string> = {
+  default: 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text)]',
+  info: 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-text)]',
+  success: 'bg-[var(--color-success)]/10 border-[var(--color-success)] text-[var(--color-text)]',
+  warning: 'bg-[#f59e0b]/10 border-[#f59e0b] text-[var(--color-text)]',
+  destructive: 'bg-[var(--color-destructive)]/10 border-[var(--color-destructive)] text-[var(--color-text)]',
+};
+
+export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ variant = 'default', title, closeable = false, onClose, icon, className, children, ...props }, ref) => {
+    const cls = [
+      'flex items-start gap-3 p-3 rounded-[var(--radius-md)] border',
+      VARIANT_CLASSES[variant],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} role="alert" className={cls} {...props}>
+        <span className="shrink-0 leading-snug" aria-hidden="true">
+          {icon ?? DEFAULT_ICONS[variant]}
+        </span>
+        <div className="flex-1 min-w-0">
+          {title && <div className="font-semibold text-sm mb-0.5">{title}</div>}
+          {children && <div className="text-[0.8125rem] text-[var(--color-text-muted)]">{children}</div>}
+        </div>
+        {closeable && (
+          <button
+            type="button"
+            className="shrink-0 border-none bg-transparent cursor-pointer text-lg leading-none opacity-70 hover:opacity-100"
+            aria-label="Dismiss"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+
+Alert.displayName = 'Alert';
+"
+`;
+
+exports[`Alert snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { computed } from 'vue';
+
+export type AlertVariant = 'default' | 'info' | 'success' | 'warning' | 'destructive';
+
+interface Props {
+  variant?:   AlertVariant;
+  title?:     string;
+  closeable?: boolean;
+  icon?:      string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  title: '',
+  closeable: false,
+  icon: '',
+});
+
+const emit = defineEmits(['close']);
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+const displayIcon = computed(() => props.icon || DEFAULT_ICONS[props.variant]);
+</script>
+
+<template>
+  <div role="alert" :class="['alert', \`alert--\${variant}\`]">
+    <span class="alert-icon" aria-hidden="true">{{ displayIcon }}</span>
+    <div class="alert-content">
+      <div v-if="title" class="alert-title">{{ title }}</div>
+      <div v-if="$slots.default" class="alert-description"><slot /></div>
+    </div>
+    <button v-if="closeable" type="button" class="alert-close" aria-label="Dismiss" @click="emit('close')">×</button>
+  </div>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--alert-gap, calc(var(--spacing-unit) * 3));
+  padding: var(--alert-padding, calc(var(--spacing-unit) * 3));
+  border: 1px solid transparent;
+  border-radius: var(--alert-radius, var(--radius-md));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1A1A2E);
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  line-height: 1.4;
+  font-size: 1rem;
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.alert-description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.alert-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+.alert--default {
+  background-color: var(--color-surface, #FFFFFF);
+  border-color: var(--color-border, #E2E1F0);
+}
+
+.alert--info {
+  background-color: color-mix(in srgb, var(--alert-info-accent, var(--color-primary)) 10%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-info-accent, var(--color-primary));
+}
+
+.alert--info .alert-icon {
+  color: var(--alert-info-accent, var(--color-primary));
+}
+
+.alert--success {
+  background-color: color-mix(in srgb, var(--alert-success-accent, var(--color-success)) 10%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-success-accent, var(--color-success));
+}
+
+.alert--success .alert-icon {
+  color: var(--alert-success-accent, var(--color-success));
+}
+
+.alert--warning {
+  background-color: color-mix(in srgb, var(--alert-warning-accent, #f59e0b) 12%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-warning-accent, #f59e0b);
+}
+
+.alert--warning .alert-icon {
+  color: var(--alert-warning-accent, #f59e0b);
+}
+
+.alert--destructive {
+  background-color: color-mix(in srgb, var(--alert-destructive-accent, var(--color-destructive)) 10%, var(--color-surface, #FFFFFF));
+  border-color: var(--alert-destructive-accent, var(--color-destructive));
+}
+
+.alert--destructive .alert-icon {
+  color: var(--alert-destructive-accent, var(--color-destructive));
+}
+</style>
+"
+`;

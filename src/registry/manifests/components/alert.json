@@ -1,0 +1,20 @@
+{
+  "id": "Alert",
+  "name": "Alert",
+  "description": "Inline status message with severity variants and optional dismiss",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "info", "success", "warning", "destructive"],
+  "sizes": [],
+  "states": [],
+  "props": ["title", "closeable", "onClose", "icon"],
+  "prefix": "alert",
+  "a11y": { "role": "alert" },
+  "tailwindDefaults": {
+    "default": "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text)]",
+    "info": "bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-text)]",
+    "success": "bg-[var(--color-success)]/10 border-[var(--color-success)] text-[var(--color-text)]",
+    "warning": "bg-[#f59e0b]/10 border-[#f59e0b] text-[var(--color-text)]",
+    "destructive": "bg-[var(--color-destructive)]/10 border-[var(--color-destructive)] text-[var(--color-text)]"
+  }
+}
