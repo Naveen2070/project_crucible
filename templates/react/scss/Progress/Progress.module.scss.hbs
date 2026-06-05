@@ -1,0 +1,104 @@
+/* Linear */
+.progress {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--progress-track-bg, {{tokens.componentTokens.progress.trackBg}});
+  border-radius: var(--progress-radius, {{tokens.componentTokens.progress.radius}});
+
+  &--sm {
+    height: 4px;
+  }
+
+  &--md {
+    height: 8px;
+  }
+
+  &--lg {
+    height: 12px;
+  }
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--progress-bar-bg, {{tokens.componentTokens.progress.barBg}});
+  border-radius: inherit;
+  transition: var(--progress-transition, {{tokens.componentTokens.progress.transition}});
+
+  &--indeterminate {
+    width: 40%;
+    animation: progress-indeterminate 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+/* Circular */
+.progress-circular {
+  display: inline-flex;
+
+  &--sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  &--md {
+    width: 40px;
+    height: 40px;
+  }
+
+  &--lg {
+    width: 56px;
+    height: 56px;
+  }
+
+  &:not(.progress-circular--indeterminate) .progress-circular-svg {
+    transform: rotate(-90deg);
+  }
+
+  &--indeterminate .progress-circular-svg {
+    animation: progress-spin 0.9s linear infinite;
+  }
+}
+
+.progress-circular-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-circular-track {
+  stroke: var(--progress-track-bg, {{tokens.componentTokens.progress.trackBg}});
+  stroke-width: 4;
+}
+
+.progress-circular-bar {
+  stroke: var(--progress-bar-bg, {{tokens.componentTokens.progress.barBg}});
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+@keyframes progress-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar--indeterminate {
+    animation: none;
+    width: 100%;
+  }
+  .progress-circular--indeterminate .progress-circular-svg {
+    animation-duration: 2.4s;
+  }
+}

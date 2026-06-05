@@ -1,0 +1,73 @@
+import React from 'react';
+{{> react/styles-import}}
+
+export type ProgressVariant = {{> shared/variant-types}};
+export type ProgressSize    = {{> shared/size-types}};
+
+export interface ProgressProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'role'> {
+  /** Current value (0..max) */
+  value?: number;
+  /** Maximum value */
+  max?: number;
+  /** Linear bar or circular ring */
+  variant?: ProgressVariant;
+  /** Bar thickness / ring diameter */
+  size?: ProgressSize;
+  /** Accessible label */
+  label?: string;
+  /** Show a continuous (looping) animation instead of a fixed value */
+  indeterminate?: boolean;
+}
+
+const RADIUS = 16;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ value = 0, max = 100, variant = 'linear', size = 'md', label, indeterminate = false, className, ...props }, ref) => {
+    const clamped = Math.min(Math.max(value, 0), max);
+    const pct = max > 0 ? (clamped / max) * 100 : 0;
+
+    const ariaProps = {
+      role: 'progressbar' as const,
+      'aria-valuemin': 0,
+      'aria-valuemax': max,
+      'aria-valuenow': indeterminate ? undefined : clamped,
+      'aria-label': label,
+    };
+
+    if (variant === 'circular') {
+      const dashoffset = indeterminate ? CIRCUMFERENCE * 0.75 : CIRCUMFERENCE * (1 - pct / 100);
+      const ringStyle = { strokeDasharray: CIRCUMFERENCE, strokeDashoffset: dashoffset };
+      const wrapCls = [
+        styles['progress-circular'],
+        styles[`progress-circular--${size}`],
+        indeterminate && styles['progress-circular--indeterminate'],
+        className,
+      ].filter(Boolean).join(' ');
+
+      return (
+        <div ref={ref} className={wrapCls} {...ariaProps} {...props}>
+          <svg className={styles['progress-circular-svg']} viewBox="0 0 36 36">
+            <circle className={styles['progress-circular-track']} cx="18" cy="18" r={RADIUS} fill="none" />
+            <circle className={styles['progress-circular-bar']} cx="18" cy="18" r={RADIUS} fill="none" style={ringStyle} />
+          </svg>
+        </div>
+      );
+    }
+
+    const barStyle = indeterminate ? undefined : { width: `${pct}%` };
+    const cls = [styles.progress, styles[`progress--${size}`], className].filter(Boolean).join(' ');
+    const barCls = [
+      styles['progress-bar'],
+      indeterminate && styles['progress-bar--indeterminate'],
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} className={cls} {...ariaProps} {...props}>
+        <div className={barCls} style={barStyle} />
+      </div>
+    );
+  }
+);
+
+Progress.displayName = 'Progress';
