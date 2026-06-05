@@ -1,0 +1,1713 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DropdownMenu snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  HostListener,
+  ElementRef,
+  ViewChild,
+  ViewChildren,
+  QueryList,
+  AfterViewInit,
+  OnDestroy,
+  Renderer2,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, type Placement } from '@floating-ui/dom';
+
+export type DropdownMenuSize = 'sm' | 'md' | 'lg';
+export type DropdownMenuVariant = 'default' | 'minimal';
+
+export interface DropdownMenuItemModel {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  separatorBefore?: boolean;
+}
+
+let menuIdCounter = 0;
+
+@Component({
+  selector: 'app-dropdown-menu',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './dropdownmenu.component.html',
+  styleUrls: ['./dropdownmenu.component.css'],
+})
+export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
+  private _isOpen = false;
+  private isViewInit = false;
+
+  @Input()
+  get open(): boolean {
+    return this._isOpen;
+  }
+  set open(value: boolean) {
+    const prev = this._isOpen;
+    this._isOpen = value;
+    if (prev !== value) {
+      this.handleOpenStateChange(value);
+    }
+  }
+
+  isPositioned = false;
+  readonly contentId = \`menu-content-\${++menuIdCounter}\`;
+
+  @Input() triggerLabel = 'Open';
+  @Input() items: DropdownMenuItemModel[] = [];
+  @Input() placement: Placement = 'bottom-start';
+  @Input() variant: DropdownMenuVariant = 'default';
+  @Input() size: DropdownMenuSize = 'md';
+  @Input() closeOnSelect = true;
+  @Input() className = '';
+
+  @Output() openChange = new EventEmitter<boolean>();
+  @Output() select = new EventEmitter<string>();
+
+  @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
+  @ViewChildren('itemRef') itemRefs!: QueryList<ElementRef<HTMLButtonElement>>;
+
+  private cleanupFloating?: () => void;
+  private contentMoved = false;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {}
+
+  ngAfterViewInit() {
+    this.isViewInit = true;
+    if (this.open) {
+      this.initFloating();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroyFloating();
+  }
+
+  private handleOpenStateChange(isOpen: boolean) {
+    if (!this.isViewInit) return;
+    if (isOpen) {
+      setTimeout(() => {
+        this.initFloating();
+        this.focusFirstItem();
+      }, 0);
+    } else {
+      this.destroyFloating();
+    }
+  }
+
+  get contentClasses(): string {
+    return ['content', \`size-\${this.size}\`, \`variant-\${this.variant}\`, this.className]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  get enabledItems(): DropdownMenuItemModel[] {
+    return this.items.filter((i) => !i.disabled);
+  }
+
+  setOpen(next: boolean) {
+    this.open = next;
+    this.openChange.emit(next);
+    if (!next) {
+      this.triggerRef?.nativeElement.focus();
+    }
+  }
+
+  toggle() {
+    this.setOpen(!this.open);
+  }
+
+  onItemClick(item: DropdownMenuItemModel) {
+    if (item.disabled) return;
+    this.select.emit(item.value);
+    if (this.closeOnSelect) {
+      this.setOpen(false);
+    }
+  }
+
+  private initFloating() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
+
+    this.destroyFloating();
+
+    const triggerEl = this.triggerRef.nativeElement;
+    const contentEl = this.contentRef.nativeElement;
+
+    if (!this.contentMoved) {
+      this.renderer.appendChild(document.body, contentEl);
+      this.contentMoved = true;
+    }
+
+    this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      computePosition(triggerEl, contentEl, {
+        placement: this.placement,
+        middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
+      }).then(({ x, y }) => {
+        this.renderer.setStyle(contentEl, 'position', 'absolute');
+        this.renderer.setStyle(contentEl, 'left', \`\${x}px\`);
+        this.renderer.setStyle(contentEl, 'top', \`\${y}px\`);
+        this.renderer.setStyle(contentEl, 'visibility', 'visible');
+        this.isPositioned = true;
+      });
+    });
+  }
+
+  private destroyFloating() {
+    if (this.cleanupFloating) {
+      this.cleanupFloating();
+      this.cleanupFloating = undefined;
+    }
+    if (this.contentMoved && this.contentRef?.nativeElement) {
+      this.renderer.removeChild(document.body, this.contentRef.nativeElement);
+      this.contentMoved = false;
+    }
+    this.isPositioned = false;
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  handleDocumentClick(event: MouseEvent) {
+    if (!this.open) return;
+    const target = event.target as Node;
+    const triggerEl = this.triggerRef?.nativeElement;
+    const contentEl = this.contentRef?.nativeElement;
+    if (
+      contentEl &&
+      !contentEl.contains(target) &&
+      triggerEl &&
+      !triggerEl.contains(target)
+    ) {
+      this.setOpen(false);
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleDocumentKeydown(event: KeyboardEvent) {
+    if (!this.open) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.setOpen(false);
+    }
+  }
+
+  onContentKeydown(event: KeyboardEvent) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.moveFocus(this.currentItemIndex(event), 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.moveFocus(this.currentItemIndex(event), -1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      this.focusEdge('first');
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      this.focusEdge('last');
+    }
+  }
+
+  private enabledButtons(): HTMLButtonElement[] {
+    return this.itemRefs
+      .toArray()
+      .map((r) => r.nativeElement)
+      .filter((el) => !el.disabled);
+  }
+
+  private currentItemIndex(event: KeyboardEvent): number {
+    const target = event.target as HTMLButtonElement;
+    return this.enabledButtons().indexOf(target);
+  }
+
+  private moveFocus(current: number, direction: 1 | -1) {
+    const buttons = this.enabledButtons();
+    if (buttons.length === 0) return;
+    const nextIdx =
+      current === -1
+        ? direction === 1
+          ? 0
+          : buttons.length - 1
+        : (current + direction + buttons.length) % buttons.length;
+    buttons[nextIdx]?.focus();
+  }
+
+  private focusEdge(edge: 'first' | 'last') {
+    const buttons = this.enabledButtons();
+    if (buttons.length === 0) return;
+    (edge === 'first' ? buttons[0] : buttons[buttons.length - 1])?.focus();
+  }
+
+  private focusFirstItem() {
+    this.enabledButtons()[0]?.focus();
+  }
+}
+"
+`;
+
+exports[`DropdownMenu snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<div class="menu-root">
+  <button
+    #triggerRef
+    type="button"
+    class="trigger"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open"
+    [attr.aria-controls]="open ? contentId : null"
+    [attr.data-state]="open ? 'open' : 'closed'"
+    (click)="toggle()"
+  >
+    {{ triggerLabel }}
+  </button>
+
+  @if (open) {
+    <div
+      #contentRef
+      [id]="contentId"
+      role="menu"
+      [class]="contentClasses"
+      [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      [attr.data-state]="open && isPositioned ? 'open' : 'closed'"
+      [attr.data-placement]="placement"
+      tabindex="-1"
+      (keydown)="onContentKeydown($event)"
+    >
+      @for (item of items; track item.value; let i = $index) {
+        @if (item.separatorBefore && i > 0) {
+          <div role="separator" class="separator"></div>
+        }
+        <button
+          #itemRef
+          type="button"
+          role="menuitem"
+          class="item"
+          [attr.data-disabled]="item.disabled ? '' : null"
+          [disabled]="item.disabled"
+          tabindex="-1"
+          (click)="onItemClick(item)"
+        >
+          {{ item.label }}
+        </button>
+      }
+    </div>
+  }
+</div>
+"
+`;
+
+exports[`DropdownMenu snapshots > react css mode snapshot (compound) 1`] = `
+"import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useClick,
+  useDismiss,
+  useRole,
+  useListNavigation,
+  useTypeahead,
+  useInteractions,
+  useMergeRefs,
+  useListItem,
+  FloatingList,
+  FloatingPortal,
+  FloatingFocusManager,
+  Placement,
+} from '@floating-ui/react';
+import styles from './DropdownMenu.module.css';
+export type DropdownMenuSize = 'sm' | 'md' | 'lg';
+export type DropdownMenuVariant = 'default' | 'minimal';
+
+export interface DropdownMenuOptions {
+  placement?: Placement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Close the menu when an item is selected (default true) */
+  closeOnSelect?: boolean;
+}
+
+export function useDropdownMenu({
+  placement = 'bottom-start',
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: DropdownMenuOptions = {}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (controlledOpen === undefined) setUncontrolledOpen(next);
+      setControlledOpen?.(next);
+    },
+    [controlledOpen, setControlledOpen]
+  );
+
+  const elementsRef = useRef<Array<HTMLElement | null>>([]);
+  const labelsRef = useRef<Array<string | null>>([]);
+
+  const data = useFloating({
+    placement,
+    open,
+    onOpenChange: setOpen,
+    whileElementsMounted: autoUpdate,
+    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
+  });
+
+  const context = data.context;
+
+  const click = useClick(context, { event: 'mousedown' });
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: 'menu' });
+  const listNavigation = useListNavigation(context, {
+    listRef: elementsRef,
+    activeIndex,
+    onNavigate: setActiveIndex,
+    loop: true,
+  });
+  const typeahead = useTypeahead(context, {
+    listRef: labelsRef,
+    activeIndex,
+    onMatch: setActiveIndex,
+    enabled: open,
+  });
+
+  const interactions = useInteractions([click, dismiss, role, listNavigation, typeahead]);
+
+  return useMemo(
+    () => ({
+      open,
+      setOpen,
+      activeIndex,
+      setActiveIndex,
+      elementsRef,
+      labelsRef,
+      ...interactions,
+      ...data,
+    }),
+    [open, setOpen, activeIndex, interactions, data]
+  );
+}
+
+type MenuContextValue = ReturnType<typeof useDropdownMenu> & {
+  size: DropdownMenuSize;
+  variant: DropdownMenuVariant;
+  closeOnSelect: boolean;
+};
+
+const DropdownMenuContext = createContext<MenuContextValue | null>(null);
+
+const useDropdownMenuContext = () => {
+  const context = useContext(DropdownMenuContext);
+  if (context == null) {
+    throw new Error('DropdownMenu components must be wrapped in <DropdownMenu.Root />');
+  }
+  return context;
+};
+
+/**
+ * Internal DropdownMenu Components
+ */
+interface DropdownMenuRootProps extends DropdownMenuOptions {
+  children: React.ReactNode;
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+const InternalRoot = ({
+  children,
+  size = 'md',
+  variant = 'default',
+  closeOnSelect = true,
+  ...options
+}: DropdownMenuRootProps) => {
+  const menu = useDropdownMenu(options);
+  const value = useMemo<MenuContextValue>(
+    () => ({ ...menu, size, variant, closeOnSelect }),
+    [menu, size, variant, closeOnSelect]
+  );
+  return <DropdownMenuContext.Provider value={value}>{children}</DropdownMenuContext.Provider>;
+};
+
+const InternalTrigger = React.forwardRef<
+  HTMLElement,
+  React.HTMLProps<HTMLElement> & { asChild?: boolean }
+>(function DropdownMenuTrigger({ children, asChild = false, className, ...props }, propRef) {
+  const ctx = useDropdownMenuContext();
+  const childrenRef = (children as any).ref;
+  const ref = useMergeRefs([ctx.refs.setReference, propRef, childrenRef]);
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(
+      children,
+      ctx.getReferenceProps({
+        ref,
+        ...props,
+        ...children.props,
+        'data-state': ctx.open ? 'open' : 'closed',
+      })
+    );
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={[styles.trigger, className].filter(Boolean).join(' ')}
+      data-state={ctx.open ? 'open' : 'closed'}
+      aria-haspopup="menu"
+      {...ctx.getReferenceProps(props)}
+    >
+      {children}
+    </button>
+  );
+});
+
+interface DropdownMenuContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+const InternalContent = React.forwardRef<HTMLDivElement, DropdownMenuContentProps>(
+  function DropdownMenuContent({ style, className, children, size, variant, ...props }, propRef) {
+    const { context: floatingContext, isPositioned, elementsRef, labelsRef, ...ctx } =
+      useDropdownMenuContext();
+    const ref = useMergeRefs([ctx.refs.setFloating, propRef]);
+
+    if (!floatingContext.open) return null;
+
+    const resolvedSize = size ?? ctx.size;
+    const resolvedVariant = variant ?? ctx.variant;
+
+    return (
+      <FloatingPortal>
+        <FloatingFocusManager context={floatingContext} modal={false} initialFocus={-1} returnFocus>
+          <div
+            ref={ref}
+            role="menu"
+            style={{
+              position: floatingContext.strategy,
+              top: floatingContext.y ?? 0,
+              left: floatingContext.x ?? 0,
+              visibility: isPositioned ? 'visible' : 'hidden',
+              ...style,
+            }}
+            className={[
+              styles.content,
+              styles[\`size-\${resolvedSize}\`],
+              styles[\`variant-\${resolvedVariant}\`],
+              className,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            data-state={ctx.open && isPositioned ? 'open' : 'closed'}
+            data-placement={floatingContext.placement}
+            {...ctx.getFloatingProps(props)}
+          >
+            <FloatingList elementsRef={elementsRef} labelsRef={labelsRef}>
+              {children}
+            </FloatingList>
+          </div>
+        </FloatingFocusManager>
+      </FloatingPortal>
+    );
+  }
+);
+
+interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Label used for typeahead (defaults to the text children) */
+  label?: string;
+  /** Called when the item is selected */
+  onSelect?: () => void;
+}
+
+const InternalItem = React.forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
+  function DropdownMenuItem({ label, onSelect, disabled = false, className, children, ...props }, propRef) {
+    const ctx = useDropdownMenuContext();
+    const resolvedLabel = label ?? (typeof children === 'string' ? children : undefined);
+    const item = useListItem({ label: disabled ? null : resolvedLabel });
+    const isActive = ctx.activeIndex === item.index;
+    const ref = useMergeRefs([item.ref, propRef]);
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        role="menuitem"
+        className={[styles.item, className].filter(Boolean).join(' ')}
+        tabIndex={isActive ? 0 : -1}
+        data-active={isActive || undefined}
+        data-disabled={disabled || undefined}
+        disabled={disabled}
+        {...ctx.getItemProps({
+          onClick() {
+            if (disabled) return;
+            onSelect?.();
+            if (ctx.closeOnSelect) ctx.setOpen(false);
+          },
+        })}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+const InternalSeparator = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function DropdownMenuSeparator({ className, ...props }, ref) {
+    return (
+      <div
+        ref={ref}
+        role="separator"
+        className={[styles.separator, className].filter(Boolean).join(' ')}
+        {...props}
+      />
+    );
+  }
+);
+
+const InternalLabel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function DropdownMenuLabel({ className, ...props }, ref) {
+    return <div ref={ref} className={[styles.label, className].filter(Boolean).join(' ')} {...props} />;
+  }
+);
+
+InternalRoot.displayName = 'DropdownMenu.Root';
+InternalTrigger.displayName = 'DropdownMenu.Trigger';
+InternalContent.displayName = 'DropdownMenu.Content';
+InternalItem.displayName = 'DropdownMenu.Item';
+InternalSeparator.displayName = 'DropdownMenu.Separator';
+InternalLabel.displayName = 'DropdownMenu.Label';
+
+export const DropdownMenuRoot = InternalRoot;
+export const DropdownMenuTrigger = InternalTrigger;
+export const DropdownMenuContent = InternalContent;
+export const DropdownMenuItem = InternalItem;
+export const DropdownMenuSeparator = InternalSeparator;
+export const DropdownMenuLabel = InternalLabel;
+
+/**
+ * DropdownMenu - Main export with compound components
+ *
+ * @example
+ * <DropdownMenu>
+ *   <DropdownMenu.Trigger>Actions</DropdownMenu.Trigger>
+ *   <DropdownMenu.Content>
+ *     <DropdownMenu.Label>Manage</DropdownMenu.Label>
+ *     <DropdownMenu.Item onSelect={() => {}}>Edit</DropdownMenu.Item>
+ *     <DropdownMenu.Separator />
+ *     <DropdownMenu.Item>Delete</DropdownMenu.Item>
+ *   </DropdownMenu.Content>
+ * </DropdownMenu>
+ */
+export const DropdownMenu = Object.assign(DropdownMenuRoot, {
+  Root: DropdownMenuRoot,
+  Trigger: DropdownMenuTrigger,
+  Content: DropdownMenuContent,
+  Item: DropdownMenuItem,
+  Separator: DropdownMenuSeparator,
+  Label: DropdownMenuLabel,
+});
+
+export default DropdownMenu;
+"
+`;
+
+exports[`DropdownMenu snapshots > react css mode snapshot (compound) 2`] = `
+".trigger {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+
+.content {
+  position: absolute;
+  z-index: var(--menu-z-index, 50);
+  min-width: var(--menu-min-width, 180px);
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--spacing-unit, 4px) * 1);
+  background-color: var(--menu-background, var(--color-surface));
+  border: 1px solid var(--menu-border, var(--color-border));
+  border-radius: var(--menu-radius, var(--radius-md));
+  box-shadow: var(
+    --menu-shadow,
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05)
+  );
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+  outline: none;
+  animation: menu-show 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Variants */
+.variant-minimal {
+  border: none;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Sizes */
+.size-sm {
+  font-size: 0.8125rem;
+}
+
+.size-md {
+  font-size: 0.875rem;
+}
+
+.size-lg {
+  font-size: 0.9375rem;
+}
+
+.item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 2);
+  width: 100%;
+  padding: var(--menu-item-padding-y, calc(var(--spacing-unit) * 2))
+    var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
+  border-radius: calc(var(--menu-radius, var(--radius-md)) - 2px);
+  cursor: pointer;
+  color: inherit;
+  user-select: none;
+}
+
+.item[data-active] {
+  background-color: var(--menu-item-hover-bg, var(--color-secondary));
+}
+
+.item[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.separator {
+  height: 1px;
+  margin: calc(var(--spacing-unit, 4px) * 1) 0;
+  background-color: var(--menu-border, var(--color-border));
+}
+
+.label {
+  padding: calc(var(--spacing-unit, 4px) * 1.5) var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--menu-label-color, var(--color-text-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@keyframes menu-show {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+}
+"
+`;
+
+exports[`DropdownMenu snapshots > react css mode snapshot (compound) 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { DropdownMenu } from './DropdownMenu';
+
+const meta: Meta<typeof DropdownMenu> = {
+  title: 'Crucible/DropdownMenu',
+  component: DropdownMenu,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    size:    { control: 'select', options: ['sm', 'md', 'lg'] },
+    variant: { control: 'select', options: ['default', 'minimal'] },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof DropdownMenu>;
+
+export const Default: Story = {
+  args: { size: 'md', variant: 'default' },
+  render: (args) => (
+    <DropdownMenu {...args}>
+      <DropdownMenu.Trigger>Actions ▾</DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Label>Manage</DropdownMenu.Label>
+        <DropdownMenu.Item onSelect={() => console.log('edit')}>Edit</DropdownMenu.Item>
+        <DropdownMenu.Item onSelect={() => console.log('duplicate')}>Duplicate</DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item onSelect={() => console.log('delete')}>Delete</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ),
+};
+
+export const WithDisabledItem: Story = {
+  args: { size: 'md', variant: 'default' },
+  render: (args) => (
+    <DropdownMenu {...args}>
+      <DropdownMenu.Trigger>Options ▾</DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item>Rename</DropdownMenu.Item>
+        <DropdownMenu.Item disabled>Archive (unavailable)</DropdownMenu.Item>
+        <DropdownMenu.Item>Move</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ),
+};
+
+export const Minimal: Story = {
+  args: { size: 'md', variant: 'minimal' },
+  render: (args) => (
+    <DropdownMenu {...args}>
+      <DropdownMenu.Trigger>Menu ▾</DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item>Profile</DropdownMenu.Item>
+        <DropdownMenu.Item>Settings</DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item>Sign out</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ),
+};
+"
+`;
+
+exports[`DropdownMenu snapshots > react scss mode snapshot 1`] = `
+".trigger {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+
+.content {
+  position: absolute;
+  z-index: var(--menu-z-index, 50);
+  min-width: var(--menu-min-width, 180px);
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--spacing-unit, 4px) * 1);
+  background-color: var(--menu-background, var(--color-surface));
+  border: 1px solid var(--menu-border, var(--color-border));
+  border-radius: var(--menu-radius, var(--radius-md));
+  box-shadow: var(
+    --menu-shadow,
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05)
+  );
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+  outline: none;
+  animation: menu-show 120ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.variant-minimal {
+    border: none;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.08),
+      0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  }
+
+  &.size-sm {
+    font-size: 0.8125rem;
+  }
+
+  &.size-md {
+    font-size: 0.875rem;
+  }
+
+  &.size-lg {
+    font-size: 0.9375rem;
+  }
+}
+
+.item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 2);
+  width: 100%;
+  padding: var(--menu-item-padding-y, calc(var(--spacing-unit) * 2))
+    var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
+  border-radius: calc(var(--menu-radius, var(--radius-md)) - 2px);
+  cursor: pointer;
+  color: inherit;
+  user-select: none;
+
+  &[data-active] {
+    background-color: var(--menu-item-hover-bg, var(--color-secondary));
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.separator {
+  height: 1px;
+  margin: calc(var(--spacing-unit, 4px) * 1) 0;
+  background-color: var(--menu-border, var(--color-border));
+}
+
+.label {
+  padding: calc(var(--spacing-unit, 4px) * 1.5) var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--menu-label-color, var(--color-text-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@keyframes menu-show {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+}
+"
+`;
+
+exports[`DropdownMenu snapshots > react tailwind mode snapshot 1`] = `
+"import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useClick,
+  useDismiss,
+  useRole,
+  useListNavigation,
+  useTypeahead,
+  useInteractions,
+  useMergeRefs,
+  useListItem,
+  FloatingList,
+  FloatingPortal,
+  FloatingFocusManager,
+  Placement,
+} from '@floating-ui/react';
+
+export type DropdownMenuSize = 'sm' | 'md' | 'lg';
+export type DropdownMenuVariant = 'default' | 'minimal';
+
+export interface DropdownMenuOptions {
+  placement?: Placement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Close the menu when an item is selected (default true) */
+  closeOnSelect?: boolean;
+}
+
+const VARIANT_CLASSES: Record<DropdownMenuVariant, string> = {
+  default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-lg',
+  minimal: 'bg-[var(--color-surface)] shadow-md',
+};
+
+const SIZE_CLASSES: Record<DropdownMenuSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+
+export function useDropdownMenu({
+  placement = 'bottom-start',
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: DropdownMenuOptions = {}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (controlledOpen === undefined) setUncontrolledOpen(next);
+      setControlledOpen?.(next);
+    },
+    [controlledOpen, setControlledOpen]
+  );
+
+  const elementsRef = useRef<Array<HTMLElement | null>>([]);
+  const labelsRef = useRef<Array<string | null>>([]);
+
+  const data = useFloating({
+    placement,
+    open,
+    onOpenChange: setOpen,
+    whileElementsMounted: autoUpdate,
+    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
+  });
+
+  const context = data.context;
+
+  const click = useClick(context, { event: 'mousedown' });
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: 'menu' });
+  const listNavigation = useListNavigation(context, {
+    listRef: elementsRef,
+    activeIndex,
+    onNavigate: setActiveIndex,
+    loop: true,
+  });
+  const typeahead = useTypeahead(context, {
+    listRef: labelsRef,
+    activeIndex,
+    onMatch: setActiveIndex,
+    enabled: open,
+  });
+
+  const interactions = useInteractions([click, dismiss, role, listNavigation, typeahead]);
+
+  return useMemo(
+    () => ({
+      open,
+      setOpen,
+      activeIndex,
+      setActiveIndex,
+      elementsRef,
+      labelsRef,
+      ...interactions,
+      ...data,
+    }),
+    [open, setOpen, activeIndex, interactions, data]
+  );
+}
+
+type MenuContextValue = ReturnType<typeof useDropdownMenu> & {
+  size: DropdownMenuSize;
+  variant: DropdownMenuVariant;
+  closeOnSelect: boolean;
+};
+
+const DropdownMenuContext = createContext<MenuContextValue | null>(null);
+
+const useDropdownMenuContext = () => {
+  const context = useContext(DropdownMenuContext);
+  if (context == null) {
+    throw new Error('DropdownMenu components must be wrapped in <DropdownMenu.Root />');
+  }
+  return context;
+};
+
+interface DropdownMenuRootProps extends DropdownMenuOptions {
+  children: React.ReactNode;
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+const InternalRoot = ({
+  children,
+  size = 'md',
+  variant = 'default',
+  closeOnSelect = true,
+  ...options
+}: DropdownMenuRootProps) => {
+  const menu = useDropdownMenu(options);
+  const value = useMemo<MenuContextValue>(
+    () => ({ ...menu, size, variant, closeOnSelect }),
+    [menu, size, variant, closeOnSelect]
+  );
+  return <DropdownMenuContext.Provider value={value}>{children}</DropdownMenuContext.Provider>;
+};
+
+const InternalTrigger = React.forwardRef<
+  HTMLElement,
+  React.HTMLProps<HTMLElement> & { asChild?: boolean }
+>(function DropdownMenuTrigger({ children, asChild = false, className, ...props }, propRef) {
+  const ctx = useDropdownMenuContext();
+  const childrenRef = (children as any).ref;
+  const ref = useMergeRefs([ctx.refs.setReference, propRef, childrenRef]);
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(
+      children,
+      ctx.getReferenceProps({
+        ref,
+        ...props,
+        ...children.props,
+        'data-state': ctx.open ? 'open' : 'closed',
+      })
+    );
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={['inline-flex items-center gap-1.5 cursor-pointer', className || ''].filter(Boolean).join(' ')}
+      data-state={ctx.open ? 'open' : 'closed'}
+      aria-haspopup="menu"
+      {...ctx.getReferenceProps(props)}
+    >
+      {children}
+    </button>
+  );
+});
+
+interface DropdownMenuContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+const InternalContent = React.forwardRef<HTMLDivElement, DropdownMenuContentProps>(
+  function DropdownMenuContent({ style, className, children, size, variant, ...props }, propRef) {
+    const { context: floatingContext, isPositioned, elementsRef, labelsRef, ...ctx } =
+      useDropdownMenuContext();
+    const ref = useMergeRefs([ctx.refs.setFloating, propRef]);
+
+    if (!floatingContext.open) return null;
+
+    const resolvedSize = size ?? ctx.size;
+    const resolvedVariant = variant ?? ctx.variant;
+
+    return (
+      <FloatingPortal>
+        <FloatingFocusManager context={floatingContext} modal={false} initialFocus={-1} returnFocus>
+          <div
+            ref={ref}
+            role="menu"
+            style={{
+              position: floatingContext.strategy,
+              top: floatingContext.y ?? 0,
+              left: floatingContext.x ?? 0,
+              visibility: isPositioned ? 'visible' : 'hidden',
+              ...style,
+            }}
+            className={[
+              'z-50 min-w-[180px] flex flex-col p-1 rounded-[var(--radius-md)] text-[var(--color-text)] outline-none',
+              'motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95',
+              VARIANT_CLASSES[resolvedVariant],
+              SIZE_CLASSES[resolvedSize],
+              className,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            data-state={ctx.open && isPositioned ? 'open' : 'closed'}
+            data-placement={floatingContext.placement}
+            {...ctx.getFloatingProps(props)}
+          >
+            <FloatingList elementsRef={elementsRef} labelsRef={labelsRef}>
+              {children}
+            </FloatingList>
+          </div>
+        </FloatingFocusManager>
+      </FloatingPortal>
+    );
+  }
+);
+
+interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  label?: string;
+  onSelect?: () => void;
+}
+
+const InternalItem = React.forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
+  function DropdownMenuItem({ label, onSelect, disabled = false, className, children, ...props }, propRef) {
+    const ctx = useDropdownMenuContext();
+    const resolvedLabel = label ?? (typeof children === 'string' ? children : undefined);
+    const item = useListItem({ label: disabled ? null : resolvedLabel });
+    const isActive = ctx.activeIndex === item.index;
+    const ref = useMergeRefs([item.ref, propRef]);
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        role="menuitem"
+        className={[
+          'flex items-center gap-2 w-full px-3 py-2 rounded-md cursor-pointer select-none bg-transparent border-none text-left text-inherit',
+          'data-[active]:bg-[var(--color-secondary)] data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed',
+          className || '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        tabIndex={isActive ? 0 : -1}
+        data-active={isActive || undefined}
+        data-disabled={disabled || undefined}
+        disabled={disabled}
+        {...ctx.getItemProps({
+          onClick() {
+            if (disabled) return;
+            onSelect?.();
+            if (ctx.closeOnSelect) ctx.setOpen(false);
+          },
+        })}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+const InternalSeparator = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function DropdownMenuSeparator({ className, ...props }, ref) {
+    return (
+      <div
+        ref={ref}
+        role="separator"
+        className={['h-px my-1 bg-[var(--color-border)]', className || ''].filter(Boolean).join(' ')}
+        {...props}
+      />
+    );
+  }
+);
+
+const InternalLabel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function DropdownMenuLabel({ className, ...props }, ref) {
+    return (
+      <div
+        ref={ref}
+        className={['px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]', className || '']
+          .filter(Boolean)
+          .join(' ')}
+        {...props}
+      />
+    );
+  }
+);
+
+InternalRoot.displayName = 'DropdownMenu.Root';
+InternalTrigger.displayName = 'DropdownMenu.Trigger';
+InternalContent.displayName = 'DropdownMenu.Content';
+InternalItem.displayName = 'DropdownMenu.Item';
+InternalSeparator.displayName = 'DropdownMenu.Separator';
+InternalLabel.displayName = 'DropdownMenu.Label';
+
+export const DropdownMenuRoot = InternalRoot;
+export const DropdownMenuTrigger = InternalTrigger;
+export const DropdownMenuContent = InternalContent;
+export const DropdownMenuItem = InternalItem;
+export const DropdownMenuSeparator = InternalSeparator;
+export const DropdownMenuLabel = InternalLabel;
+
+export const DropdownMenu = Object.assign(DropdownMenuRoot, {
+  Root: DropdownMenuRoot,
+  Trigger: DropdownMenuTrigger,
+  Content: DropdownMenuContent,
+  Item: DropdownMenuItem,
+  Separator: DropdownMenuSeparator,
+  Label: DropdownMenuLabel,
+});
+
+export default DropdownMenu;
+"
+`;
+
+exports[`DropdownMenu snapshots > vue css mode snapshot 1`] = `
+"<script lang="ts">
+import {
+  defineComponent,
+  h,
+  Teleport,
+  inject,
+  provide,
+  ref,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+  getCurrentInstance,
+  type InjectionKey,
+  type PropType,
+} from 'vue';
+import { useFloating, offset, flip, shift, autoUpdate, type Placement } from '@floating-ui/vue';
+
+export type DropdownMenuSize = 'sm' | 'md' | 'lg';
+export type DropdownMenuVariant = 'default' | 'minimal';
+
+export interface DropdownMenuItemModel {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  separatorBefore?: boolean;
+  onSelect?: () => void;
+}
+
+interface ItemRegistration {
+  id: number;
+  disabled: boolean;
+  el: HTMLButtonElement | null;
+}
+
+export interface DropdownMenuApi {
+  readonly open: boolean;
+  setOpen: (next: boolean) => void;
+  closeOnSelect: boolean;
+  rootId: string;
+  triggerRef: ReturnType<typeof ref<HTMLElement | null>>;
+  contentRef: ReturnType<typeof ref<HTMLElement | null>>;
+  floatingStyles: ReturnType<typeof useFloating>['floatingStyles'];
+  isPositioned: ReturnType<typeof useFloating>['isPositioned'];
+  registerItem: (id: number, disabled: boolean, el: HTMLButtonElement | null) => void;
+  onItemSelect: (onSelect?: () => void) => void;
+  moveFocus: (current: number, direction: 1 | -1) => void;
+  focusEdge: (edge: 'first' | 'last') => void;
+}
+
+export const DropdownMenuContextKey: InjectionKey<DropdownMenuApi> = Symbol('crucible-dropdown-menu');
+
+function useDropdownMenuApi(): DropdownMenuApi {
+  const ctx = inject(DropdownMenuContextKey, null);
+  if (!ctx) throw new Error('DropdownMenu sub-components must be used inside <DropdownMenu />');
+  return ctx;
+}
+
+let itemUid = 0;
+
+export const DropdownMenuTrigger = defineComponent({
+  name: 'DropdownMenuTrigger',
+  setup(_, { slots }) {
+    const menu = useDropdownMenuApi();
+    return () =>
+      h(
+        'button',
+        {
+          ref: (el: any) => (menu.triggerRef.value = el as HTMLElement | null),
+          type: 'button',
+          class: 'trigger',
+          'aria-haspopup': 'menu',
+          'aria-expanded': menu.open,
+          'data-state': menu.open ? 'open' : 'closed',
+          onClick: () => menu.setOpen(!menu.open),
+        },
+        slots.default?.(),
+      );
+  },
+});
+
+export const DropdownMenuContent = defineComponent({
+  name: 'DropdownMenuContent',
+  props: {
+    size: { type: String as PropType<DropdownMenuSize>, default: 'md' },
+    variant: { type: String as PropType<DropdownMenuVariant>, default: 'default' },
+  },
+  setup(props, { slots }) {
+    const menu = useDropdownMenuApi();
+    const onKeydown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const idAttr = target.getAttribute('data-item-id');
+      const current = idAttr != null ? Number(idAttr) : -1;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        menu.moveFocus(current, 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        menu.moveFocus(current, -1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        menu.focusEdge('first');
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        menu.focusEdge('last');
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        menu.setOpen(false);
+      }
+    };
+
+    return () => {
+      if (!menu.open) return null;
+      return h(Teleport, { to: 'body' }, [
+        h(
+          'div',
+          {
+            ref: (el: any) => (menu.contentRef.value = el as HTMLElement | null),
+            role: 'menu',
+            class: ['content', \`size-\${props.size}\`, \`variant-\${props.variant}\`],
+            style: [menu.floatingStyles.value, { visibility: menu.isPositioned.value ? 'visible' : 'hidden' }],
+            'data-state': menu.open && menu.isPositioned.value ? 'open' : 'closed',
+            tabindex: -1,
+            onKeydown,
+          },
+          slots.default?.(),
+        ),
+      ]);
+    };
+  },
+});
+
+export const DropdownMenuItem = defineComponent({
+  name: 'DropdownMenuItem',
+  props: {
+    disabled: { type: Boolean, default: false },
+    onSelect: { type: Function as PropType<() => void>, default: undefined },
+  },
+  emits: ['select'],
+  setup(props, { slots, emit }) {
+    const menu = useDropdownMenuApi();
+    const elRef = ref<HTMLButtonElement | null>(null);
+    const id = itemUid++;
+
+    onMounted(() => menu.registerItem(id, props.disabled, elRef.value));
+    onBeforeUnmount(() => menu.registerItem(id, props.disabled, null));
+
+    return () =>
+      h(
+        'button',
+        {
+          ref: (el: any) => (elRef.value = el as HTMLButtonElement | null),
+          type: 'button',
+          role: 'menuitem',
+          class: 'item',
+          'data-item-id': id,
+          'data-disabled': props.disabled ? '' : undefined,
+          disabled: props.disabled,
+          tabindex: -1,
+          onClick: () => {
+            if (props.disabled) return;
+            emit('select');
+            menu.onItemSelect(props.onSelect);
+          },
+        },
+        slots.default?.(),
+      );
+  },
+});
+
+export const DropdownMenuSeparator = defineComponent({
+  name: 'DropdownMenuSeparator',
+  setup() {
+    return () => h('div', { role: 'separator', class: 'separator' });
+  },
+});
+
+export const DropdownMenuLabel = defineComponent({
+  name: 'DropdownMenuLabel',
+  setup(_, { slots }) {
+    return () => h('div', { class: 'label' }, slots.default?.());
+  },
+});
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    placement?: Placement;
+    open?: boolean;
+    variant?: DropdownMenuVariant;
+    size?: DropdownMenuSize;
+    closeOnSelect?: boolean;
+    /** Schema-driven (monolithic) */
+    triggerLabel?: string;
+    items?: DropdownMenuItemModel[];
+  }>(),
+  {
+    placement: 'bottom-start',
+    variant: 'default',
+    size: 'md',
+    closeOnSelect: true,
+    triggerLabel: 'Open',
+    items: () => [],
+  },
+);
+
+const emit = defineEmits<{
+  (e: 'update:open', value: boolean): void;
+  (e: 'select', value: string): void;
+}>();
+
+const instance = getCurrentInstance();
+const isControlled = computed(() => {
+  if (!instance) return false;
+  const propsObj = instance.vnode.props || {};
+  return 'open' in propsObj;
+});
+
+const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const rootId = \`menu-\${uid}\`;
+
+const internalOpen = ref(false);
+const open = computed(() => (isControlled.value ? !!props.open : internalOpen.value));
+
+const triggerRef = ref<HTMLElement | null>(null);
+const contentRef = ref<HTMLElement | null>(null);
+
+const items = new Map<number, ItemRegistration>();
+const order: number[] = [];
+
+const setOpen = (next: boolean) => {
+  if (!isControlled.value) internalOpen.value = next;
+  emit('update:open', next);
+  if (next) {
+    nextTick(() => {
+      const first = enabledOrder()[0];
+      if (first !== undefined) items.get(first)?.el?.focus();
+    });
+  } else {
+    triggerRef.value?.focus();
+  }
+};
+
+const enabledOrder = () => order.filter((id) => !items.get(id)?.disabled);
+
+const registerItem = (id: number, disabled: boolean, el: HTMLButtonElement | null) => {
+  if (el === null) {
+    items.delete(id);
+    const idx = order.indexOf(id);
+    if (idx >= 0) order.splice(idx, 1);
+    return;
+  }
+  if (!items.has(id)) order.push(id);
+  items.set(id, { id, disabled, el });
+};
+
+const focusItem = (id: number) => items.get(id)?.el?.focus();
+
+const moveFocus = (current: number, direction: 1 | -1) => {
+  const enabled = enabledOrder();
+  if (enabled.length === 0) return;
+  const idx = enabled.indexOf(current);
+  const nextIdx = idx === -1 ? (direction === 1 ? 0 : enabled.length - 1) : (idx + direction + enabled.length) % enabled.length;
+  focusItem(enabled[nextIdx]);
+};
+
+const focusEdge = (edge: 'first' | 'last') => {
+  const enabled = enabledOrder();
+  if (enabled.length === 0) return;
+  focusItem(edge === 'first' ? enabled[0] : enabled[enabled.length - 1]);
+};
+
+const onItemSelect = (onSelect?: () => void) => {
+  onSelect?.();
+  if (props.closeOnSelect) setOpen(false);
+};
+
+const placementRef = computed<Placement>(() => props.placement);
+const openRef = computed(() => open.value);
+
+const { floatingStyles, isPositioned } = useFloating(triggerRef, contentRef, {
+  placement: placementRef,
+  open: openRef,
+  // Position via top/left (not transform) so the menu-show scale animation
+  // does not clobber floating-ui's positioning transform.
+  transform: false,
+  middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
+  whileElementsMounted: autoUpdate,
+});
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (!open.value) return;
+  const t = event.target as Node;
+  if (
+    contentRef.value &&
+    !contentRef.value.contains(t) &&
+    triggerRef.value &&
+    !triggerRef.value.contains(t)
+  ) {
+    setOpen(false);
+  }
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (open.value && event.key === 'Escape') {
+    setOpen(false);
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside);
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('keydown', handleKeydown);
+});
+
+const api: DropdownMenuApi = {
+  get open() {
+    return open.value;
+  },
+  setOpen,
+  get closeOnSelect() {
+    return props.closeOnSelect;
+  },
+  rootId,
+  triggerRef,
+  contentRef,
+  floatingStyles,
+  isPositioned,
+  registerItem,
+  onItemSelect,
+  moveFocus,
+  focusEdge,
+};
+
+provide(DropdownMenuContextKey, api);
+
+const handleMonolithicSelect = (item: DropdownMenuItemModel) => {
+  if (item.disabled) return;
+  emit('select', item.value);
+  onItemSelect(item.onSelect);
+};
+</script>
+
+<template>
+  <div class="menu-root">
+    <slot :api="api" :open="open" />
+  </div>
+</template>
+
+<!--
+  NOT scoped: DropdownMenuTrigger/Content/Item are separate component instances
+  (and Content teleports to body), so Vue's scoped styles would not reach them.
+  Each rule is qualified by .menu-root / .content to avoid bleeding into other components.
+-->
+<style >
+.menu-root {
+  display: inline-block;
+}
+.menu-root .trigger {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+.content {
+  position: absolute;
+  z-index: var(--menu-z-index, 50);
+  min-width: var(--menu-min-width, 180px);
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--spacing-unit, 4px) * 1);
+  background-color: var(--menu-background, var(--color-surface));
+  border: 1px solid var(--menu-border, var(--color-border));
+  border-radius: var(--menu-radius, var(--radius-md));
+  box-shadow: var(
+    --menu-shadow,
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05)
+  );
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+  outline: none;
+}
+.content[data-state='open'] {
+  animation: menu-show 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.content.variant-minimal {
+  border: none;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+.content.size-sm {
+  font-size: 0.8125rem;
+}
+.content.size-md {
+  font-size: 0.875rem;
+}
+.content.size-lg {
+  font-size: 0.9375rem;
+}
+.content .item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit, 4px) * 2);
+  width: 100%;
+  padding: var(--menu-item-padding-y, calc(var(--spacing-unit) * 2))
+    var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
+  border-radius: calc(var(--menu-radius, var(--radius-md)) - 2px);
+  cursor: pointer;
+  color: inherit;
+  user-select: none;
+}
+.content .item:hover:not([data-disabled]),
+.content .item:focus-visible {
+  background-color: var(--menu-item-hover-bg, var(--color-secondary));
+  outline: none;
+}
+.content .item[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.content .separator {
+  height: 1px;
+  margin: calc(var(--spacing-unit, 4px) * 1) 0;
+  background-color: var(--menu-border, var(--color-border));
+}
+.content .label {
+  padding: calc(var(--spacing-unit, 4px) * 1.5) var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--menu-label-color, var(--color-text-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+@keyframes menu-show {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+}
+</style>
+"
+`;

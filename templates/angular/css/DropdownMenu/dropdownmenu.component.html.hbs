@@ -1,0 +1,46 @@
+<div class="menu-root">
+  <button
+    #triggerRef
+    type="button"
+    class="trigger"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open"
+    [attr.aria-controls]="open ? contentId : null"
+    [attr.data-state]="open ? 'open' : 'closed'"
+    (click)="toggle()"
+  >
+    \{{ triggerLabel }}
+  </button>
+
+  @if (open) {
+    <div
+      #contentRef
+      [id]="contentId"
+      role="menu"
+      [class]="contentClasses"
+      [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      [attr.data-state]="open && isPositioned ? 'open' : 'closed'"
+      [attr.data-placement]="placement"
+      tabindex="-1"
+      (keydown)="onContentKeydown($event)"
+    >
+      @for (item of items; track item.value; let i = $index) {
+        @if (item.separatorBefore && i > 0) {
+          <div role="separator" class="separator"></div>
+        }
+        <button
+          #itemRef
+          type="button"
+          role="menuitem"
+          class="item"
+          [attr.data-disabled]="item.disabled ? '' : null"
+          [disabled]="item.disabled"
+          tabindex="-1"
+          (click)="onItemClick(item)"
+        >
+          \{{ item.label }}
+        </button>
+      }
+    </div>
+  }
+</div>

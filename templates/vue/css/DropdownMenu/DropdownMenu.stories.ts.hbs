@@ -1,0 +1,116 @@
+import { ref } from 'vue';
+import type { Meta, StoryObj } from '@storybook/vue3';
+import DropdownMenu, {
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from './DropdownMenu.vue';
+
+const meta: Meta<typeof DropdownMenu> = {
+  title: 'Crucible/DropdownMenu',
+  component: DropdownMenu,
+  tags: ['autodocs'],
+  argTypes: {
+    placement: { control: 'text' },
+    variant: {
+      control: 'select',
+      options: {{> shared/variant-options}},
+    },
+    size: {
+      control: 'select',
+      options: {{> shared/size-options}},
+    },
+    closeOnSelect: { control: 'boolean' },
+  },
+  args: {
+    placement: 'bottom-start',
+    variant: 'default',
+    size: 'md',
+    closeOnSelect: true,
+  },
+  decorators: [
+    () => ({
+      template:
+        '<div style="height: 320px; display: flex; align-items: flex-start; justify-content: center; padding-top: 40px;"><story /></div>',
+    }),
+  ],
+};
+
+export default meta;
+type Story = StoryObj<typeof DropdownMenu>;
+
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: (args) => ({
+    components: {
+      DropdownMenu,
+      DropdownMenuTrigger,
+      DropdownMenuContent,
+      DropdownMenuItem,
+      DropdownMenuSeparator,
+      DropdownMenuLabel,
+    },
+    setup() {
+      return { args };
+    },
+    template: `
+      <DropdownMenu v-bind="args">
+        <DropdownMenuTrigger>Actions</DropdownMenuTrigger>
+        <DropdownMenuContent :size="args.size" :variant="args.variant">
+          <DropdownMenuLabel>Manage</DropdownMenuLabel>
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>Duplicate</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem :disabled="true">Archive</DropdownMenuItem>
+          <DropdownMenuItem>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    `,
+  }),
+};
+
+export const Controlled: Story = {
+  render: (args) => ({
+    components: { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem },
+    setup() {
+      const open = ref(false);
+      return { args, open };
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+        <button type="button" @click="open = !open">
+          External toggle &mdash; currently \{{ open ? 'open' : 'closed' }}
+        </button>
+        <DropdownMenu v-bind="args" v-model:open="open">
+          <DropdownMenuTrigger>Controlled menu</DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem @select="open = false">Close from inside</DropdownMenuItem>
+            <DropdownMenuItem>Keep open</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    `,
+  }),
+};
+{{else}}
+export const Default: Story = {
+  args: {
+    triggerLabel: 'Actions',
+    items: [
+      { value: 'edit', label: 'Edit' },
+      { value: 'duplicate', label: 'Duplicate' },
+      { value: 'archive', label: 'Archive', disabled: true, separatorBefore: true },
+      { value: 'delete', label: 'Delete' },
+    ],
+  },
+  render: (args) => ({
+    components: { DropdownMenu },
+    setup() {
+      return { args };
+    },
+    template: `<DropdownMenu v-bind="args" />`,
+  }),
+};
+{{/if}}

@@ -1,0 +1,372 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useClick,
+  useDismiss,
+  useRole,
+  useListNavigation,
+  useTypeahead,
+  useInteractions,
+  useMergeRefs,
+  useListItem,
+  FloatingList,
+  FloatingPortal,
+  FloatingFocusManager,
+  Placement,
+} from '@floating-ui/react';
+
+export type DropdownMenuSize = 'sm' | 'md' | 'lg';
+export type DropdownMenuVariant = 'default' | 'minimal';
+
+export interface DropdownMenuOptions {
+  placement?: Placement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Close the menu when an item is selected (default true) */
+  closeOnSelect?: boolean;
+}
+
+const VARIANT_CLASSES: Record<DropdownMenuVariant, string> = {
+  default: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-lg',
+  minimal: 'bg-[var(--color-surface)] shadow-md',
+};
+
+const SIZE_CLASSES: Record<DropdownMenuSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+
+export function useDropdownMenu({
+  placement = 'bottom-start',
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: DropdownMenuOptions = {}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (controlledOpen === undefined) setUncontrolledOpen(next);
+      setControlledOpen?.(next);
+    },
+    [controlledOpen, setControlledOpen]
+  );
+
+  const elementsRef = useRef<Array<HTMLElement | null>>([]);
+  const labelsRef = useRef<Array<string | null>>([]);
+
+  const data = useFloating({
+    placement,
+    open,
+    onOpenChange: setOpen,
+    whileElementsMounted: autoUpdate,
+    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
+  });
+
+  const context = data.context;
+
+  const click = useClick(context, { event: 'mousedown' });
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: 'menu' });
+  const listNavigation = useListNavigation(context, {
+    listRef: elementsRef,
+    activeIndex,
+    onNavigate: setActiveIndex,
+    loop: true,
+  });
+  const typeahead = useTypeahead(context, {
+    listRef: labelsRef,
+    activeIndex,
+    onMatch: setActiveIndex,
+    enabled: open,
+  });
+
+  const interactions = useInteractions([click, dismiss, role, listNavigation, typeahead]);
+
+  return useMemo(
+    () => ({
+      open,
+      setOpen,
+      activeIndex,
+      setActiveIndex,
+      elementsRef,
+      labelsRef,
+      ...interactions,
+      ...data,
+    }),
+    [open, setOpen, activeIndex, interactions, data]
+  );
+}
+
+type MenuContextValue = ReturnType<typeof useDropdownMenu> & {
+  size: DropdownMenuSize;
+  variant: DropdownMenuVariant;
+  closeOnSelect: boolean;
+};
+
+const DropdownMenuContext = createContext<MenuContextValue | null>(null);
+
+const useDropdownMenuContext = () => {
+  const context = useContext(DropdownMenuContext);
+  if (context == null) {
+    throw new Error('DropdownMenu components must be wrapped in <DropdownMenu.Root />');
+  }
+  return context;
+};
+
+interface DropdownMenuRootProps extends DropdownMenuOptions {
+  children: React.ReactNode;
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+const InternalRoot = ({
+  children,
+  size = 'md',
+  variant = 'default',
+  closeOnSelect = true,
+  ...options
+}: DropdownMenuRootProps) => {
+  const menu = useDropdownMenu(options);
+  const value = useMemo<MenuContextValue>(
+    () => ({ ...menu, size, variant, closeOnSelect }),
+    [menu, size, variant, closeOnSelect]
+  );
+  return <DropdownMenuContext.Provider value={value}>{children}</DropdownMenuContext.Provider>;
+};
+
+const InternalTrigger = React.forwardRef<
+  HTMLElement,
+  React.HTMLProps<HTMLElement> & { asChild?: boolean }
+>(function DropdownMenuTrigger({ children, asChild = false, className, ...props }, propRef) {
+  const ctx = useDropdownMenuContext();
+  const childrenRef = (children as any).ref;
+  const ref = useMergeRefs([ctx.refs.setReference, propRef, childrenRef]);
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(
+      children,
+      ctx.getReferenceProps({
+        ref,
+        ...props,
+        ...children.props,
+        'data-state': ctx.open ? 'open' : 'closed',
+      })
+    );
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={['inline-flex items-center gap-1.5 cursor-pointer', className || ''].filter(Boolean).join(' ')}
+      data-state={ctx.open ? 'open' : 'closed'}
+      aria-haspopup="menu"
+      {...ctx.getReferenceProps(props)}
+    >
+      {children}
+    </button>
+  );
+});
+
+interface DropdownMenuContentProps extends React.HTMLProps<HTMLDivElement> {
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+const InternalContent = React.forwardRef<HTMLDivElement, DropdownMenuContentProps>(
+  function DropdownMenuContent({ style, className, children, size, variant, ...props }, propRef) {
+    const { context: floatingContext, isPositioned, elementsRef, labelsRef, ...ctx } =
+      useDropdownMenuContext();
+    const ref = useMergeRefs([ctx.refs.setFloating, propRef]);
+
+    if (!floatingContext.open) return null;
+
+    const resolvedSize = size ?? ctx.size;
+    const resolvedVariant = variant ?? ctx.variant;
+
+    return (
+      <FloatingPortal>
+        <FloatingFocusManager context={floatingContext} modal={false} initialFocus={-1} returnFocus>
+          <div
+            ref={ref}
+            role="menu"
+            style=\{{
+              position: floatingContext.strategy,
+              top: floatingContext.y ?? 0,
+              left: floatingContext.x ?? 0,
+              visibility: isPositioned ? 'visible' : 'hidden',
+              ...style,
+            }}
+            className={[
+              'z-50 min-w-[180px] flex flex-col p-1 rounded-[var(--radius-md)] text-[var(--color-text)] outline-none',
+              'motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95',
+              VARIANT_CLASSES[resolvedVariant],
+              SIZE_CLASSES[resolvedSize],
+              className,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            data-state={ctx.open && isPositioned ? 'open' : 'closed'}
+            data-placement={floatingContext.placement}
+            {...ctx.getFloatingProps(props)}
+          >
+            <FloatingList elementsRef={elementsRef} labelsRef={labelsRef}>
+              {children}
+            </FloatingList>
+          </div>
+        </FloatingFocusManager>
+      </FloatingPortal>
+    );
+  }
+);
+
+interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  label?: string;
+  onSelect?: () => void;
+}
+
+const InternalItem = React.forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
+  function DropdownMenuItem({ label, onSelect, disabled = false, className, children, ...props }, propRef) {
+    const ctx = useDropdownMenuContext();
+    const resolvedLabel = label ?? (typeof children === 'string' ? children : undefined);
+    const item = useListItem({ label: disabled ? null : resolvedLabel });
+    const isActive = ctx.activeIndex === item.index;
+    const ref = useMergeRefs([item.ref, propRef]);
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        role="menuitem"
+        className={[
+          'flex items-center gap-2 w-full px-3 py-2 rounded-md cursor-pointer select-none bg-transparent border-none text-left text-inherit',
+          'data-[active]:bg-[var(--color-secondary)] data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed',
+          className || '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        tabIndex={isActive ? 0 : -1}
+        data-active={isActive || undefined}
+        data-disabled={disabled || undefined}
+        disabled={disabled}
+        {...ctx.getItemProps({
+          onClick() {
+            if (disabled) return;
+            onSelect?.();
+            if (ctx.closeOnSelect) ctx.setOpen(false);
+          },
+        })}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+const InternalSeparator = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function DropdownMenuSeparator({ className, ...props }, ref) {
+    return (
+      <div
+        ref={ref}
+        role="separator"
+        className={['h-px my-1 bg-[var(--color-border)]', className || ''].filter(Boolean).join(' ')}
+        {...props}
+      />
+    );
+  }
+);
+
+const InternalLabel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  function DropdownMenuLabel({ className, ...props }, ref) {
+    return (
+      <div
+        ref={ref}
+        className={['px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]', className || '']
+          .filter(Boolean)
+          .join(' ')}
+        {...props}
+      />
+    );
+  }
+);
+
+InternalRoot.displayName = 'DropdownMenu.Root';
+InternalTrigger.displayName = 'DropdownMenu.Trigger';
+InternalContent.displayName = 'DropdownMenu.Content';
+InternalItem.displayName = 'DropdownMenu.Item';
+InternalSeparator.displayName = 'DropdownMenu.Separator';
+InternalLabel.displayName = 'DropdownMenu.Label';
+
+{{#if features.compoundComponents}}
+export const DropdownMenuRoot = InternalRoot;
+export const DropdownMenuTrigger = InternalTrigger;
+export const DropdownMenuContent = InternalContent;
+export const DropdownMenuItem = InternalItem;
+export const DropdownMenuSeparator = InternalSeparator;
+export const DropdownMenuLabel = InternalLabel;
+
+export const DropdownMenu = Object.assign(DropdownMenuRoot, {
+  Root: DropdownMenuRoot,
+  Trigger: DropdownMenuTrigger,
+  Content: DropdownMenuContent,
+  Item: DropdownMenuItem,
+  Separator: DropdownMenuSeparator,
+  Label: DropdownMenuLabel,
+});
+{{else}}
+export interface DropdownMenuItemModel {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  separatorBefore?: boolean;
+  onSelect?: () => void;
+}
+
+export interface DropdownMenuProps extends DropdownMenuOptions {
+  triggerLabel: string;
+  items: DropdownMenuItemModel[];
+  size?: DropdownMenuSize;
+  variant?: DropdownMenuVariant;
+}
+
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({
+  triggerLabel,
+  items,
+  size,
+  variant,
+  ...options
+}) => {
+  return (
+    <InternalRoot size={size} variant={variant} {...options}>
+      <InternalTrigger>{triggerLabel}</InternalTrigger>
+      <InternalContent>
+        {items.map((item, i) => (
+          <React.Fragment key={item.value}>
+            {item.separatorBefore && i > 0 && <InternalSeparator />}
+            <InternalItem label={item.label} disabled={item.disabled} onSelect={item.onSelect}>
+              {item.label}
+            </InternalItem>
+          </React.Fragment>
+        ))}
+      </InternalContent>
+    </InternalRoot>
+  );
+};
+{{/if}}
+
+export default DropdownMenu;

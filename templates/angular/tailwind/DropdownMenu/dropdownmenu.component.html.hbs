@@ -1,0 +1,46 @@
+<div class="inline-block">
+  <button
+    #triggerRef
+    type="button"
+    class="inline-flex items-center gap-1.5 cursor-pointer"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open"
+    [attr.aria-controls]="open ? contentId : null"
+    [attr.data-state]="open ? 'open' : 'closed'"
+    (click)="toggle()"
+  >
+    \{{ triggerLabel }}
+  </button>
+
+  @if (open) {
+    <div
+      #contentRef
+      [id]="contentId"
+      role="menu"
+      [class]="getContentClasses()"
+      [style.visibility]="isPositioned ? 'visible' : 'hidden'"
+      [attr.data-state]="open && isPositioned ? 'open' : 'closed'"
+      [attr.data-placement]="placement"
+      tabindex="-1"
+      (keydown)="onContentKeydown($event)"
+    >
+      @for (item of items; track item.value; let i = $index) {
+        @if (item.separatorBefore && i > 0) {
+          <div role="separator" class="h-px my-1 bg-[var(--color-border)]"></div>
+        }
+        <button
+          #itemRef
+          type="button"
+          role="menuitem"
+          [class]="getItemClasses()"
+          [attr.data-disabled]="item.disabled ? '' : null"
+          [disabled]="item.disabled"
+          tabindex="-1"
+          (click)="onItemClick(item)"
+        >
+          \{{ item.label }}
+        </button>
+      }
+    </div>
+  }
+</div>
