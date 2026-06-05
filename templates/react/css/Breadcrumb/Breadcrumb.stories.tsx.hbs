@@ -1,0 +1,36 @@
+{{> react/stories-header}}
+  argTypes: {
+    size:      { control: 'select', options: {{> shared/size-options}} },
+    separator: { control: 'text' },
+    maxItems:  { control: 'number' },
+  },
+{{> react/stories-footer}}
+
+const sampleItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Products', href: '/products' },
+  { label: 'Laptops', href: '/products/laptops' },
+  { label: 'ThinkPad X1' },
+];
+
+export const Default: Story = {
+  args: { items: sampleItems, size: 'md' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+
+export const ChevronSeparator: Story = {
+  args: { items: sampleItems, separator: '›' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+
+export const Collapsed: Story = {
+  args: { items: sampleItems, maxItems: 3 },
+  render: (args) => <Breadcrumb {...args} />,
+};
+
+{{#each sizes}}
+export const Size{{capitalize this}}: Story = {
+  args: { items: sampleItems, size: '{{this}}' },
+  render: (args) => <Breadcrumb {...args} />,
+};
+{{/each}}

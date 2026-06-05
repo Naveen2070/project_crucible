@@ -1,0 +1,24 @@
+<nav
+  aria-label="Breadcrumb"
+  class="breadcrumb"
+  [class.breadcrumb--sm]="size === 'sm'"
+  [class.breadcrumb--md]="size === 'md'"
+  [class.breadcrumb--lg]="size === 'lg'"
+>
+  <ol class="breadcrumb-list">
+    @for (item of display; track $index) {
+      <li class="breadcrumb-item">
+        @if (item.ellipsis) {
+          <span class="breadcrumb-ellipsis" aria-hidden="true">\{{ item.label }}</span>
+        } @else if (item.href && !$last) {
+          <a [href]="item.href" class="breadcrumb-link">\{{ item.label }}</a>
+        } @else {
+          <span class="breadcrumb-current" [attr.aria-current]="$last ? 'page' : null">\{{ item.label }}</span>
+        }
+        @if (!$last) {
+          <span class="breadcrumb-separator" aria-hidden="true">\{{ separator }}</span>
+        }
+      </li>
+    }
+  </ol>
+</nav>

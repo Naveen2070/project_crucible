@@ -1,0 +1,14 @@
+{
+  "id": "Breadcrumb",
+  "name": "Breadcrumb",
+  "description": "Navigation breadcrumb trail driven by an items array",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": [],
+  "sizes": ["sm", "md", "lg"],
+  "states": [],
+  "props": ["items", "separator", "maxItems"],
+  "prefix": "breadcrumb",
+  "a11y": { "role": "navigation" },
+  "tailwindDefaults": {}
+}
