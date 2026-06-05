@@ -47,6 +47,7 @@ const COMPONENTS = [
   'Breadcrumb',
   'RadioGroup',
   'Accordion',
+  'DropdownMenu',
 ];
 const STORYBOOK_PORTS: Record<string, number> = {
   react: 6006,

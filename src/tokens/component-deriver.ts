@@ -197,6 +197,18 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     radius: 'var(--radius-md)',
     transition: 'background-color 0.2s ease',
   },
+  menu: {
+    background: 'var(--color-surface)',
+    border: 'var(--color-border)',
+    shadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+    radius: 'var(--radius-md)',
+    itemPaddingX: 'calc(var(--spacing-unit) * 3)',
+    itemPaddingY: 'calc(var(--spacing-unit) * 2)',
+    itemHoverBg: 'var(--color-secondary)',
+    labelColor: 'var(--color-text-muted)',
+    minWidth: '180px',
+    zIndex: '50',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',
