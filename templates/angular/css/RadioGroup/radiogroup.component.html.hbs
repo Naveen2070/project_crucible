@@ -1,0 +1,30 @@
+<div
+  [class]="rootClass"
+  role="radiogroup"
+  [attr.aria-orientation]="orientation"
+  [attr.data-orientation]="orientation"
+  (keydown)="onKeydown($event)"
+>
+  @for (item of items; track item.value) {
+    <label class="item" [attr.data-disabled]="item.disabled ? '' : null">
+      <button
+        #radioEl
+        type="button"
+        role="radio"
+        [id]="itemId(item)"
+        [attr.name]="name"
+        [attr.aria-checked]="isSelected(item)"
+        [attr.data-state]="isSelected(item) ? 'checked' : 'unchecked'"
+        [attr.data-value]="item.value"
+        [attr.data-disabled]="item.disabled ? '' : null"
+        [disabled]="item.disabled"
+        [attr.tabindex]="isTabStop(item) ? 0 : -1"
+        class="control"
+        (click)="selectItem(item)"
+      >
+        <span class="indicator" aria-hidden="true"></span>
+      </button>
+      <span class="label">\{{ item.label }}</span>
+    </label>
+  }
+</div>

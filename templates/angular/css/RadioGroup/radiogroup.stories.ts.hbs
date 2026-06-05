@@ -1,0 +1,88 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { RadioGroupComponent } from './radiogroup.component';
+
+const meta: Meta<RadioGroupComponent> = {
+  title: 'Crucible/RadioGroup',
+  component: RadioGroupComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    orientation: { control: 'select', options: ['vertical', 'horizontal'] },
+  },
+  args: { size: 'md', orientation: 'vertical' },
+};
+
+export default meta;
+type Story = StoryObj<RadioGroupComponent>;
+
+const onValueChange = (value: string) => console.log('Radio changed:', value);
+
+export const Default: Story = {
+  args: {
+    items: [
+      { value: 'default', label: 'Default' },
+      { value: 'comfortable', label: 'Comfortable' },
+      { value: 'compact', label: 'Compact' },
+    ],
+    defaultValue: 'comfortable',
+    name: 'density',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-radio-group
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [size]="size"
+      [orientation]="orientation"
+      [name]="name"
+      (valueChange)="onValueChange($event)"
+    ></app-radio-group>`,
+  }),
+};
+
+export const Horizontal: Story = {
+  args: {
+    orientation: 'horizontal',
+    items: [
+      { value: 'card', label: 'Card' },
+      { value: 'paypal', label: 'PayPal' },
+      { value: 'bank', label: 'Bank transfer' },
+    ],
+    defaultValue: 'card',
+    name: 'payment',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-radio-group
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [size]="size"
+      [orientation]="orientation"
+      [name]="name"
+      (valueChange)="onValueChange($event)"
+    ></app-radio-group>`,
+  }),
+};
+
+export const WithDisabled: Story = {
+  args: {
+    items: [
+      { value: 'standard', label: 'Standard' },
+      { value: 'express', label: 'Express' },
+      { value: 'overnight', label: 'Overnight', disabled: true },
+    ],
+    defaultValue: 'standard',
+    name: 'shipping',
+  },
+  render: (args) => ({
+    props: { ...args, onValueChange },
+    template: `<app-radio-group
+      [items]="items"
+      [defaultValue]="defaultValue"
+      [size]="size"
+      [orientation]="orientation"
+      [name]="name"
+      (valueChange)="onValueChange($event)"
+    ></app-radio-group>`,
+  }),
+};
