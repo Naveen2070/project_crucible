@@ -56,3 +56,6 @@ __generated__/
 crucible.config.json
 .crucible
 AGENTS.md
+
+# local-only release plan (do not commit)
+docs/v1.1.0-component-kit.plan.md

@@ -1,0 +1,361 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Label snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-label',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './label.component.html',
+  styleUrls: ['./label.component.css'],
+})
+export class LabelComponent {
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() required = false;
+  @Input() disabled = false;
+  @Input() htmlFor = '';
+}
+"
+`;
+
+exports[`Label snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<label
+  class="label"
+  [class.label--sm]="size === 'sm'"
+  [class.label--md]="size === 'md'"
+  [class.label--lg]="size === 'lg'"
+  [class.label--disabled]="disabled"
+  [attr.for]="htmlFor || null"
+>
+  <ng-content></ng-content>
+  @if (required) {
+    <span class="required" aria-hidden="true">*</span>
+  }
+</label>
+"
+`;
+
+exports[`Label snapshots > css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Label.module.css';
+export type LabelSize = 'sm' | 'md' | 'lg';
+
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  /** Visual size of the label text */
+  size?: LabelSize;
+  /** Render a required (*) marker after the label text */
+  required?: boolean;
+  /** Visually mark the label as disabled (pair with a disabled control) */
+  disabled?: boolean;
+}
+
+export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ size = 'md', required = false, disabled = false, className, children, ...props }, ref) => {
+    const cls = [
+      styles.label,
+      styles[\`label--\${size}\`],
+      disabled && styles['label--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <label ref={ref} className={cls} data-disabled={disabled || undefined} {...props}>
+        {children}
+        {required && (
+          <span className={styles.required} aria-hidden="true">*</span>
+        )}
+      </label>
+    );
+  }
+);
+
+Label.displayName = 'Label';
+"
+`;
+
+exports[`Label snapshots > css mode snapshot 2`] = `
+".label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--label-gap, calc(var(--spacing-unit) * 1));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--label-weight, 500);
+  color: var(--label-color, var(--color-text));
+  line-height: 1.4;
+  cursor: default;
+}
+
+.label--sm {
+  font-size: 0.75rem;
+}
+
+.label--md {
+  font-size: 0.875rem;
+}
+
+.label--lg {
+  font-size: 1rem;
+}
+
+.label--disabled {
+  opacity: var(--label-disabled-opacity, 0.6);
+  cursor: not-allowed;
+}
+
+.required {
+  color: var(--label-required-color, var(--color-destructive));
+  margin-left: calc(var(--spacing-unit, 4px) * 0.5);
+}
+"
+`;
+
+exports[`Label snapshots > css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Label } from './Label';
+
+const meta: Meta<typeof Label> = {
+  title: 'Crucible/Label',
+  component: Label,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    size:     { control: 'select', options: ['sm', 'md', 'lg'] },
+    required: { control: 'boolean' },
+    disabled: { control: 'boolean' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Label>;
+
+export const Default: Story = {
+  args: { size: 'md' },
+  render: (args) => <Label {...args}>Email address</Label>,
+};
+
+export const Sm: Story = {
+  args: { size: 'sm' },
+  render: (args) => <Label {...args}>Sm label</Label>,
+};
+export const Md: Story = {
+  args: { size: 'md' },
+  render: (args) => <Label {...args}>Md label</Label>,
+};
+export const Lg: Story = {
+  args: { size: 'lg' },
+  render: (args) => <Label {...args}>Lg label</Label>,
+};
+
+export const Required: Story = {
+  args: { required: true },
+  render: (args) => <Label {...args}>Full name</Label>,
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => <Label {...args}>Disabled field</Label>,
+};
+
+export const WithControl: Story = {
+  args: { required: true },
+  render: (args) => (
+    <Label {...args} htmlFor="demo-input">
+      Username
+    </Label>
+  ),
+};
+"
+`;
+
+exports[`Label snapshots > react scss mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Label.module.scss';
+export type LabelSize = 'sm' | 'md' | 'lg';
+
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  /** Visual size of the label text */
+  size?: LabelSize;
+  /** Render a required (*) marker after the label text */
+  required?: boolean;
+  /** Visually mark the label as disabled (pair with a disabled control) */
+  disabled?: boolean;
+}
+
+export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ size = 'md', required = false, disabled = false, className, children, ...props }, ref) => {
+    const cls = [
+      styles.label,
+      styles[\`label--\${size}\`],
+      disabled && styles['label--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <label ref={ref} className={cls} data-disabled={disabled || undefined} {...props}>
+        {children}
+        {required && (
+          <span className={styles.required} aria-hidden="true">*</span>
+        )}
+      </label>
+    );
+  }
+);
+
+Label.displayName = 'Label';
+"
+`;
+
+exports[`Label snapshots > react scss mode snapshot 2`] = `
+".label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--label-gap, calc(var(--spacing-unit) * 1));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--label-weight, 500);
+  color: var(--label-color, var(--color-text));
+  line-height: 1.4;
+  cursor: default;
+
+  &--sm {
+    font-size: 0.75rem;
+  }
+
+  &--md {
+    font-size: 0.875rem;
+  }
+
+  &--lg {
+    font-size: 1rem;
+  }
+
+  &--disabled {
+    opacity: var(--label-disabled-opacity, 0.6);
+    cursor: not-allowed;
+  }
+}
+
+.required {
+  color: var(--label-required-color, var(--color-destructive));
+  margin-left: calc(var(--spacing-unit, 4px) * 0.5);
+}
+"
+`;
+
+exports[`Label snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type LabelSize = 'sm' | 'md' | 'lg';
+
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  /** Visual size of the label text */
+  size?: LabelSize;
+  /** Render a required (*) marker after the label text */
+  required?: boolean;
+  /** Visually mark the label as disabled (pair with a disabled control) */
+  disabled?: boolean;
+}
+
+const SIZE_CLASSES: Record<LabelSize, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ size = 'md', required = false, disabled = false, className, children, ...props }, ref) => {
+    const cls = [
+      'inline-flex items-center gap-1 font-medium leading-snug text-[var(--label-color,var(--color-text))]',
+      SIZE_CLASSES[size],
+      disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-default',
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <label ref={ref} className={cls} data-disabled={disabled || undefined} {...props}>
+        {children}
+        {required && (
+          <span
+            className="ml-0.5 text-[var(--label-required-color,var(--color-destructive))]"
+            aria-hidden="true"
+          >
+            *
+          </span>
+        )}
+      </label>
+    );
+  }
+);
+
+Label.displayName = 'Label';
+"
+`;
+
+exports[`Label snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+export type LabelSize = 'sm' | 'md' | 'lg';
+
+interface Props {
+  size?:     LabelSize;
+  required?: boolean;
+  disabled?: boolean;
+  htmlFor?:  string;
+}
+
+withDefaults(defineProps<Props>(), {
+  size: 'md',
+  required: false,
+  disabled: false,
+  htmlFor: '',
+});
+</script>
+
+<template>
+  <label
+    :for="htmlFor || undefined"
+    :class="['label', \`label--\${size}\`, { 'label--disabled': disabled }]"
+  >
+    <slot />
+    <span v-if="required" class="required" aria-hidden="true">*</span>
+  </label>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--label-gap, calc(var(--spacing-unit) * 1));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--label-weight, 500);
+  color: var(--label-color, var(--color-text));
+  line-height: 1.4;
+  cursor: default;
+}
+
+.label--sm {
+  font-size: 0.75rem;
+}
+
+.label--md {
+  font-size: 0.875rem;
+}
+
+.label--lg {
+  font-size: 1rem;
+}
+
+.label--disabled {
+  opacity: var(--label-disabled-opacity, 0.6);
+  cursor: not-allowed;
+}
+
+.required {
+  color: var(--label-required-color, var(--color-destructive));
+  margin-left: calc(var(--spacing-unit, 4px) * 0.5);
+}
+</style>
+"
+`;

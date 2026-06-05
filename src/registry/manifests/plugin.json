@@ -16,7 +16,8 @@
     "components/toast.json",
     "components/form.json",
     "components/tabs.json",
-    "components/tooltip.json"
+    "components/tooltip.json",
+    "components/label.json"
   ],
   "frameworks": [
     "frameworks/react.json",

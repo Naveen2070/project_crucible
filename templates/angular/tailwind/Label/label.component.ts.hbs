@@ -1,0 +1,29 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-label',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './label.component.html',
+})
+export class LabelComponent {
+  @Input() size: {{> shared/size-types}} = 'md';
+  @Input() required = false;
+  @Input() disabled = false;
+  @Input() htmlFor = '';
+
+  getTailwindClasses() {
+    const sizeClasses = {
+      sm: 'text-xs',
+      md: 'text-sm',
+      lg: 'text-base',
+    };
+
+    return [
+      'inline-flex items-center gap-1 font-medium leading-snug text-[var(--label-color,var(--color-text))]',
+      sizeClasses[this.size],
+      this.disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-default',
+    ].join(' ');
+  }
+}

@@ -1,0 +1,16 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-label',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './label.component.html',
+  styleUrls: ['./label.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class LabelComponent {
+  @Input() size: {{> shared/size-types}} = 'md';
+  @Input() required = false;
+  @Input() disabled = false;
+  @Input() htmlFor = '';
+}

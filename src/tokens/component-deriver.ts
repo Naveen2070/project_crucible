@@ -98,6 +98,13 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     warningBg: '#f59e0b',
     infoBg: 'var(--color-primary)',
   },
+  label: {
+    color: 'var(--color-text)',
+    weight: '500',
+    requiredColor: 'var(--color-destructive)',
+    gap: 'calc(var(--spacing-unit) * 1)',
+    disabledOpacity: '0.6',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',
