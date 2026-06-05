@@ -112,6 +112,18 @@ export const COMPONENT_TOKEN_DEFAULTS: Record<string, Record<string, string>> = 
     labelColor: 'var(--color-text-muted)',
     labelGap: 'calc(var(--spacing-unit) * 2)',
   },
+  badge: {
+    radius: 'var(--radius-sm)',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    gap: 'calc(var(--spacing-unit) * 1)',
+    primaryBg: 'var(--color-primary)',
+    secondaryBg: 'var(--color-secondary)',
+    successBg: 'var(--color-success)',
+    warningBg: '#f59e0b',
+    destructiveBg: 'var(--color-destructive)',
+    onColor: '#ffffff',
+  },
   tabs: {
     listGap: 'calc(var(--spacing-unit) * 1)',
     triggerHeightSm: 'calc(var(--spacing-unit) * 8)',

@@ -18,7 +18,8 @@
     "components/tabs.json",
     "components/tooltip.json",
     "components/label.json",
-    "components/separator.json"
+    "components/separator.json",
+    "components/badge.json"
   ],
   "frameworks": [
     "frameworks/react.json",

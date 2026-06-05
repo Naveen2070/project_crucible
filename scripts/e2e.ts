@@ -1813,6 +1813,122 @@ async function runE2E() {
       throw new Error('Angular Separator missing SeparatorComponent or scss styleUrls');
     }
     results.push({ phase: 'Separator + Angular + SCSS', passed: true });
+
+    // Badge + React + CSS
+    console.log(ansis.cyan('📦 Phase 56: Badge + React + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Badge'));
+    runCLI('add Badge -y');
+    const badgeReactCss = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Badge', 'Badge.tsx'),
+      'utf-8',
+    );
+    if (!badgeReactCss.includes('export const Badge') || badgeReactCss.includes('Object.assign')) {
+      throw new Error('React Badge missing export or should be monolithic');
+    }
+    const badgeReactCssMod = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Badge', 'Badge.module.css'),
+      'utf-8',
+    );
+    if (!badgeReactCssMod.includes('.badge--destructive') || !badgeReactCssMod.includes('.badge--outline')) {
+      throw new Error('Badge CSS missing variant classes');
+    }
+    results.push({ phase: 'Badge + React + CSS', passed: true });
+
+    // Badge + React + Tailwind
+    console.log(ansis.cyan('📦 Phase 57: Badge + React + Tailwind'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'tailwind',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Badge'));
+    runCLI('add Badge -y');
+    const badgeReactTw = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Badge', 'Badge.tsx'),
+      'utf-8',
+    );
+    if (!badgeReactTw.includes('VARIANT_CLASSES') || !badgeReactTw.includes('bg-[var(--color-primary)]')) {
+      throw new Error('React Tailwind Badge missing variant class map');
+    }
+    if (await pathExists(path.join(TEST_DIR, 'src/components', 'Badge', 'Badge.module.css'))) {
+      throw new Error('Tailwind Badge should not emit a CSS module');
+    }
+    results.push({ phase: 'Badge + React + Tailwind', passed: true });
+
+    // Badge + Vue + CSS
+    console.log(ansis.cyan('📦 Phase 58: Badge + Vue + CSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'vue',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Badge'));
+    runCLI('add Badge -y');
+    const badgeVue = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Badge', 'Badge.vue'),
+      'utf-8',
+    );
+    if (!badgeVue.includes('class="badge') && !badgeVue.includes("'badge'")) {
+      throw new Error('Vue Badge missing badge class binding');
+    }
+    results.push({ phase: 'Badge + Vue + CSS', passed: true });
+
+    // Badge + Angular + SCSS
+    console.log(ansis.cyan('📦 Phase 59: Badge + Angular + SCSS'));
+    await writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'angular',
+        styleSystem: 'scss',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true },
+        a11y: tabsA11y,
+      },
+      { spaces: 2 },
+    );
+    await remove(path.join(TEST_DIR, 'src/components', 'Badge'));
+    runCLI('add Badge -y');
+    const badgeNgFiles = ['Badge/badge.component.ts', 'Badge/badge.component.html', 'Badge/badge.component.scss'];
+    for (const file of badgeNgFiles) {
+      if (!(await pathExists(path.join(TEST_DIR, 'src/components', file)))) {
+        throw new Error(`Missing: ${file}`);
+      }
+    }
+    const badgeNgTs = await readFile(
+      path.join(TEST_DIR, 'src/components', 'Badge', 'badge.component.ts'),
+      'utf-8',
+    );
+    if (!badgeNgTs.includes('export class BadgeComponent') || !badgeNgTs.includes("styleUrls: ['./badge.component.scss']")) {
+      throw new Error('Angular Badge missing BadgeComponent or scss styleUrls');
+    }
+    results.push({ phase: 'Badge + Angular + SCSS', passed: true });
   } catch (error: any) {
     console.error(ansis.red(`\n❌ Test Failed: ${error.message}`));
     results.push({ phase: 'FAILED', passed: false, error: error.message });
