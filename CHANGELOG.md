@@ -5,9 +5,93 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - 2026-06-06
+
+> **App-Building Kit** — 14 new components bring the library to **25**, enough to scaffold a
+> minimal SaaS app, web app, form, or marketing site. Suite: **448 unit tests / 48 files /
+> 238 E2E phases / 453 templates**. All components ship across React/Vue/Angular ×
+> CSS/SCSS/Tailwind, are token-backed, and include snapshot + E2E coverage.
 
 ### Added
+
+- **Label** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Accessible form label with `htmlFor` association and a `required` marker (`aria-hidden` `*`)
+  - Sizes: sm/md/lg · `disabled` styling
+  - Monolithic (single `forwardRef`/component); custom theming via `--label-*` CSS vars
+  - Zero peer deps
+- **Separator** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Visual or semantic divider; `orientation="horizontal" | "vertical"`
+  - `role="separator"` + `aria-orientation`, or `decorative` mode (`role="none"`, dropped from a11y tree)
+  - Optional centered `label` (the "OR" divider pattern) on horizontal separators
+  - Custom theming via `--separator-*` CSS vars (color/thickness/spacing/label)
+  - Zero peer deps
+- **Badge** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - 7 variants: default, primary, secondary, outline, success, warning, destructive · Sizes: sm/md/lg
+  - Tailwind variant classes sourced from the manifest `tailwindDefaults` (single source of truth)
+  - Custom theming via `--badge-*` CSS vars (radius/font/severity backgrounds)
+  - Zero peer deps
+- **Skeleton** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Loading placeholder; variants: default, text, circle, rect · custom `width`/`height`
+  - `aria-busy="true"` + `aria-live="polite"`; pulse animation (CSS keyframes / `animate-pulse`)
+  - Respects `prefers-reduced-motion`; custom theming via `--skeleton-*` CSS vars
+  - Zero peer deps
+- **Avatar** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Image with **initials fallback on load error** (`onError`/`@error`/`(error)`)
+  - Variants: circle, square · Sizes: xs/sm/md/lg · `role="img"` + `aria-label`
+  - Custom theming via `--avatar-*` CSS vars (radius/fallback bg+color/font-weight)
+  - Zero peer deps
+- **Textarea** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Multi-line field with built-in label/hint/error wiring; `rows`, `maxLength`
+  - Variants: default, error · Sizes: sm/md/lg · `disabled`
+  - `aria-invalid`/`aria-describedby`/`aria-required`; vertical resize; Vue `v-model`
+  - Monolithic; custom theming via `--textarea-*` CSS vars; zero peer deps
+- **Checkbox** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Native `<input type="checkbox">` with `indeterminate` set imperatively (React/Vue ref effect,
+    Angular `[indeterminate]` property binding — never a JSX attribute)
+  - Variants: default, error · Sizes: sm/md/lg · `disabled`/`checked`/`error` states
+  - `onCheckedChange` / `v-model` / `checkedChange`; label + error wiring; `accent-color` styling
+  - Custom theming via `--checkbox-*` CSS vars; zero peer deps
+- **Switch** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - `role="switch"` toggle (button with track + thumb), `aria-checked`
+  - Controlled (`checked`) + uncontrolled (`defaultChecked`); Sizes: sm/md/lg · `disabled`
+  - Per-size thumb translate; respects `prefers-reduced-motion`; label associated via `for`
+  - Custom theming via `--switch-*` CSS vars (track on/off, thumb, transition); zero peer deps
+- **Alert** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Inline `role="alert"` message; variants: default, info, success, warning, destructive
+  - Per-variant `color-mix` tinted background + icon; optional dismiss button (`onClose`/`@close`/`(close)`)
+  - Title + description (children/slot/`ng-content`); custom theming via `--alert-*` CSS vars
+  - Zero peer deps
+- **Progress** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - `role="progressbar"` with `aria-valuemin`/`max`/`now`; **linear bar or circular SVG ring**
+  - Determinate (`value`/`max`) or **indeterminate continuous loader** (animated bar / spinning ring)
+  - Sizes: sm/md/lg; circular ring driven by stroke-dash math; respects `prefers-reduced-motion`
+  - Custom theming via `--progress-*` CSS vars (track/bar/transition); zero peer deps
+- **Breadcrumb** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - `<nav aria-label="Breadcrumb">` → `<ol>`, items-driven; `aria-current="page"` on the last crumb
+  - Custom `separator`, `maxItems` collapse-to-ellipsis · Sizes: sm/md/lg
+  - Monolithic items API across all frameworks (inline separator, no extra dependency)
+  - Custom theming via `--breadcrumb-*` CSS vars; zero peer deps
+- **RadioGroup** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - WAI-ARIA radiogroup: `role="radiogroup"`/`role="radio"`, `aria-checked`, roving tabindex
+  - Always-automatic activation (arrow keys move focus **and** select); horizontal/vertical orientation
+  - Compound API: Root/Item (React/Vue); Angular monolithic (`items` array)
+  - Reuses the shared roving-tabindex kernel; custom theming via `--radio-*` CSS vars; zero peer deps
+- **Accordion** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - Collapsible disclosure; `type="single" | "multiple"` with `collapsible`
+  - `<button aria-expanded aria-controls>` triggers in headings + `role="region"` panels
+  - Vertical roving keyboard nav (ArrowUp/Down/Home/End); rotating chevron indicator
+  - Variants: default, bordered, separated · Sizes: sm/md/lg
+  - Compound API: Root/Item/Trigger/Content (React/Vue); Angular monolithic (`items` array)
+  - Custom theming via `--accordion-*` CSS vars; zero peer deps
+- **DropdownMenu** (React/Vue/Angular × CSS/SCSS/Tailwind)
+  - `@floating-ui`-positioned menu (`offset`/`flip`/`shift`); `role="menu"` + `role="menuitem"`
+  - React: `useListNavigation` (roving) + `useTypeahead` + `FloatingList`/`FloatingFocusManager`;
+    Vue/Angular implement roving + dismiss manually (those floating-ui hooks are React-only)
+  - Trigger `aria-haspopup="menu"` (`asChild` to use a Button); `closeOnSelect`; Escape/click-outside close
+  - Variants: default, minimal · Sizes: sm/md/lg · default placement `bottom-start`
+  - Compound API: Root/Trigger/Content/Item/Separator/Label (React/Vue); Angular monolithic (`items`)
+  - Depends on **Button**; peer deps `@floating-ui/react` · `@floating-ui/vue` · `@floating-ui/dom`
+  - Custom theming via `--menu-*` CSS vars (background/border/shadow/item hover/z-index)
 
 - **Tooltip** (React/Vue/Angular × CSS/SCSS/Tailwind)
   - Floating label positioned via `@floating-ui` (`offset`/`flip`/`shift`/`arrow`)
@@ -70,6 +154,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Table virtualization (React)**: add missing `containerHeight` destructure
 - **Table playgrounds (Vue/Angular)**: stripped mustaches → `v-text`/`[innerText]`
 - **Popover stories (all)**: `variant="minimal"` → `"ghost"`; Angular uses `<app-button>`
+- **CLI version**: `crucible --version` now reports the real package version instead of a hardcoded
+  `1.0.0`
+- **Plugin engine compatibility**: corrected the engine-version lookup path in the plugin loader
+  (`../../package.json`) so `engineVersion` semver gating compares against the true engine version —
+  previously it silently defaulted to `1.0.0`, which would wrongly reject plugins requiring `>=1.1.0`
 
 ### Accessibility
 
