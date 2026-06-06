@@ -54,7 +54,7 @@ npx crucible add Button
 | **Dependency Resolution** | Auto-scaffolds Button for Select/Dialog                 |
 | **Interactive CLI**       | Guided setup with @inquirer/prompts                     |
 | **Prettier Integration**  | Auto-format all generated code                          |
-| **Test Coverage**         | 368 unit tests + 47 E2E phases                          |
+| **Test Coverage**         | 448 unit tests + 238 E2E phases                         |
 
 <p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
 
@@ -135,6 +135,20 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 | `Form`    | default, inline                                                | sm, md, lg           | disabled, error, submitting | Dependency-free validation engine, react-hook-form adapter, compound (Root/Field/Item/Label/Control/Description/Message/Submit) + schema-driven modes, aria wiring |
 | `Tabs`    | default, underline, pills                                      | sm, md, lg           | disabled                    | WAI-ARIA tabs pattern: compound (Root/List/Trigger/Content) + schema-driven, controlled/uncontrolled, manual/automatic activation, horizontal/vertical, roving tabindex; per-tab custom rendering (React ReactNode · Vue named slots · Angular `TabTemplateDirective`) |
 | `Tooltip` | default, minimal                                               | sm, md, lg           | open, closed                | Floating-UI label, `role="tooltip"` + `aria-describedby`, hover/focus/click triggers, compound (Root/Trigger/Portal/Content/Arrow), no focus trap, Escape to dismiss |
+| `Label`   | —                                                              | sm, md, lg           | disabled                    | Form label with required marker and `htmlFor` association                                                                                                          |
+| `Separator` | —                                                            | —                    | —                           | Horizontal/vertical divider, `role="separator"`, optional centered label, decorative mode                                                                          |
+| `Badge`   | default, primary, secondary, outline, success, warning, destructive | sm, md, lg      | —                           | Status/category label; Tailwind variant classes sourced from the manifest                                                                                          |
+| `Skeleton` | default, text, circle, rect                                   | —                    | —                           | Loading placeholder with pulse animation, `aria-busy`, custom width/height                                                                                         |
+| `Avatar`  | circle, square                                                 | xs, sm, md, lg       | —                           | Image with initials fallback on load error, `role="img"`                                                                                                           |
+| `Textarea` | default, error                                                | sm, md, lg           | disabled, error             | Multi-line field with label/hint/error wiring, `rows`, `maxLength`, aria-invalid                                                                                   |
+| `Checkbox` | default, error                                                | sm, md, lg           | disabled, checked, error    | Native checkbox with indeterminate (ref/property-bound), label, error                                                                                              |
+| `Switch`  | —                                                              | sm, md, lg           | disabled, checked           | `role="switch"` toggle (track + thumb), controlled/uncontrolled                                                                                                    |
+| `Alert`   | default, info, success, warning, destructive                   | —                    | —                           | Inline `role="alert"` message with severity tint, icon, optional dismiss                                                                                           |
+| `Progress` | linear, circular                                              | sm, md, lg           | indeterminate               | `role="progressbar"` bar or SVG ring; determinate value or continuous loader                                                                                       |
+| `Breadcrumb` | —                                                           | sm, md, lg           | —                           | Items-driven nav trail, `aria-current="page"`, custom separator, `maxItems` collapse                                                                               |
+| `RadioGroup` | —                                                           | sm, md, lg           | disabled                    | WAI-ARIA radiogroup, roving tabindex, arrow-to-select; compound (Root/Item)                                                                                        |
+| `Accordion` | default, bordered, separated                                 | sm, md, lg           | disabled                    | Collapsible disclosure, single/multiple, `aria-expanded` + `role="region"`; compound (Root/Item/Trigger/Content)                                                   |
+| `DropdownMenu` | default, minimal                                          | sm, md, lg           | open, closed                | Floating-UI menu with roving items + typeahead, `role="menu"`; compound (Root/Trigger/Content/Item/Separator/Label)                                                |
 
 ---
 
@@ -236,13 +250,13 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 368 tests across 33 files
+- All tests pass (`npm test`) — 448 tests across 48 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
 **Good first contributions:**
 
-- Adding new components (Textarea, Badge, Checkbox)
+- Adding new components (Tag, Pagination, Tooltip variants)
 - Improving documentation
 - Writing missing tests for existing features
 - Fixing small bugs in CLI commands
@@ -259,7 +273,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version      | Status       | Description                                                                                   |
 | ------------ | ------------ | --------------------------------------------------------------------------------------------- |
-| _unreleased_ | 🚧 In-flight | Added **Popover**, **Table**, **Toast**, **Form**, **Tabs**, and **Tooltip** components; fixed sort/positioning bugs across all frameworks |
+| v1.1.0       | ✅ Stable    | **App-building kit** — added 14 components (Label, Separator, Badge, Skeleton, Avatar, Textarea, Checkbox, Switch, Alert, Progress, Breadcrumb, RadioGroup, Accordion, DropdownMenu) bringing the library to 25; 448 tests / 238 E2E phases |
 | v1.0.4       | ✅ Stable    | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                |
 | v1.0.3       | ✅ Stable    | Manual dark mode strategy, Vue SCSS template fixes                                            |
 | v1.0.0       | ✅ Stable    | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases               |

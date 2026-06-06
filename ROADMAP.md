@@ -4,7 +4,7 @@
 >
 > **shadcn for multi-framework teams + automation**
 
-**Current Version:** 1.0.4 | **Last Updated:** March 2026
+**Current Version:** 1.1.0 | **Last Updated:** June 2026
 
 ---
 
@@ -66,8 +66,8 @@ Full code ownership means you maintain what you edit. However:
 | Interactive CLI with @inquirer/prompts            | ✅     |
 | Tailwind auto-setup                               | ✅     |
 | Component registry with ComponentMeta             | ✅     |
-| 368 unit tests across 33 test files               | ✅     |
-| 47 E2E phases covering all commands               | ✅     |
+| 448 unit tests across 48 test files               | ✅     |
+| 238 E2E phases covering all commands              | ✅     |
 | Professional component patterns                   | ✅     |
 | DialogDescription + aria-describedby              | ✅     |
 | Semantic color tokens (foreground variants)       | ✅     |
@@ -81,6 +81,32 @@ Full code ownership means you maintain what you edit. However:
 
 ---
 
+## v1.1 — Complete ✅
+
+> Shipped June 2026. Plugin-ready architecture + the 14-component app-building kit (**25
+> components** total).
+
+| Feature                                                           | Status |
+| ----------------------------------------------------------------- | ------ |
+| Plugin-ready, manifest-driven registry (no hardcoded source maps) | ✅     |
+| Local plugins — `.crucible/plugins/*` auto-discovery              | ✅     |
+| Engine-version compatibility checks (semver)                      | ✅     |
+| Multi-root template resolution (core + plugin roots)              | ✅     |
+| Declarative component + peer dependencies via manifests           | ✅     |
+| Registry-driven CLI (`list` / `add` work with plugins)            | ✅     |
+| App-building kit — 14 new components → **25 total**               | ✅     |
+| Form controls — Textarea, Checkbox, Switch, RadioGroup, Label     | ✅     |
+| Feedback — Alert, Progress (linear + circular), Skeleton          | ✅     |
+| Navigation / overlay — Breadcrumb, Accordion, DropdownMenu        | ✅     |
+| Presentational — Badge, Avatar, Separator                         | ✅     |
+| WAI-ARIA patterns (radiogroup, menu, accordion, tabs, tooltip)    | ✅     |
+| Floating-UI components (Popover, Tooltip, DropdownMenu)           | ✅     |
+| 448 unit tests across 48 test files                               | ✅     |
+| 238 E2E phases (every component × 3 frameworks × 3 styles)        | ✅     |
+| 453 generated templates                                           | ✅     |
+
+---
+
 ## Additional Components
 
 New components are added in parallel with version milestones. Each component requires:
@@ -90,24 +116,46 @@ New components are added in parallel with version milestones. Each component req
 - Snapshot tests
 - Registry entry
 
-| Component       | Target Version | Status       |
-| --------------- | -------------- | ------------ |
-| **Table**       | v1.1           | ✅ Landed    |
-| **Popover**     | v1.1           | ✅ Landed    |
-| **Toast**       | v1.1           | ✅ Landed    |
-| **Form System** | v1.1           | ✅ Landed    |
-| **Tabs**        | v1.1           | ✅ Landed    |
-| **Tooltip**     | v1.1           | ✅ Landed    |
-| Textarea        | v1.1           | Planned      |
-| Badge           | v1.1           | Planned      |
-| Checkbox        | v1.2           | Planned      |
-| Radio           | v1.2           | Planned      |
-| Switch          | v1.3           | Planned      |
-| Alert           | v1.3           | Planned      |
-| Accordion       | Future         | Planned      |
-| Avatar          | Future         | Planned      |
+| Component        | Target Version | Status    |
+| ---------------- | -------------- | --------- |
+| **Table**        | v1.1           | ✅ Landed |
+| **Popover**      | v1.1           | ✅ Landed |
+| **Toast**        | v1.1           | ✅ Landed |
+| **Form System**  | v1.1           | ✅ Landed |
+| **Tabs**         | v1.1           | ✅ Landed |
+| **Tooltip**      | v1.1           | ✅ Landed |
+| **Textarea**     | v1.1           | ✅ Landed |
+| **Checkbox**     | v1.1           | ✅ Landed |
+| **Switch**       | v1.1           | ✅ Landed |
+| **RadioGroup**   | v1.1           | ✅ Landed |
+| **Label**        | v1.1           | ✅ Landed |
+| **Separator**    | v1.1           | ✅ Landed |
+| **Badge**        | v1.1           | ✅ Landed |
+| **Skeleton**     | v1.1           | ✅ Landed |
+| **Avatar**       | v1.1           | ✅ Landed |
+| **Alert**        | v1.1           | ✅ Landed |
+| **Progress**     | v1.1           | ✅ Landed |
+| **Breadcrumb**   | v1.1           | ✅ Landed |
+| **Accordion**    | v1.1           | ✅ Landed |
+| **DropdownMenu** | v1.1           | ✅ Landed |
 
 Components are designed to work with existing token system and compound component patterns.
+
+### More coming soon 🚧
+
+The kit keeps growing — planned next, each following the same multi-framework × style-system
+pattern:
+
+| Component                                                                | Description                        | Target  |
+| ------------------------------------------------------------------------ | ---------------------------------- | ------- |
+| Tag                                                                      | Removable/closable tag chip        | v1.2    |
+| Pagination                                                               | Standalone page navigation control | v1.2    |
+| Combobox                                                                 | Autocomplete / filterable Select   | v1.2    |
+| Slider                                                                   | Range input with keyboard support  | v1.2    |
+| Tabs Vertical presets · Toast promise helpers · more compound primitives | Incremental                        | rolling |
+
+> Have a component you need? Local **plugins** (see v1.1 below) let you add your own today without
+> waiting for a release — drop a manifest + templates into `.crucible/plugins/`.
 
 ```mermaid
 gantt
@@ -143,42 +191,42 @@ gantt
 
 ---
 
-## v1.1 — Plugin-Ready Architecture
+## v1.1 — Plugin-Ready Architecture + App-Building Kit ✅ Shipped (June 2026)
 
-> **Target: Q2 2026**
->
-> Make Crucible genuinely extensible by converting built-in components to manifest-driven loading,
-> enabling local plugins, and preparing the writer for future upgrade tooling.
+> Released as **v1.1.0**. Two things landed together: the **plugin-ready architecture** (the engine
+> is now fully manifest/registry-driven and plug-and-play) and a **14-component app-building kit**
+> that brings the library to **25 components** — enough to scaffold a minimal SaaS app, web app,
+> form, or marketing site.
 
-### Goals
+### Plug-and-play — ready ✅
 
-- Load components from runtime manifests, not hardcoded source maps
-- Enable local plugins via `.crucible/plugins/` discovery
-- Multi-root template resolution (core + plugin templates)
-- Declarative peer dependencies via manifests
-- CLI registry-driven discovery (list/add work with plugins)
-- Writer provenance for future upgrade/diff/audit commands
+Crucible is genuinely extensible now. The registry is data-driven and discovers components at
+runtime; **no engine code changes are needed to add a component** — just a manifest + templates.
 
-### Key Bottlenecks v1.1 Solves
-
-| Bottleneck                       | Solution                             |
-| -------------------------------- | ------------------------------------ |
-| Hardcoded component registration | Runtime manifests + plugin loader    |
-| Framework enum rigidity          | String IDs with validation           |
-| Single template root             | Multi-root resolution                |
-| Hardcoded peer dependencies      | Declarative manifest deps            |
-| No upgrade path                  | Store provenance in manifest entries |
+- **Runtime manifests** — built-in components load from `src/registry/manifests/plugin.json`; no
+  hardcoded source maps.
+- **Local plugins** — `loadPlugins(cwd)` auto-discovers `.crucible/plugins/*/plugin.json`, so a
+  project can drop in its own components/frameworks with zero core changes.
+- **Engine-version compatibility** — each plugin declares `engineVersion`; incompatible plugins are
+  skipped with a warning (semver `>=` check).
+- **Multi-root templates** — each plugin carries its own template `root`, resolved alongside core.
+- **Declarative dependencies** — per-component `dependencies` + `peerDependencies` live in
+  manifests.
+- **Registry-driven CLI** — `crucible list` / `crucible add` operate purely through the runtime
+  registry, so plugin components are first-class.
 
 ### Deliverables
 
-| Feature              | Description                                                |
-| -------------------- | ---------------------------------------------------------- |
-| Manifest types       | `ComponentManifest`, `FrameworkManifest`, `PluginManifest` |
-| Plugin loader        | `loadPlugins(cwd)` with validation + version checks        |
-| Multi-root templates | Template resolution from core + plugin roots               |
-| Declarative deps     | Per-component peerDependencies in manifests                |
-| CLI plugin support   | `crucible list` and `crucible add` via runtime registry    |
-| Writer provenance    | Store plugin/component/template source in manifest         |
+| Feature                                    | Description                                                | Status |
+| ------------------------------------------ | ---------------------------------------------------------- | ------ |
+| Manifest types                             | `ComponentManifest`, `FrameworkManifest`, `PluginManifest` | ✅     |
+| Plugin loader                              | `loadPlugins(cwd)` with validation + version checks        | ✅     |
+| Multi-root templates                       | Template resolution from core + plugin roots               | ✅     |
+| Declarative deps                           | Per-component peer/component dependencies in manifests     | ✅     |
+| CLI plugin support                         | `crucible list` and `crucible add` via runtime registry    | ✅     |
+| App-building kit                           | 14 new components → 25 total (all 3 frameworks × 3 styles) | ✅     |
+| 448 tests / 238 E2E phases / 453 templates | Full coverage for the expanded kit                         | ✅     |
+| Writer provenance                          | `.crucible/manifest.json` storage (full provenance → v1.2) | 🚧     |
 
 ---
 
@@ -268,11 +316,11 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 
 ## Release Schedule
 
-| Version | Focus                     | Target        |
-| ------- | ------------------------- | ------------- |
-| 1.0.0   | Core engine               | ✅ March 2026 |
-| 1.1.0   | Plugin-ready architecture | ✅ Q3 2026    |
-| 1.2.0   | Migration engine          | Q4 2026       |
-| 1.3.0   | Studio                    | Q2 2027       |
-| 1.4.0   | Ecosystem & examples      | Q3 2027       |
-| 2.0.0   | Go binary                 | 2028          |
+| Version | Focus                                                        | Target        |
+| ------- | ------------------------------------------------------------ | ------------- |
+| 1.0.0   | Core engine                                                  | ✅ March 2026 |
+| 1.1.0   | Plugin-ready architecture + app-building kit (25 components) | ✅ June 2026  |
+| 1.2.0   | Migration engine                                             | Q4 2026       |
+| 1.3.0   | Studio                                                       | Q2 2027       |
+| 1.4.0   | Ecosystem & examples                                         | Q3 2027       |
+| 2.0.0   | Go binary                                                    | 2028          |
