@@ -13,6 +13,7 @@ import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './co
 import { Framework } from '../core/enums';
 import { assertDevMode } from '../config/dev-mode';
 import { initRegistry } from '../plugins/loader';
+import { readJson } from '../utils/fs';
 
 const program = new Command();
 
@@ -21,6 +22,13 @@ async function bootstrap() {
   const cwdArgIndex = process.argv.indexOf('--cwd');
   const cwd = cwdArgIndex !== -1 ? path.resolve(process.cwd(), process.argv[cwdArgIndex + 1]) : process.cwd();
   await initRegistry(cwd);
+
+  // Single source of truth for the CLI version: the package manifest.
+  let version = '0.0.0';
+  try {
+    const pkg = await readJson(path.join(__dirname, '../../package.json'));
+    version = pkg.version || version;
+  } catch {}
 
   function warnForce(cmd: string): void {
     console.log(ansis.yellow(`\n⚠  --force flag is active for: ${cmd}`));
@@ -32,7 +40,7 @@ async function bootstrap() {
     .description(
       'Design system engine — scaffolds native, fully-owned components directly into your project',
     )
-    .version('1.0.0');
+    .version(version);
 
   program.addHelpText(
     'after',

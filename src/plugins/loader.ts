@@ -18,7 +18,7 @@ export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
   
   let engineVersion = '1.0.0';
   try {
-    const pkg = await readJson(path.join(__dirname, '../../../package.json'));
+    const pkg = await readJson(path.join(__dirname, '../../package.json'));
     engineVersion = pkg.version || '1.0.0';
   } catch {}
 
