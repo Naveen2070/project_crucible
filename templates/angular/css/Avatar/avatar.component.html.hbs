@@ -1,0 +1,11 @@
+<div
+  [class]="'avatar avatar--' + variant + ' avatar--' + size"
+  role="img"
+  [attr.aria-label]="alt || fallback || null"
+>
+  @if (showImage) {
+    <img class="avatar-image" [src]="src" [alt]="alt" (error)="onError()" />
+  } @else {
+    <span class="avatar-fallback" aria-hidden="true">\{{ initials }}</span>
+  }
+</div>

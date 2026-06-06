@@ -33,6 +33,20 @@ export const ComponentName = {
   Form: 'Form',
   Tabs: 'Tabs',
   Tooltip: 'Tooltip',
+  Label: 'Label',
+  Separator: 'Separator',
+  Badge: 'Badge',
+  Skeleton: 'Skeleton',
+  Avatar: 'Avatar',
+  Textarea: 'Textarea',
+  Checkbox: 'Checkbox',
+  Switch: 'Switch',
+  Alert: 'Alert',
+  Progress: 'Progress',
+  Breadcrumb: 'Breadcrumb',
+  RadioGroup: 'RadioGroup',
+  Accordion: 'Accordion',
+  DropdownMenu: 'DropdownMenu',
 } as const;
 
 export type ComponentName = typeof ComponentName[keyof typeof ComponentName];

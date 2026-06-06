@@ -1,0 +1,84 @@
+.textarea-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit, 4px) * 1.5);
+}
+
+.label {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text, #1A1A2E);
+}
+
+.required {
+  color: var(--color-destructive, #E24B4A);
+  margin-left: 2px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: var(--textarea-min-height, {{tokens.componentTokens.textarea.minHeight}});
+  padding: var(--textarea-padding-y, {{tokens.componentTokens.textarea.paddingY}})
+    var(--textarea-padding-x, {{tokens.componentTokens.textarea.paddingX}});
+  border: 1px solid var(--textarea-border-color, {{tokens.componentTokens.textarea.borderColor}});
+  border-radius: var(--textarea-radius, {{tokens.componentTokens.textarea.radius}});
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text, #1A1A2E);
+  background-color: var(--color-surface, #FFFFFF);
+  resize: vertical;
+  outline: none;
+  transition: var(--textarea-transition, {{tokens.componentTokens.textarea.transition}});
+}
+
+.textarea:focus-visible {
+  border-color: var(--color-primary, #6C63FF);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6C63FF) 20%, transparent);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+/* Sizes */
+.textarea--sm {
+  font-size: 0.8125rem;
+  min-height: calc(var(--spacing-unit, 4px) * 16);
+}
+
+.textarea--md {
+  font-size: 0.875rem;
+}
+
+.textarea--lg {
+  font-size: 1rem;
+  min-height: calc(var(--spacing-unit, 4px) * 28);
+}
+
+/* States */
+.textarea--error {
+  border-color: var(--color-destructive, #E24B4A);
+}
+
+.textarea--error:focus-visible {
+  border-color: var(--color-destructive, #E24B4A);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-destructive, #E24B4A) 20%, transparent);
+}
+
+.textarea--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--color-background, #F8F9FA);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-destructive, #E24B4A);
+}

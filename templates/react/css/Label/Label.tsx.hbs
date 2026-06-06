@@ -1,0 +1,35 @@
+import React from 'react';
+{{> react/styles-import}}
+
+export type LabelSize = {{> shared/size-types}};
+
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  /** Visual size of the label text */
+  size?: LabelSize;
+  /** Render a required (*) marker after the label text */
+  required?: boolean;
+  /** Visually mark the label as disabled (pair with a disabled control) */
+  disabled?: boolean;
+}
+
+export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ size = 'md', required = false, disabled = false, className, children, ...props }, ref) => {
+    const cls = [
+      styles.label,
+      styles[`label--${size}`],
+      disabled && styles['label--disabled'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <label ref={ref} className={cls} data-disabled={disabled || undefined} {...props}>
+        {children}
+        {required && (
+          <span className={styles.required} aria-hidden="true">*</span>
+        )}
+      </label>
+    );
+  }
+);
+
+Label.displayName = 'Label';

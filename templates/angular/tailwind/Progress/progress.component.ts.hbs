@@ -1,0 +1,72 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-progress',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './progress.component.html',
+})
+export class ProgressComponent {
+  @Input() value = 0;
+  @Input() max = 100;
+  @Input() label = '';
+  @Input() indeterminate = false;
+  @Input() variant: {{> shared/variant-types}} = 'linear';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  readonly radius = 16;
+  readonly circumference = 2 * Math.PI * 16;
+
+  get clamped(): number {
+    return Math.min(Math.max(this.value, 0), this.max);
+  }
+
+  get pct(): number {
+    return this.max > 0 ? (this.clamped / this.max) * 100 : 0;
+  }
+
+  get barWidth(): string | null {
+    return this.indeterminate ? null : `${this.pct}%`;
+  }
+
+  get dashOffset(): number {
+    return this.indeterminate ? this.circumference * 0.75 : this.circumference * (1 - this.pct / 100);
+  }
+
+  get ariaNow(): number | null {
+    return this.indeterminate ? null : this.clamped;
+  }
+
+  getTrackClasses() {
+    const sizeClasses: Record<string, string> = {
+      sm: 'h-1',
+      md: 'h-2',
+      lg: 'h-3',
+    };
+    return [
+      'w-full overflow-hidden rounded-full bg-[var(--progress-track-bg,var(--color-secondary))]',
+      sizeClasses[this.size],
+    ].join(' ');
+  }
+
+  getBarClasses() {
+    return [
+      'h-full rounded-[inherit] bg-[var(--progress-bar-bg,var(--color-primary))] transition-[width] duration-300',
+      this.indeterminate ? 'w-2/5 motion-safe:animate-pulse' : '',
+    ].join(' ');
+  }
+
+  getCircularClasses() {
+    const sizeClasses: Record<string, string> = {
+      sm: 'w-6 h-6',
+      md: 'w-10 h-10',
+      lg: 'w-14 h-14',
+    };
+    return ['inline-flex', sizeClasses[this.size]].join(' ');
+  }
+
+  getSvgClasses() {
+    return ['w-full h-full', this.indeterminate ? 'motion-safe:animate-spin' : '-rotate-90'].join(' ');
+  }
+}

@@ -1,0 +1,248 @@
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  HostListener,
+  ElementRef,
+  ViewChild,
+  ViewChildren,
+  QueryList,
+  AfterViewInit,
+  OnDestroy,
+  Renderer2,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { computePosition, autoUpdate, offset, flip, shift, type Placement } from '@floating-ui/dom';
+
+export type DropdownMenuSize = {{> shared/size-types}};
+export type DropdownMenuVariant = {{> shared/variant-types}};
+
+export interface DropdownMenuItemModel {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  separatorBefore?: boolean;
+}
+
+let menuIdCounter = 0;
+
+@Component({
+  selector: 'app-dropdown-menu',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './dropdownmenu.component.html',
+  styleUrls: ['./dropdownmenu.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
+  private _isOpen = false;
+  private isViewInit = false;
+
+  @Input()
+  get open(): boolean {
+    return this._isOpen;
+  }
+  set open(value: boolean) {
+    const prev = this._isOpen;
+    this._isOpen = value;
+    if (prev !== value) {
+      this.handleOpenStateChange(value);
+    }
+  }
+
+  isPositioned = false;
+  readonly contentId = `menu-content-${++menuIdCounter}`;
+
+  @Input() triggerLabel = 'Open';
+  @Input() items: DropdownMenuItemModel[] = [];
+  @Input() placement: Placement = 'bottom-start';
+  @Input() variant: DropdownMenuVariant = 'default';
+  @Input() size: DropdownMenuSize = 'md';
+  @Input() closeOnSelect = true;
+  @Input() className = '';
+
+  @Output() openChange = new EventEmitter<boolean>();
+  @Output() select = new EventEmitter<string>();
+
+  @ViewChild('triggerRef') triggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('contentRef') contentRef?: ElementRef<HTMLElement>;
+  @ViewChildren('itemRef') itemRefs!: QueryList<ElementRef<HTMLButtonElement>>;
+
+  private cleanupFloating?: () => void;
+  private contentMoved = false;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {}
+
+  ngAfterViewInit() {
+    this.isViewInit = true;
+    if (this.open) {
+      this.initFloating();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroyFloating();
+  }
+
+  private handleOpenStateChange(isOpen: boolean) {
+    if (!this.isViewInit) return;
+    if (isOpen) {
+      setTimeout(() => {
+        this.initFloating();
+        this.focusFirstItem();
+      }, 0);
+    } else {
+      this.destroyFloating();
+    }
+  }
+
+  get contentClasses(): string {
+    return ['content', `size-${this.size}`, `variant-${this.variant}`, this.className]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  get enabledItems(): DropdownMenuItemModel[] {
+    return this.items.filter((i) => !i.disabled);
+  }
+
+  setOpen(next: boolean) {
+    this.open = next;
+    this.openChange.emit(next);
+    if (!next) {
+      this.triggerRef?.nativeElement.focus();
+    }
+  }
+
+  toggle() {
+    this.setOpen(!this.open);
+  }
+
+  onItemClick(item: DropdownMenuItemModel) {
+    if (item.disabled) return;
+    this.select.emit(item.value);
+    if (this.closeOnSelect) {
+      this.setOpen(false);
+    }
+  }
+
+  private initFloating() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.triggerRef?.nativeElement || !this.contentRef?.nativeElement) return;
+
+    this.destroyFloating();
+
+    const triggerEl = this.triggerRef.nativeElement;
+    const contentEl = this.contentRef.nativeElement;
+
+    if (!this.contentMoved) {
+      this.renderer.appendChild(document.body, contentEl);
+      this.contentMoved = true;
+    }
+
+    this.cleanupFloating = autoUpdate(triggerEl, contentEl, () => {
+      computePosition(triggerEl, contentEl, {
+        placement: this.placement,
+        middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
+      }).then(({ x, y }) => {
+        this.renderer.setStyle(contentEl, 'position', 'absolute');
+        this.renderer.setStyle(contentEl, 'left', `${x}px`);
+        this.renderer.setStyle(contentEl, 'top', `${y}px`);
+        this.renderer.setStyle(contentEl, 'visibility', 'visible');
+        this.isPositioned = true;
+      });
+    });
+  }
+
+  private destroyFloating() {
+    if (this.cleanupFloating) {
+      this.cleanupFloating();
+      this.cleanupFloating = undefined;
+    }
+    if (this.contentMoved && this.contentRef?.nativeElement) {
+      this.renderer.removeChild(document.body, this.contentRef.nativeElement);
+      this.contentMoved = false;
+    }
+    this.isPositioned = false;
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  handleDocumentClick(event: MouseEvent) {
+    if (!this.open) return;
+    const target = event.target as Node;
+    const triggerEl = this.triggerRef?.nativeElement;
+    const contentEl = this.contentRef?.nativeElement;
+    if (
+      contentEl &&
+      !contentEl.contains(target) &&
+      triggerEl &&
+      !triggerEl.contains(target)
+    ) {
+      this.setOpen(false);
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleDocumentKeydown(event: KeyboardEvent) {
+    if (!this.open) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.setOpen(false);
+    }
+  }
+
+  onContentKeydown(event: KeyboardEvent) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.moveFocus(this.currentItemIndex(event), 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.moveFocus(this.currentItemIndex(event), -1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      this.focusEdge('first');
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      this.focusEdge('last');
+    }
+  }
+
+  private enabledButtons(): HTMLButtonElement[] {
+    return this.itemRefs
+      .toArray()
+      .map((r) => r.nativeElement)
+      .filter((el) => !el.disabled);
+  }
+
+  private currentItemIndex(event: KeyboardEvent): number {
+    const target = event.target as HTMLButtonElement;
+    return this.enabledButtons().indexOf(target);
+  }
+
+  private moveFocus(current: number, direction: 1 | -1) {
+    const buttons = this.enabledButtons();
+    if (buttons.length === 0) return;
+    const nextIdx =
+      current === -1
+        ? direction === 1
+          ? 0
+          : buttons.length - 1
+        : (current + direction + buttons.length) % buttons.length;
+    buttons[nextIdx]?.focus();
+  }
+
+  private focusEdge(edge: 'first' | 'last') {
+    const buttons = this.enabledButtons();
+    if (buttons.length === 0) return;
+    (edge === 'first' ? buttons[0] : buttons[buttons.length - 1])?.focus();
+  }
+
+  private focusFirstItem() {
+    this.enabledButtons()[0]?.focus();
+  }
+}

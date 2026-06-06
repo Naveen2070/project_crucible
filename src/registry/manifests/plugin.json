@@ -16,7 +16,21 @@
     "components/toast.json",
     "components/form.json",
     "components/tabs.json",
-    "components/tooltip.json"
+    "components/tooltip.json",
+    "components/label.json",
+    "components/separator.json",
+    "components/badge.json",
+    "components/skeleton.json",
+    "components/avatar.json",
+    "components/textarea.json",
+    "components/checkbox.json",
+    "components/switch.json",
+    "components/alert.json",
+    "components/progress.json",
+    "components/breadcrumb.json",
+    "components/radio-group.json",
+    "components/accordion.json",
+    "components/dropdown-menu.json"
   ],
   "frameworks": [
     "frameworks/react.json",

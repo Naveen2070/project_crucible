@@ -1,0 +1,56 @@
+{{> react/stories-header}}
+  argTypes: {
+    variant:       { control: 'select', options: {{> shared/variant-options}} },
+    size:          { control: 'select', options: {{> shared/size-options}} },
+    value:         { control: { type: 'range', min: 0, max: 100 } },
+    indeterminate: { control: 'boolean' },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { value: 60, max: 100, variant: 'linear', size: 'md', label: 'Upload progress' },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+{{#each sizes}}
+export const Size{{capitalize this}}: Story = {
+  args: { value: 50, size: '{{this}}', label: '{{capitalize this}} progress' },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+{{/each}}
+
+export const Indeterminate: Story = {
+  args: { variant: 'linear', indeterminate: true, label: 'Loading' },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+export const Complete: Story = {
+  args: { variant: 'linear', value: 100, label: 'Done' },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Progress {...args} />
+    </div>
+  ),
+};
+
+export const Circular: Story = {
+  args: { variant: 'circular', value: 70, size: 'md', label: 'Loading 70%' },
+  render: (args) => <Progress {...args} />,
+};
+
+export const CircularLoader: Story = {
+  args: { variant: 'circular', indeterminate: true, size: 'md', label: 'Loading' },
+  render: (args) => <Progress {...args} />,
+};

@@ -1,0 +1,353 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Skeleton snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-skeleton',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './skeleton.component.html',
+  styleUrls: ['./skeleton.component.css'],
+})
+export class SkeletonComponent {
+  @Input() variant: 'default' | 'text' | 'circle' | 'rect' = 'default';
+  @Input() width?: string | number;
+  @Input() height?: string | number;
+  @Input() animated = true;
+
+  get sizeStyle() {
+    return {
+      width: typeof this.width === 'number' ? \`\${this.width}px\` : this.width,
+      height: typeof this.height === 'number' ? \`\${this.height}px\` : this.height,
+    };
+  }
+}
+"
+`;
+
+exports[`Skeleton snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<div
+  [class]="'skeleton skeleton--' + variant + (animated ? ' skeleton--animated' : '')"
+  [style.width]="sizeStyle.width"
+  [style.height]="sizeStyle.height"
+  aria-busy="true"
+  aria-live="polite"
+></div>
+"
+`;
+
+exports[`Skeleton snapshots > react css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Skeleton.module.css';
+export type SkeletonVariant = 'default' | 'text' | 'circle' | 'rect';
+
+export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Shape preset of the placeholder */
+  variant?: SkeletonVariant;
+  /** Explicit width (CSS value or number of px) */
+  width?: string | number;
+  /** Explicit height (CSS value or number of px) */
+  height?: string | number;
+  /** Toggle the pulse animation */
+  animated?: boolean;
+}
+
+export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+  ({ variant = 'default', width, height, animated = true, className, style, ...props }, ref) => {
+    const cls = [
+      styles.skeleton,
+      styles[\`skeleton--\${variant}\`],
+      animated && styles['skeleton--animated'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        style={{ width, height, ...style }}
+        aria-busy="true"
+        aria-live="polite"
+        {...props}
+      />
+    );
+  }
+);
+
+Skeleton.displayName = 'Skeleton';
+"
+`;
+
+exports[`Skeleton snapshots > react css mode snapshot 2`] = `
+".skeleton {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  background-color: var(--skeleton-base-color, var(--color-secondary));
+  border-radius: var(--skeleton-radius, var(--radius-md));
+}
+
+.skeleton--text {
+  height: 0.8em;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.skeleton--circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+}
+
+.skeleton--rect {
+  border-radius: 0;
+}
+
+.skeleton--animated {
+  animation: skeleton-pulse var(--skeleton-duration, 1.5s) ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--animated {
+    animation: none;
+  }
+}
+"
+`;
+
+exports[`Skeleton snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Skeleton } from './Skeleton';
+
+const meta: Meta<typeof Skeleton> = {
+  title: 'Crucible/Skeleton',
+  component: Skeleton,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant:  { control: 'select', options: ['default', 'text', 'circle', 'rect'] },
+    animated: { control: 'boolean' },
+    width:    { control: 'text' },
+    height:   { control: 'text' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Skeleton>;
+
+export const Default: Story = {
+  args: { variant: 'default', width: 240, height: 16 },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const Text: Story = {
+  args: { variant: 'text', width: 200 },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const Circle: Story = {
+  args: { variant: 'circle' },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const Rect: Story = {
+  args: { variant: 'rect', width: 280, height: 140 },
+  render: (args) => <Skeleton {...args} />,
+};
+
+export const NotAnimated: Story = {
+  args: { variant: 'default', width: 240, height: 16, animated: false },
+  render: (args) => <Skeleton {...args} />,
+};
+"
+`;
+
+exports[`Skeleton snapshots > react scss mode snapshot 1`] = `
+".skeleton {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  background-color: var(--skeleton-base-color, var(--color-secondary));
+  border-radius: var(--skeleton-radius, var(--radius-md));
+
+  &--text {
+    height: 0.8em;
+    border-radius: var(--radius-sm, 4px);
+  }
+
+  &--circle {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+  }
+
+  &--rect {
+    border-radius: 0;
+  }
+
+  &--animated {
+    animation: skeleton-pulse var(--skeleton-duration, 1.5s) ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--animated {
+    animation: none;
+  }
+}
+"
+`;
+
+exports[`Skeleton snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type SkeletonVariant = 'default' | 'text' | 'circle' | 'rect';
+
+export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Shape preset of the placeholder */
+  variant?: SkeletonVariant;
+  /** Explicit width (CSS value or number of px) */
+  width?: string | number;
+  /** Explicit height (CSS value or number of px) */
+  height?: string | number;
+  /** Toggle the pulse animation */
+  animated?: boolean;
+}
+
+const VARIANT_CLASSES: Record<SkeletonVariant, string> = {
+  default: 'w-full h-4 rounded-[var(--skeleton-radius,var(--radius-md))]',
+  text: 'w-full h-[0.8em] rounded-sm',
+  circle: 'w-10 h-10 rounded-full',
+  rect: 'w-full h-4 rounded-none',
+};
+
+export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+  ({ variant = 'default', width, height, animated = true, className, style, ...props }, ref) => {
+    const cls = [
+      'block bg-[var(--skeleton-base-color,var(--color-secondary))]',
+      VARIANT_CLASSES[variant],
+      animated ? 'motion-safe:animate-pulse' : '',
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        style={{ width, height, ...style }}
+        aria-busy="true"
+        aria-live="polite"
+        {...props}
+      />
+    );
+  }
+);
+
+Skeleton.displayName = 'Skeleton';
+"
+`;
+
+exports[`Skeleton snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+import { computed } from 'vue';
+
+export type SkeletonVariant = 'default' | 'text' | 'circle' | 'rect';
+
+interface Props {
+  variant?:  SkeletonVariant;
+  width?:    string | number;
+  height?:   string | number;
+  animated?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  width: undefined,
+  height: undefined,
+  animated: true,
+});
+
+const sizeStyle = computed(() => ({
+  width: typeof props.width === 'number' ? \`\${props.width}px\` : props.width,
+  height: typeof props.height === 'number' ? \`\${props.height}px\` : props.height,
+}));
+</script>
+
+<template>
+  <div
+    :class="['skeleton', \`skeleton--\${variant}\`, { 'skeleton--animated': animated }]"
+    :style="sizeStyle"
+    aria-busy="true"
+    aria-live="polite"
+  />
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.skeleton {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  background-color: var(--skeleton-base-color, var(--color-secondary));
+  border-radius: var(--skeleton-radius, var(--radius-md));
+}
+
+.skeleton--text {
+  height: 0.8em;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.skeleton--circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+}
+
+.skeleton--rect {
+  border-radius: 0;
+}
+
+.skeleton--animated {
+  animation: skeleton-pulse var(--skeleton-duration, 1.5s) ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--animated {
+    animation: none;
+  }
+}
+</style>
+"
+`;

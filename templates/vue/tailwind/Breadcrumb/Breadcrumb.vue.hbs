@@ -1,0 +1,59 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type BreadcrumbSize = {{> shared/size-types}};
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items?:     BreadcrumbItem[];
+  separator?: string;
+  size?:      BreadcrumbSize;
+  maxItems?:  number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  items: () => [],
+  separator: '/',
+  size: 'md',
+  maxItems: 0,
+});
+
+const sizeClasses: Record<BreadcrumbSize, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+const display = computed<(BreadcrumbItem & { ellipsis?: boolean })[]>(() => {
+  const items = props.items;
+  if (props.maxItems && props.maxItems >= 2 && items.length > props.maxItems) {
+    return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (props.maxItems - 1))];
+  }
+  return items.map((i) => ({ ...i }));
+});
+</script>
+
+<template>
+  <nav aria-label="Breadcrumb" :class="['font-sans', sizeClasses[size]]">
+    <ol class="flex flex-wrap items-center gap-2 m-0 p-0 list-none">
+      <li v-for="(item, i) in display" :key="i" class="inline-flex items-center gap-2">
+        <span v-if="item.ellipsis" class="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">\{{ item.label }}</span>
+        <a
+          v-else-if="item.href && i !== display.length - 1"
+          :href="item.href"
+          class="text-[var(--breadcrumb-link-color,var(--color-text-muted))] no-underline hover:underline hover:text-[var(--color-text)]"
+        >\{{ item.label }}</a>
+        <span
+          v-else
+          class="font-medium text-[var(--breadcrumb-active-color,var(--color-text))]"
+          :aria-current="i === display.length - 1 ? 'page' : undefined"
+        >\{{ item.label }}</span>
+        <span v-if="i !== display.length - 1" class="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">\{{ separator }}</span>
+      </li>
+    </ol>
+  </nav>
+</template>

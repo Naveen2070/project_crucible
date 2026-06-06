@@ -1,0 +1,341 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  useId,
+} from 'react';
+
+export type RadioGroupSize = {{> shared/size-types}};
+export type RadioGroupOrientation = 'vertical' | 'horizontal';
+
+export interface RadioGroupOptions {
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  orientation?: RadioGroupOrientation;
+  name?: string;
+}
+
+interface ItemRegistration {
+  value: string;
+  disabled: boolean;
+  el: HTMLButtonElement | null;
+}
+
+export function useRadioGroup({
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  orientation = 'vertical',
+  name,
+}: RadioGroupOptions = {}) {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
+  const value = controlledValue ?? uncontrolledValue;
+  const rootId = useId();
+  const itemsRef = useRef<Map<string, ItemRegistration>>(new Map());
+  const orderRef = useRef<string[]>([]);
+
+  const setValue = useCallback(
+    (next: string) => {
+      if (controlledValue === undefined) {
+        setUncontrolledValue(next);
+      }
+      onValueChange?.(next);
+    },
+    [controlledValue, onValueChange]
+  );
+
+  const registerItem = useCallback(
+    (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
+      const map = itemsRef.current;
+      if (el === null) {
+        map.delete(val);
+        orderRef.current = orderRef.current.filter((v) => v !== val);
+        return;
+      }
+      if (!map.has(val)) {
+        orderRef.current.push(val);
+      }
+      map.set(val, { value: val, disabled, el });
+    },
+    []
+  );
+
+  const focusItem = useCallback((val: string) => {
+    const entry = itemsRef.current.get(val);
+    entry?.el?.focus();
+  }, []);
+
+  const moveFocus = useCallback(
+    (current: string, direction: 1 | -1) => {
+      const order = orderRef.current;
+      const enabled = order.filter((v) => !itemsRef.current.get(v)?.disabled);
+      if (enabled.length === 0) return null;
+      const idx = enabled.indexOf(current);
+      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
+      const next = enabled[nextIdx];
+      focusItem(next);
+      return next;
+    },
+    [focusItem]
+  );
+
+  const focusEdge = useCallback(
+    (edge: 'first' | 'last') => {
+      const enabled = orderRef.current.filter((v) => !itemsRef.current.get(v)?.disabled);
+      if (enabled.length === 0) return null;
+      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
+      focusItem(next);
+      return next;
+    },
+    [focusItem]
+  );
+
+  const firstEnabled = useCallback(() => {
+    const enabled = orderRef.current.filter((v) => !itemsRef.current.get(v)?.disabled);
+    return enabled[0] ?? null;
+  }, []);
+
+  return useMemo(
+    () => ({
+      value,
+      setValue,
+      orientation,
+      name,
+      rootId,
+      registerItem,
+      focusItem,
+      moveFocus,
+      focusEdge,
+      firstEnabled,
+    }),
+    [value, setValue, orientation, name, rootId, registerItem, focusItem, moveFocus, focusEdge, firstEnabled]
+  );
+}
+
+type RadioGroupContextType = ReturnType<typeof useRadioGroup> | null;
+const RadioGroupContext = createContext<RadioGroupContextType>(null);
+
+const useRadioGroupContext = () => {
+  const context = useContext(RadioGroupContext);
+  if (context == null) {
+    throw new Error('RadioGroup items must be wrapped in <RadioGroup.Root />');
+  }
+  return context;
+};
+
+const buildItemId = (rootId: string, value: string) =>
+  `${rootId}-radio-${value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+
+const cn = (...parts: Array<string | false | null | undefined>) =>
+  parts.filter(Boolean).join(' ');
+
+const ROOT_BASE =
+  'flex flex-col gap-[var(--radio-group-gap,8px)] data-[orientation=horizontal]:flex-row data-[orientation=horizontal]:flex-wrap data-[orientation=horizontal]:items-center';
+
+const ITEM_BASE =
+  'inline-flex items-center gap-[var(--radio-gap,8px)] cursor-pointer data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed';
+
+const CONTROL_BASE = [
+  'shrink-0 inline-flex items-center justify-center',
+  'rounded-full border-2 border-[var(--color-border)] bg-[var(--color-surface)]',
+  'cursor-pointer transition-[border-color,box-shadow] duration-150',
+  'data-[state=checked]:border-[var(--radio-accent,var(--color-primary))]',
+  'data-[disabled]:cursor-not-allowed',
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+].join(' ');
+
+const INDICATOR_BASE =
+  'w-1/2 h-1/2 rounded-full bg-[var(--radio-accent,var(--color-primary))] scale-0 transition-transform duration-150 [button[data-state=checked]_&]:scale-100';
+
+const LABEL_BASE = 'text-[var(--radio-label-color,var(--color-text))] leading-snug';
+
+const SIZE_CONTROL: Record<RadioGroupSize, string> = {
+  sm: 'w-[calc(var(--radio-size,16px)*0.8)] h-[calc(var(--radio-size,16px)*0.8)]',
+  md: 'w-[var(--radio-size,16px)] h-[var(--radio-size,16px)]',
+  lg: 'w-[calc(var(--radio-size,16px)*1.25)] h-[calc(var(--radio-size,16px)*1.25)]',
+};
+
+const SIZE_LABEL: Record<RadioGroupSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+
+/**
+ * Internal RadioGroup Components
+ */
+export interface RadioGroupRootProps extends RadioGroupOptions {
+  children: React.ReactNode;
+  size?: RadioGroupSize;
+  className?: string;
+}
+
+const InternalRoot = React.forwardRef<HTMLDivElement, RadioGroupRootProps>(
+  function RadioGroupRoot(
+    { children, size = 'md', className, onKeyDown, ...options },
+    ref
+  ) {
+    const group = useRadioGroup(options);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+      const currentValue = target.getAttribute('data-value') ?? group.value ?? '';
+
+      const isHorizontal = group.orientation === 'horizontal';
+      const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
+      const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
+
+      let nextValue: string | null = null;
+
+      if (e.key === nextKey) {
+        e.preventDefault();
+        nextValue = group.moveFocus(currentValue, 1);
+      } else if (e.key === prevKey) {
+        e.preventDefault();
+        nextValue = group.moveFocus(currentValue, -1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        nextValue = group.focusEdge('first');
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        nextValue = group.focusEdge('last');
+      }
+
+      if (nextValue) {
+        group.setValue(nextValue);
+      }
+    };
+
+    return (
+      <RadioGroupContext.Provider value={group}>
+        <div
+          ref={ref}
+          role="radiogroup"
+          aria-orientation={group.orientation}
+          className={cn(ROOT_BASE, className)}
+          data-orientation={group.orientation}
+          data-size={size}
+          onKeyDown={(e) => {
+            onKeyDown?.(e);
+            if (!e.defaultPrevented) handleKeyDown(e);
+          }}
+        >
+          {children}
+        </div>
+      </RadioGroupContext.Provider>
+    );
+  }
+);
+
+export interface RadioGroupItemProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'value'> {
+  value: string;
+  label?: React.ReactNode;
+  size?: RadioGroupSize;
+}
+
+const InternalItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
+  function RadioGroupItem(
+    { value, label, disabled = false, size = 'md', className, onClick, children, ...props },
+    propRef
+  ) {
+    const ctx = useRadioGroupContext();
+    const isSelected = ctx.value === value;
+    const noneSelected = ctx.value === undefined;
+    const isTabStop = isSelected || (noneSelected && ctx.firstEnabled() === value);
+    const innerRef = useRef<HTMLButtonElement | null>(null);
+
+    const setRef = useCallback(
+      (el: HTMLButtonElement | null) => {
+        innerRef.current = el;
+        if (typeof propRef === 'function') propRef(el);
+        else if (propRef) (propRef as React.MutableRefObject<HTMLButtonElement | null>).current = el;
+        ctx.registerItem(value, disabled, el);
+      },
+      [ctx, value, disabled, propRef]
+    );
+
+    useEffect(() => () => ctx.registerItem(value, disabled, null), [ctx, value, disabled]);
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented || disabled) return;
+      ctx.setValue(value);
+    };
+
+    return (
+      <label className={cn(ITEM_BASE, className)} data-disabled={disabled || undefined}>
+        <button
+          ref={setRef}
+          type="button"
+          role="radio"
+          id={buildItemId(ctx.rootId, value)}
+          name={ctx.name}
+          aria-checked={isSelected}
+          data-state={isSelected ? 'checked' : 'unchecked'}
+          data-value={value}
+          data-disabled={disabled || undefined}
+          disabled={disabled}
+          tabIndex={isTabStop ? 0 : -1}
+          className={cn(CONTROL_BASE, SIZE_CONTROL[size])}
+          onClick={handleClick}
+          {...props}
+        >
+          <span className={INDICATOR_BASE} aria-hidden="true" />
+        </button>
+        <span className={cn(LABEL_BASE, SIZE_LABEL[size])}>{label ?? children}</span>
+      </label>
+    );
+  }
+);
+
+InternalRoot.displayName = 'RadioGroup.Root';
+InternalItem.displayName = 'RadioGroup.Item';
+
+{{#if features.compoundComponents}}
+export const RadioGroupRoot = InternalRoot;
+export const RadioGroupItem = InternalItem;
+
+/**
+ * RadioGroup - Main export with compound components
+ */
+export const RadioGroup = Object.assign(RadioGroupRoot, {
+  Root: RadioGroupRoot,
+  Item: RadioGroupItem,
+});
+{{else}}
+export interface RadioGroupItemData {
+  value: string;
+  label: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface RadioGroupProps extends RadioGroupOptions {
+  items: RadioGroupItemData[];
+  size?: RadioGroupSize;
+  className?: string;
+}
+
+/**
+ * RadioGroup - Monolithic schema-driven wrapper
+ */
+export const RadioGroup: React.FC<RadioGroupProps> = ({
+  items,
+  size = 'md',
+  className,
+  ...options
+}) => {
+  return (
+    <InternalRoot size={size} className={className} {...options}>
+      {items.map((item) => (
+        <InternalItem key={item.value} value={item.value} label={item.label} disabled={item.disabled} size={size} />
+      ))}
+    </InternalRoot>
+  );
+};
+{{/if}}

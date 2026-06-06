@@ -1,0 +1,14 @@
+{
+  "id": "Separator",
+  "name": "Separator",
+  "description": "Visual or semantic divider between content, horizontal or vertical",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": [],
+  "sizes": [],
+  "states": [],
+  "props": ["orientation", "decorative", "label"],
+  "prefix": "separator",
+  "a11y": { "role": "separator" },
+  "tailwindDefaults": {}
+}

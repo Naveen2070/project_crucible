@@ -1,0 +1,13 @@
+<label
+  class="label"
+  [class.label--sm]="size === 'sm'"
+  [class.label--md]="size === 'md'"
+  [class.label--lg]="size === 'lg'"
+  [class.label--disabled]="disabled"
+  [attr.for]="htmlFor || null"
+>
+  <ng-content></ng-content>
+  @if (required) {
+    <span class="required" aria-hidden="true">*</span>
+  }
+</label>

@@ -1,0 +1,31 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-badge',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './badge.component.html',
+})
+export class BadgeComponent {
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  getTailwindClasses() {
+    const variantClasses: Record<string, string> = {
+{{#each variants}}      {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}    };
+
+    const sizeClasses: Record<string, string> = {
+      sm: 'text-[0.6875rem] px-1.5 py-0.5',
+      md: 'text-xs px-2 py-0.5',
+      lg: 'text-[0.8125rem] px-2.5 py-1',
+    };
+
+    return [
+      'inline-flex items-center justify-center gap-1 rounded-[var(--radius-sm)] font-medium leading-none whitespace-nowrap',
+      variantClasses[this.variant],
+      sizeClasses[this.size],
+    ].join(' ');
+  }
+}

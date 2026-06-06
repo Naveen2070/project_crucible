@@ -1,6 +1,6 @@
 # ⚗ Crucible — System Architecture
 
-**Version:** 1.0.4 | **Date:** March 2026
+**Version:** 1.1.0 | **Date:** June 2026
 
 ---
 
@@ -694,6 +694,52 @@ stack (`offset`/`flip`/`shift`/`arrow`) but a smaller behaviour surface tuned fo
 - Tokens: `--tooltip-*` (background, border, text, shadow, radius, padding, z-index) — see §4.4. Default
   placement is `top`; `z-index` (60) sits above Popover (50) so a tooltip on a popover trigger wins.
 
+### 9.10 RadioGroup — Roving tabindex with automatic selection
+
+`RadioGroup` reuses the same roving-tabindex kernel as Tabs (§9.8) but tuned for the WAI-ARIA
+`radiogroup` pattern.
+
+- **`role="radiogroup"` container, `role="radio"` items, `aria-checked`.** No content panels (unlike
+  Tabs) — the panel/`aria-controls` machinery is dropped.
+- **Always-automatic activation.** Arrow keys move focus **and** select in one step (there is no
+  manual mode); only the selected radio is tabbable (`tabindex=0`), the rest `-1`. Horizontal or
+  vertical orientation.
+- **Compound + monolithic.** `RadioGroup.Root / Item` (React/Vue); Angular is monolithic with an
+  `items` array per §7.4.
+- Tokens: `--radio-*` (size, accent, label color, gaps).
+
+### 9.11 Accordion — Disclosure with single/multiple open
+
+`Accordion` is a vertical disclosure built on the Tabs kernel (§9.8), restricted to up/down keyboard
+navigation.
+
+- **`type="single" | "multiple"`.** Single keeps a `string | undefined` value (with `collapsible` to
+  allow all-closed); multiple keeps a `string[]`.
+- **Heading triggers + region panels.** Each trigger is a `<button aria-expanded aria-controls>` inside
+  a heading; each panel is `role="region"` + `aria-labelledby`, hidden via the `hidden` attribute so
+  state persists. A chevron rotates on `data-state=open`.
+- **Compound + monolithic.** `Accordion.Root / Item / Trigger / Content` (React/Vue); Angular monolithic.
+- Variants: default, bordered, separated. Tokens: `--accordion-*` (borders, trigger padding/hover,
+  content padding, transition).
+
+### 9.12 DropdownMenu — Floating menu with roving items + typeahead
+
+`DropdownMenu` combines the Popover floating stack (§ floating components) with menu-item navigation.
+
+- **`role="menu"` + `role="menuitem"`.** React uses `@floating-ui/react`'s `useListNavigation` (roving),
+  `useTypeahead` (type-to-focus), and `FloatingList`/`FloatingFocusManager`. Vue (`@floating-ui/vue`)
+  and Angular (`@floating-ui/dom`) implement roving + dismiss manually, since those hooks are React-only.
+- **Trigger.** `aria-haspopup="menu"` with `asChild` so a scaffolded Button can be the trigger;
+  `closeOnSelect`, Escape, and click-outside all close. Default placement `bottom-start`.
+- **Vue positioning.** Uses `transform: false` in `useFloating` so the open scale-animation does not
+  clobber floating-ui's positioning transform (same fix as Popover).
+- **Compound + monolithic.** `DropdownMenu.Root / Trigger / Content / Item / Separator / Label`
+  (React/Vue); Angular monolithic with an `items` array.
+- **Dependencies.** Declares `Button` as a component dependency and floating-ui peer deps
+  (`@floating-ui/react` · `@floating-ui/vue` · `@floating-ui/dom`) — the only component carrying
+  floating-ui peers besides Popover/Tooltip. Tokens: `--menu-*` (background, border, shadow, item
+  hover, min-width, z-index 50).
+
 ---
 
 ## 10. Template Engine
@@ -1155,9 +1201,9 @@ Adding a new framework is adding a template folder — **not modifying the engin
 
 ```mermaid
 graph BT
-    L1["Layer 1 — Vitest Unit Tests<br/>128 tests: resolver, model, registry"]
-    L2["Layer 2 — Vitest Snapshot Tests<br/>17 theme permutations + 62 component tests"]
-    L3["Layer 3 — E2E CLI Automation<br/>19 phases covering all commands"]
+    L1["Layer 1 — Vitest Unit Tests<br/>188 tests: resolver, model, registry, CLI, utils"]
+    L2["Layer 2 — Vitest Snapshot Tests<br/>231 component + theme-permutation tests"]
+    L3["Layer 3 — E2E CLI Automation<br/>238 phases covering all commands"]
     L4["Layer 4 — Storybook + Chromatic<br/>Visual regression on every PR"]
     L1 --> L2 --> L3 --> L4
 ```
@@ -1174,7 +1220,7 @@ graph BT
 
 ### 15.3 Test Suite
 
-**Current: 230 tests across 24 test files + 19 E2E phases**
+**Current: 448 tests across 48 test files + 238 E2E phases**
 
 | Test File               | Coverage                                    |
 | ----------------------- | ------------------------------------------- |
@@ -1185,37 +1231,52 @@ graph BT
 | `registry.test.ts`      | Path generation, framework/style combos     |
 | `doctor.test.ts`        | Circular ref detection                      |
 | `writer.test.ts`        | Hash system, dry-run, force, path traversal |
+| `plugins.test.ts`       | Plug-and-play: discovery, semver gating, registration, proxies, collision |
 | `snapshots/*.test.ts`   | Full pipeline output per component          |
 | `a11y/*.test.ts`        | Accessibility verification (axe)            |
 
 ### 15.4 Test Coverage Phases
 
-| Phase      | Tests   | Coverage                               |
-| ---------- | ------- | -------------------------------------- |
-| Phase 1-4  | 128     | Core engine, resolver, model, registry |
-| Phase 5    | 16      | Template audit enforcement             |
-| Phase 6    | 11      | Accessibility verification             |
-| Phase 7    | 17      | Theme permutation snapshots            |
-| Phase 8-11 | 58      | CLI commands, writer, doctor           |
-| **Total**  | **230** | **Complete**                           |
+| Category               | Tests   | Coverage                                          |
+| ---------------------- | ------- | ------------------------------------------------- |
+| Core engine            | 65      | resolver, model, registry, config, dark mode      |
+| Utility logic          | 75      | table paginator, sorter, virtualizer              |
+| Template audit         | 6       | logic-free template enforcement                   |
+| Accessibility (axe)    | 19      | per-component a11y + dark mode + interaction       |
+| Component snapshots    | 231     | full pipeline output + theme permutations          |
+| CLI / writer / doctor  | 42      | command flows, hash protection, setup validation  |
+| Plugin system          | 10      | discovery, semver gating, registration, proxies, collision |
+| **Total**              | **448** | **across 48 files**                                |
 
-E2E: **19 phases** ✅
+E2E: **238 phases** ✅
 
 ### 15.5 E2E Test Phases
 
-| Phase | Coverage                                |
-| ----- | --------------------------------------- |
-| 1-2   | React CSS and Tailwind modes            |
-| 3     | Angular with TypeScript decorators      |
-| 4     | Vue framework                           |
-| 5     | SCSS style system                       |
-| 6-8   | Write protection (dry-run, force, hash) |
-| 9     | Batch component generation              |
-| 10-11 | Theme and output configuration          |
-| 12-14 | CLI commands (init, eject, list)        |
-| 15-19 | Error handling, playground, Storybook   |
+The E2E script (`scripts/e2e.ts`) is data-driven: **components first**, every component generated
+across the full matrix, then CLI/infrastructure phases.
 
-**Total: 19 E2E phases** ✅
+| Phase     | Coverage                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------- |
+| 1-225     | **Component matrix** — all 25 components × {React, Vue, Angular} × {CSS, SCSS, Tailwind} (9 phases each). Asserts the main file emits, Angular stays monolithic (no compound `Object.assign`), Tailwind emits no CSS module, React CSS/SCSS emit the module, and a per-component signature (role/`<textarea>`/`export const …`) |
+| 226       | Dry-run mode (no files written)                                                           |
+| 227       | Force flag (overwrites user edits)                                                        |
+| 228       | Hash protection (preserves user edits without `--force`)                                  |
+| 229       | Multi-component generation                                                                |
+| 230       | Soft theme preset                                                                         |
+| 231       | Custom output directory                                                                   |
+| 232       | Init command                                                                              |
+| 233       | List command (registry-driven discovery)                                                  |
+| 234       | Error handling (unknown component)                                                        |
+| 235       | CLI `--version` matches package.json                                                      |
+| 236       | Plug-and-play — external local plugin generates a component from its own `templatesDir`    |
+| 237       | Plug-and-play — plugin component is discoverable via `list`                                |
+| 238       | Plug-and-play — plugin with incompatible `engineVersion` is skipped                        |
+
+Component order in the matrix: Button, Input, Card, Dialog, Select, Table, Popover, Toast, Form, Tabs,
+Tooltip, Label, Separator, Badge, Skeleton, Avatar, Textarea, Checkbox, Switch, Alert, Progress,
+Breadcrumb, RadioGroup, Accordion, DropdownMenu.
+
+**Total: 238 E2E phases** ✅
 
 ---
 
@@ -1270,15 +1331,17 @@ enum DarkModeStrategy {
   Manual = 'manual',
 }
 
-enum ComponentName {
-  Button = 'Button',
-  Input = 'Input',
-  Card = 'Card',
-  Dialog = 'Dialog',
-  Select = 'Select',
-  Popover = 'Popover',
-  Table = 'Table',
-}
+// `ComponentName` is a `const` object (not a TS enum). 25 components as of v1.1.0:
+const ComponentName = {
+  // v1.0 core
+  Button: 'Button', Input: 'Input', Card: 'Card', Dialog: 'Dialog', Select: 'Select',
+  // v1.1 — floating / data / stateful
+  Table: 'Table', Popover: 'Popover', Toast: 'Toast', Form: 'Form', Tabs: 'Tabs', Tooltip: 'Tooltip',
+  // v1.1 — app-building kit
+  Label: 'Label', Separator: 'Separator', Badge: 'Badge', Skeleton: 'Skeleton', Avatar: 'Avatar',
+  Textarea: 'Textarea', Checkbox: 'Checkbox', Switch: 'Switch', Alert: 'Alert', Progress: 'Progress',
+  Breadcrumb: 'Breadcrumb', RadioGroup: 'RadioGroup', Accordion: 'Accordion', DropdownMenu: 'DropdownMenu',
+} as const;
 ```
 
 ### 17.2 ComponentDef (Registry Entry)

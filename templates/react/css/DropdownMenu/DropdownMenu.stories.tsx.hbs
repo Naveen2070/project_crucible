@@ -1,0 +1,51 @@
+{{> react/stories-header}}
+  argTypes: {
+    size:    { control: 'select', options: {{> shared/size-options}} },
+    variant: { control: 'select', options: {{> shared/variant-options}} },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { size: 'md', variant: 'default' },
+  render: (args) => (
+    <DropdownMenu {...args}>
+      <DropdownMenu.Trigger>Actions ▾</DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Label>Manage</DropdownMenu.Label>
+        <DropdownMenu.Item onSelect={() => console.log('edit')}>Edit</DropdownMenu.Item>
+        <DropdownMenu.Item onSelect={() => console.log('duplicate')}>Duplicate</DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item onSelect={() => console.log('delete')}>Delete</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ),
+};
+
+export const WithDisabledItem: Story = {
+  args: { size: 'md', variant: 'default' },
+  render: (args) => (
+    <DropdownMenu {...args}>
+      <DropdownMenu.Trigger>Options ▾</DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item>Rename</DropdownMenu.Item>
+        <DropdownMenu.Item disabled>Archive (unavailable)</DropdownMenu.Item>
+        <DropdownMenu.Item>Move</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ),
+};
+
+export const Minimal: Story = {
+  args: { size: 'md', variant: 'minimal' },
+  render: (args) => (
+    <DropdownMenu {...args}>
+      <DropdownMenu.Trigger>Menu ▾</DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item>Profile</DropdownMenu.Item>
+        <DropdownMenu.Item>Settings</DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item>Sign out</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ),
+};

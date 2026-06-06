@@ -1,0 +1,30 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-alert',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './alert.component.html',
+  styleUrls: ['./alert.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class AlertComponent {
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() title = '';
+  @Input() closeable = false;
+  @Input() icon = '';
+
+  @Output() close = new EventEmitter<void>();
+
+  private readonly defaultIcons: Record<string, string> = {
+    default: 'ℹ',
+    info: 'ℹ',
+    success: '✓',
+    warning: '⚠',
+    destructive: '✕',
+  };
+
+  get displayIcon(): string {
+    return this.icon || this.defaultIcons[this.variant];
+  }
+}

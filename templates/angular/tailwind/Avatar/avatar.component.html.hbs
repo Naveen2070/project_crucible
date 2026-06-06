@@ -1,0 +1,7 @@
+<div [class]="getTailwindClasses()" role="img" [attr.aria-label]="alt || fallback || null">
+  @if (showImage) {
+    <img class="w-full h-full object-cover" [src]="src" [alt]="alt" (error)="onError()" />
+  } @else {
+    <span aria-hidden="true">\{{ initials }}</span>
+  }
+</div>

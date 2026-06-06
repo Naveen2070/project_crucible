@@ -1,0 +1,67 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import { ref } from 'vue';
+import Textarea from './Textarea.vue';
+
+const meta: Meta<typeof Textarea> = {
+  title: 'Crucible/{{name}}',
+  component: Textarea,
+  tags: ['autodocs'],
+  argTypes: {
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    rows:     { control: 'number' },
+    disabled: { control: 'boolean' },
+    required: { control: 'boolean' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Textarea>;
+
+export const Default: Story = {
+  args: { label: 'Message', placeholder: 'Type your message…', size: 'md' },
+  render: (args) => ({
+    components: { Textarea },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Textarea v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const WithHint: Story = {
+  args: { label: 'Bio', hint: 'Max 200 characters', maxLength: 200, placeholder: 'Tell us about yourself…' },
+  render: (args) => ({
+    components: { Textarea },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Textarea v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const WithError: Story = {
+  args: { label: 'Feedback', variant: 'error', error: 'This field is required' },
+  render: (args) => ({
+    components: { Textarea },
+    setup() {
+      const value = ref('');
+      return { args, value };
+    },
+    template: `<Textarea v-bind="args" v-model="value" />`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: { label: 'Notes', disabled: true, modelValue: 'Read-only content' },
+  render: (args) => ({
+    components: { Textarea },
+    setup() {
+      const value = ref(args.modelValue);
+      return { args, value };
+    },
+    template: `<Textarea v-bind="args" v-model="value" />`,
+  }),
+};

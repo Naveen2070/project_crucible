@@ -1,0 +1,17 @@
+{
+  "id": "Checkbox",
+  "name": "Checkbox",
+  "description": "Checkbox input with indeterminate state, label, and error",
+  "frameworks": ["react", "vue", "angular"],
+  "styleSystems": ["css", "tailwind", "scss"],
+  "variants": ["default", "error"],
+  "sizes": ["sm", "md", "lg"],
+  "states": ["disabled", "checked", "error"],
+  "props": ["checked", "defaultChecked", "indeterminate", "onCheckedChange", "label", "id"],
+  "prefix": "checkbox",
+  "a11y": { "role": "checkbox" },
+  "tailwindDefaults": {
+    "default": "accent-[var(--color-primary)]",
+    "error": "accent-[var(--color-destructive)]"
+  }
+}

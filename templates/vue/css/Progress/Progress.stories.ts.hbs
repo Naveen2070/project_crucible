@@ -1,0 +1,72 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Progress from './Progress.vue';
+
+const meta: Meta<typeof Progress> = {
+  title: 'Crucible/{{name}}',
+  component: Progress,
+  tags: ['autodocs'],
+  argTypes: {
+    variant:       { control: 'select', options: {{> shared/variant-options}} },
+    size:          { control: 'select', options: {{> shared/size-options}} },
+    value:         { control: { type: 'range', min: 0, max: 100 } },
+    indeterminate: { control: 'boolean' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Progress>;
+
+export const Default: Story = {
+  args: { value: 60, max: 100, variant: 'linear', size: 'md', label: 'Upload progress' },
+  render: (args) => ({
+    components: { Progress },
+    setup() {
+      return { args };
+    },
+    template: `<div style="width:320px"><Progress v-bind="args" /></div>`,
+  }),
+};
+
+export const Indeterminate: Story = {
+  args: { variant: 'linear', indeterminate: true, label: 'Loading' },
+  render: (args) => ({
+    components: { Progress },
+    setup() {
+      return { args };
+    },
+    template: `<div style="width:320px"><Progress v-bind="args" /></div>`,
+  }),
+};
+
+export const Complete: Story = {
+  args: { variant: 'linear', value: 100, label: 'Done' },
+  render: (args) => ({
+    components: { Progress },
+    setup() {
+      return { args };
+    },
+    template: `<div style="width:320px"><Progress v-bind="args" /></div>`,
+  }),
+};
+
+export const Circular: Story = {
+  args: { variant: 'circular', value: 70, size: 'md', label: 'Loading 70%' },
+  render: (args) => ({
+    components: { Progress },
+    setup() {
+      return { args };
+    },
+    template: `<Progress v-bind="args" />`,
+  }),
+};
+
+export const CircularLoader: Story = {
+  args: { variant: 'circular', indeterminate: true, size: 'md', label: 'Loading' },
+  render: (args) => ({
+    components: { Progress },
+    setup() {
+      return { args };
+    },
+    template: `<Progress v-bind="args" />`,
+  }),
+};

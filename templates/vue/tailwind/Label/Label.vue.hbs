@@ -1,0 +1,42 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type LabelSize = {{> shared/size-types}};
+
+interface Props {
+  size?:     LabelSize;
+  required?: boolean;
+  disabled?: boolean;
+  htmlFor?:  string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  size: 'md',
+  required: false,
+  disabled: false,
+  htmlFor: '',
+});
+
+const sizeClasses: Record<LabelSize, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+const labelClasses = computed(() => [
+  'inline-flex items-center gap-1 font-medium leading-snug text-[var(--label-color,var(--color-text))]',
+  sizeClasses[props.size],
+  props.disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-default',
+]);
+</script>
+
+<template>
+  <label :for="htmlFor || undefined" :class="labelClasses">
+    <slot />
+    <span
+      v-if="required"
+      class="ml-0.5 text-[var(--label-required-color,var(--color-destructive))]"
+      aria-hidden="true"
+    >*</span>
+  </label>
+</template>

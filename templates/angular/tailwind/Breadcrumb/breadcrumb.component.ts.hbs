@@ -1,0 +1,39 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+type DisplayItem = BreadcrumbItem & { ellipsis?: boolean };
+
+@Component({
+  selector: 'app-breadcrumb',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './breadcrumb.component.html',
+})
+export class BreadcrumbComponent {
+  @Input() items: BreadcrumbItem[] = [];
+  @Input() separator = '/';
+  @Input() maxItems = 0;
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  get display(): DisplayItem[] {
+    const items = this.items;
+    if (this.maxItems && this.maxItems >= 2 && items.length > this.maxItems) {
+      return [items[0], { label: '…', ellipsis: true }, ...items.slice(items.length - (this.maxItems - 1))];
+    }
+    return items;
+  }
+
+  get navClasses(): string {
+    const sizeClasses: Record<string, string> = {
+      sm: 'text-xs',
+      md: 'text-sm',
+      lg: 'text-base',
+    };
+    return ['font-sans', sizeClasses[this.size]].join(' ');
+  }
+}

@@ -1,0 +1,17 @@
+<div role="alert" [class]="getAlertClasses()">
+  <span class="shrink-0 leading-snug" aria-hidden="true">\{{ displayIcon }}</span>
+  <div class="flex-1 min-w-0">
+    @if (title) {
+      <div class="font-semibold text-sm mb-0.5">\{{ title }}</div>
+    }
+    <div class="text-[0.8125rem] text-[var(--color-text-muted)]"><ng-content></ng-content></div>
+  </div>
+  @if (closeable) {
+    <button
+      type="button"
+      class="shrink-0 border-none bg-transparent cursor-pointer text-lg leading-none opacity-70 hover:opacity-100"
+      aria-label="Dismiss"
+      (click)="close.emit()"
+    >×</button>
+  }
+</div>

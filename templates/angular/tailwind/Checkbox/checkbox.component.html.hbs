@@ -1,0 +1,21 @@
+<div class="flex flex-col gap-1" [class.opacity-60]="disabled">
+  <div class="inline-flex items-center gap-2">
+    <input
+      type="checkbox"
+      [id]="id"
+      [class]="getInputClasses()"
+      [checked]="checked"
+      [indeterminate]="indeterminate"
+      [disabled]="disabled"
+      [attr.aria-invalid]="isError"
+      [attr.aria-describedby]="error ? id + '-error' : null"
+      (change)="onChange($event)"
+    />
+    @if (label) {
+      <label [attr.for]="id" class="text-sm text-[var(--color-text)] cursor-pointer select-none">\{{ label }}</label>
+    }
+  </div>
+  @if (error) {
+    <span [id]="id + '-error'" class="text-xs text-[var(--color-destructive)]" role="alert">\{{ error }}</span>
+  }
+</div>

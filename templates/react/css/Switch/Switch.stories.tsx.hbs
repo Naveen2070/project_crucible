@@ -1,0 +1,29 @@
+{{> react/stories-header}}
+  argTypes: {
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    checked:  { control: 'boolean' },
+    disabled: { control: 'boolean' },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { label: 'Enable notifications', size: 'md' },
+  render: (args) => <Switch {...args} />,
+};
+
+export const Checked: Story = {
+  args: { label: 'Dark mode', defaultChecked: true },
+  render: (args) => <Switch {...args} />,
+};
+
+{{#each sizes}}
+export const Size{{capitalize this}}: Story = {
+  args: { label: '{{capitalize this}} switch', size: '{{this}}' },
+  render: (args) => <Switch {...args} />,
+};
+{{/each}}
+
+export const Disabled: Story = {
+  args: { label: 'Unavailable', disabled: true },
+  render: (args) => <Switch {...args} />,
+};

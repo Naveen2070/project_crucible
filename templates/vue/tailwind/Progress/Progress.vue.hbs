@@ -1,0 +1,94 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type ProgressVariant = {{> shared/variant-types}};
+export type ProgressSize    = {{> shared/size-types}};
+
+interface Props {
+  value?:         number;
+  max?:           number;
+  variant?:       ProgressVariant;
+  size?:          ProgressSize;
+  label?:         string;
+  indeterminate?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  value: 0,
+  max: 100,
+  variant: 'linear',
+  size: 'md',
+  label: '',
+  indeterminate: false,
+});
+
+const RADIUS = 16;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const linearSize: Record<ProgressSize, string> = {
+  sm: 'h-1',
+  md: 'h-2',
+  lg: 'h-3',
+};
+
+const circularSize: Record<ProgressSize, string> = {
+  sm: 'w-6 h-6',
+  md: 'w-10 h-10',
+  lg: 'w-14 h-14',
+};
+
+const clamped = computed(() => Math.min(Math.max(props.value, 0), props.max));
+const pct = computed(() => (props.max > 0 ? (clamped.value / props.max) * 100 : 0));
+const ariaNow = computed(() => (props.indeterminate ? undefined : clamped.value));
+const barStyle = computed(() => (props.indeterminate ? {} : { width: `${pct.value}%` }));
+const ringStyle = computed(() => ({
+  strokeDasharray: CIRCUMFERENCE,
+  strokeDashoffset: props.indeterminate ? CIRCUMFERENCE * 0.75 : CIRCUMFERENCE * (1 - pct.value / 100),
+}));
+
+const trackClasses = computed(() => [
+  'w-full overflow-hidden rounded-full bg-[var(--progress-track-bg,var(--color-secondary))]',
+  linearSize[props.size],
+]);
+const barClasses = computed(() => [
+  'h-full rounded-[inherit] bg-[var(--progress-bar-bg,var(--color-primary))] transition-[width] duration-300',
+  props.indeterminate ? 'w-2/5 motion-safe:animate-pulse' : '',
+]);
+const circularClasses = computed(() => ['inline-flex', circularSize[props.size]]);
+const svgClasses = computed(() => ['w-full h-full', props.indeterminate ? 'motion-safe:animate-spin' : '-rotate-90']);
+</script>
+
+<template>
+  <div
+    v-if="variant === 'circular'"
+    role="progressbar"
+    :aria-valuemin="0"
+    :aria-valuemax="max"
+    :aria-valuenow="ariaNow"
+    :aria-label="label || undefined"
+    :class="circularClasses"
+  >
+    <svg :class="svgClasses" viewBox="0 0 36 36">
+      <circle class="stroke-[var(--progress-track-bg,var(--color-secondary))] [stroke-width:4]" cx="18" cy="18" r="16" fill="none" />
+      <circle
+        class="stroke-[var(--progress-bar-bg,var(--color-primary))] [stroke-width:4] [stroke-linecap:round] transition-[stroke-dashoffset] duration-300"
+        cx="18"
+        cy="18"
+        r="16"
+        fill="none"
+        :style="ringStyle"
+      />
+    </svg>
+  </div>
+  <div
+    v-else
+    role="progressbar"
+    :aria-valuemin="0"
+    :aria-valuemax="max"
+    :aria-valuenow="ariaNow"
+    :aria-label="label || undefined"
+    :class="trackClasses"
+  >
+    <div :class="barClasses" :style="barStyle" />
+  </div>
+</template>

@@ -1,0 +1,13 @@
+@if (label && orientation === 'horizontal' && !decorative) {
+  <div class="separator separator--labelled" role="separator" aria-orientation="horizontal">
+    <span class="separator-line" aria-hidden="true"></span>
+    <span class="separator-label">\{{ label }}</span>
+    <span class="separator-line" aria-hidden="true"></span>
+  </div>
+} @else {
+  <div
+    [class]="'separator separator--' + orientation"
+    [attr.role]="decorative ? 'none' : 'separator'"
+    [attr.aria-orientation]="decorative ? null : orientation"
+  ></div>
+}

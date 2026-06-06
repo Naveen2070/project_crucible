@@ -1,0 +1,57 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+export type AlertVariant = {{> shared/variant-types}};
+
+interface Props {
+  variant?:   AlertVariant;
+  title?:     string;
+  closeable?: boolean;
+  icon?:      string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  title: '',
+  closeable: false,
+  icon: '',
+});
+
+const emit = defineEmits(['close']);
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+const variantClasses: Record<AlertVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}
+};
+
+const displayIcon = computed(() => props.icon || DEFAULT_ICONS[props.variant]);
+const alertClasses = computed(() => [
+  'flex items-start gap-3 p-3 rounded-[var(--radius-md)] border',
+  variantClasses[props.variant],
+]);
+</script>
+
+<template>
+  <div role="alert" :class="alertClasses">
+    <span class="shrink-0 leading-snug" aria-hidden="true">\{{ displayIcon }}</span>
+    <div class="flex-1 min-w-0">
+      <div v-if="title" class="font-semibold text-sm mb-0.5">\{{ title }}</div>
+      <div v-if="$slots.default" class="text-[0.8125rem] text-[var(--color-text-muted)]"><slot /></div>
+    </div>
+    <button
+      v-if="closeable"
+      type="button"
+      class="shrink-0 border-none bg-transparent cursor-pointer text-lg leading-none opacity-70 hover:opacity-100"
+      aria-label="Dismiss"
+      @click="emit('close')"
+    >×</button>
+  </div>
+</template>

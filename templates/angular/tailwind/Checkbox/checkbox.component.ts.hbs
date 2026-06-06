@@ -1,0 +1,48 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-checkbox',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './checkbox.component.html',
+})
+export class CheckboxComponent {
+  @Input() label = '';
+  @Input() checked = false;
+  @Input() indeterminate = false;
+  @Input() disabled = false;
+  @Input() error = '';
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  @Output() checkedChange = new EventEmitter<boolean>();
+
+  id = 'checkbox-' + Math.random().toString(36).substring(2, 9);
+
+  get isError(): boolean {
+    return this.variant === 'error' || !!this.error;
+  }
+
+  onChange(event: Event): void {
+    this.checkedChange.emit((event.target as HTMLInputElement).checked);
+  }
+
+  getInputClasses() {
+    const variantClasses: Record<string, string> = {
+{{#each variants}}      {{this}}: '{{lookup ../tailwindVariants this}}',
+{{/each}}    };
+
+    const sizeClasses: Record<string, string> = {
+      sm: 'w-3.5 h-3.5',
+      md: 'w-4 h-4',
+      lg: 'w-5 h-5',
+    };
+
+    return [
+      'shrink-0 m-0 cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed',
+      this.isError ? variantClasses['error'] : variantClasses[this.variant],
+      sizeClasses[this.size],
+    ].join(' ');
+  }
+}

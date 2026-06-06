@@ -1,0 +1,443 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  useId,
+} from 'react';
+
+export type AccordionSize = {{> shared/size-types}};
+export type AccordionVariant = {{> shared/variant-types}};
+export type AccordionType = 'single' | 'multiple';
+
+export interface AccordionOptions {
+  type?: AccordionType;
+  value?: string | string[];
+  defaultValue?: string | string[];
+  onValueChange?: (value: string | string[]) => void;
+  collapsible?: boolean;
+}
+
+interface TriggerRegistration {
+  value: string;
+  disabled: boolean;
+  el: HTMLButtonElement | null;
+}
+
+const toOpenSet = (value: string | string[] | undefined): Set<string> => {
+  if (value == null) return new Set();
+  return new Set(Array.isArray(value) ? value : [value]);
+};
+
+export function useAccordion({
+  type = 'single',
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  collapsible = true,
+}: AccordionOptions = {}) {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | string[] | undefined>(
+    defaultValue
+  );
+  const value = controlledValue ?? uncontrolledValue;
+  const openSet = useMemo(() => toOpenSet(value), [value]);
+  const rootId = useId();
+  const triggersRef = useRef<Map<string, TriggerRegistration>>(new Map());
+  const orderRef = useRef<string[]>([]);
+
+  const commit = useCallback(
+    (next: string | string[]) => {
+      if (controlledValue === undefined) {
+        setUncontrolledValue(next);
+      }
+      onValueChange?.(next);
+    },
+    [controlledValue, onValueChange]
+  );
+
+  const toggle = useCallback(
+    (val: string) => {
+      if (type === 'multiple') {
+        const next = new Set(openSet);
+        if (next.has(val)) next.delete(val);
+        else next.add(val);
+        commit(Array.from(next));
+        return;
+      }
+      const isOpen = openSet.has(val);
+      if (isOpen) {
+        commit(collapsible ? '' : val);
+      } else {
+        commit(val);
+      }
+    },
+    [type, openSet, collapsible, commit]
+  );
+
+  const isOpen = useCallback((val: string) => openSet.has(val), [openSet]);
+
+  const registerTrigger = useCallback(
+    (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
+      const map = triggersRef.current;
+      if (el === null) {
+        map.delete(val);
+        orderRef.current = orderRef.current.filter((v) => v !== val);
+        return;
+      }
+      if (!map.has(val)) {
+        orderRef.current.push(val);
+      }
+      map.set(val, { value: val, disabled, el });
+    },
+    []
+  );
+
+  const focusTrigger = useCallback((val: string) => {
+    const entry = triggersRef.current.get(val);
+    entry?.el?.focus();
+  }, []);
+
+  const moveFocus = useCallback(
+    (current: string, direction: 1 | -1) => {
+      const order = orderRef.current;
+      const enabled = order.filter((v) => !triggersRef.current.get(v)?.disabled);
+      if (enabled.length === 0) return null;
+      const idx = enabled.indexOf(current);
+      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
+      const next = enabled[nextIdx];
+      focusTrigger(next);
+      return next;
+    },
+    [focusTrigger]
+  );
+
+  const focusEdge = useCallback(
+    (edge: 'first' | 'last') => {
+      const enabled = orderRef.current.filter((v) => !triggersRef.current.get(v)?.disabled);
+      if (enabled.length === 0) return null;
+      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
+      focusTrigger(next);
+      return next;
+    },
+    [focusTrigger]
+  );
+
+  return useMemo(
+    () => ({
+      type,
+      isOpen,
+      toggle,
+      rootId,
+      registerTrigger,
+      focusTrigger,
+      moveFocus,
+      focusEdge,
+    }),
+    [type, isOpen, toggle, rootId, registerTrigger, focusTrigger, moveFocus, focusEdge]
+  );
+}
+
+type AccordionContextType = ReturnType<typeof useAccordion> | null;
+const AccordionContext = createContext<AccordionContextType>(null);
+
+const useAccordionContext = () => {
+  const context = useContext(AccordionContext);
+  if (context == null) {
+    throw new Error('Accordion components must be wrapped in <Accordion.Root />');
+  }
+  return context;
+};
+
+type ItemContextType = { value: string; disabled: boolean } | null;
+const ItemContext = createContext<ItemContextType>(null);
+
+const useItemContext = () => {
+  const context = useContext(ItemContext);
+  if (context == null) {
+    throw new Error('Accordion.Trigger / Accordion.Content must be wrapped in <Accordion.Item />');
+  }
+  return context;
+};
+
+const buildTriggerId = (rootId: string, value: string) =>
+  `${rootId}-trigger-${value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+const buildContentId = (rootId: string, value: string) =>
+  `${rootId}-content-${value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+
+const cn = (...parts: Array<string | false | null | undefined>) =>
+  parts.filter(Boolean).join(' ');
+
+const ROOT_BASE = 'flex w-full flex-col';
+
+const VARIANT_ROOT: Record<AccordionVariant, string> = {
+  default: '',
+  bordered: 'border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden',
+  separated: 'gap-2',
+};
+
+const ITEM_BASE = 'border-b border-[var(--accordion-border-color,var(--color-border))]';
+
+const VARIANT_ITEM: Record<AccordionVariant, string> = {
+  default: '',
+  bordered: 'last:border-b-0',
+  separated:
+    'border border-[var(--accordion-border-color,var(--color-border))] rounded-[var(--radius-md)] overflow-hidden',
+};
+
+const TRIGGER_BASE = [
+  'flex w-full items-center justify-between gap-2 text-left',
+  'px-[var(--accordion-trigger-padding-x,8px)] py-[var(--accordion-trigger-padding-y,12px)]',
+  'text-[var(--accordion-trigger-color,var(--color-text))] font-medium',
+  'transition-colors',
+  'hover:not-data-[disabled]:bg-[var(--accordion-trigger-hover-bg,var(--color-secondary))]',
+  'disabled:opacity-50 disabled:cursor-not-allowed',
+  'data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed',
+  'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+].join(' ');
+
+const SIZE_TRIGGER: Record<AccordionSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+
+const CONTENT_BASE =
+  'py-[var(--accordion-content-padding-y,12px)] px-[var(--accordion-trigger-padding-x,8px)] text-[var(--color-text)]';
+
+const CHEVRON_BASE =
+  'shrink-0 transition-transform duration-200 group-data-[state=open]/trigger:rotate-180';
+
+const ChevronIcon = () => (
+  <svg
+    className={CHEVRON_BASE}
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+/**
+ * Internal Accordion Components
+ */
+export interface AccordionRootProps extends AccordionOptions {
+  children: React.ReactNode;
+  variant?: AccordionVariant;
+  size?: AccordionSize;
+  className?: string;
+}
+
+const InternalRoot = React.forwardRef<HTMLDivElement, AccordionRootProps>(
+  function AccordionRoot(
+    { children, variant = 'default', size = 'md', className, ...options },
+    ref
+  ) {
+    const accordion = useAccordion(options);
+    return (
+      <AccordionContext.Provider value={accordion}>
+        <div
+          ref={ref}
+          className={cn(ROOT_BASE, VARIANT_ROOT[variant], className)}
+          data-variant={variant}
+          data-size={size}
+        >
+          {children}
+        </div>
+      </AccordionContext.Provider>
+    );
+  }
+);
+
+export interface AccordionItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  value: string;
+  disabled?: boolean;
+  variant?: AccordionVariant;
+}
+
+const InternalItem = React.forwardRef<HTMLDivElement, AccordionItemProps>(
+  function AccordionItem(
+    { value, disabled = false, className, children, variant = 'default', ...props },
+    ref
+  ) {
+    const ctx = useAccordionContext();
+    const open = ctx.isOpen(value);
+    const itemValue = useMemo(() => ({ value, disabled }), [value, disabled]);
+
+    return (
+      <ItemContext.Provider value={itemValue}>
+        <div
+          ref={ref}
+          className={cn(ITEM_BASE, VARIANT_ITEM[variant], className)}
+          data-state={open ? 'open' : 'closed'}
+          data-disabled={disabled || undefined}
+          {...props}
+        >
+          {children}
+        </div>
+      </ItemContext.Provider>
+    );
+  }
+);
+
+export interface AccordionTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  size?: AccordionSize;
+}
+
+const InternalTrigger = React.forwardRef<HTMLButtonElement, AccordionTriggerProps>(
+  function AccordionTrigger({ className, onClick, children, size = 'md', ...props }, propRef) {
+    const ctx = useAccordionContext();
+    const { value, disabled } = useItemContext();
+    const open = ctx.isOpen(value);
+    const innerRef = useRef<HTMLButtonElement | null>(null);
+
+    const setRef = useCallback(
+      (el: HTMLButtonElement | null) => {
+        innerRef.current = el;
+        if (typeof propRef === 'function') propRef(el);
+        else if (propRef) (propRef as React.MutableRefObject<HTMLButtonElement | null>).current = el;
+        ctx.registerTrigger(value, disabled, el);
+      },
+      [ctx, value, disabled, propRef]
+    );
+
+    useEffect(() => () => ctx.registerTrigger(value, disabled, null), [ctx, value, disabled]);
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented || disabled) return;
+      ctx.toggle(value);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        ctx.moveFocus(value, 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        ctx.moveFocus(value, -1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        ctx.focusEdge('first');
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        ctx.focusEdge('last');
+      }
+    };
+
+    return (
+      <h3 className="m-0">
+        <button
+          ref={setRef}
+          type="button"
+          id={buildTriggerId(ctx.rootId, value)}
+          aria-expanded={open}
+          aria-controls={buildContentId(ctx.rootId, value)}
+          data-state={open ? 'open' : 'closed'}
+          data-value={value}
+          data-disabled={disabled || undefined}
+          disabled={disabled}
+          className={cn('group/trigger', TRIGGER_BASE, SIZE_TRIGGER[size], className)}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          {...props}
+        >
+          <span className="flex-1 min-w-0">{children}</span>
+          <ChevronIcon />
+        </button>
+      </h3>
+    );
+  }
+);
+
+export interface AccordionContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  forceMount?: boolean;
+}
+
+const InternalContent = React.forwardRef<HTMLDivElement, AccordionContentProps>(
+  function AccordionContent({ forceMount = false, className, children, ...props }, ref) {
+    const ctx = useAccordionContext();
+    const { value } = useItemContext();
+    const open = ctx.isOpen(value);
+
+    if (!open && !forceMount) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        role="region"
+        id={buildContentId(ctx.rootId, value)}
+        aria-labelledby={buildTriggerId(ctx.rootId, value)}
+        data-state={open ? 'open' : 'closed'}
+        hidden={!open}
+        className={cn(CONTENT_BASE, className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+InternalRoot.displayName = 'Accordion.Root';
+InternalItem.displayName = 'Accordion.Item';
+InternalTrigger.displayName = 'Accordion.Trigger';
+InternalContent.displayName = 'Accordion.Content';
+
+{{#if features.compoundComponents}}
+export const AccordionRoot = InternalRoot;
+export const AccordionItem = InternalItem;
+export const AccordionTrigger = InternalTrigger;
+export const AccordionContent = InternalContent;
+
+export const Accordion = Object.assign(AccordionRoot, {
+  Root: AccordionRoot,
+  Item: AccordionItem,
+  Trigger: AccordionTrigger,
+  Content: AccordionContent,
+});
+{{else}}
+export interface AccordionItemData {
+  value: string;
+  label: React.ReactNode;
+  content: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface AccordionProps extends AccordionOptions {
+  items: AccordionItemData[];
+  variant?: AccordionVariant;
+  size?: AccordionSize;
+  className?: string;
+}
+
+export const Accordion: React.FC<AccordionProps> = ({
+  items,
+  variant = 'default',
+  size = 'md',
+  className,
+  ...options
+}) => {
+  return (
+    <InternalRoot variant={variant} size={size} className={className} {...options}>
+      {items.map((item) => (
+        <InternalItem key={item.value} value={item.value} disabled={item.disabled} variant={variant}>
+          <InternalTrigger size={size}>{item.label}</InternalTrigger>
+          <InternalContent>{item.content}</InternalContent>
+        </InternalItem>
+      ))}
+    </InternalRoot>
+  );
+};
+{{/if}}

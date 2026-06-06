@@ -1,0 +1,50 @@
+import React from 'react';
+{{> react/styles-import}}
+
+export type AlertVariant = {{> shared/variant-types}};
+
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Severity / visual style */
+  variant?: AlertVariant;
+  /** Bold heading shown above the message */
+  title?: string;
+  /** Show a dismiss button */
+  closeable?: boolean;
+  /** Called when the dismiss button is clicked */
+  onClose?: () => void;
+  /** Custom leading icon (falls back to a per-variant glyph) */
+  icon?: React.ReactNode;
+}
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ variant = 'default', title, closeable = false, onClose, icon, className, children, ...props }, ref) => {
+    const cls = [styles.alert, styles[`alert--${variant}`], className].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} role="alert" className={cls} {...props}>
+        <span className={styles['alert-icon']} aria-hidden="true">
+          {icon ?? DEFAULT_ICONS[variant]}
+        </span>
+        <div className={styles['alert-content']}>
+          {title && <div className={styles['alert-title']}>{title}</div>}
+          {children && <div className={styles['alert-description']}>{children}</div>}
+        </div>
+        {closeable && (
+          <button type="button" className={styles['alert-close']} aria-label="Dismiss" onClick={onClose}>
+            ×
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+
+Alert.displayName = 'Alert';

@@ -1,0 +1,21 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-separator',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './separator.component.html',
+})
+export class SeparatorComponent {
+  @Input() orientation: 'horizontal' | 'vertical' = 'horizontal';
+  @Input() decorative = false;
+  @Input() label = '';
+
+  getBarClasses() {
+    return [
+      'shrink-0 bg-[var(--separator-color,var(--color-border))]',
+      this.orientation === 'horizontal' ? 'w-full h-px my-2' : 'self-stretch w-px min-h-[1em] mx-2',
+    ].join(' ');
+  }
+}

@@ -1,0 +1,51 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Avatar from './Avatar.vue';
+
+const meta: Meta<typeof Avatar> = {
+  title: 'Crucible/{{name}}',
+  component: Avatar,
+  tags: ['autodocs'],
+  argTypes: {
+    variant:  { control: 'select', options: {{> shared/variant-options}} },
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    src:      { control: 'text' },
+    alt:      { control: 'text' },
+    fallback: { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Avatar>;
+
+export const Default: Story = {
+  args: { variant: 'circle', size: 'md', src: 'https://i.pravatar.cc/100', alt: 'Jane Doe' },
+  render: (args) => ({
+    components: { Avatar },
+    setup() {
+      return { args };
+    },
+    template: `<Avatar v-bind="args" />`,
+  }),
+};
+
+export const Fallback: Story = {
+  args: { variant: 'circle', size: 'md', fallback: 'JD', alt: 'Jane Doe' },
+  render: (args) => ({
+    components: { Avatar },
+    setup() {
+      return { args };
+    },
+    template: `<Avatar v-bind="args" />`,
+  }),
+};
+
+export const Square: Story = {
+  args: { variant: 'square', size: 'md', fallback: 'AB' },
+  render: (args) => ({
+    components: { Avatar },
+    setup() {
+      return { args };
+    },
+    template: `<Avatar v-bind="args" />`,
+  }),
+};

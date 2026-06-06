@@ -1,0 +1,387 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Separator snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-separator',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './separator.component.html',
+  styleUrls: ['./separator.component.css'],
+})
+export class SeparatorComponent {
+  @Input() orientation: 'horizontal' | 'vertical' = 'horizontal';
+  @Input() decorative = false;
+  @Input() label = '';
+}
+"
+`;
+
+exports[`Separator snapshots > angular css mode snapshot (monolithic) 2`] = `
+"@if (label && orientation === 'horizontal' && !decorative) {
+  <div class="separator separator--labelled" role="separator" aria-orientation="horizontal">
+    <span class="separator-line" aria-hidden="true"></span>
+    <span class="separator-label">{{ label }}</span>
+    <span class="separator-line" aria-hidden="true"></span>
+  </div>
+} @else {
+  <div
+    [class]="'separator separator--' + orientation"
+    [attr.role]="decorative ? 'none' : 'separator'"
+    [attr.aria-orientation]="decorative ? null : orientation"
+  ></div>
+}
+"
+`;
+
+exports[`Separator snapshots > react css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Separator.module.css';
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Layout direction of the divider */
+  orientation?: SeparatorOrientation;
+  /** Purely visual — removes the divider from the accessibility tree */
+  decorative?: boolean;
+  /** Optional centered label (horizontal orientation only) */
+  label?: string;
+}
+
+export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
+  ({ orientation = 'horizontal', decorative = false, label, className, children, ...props }, ref) => {
+    const content = label ?? children;
+
+    if (content && orientation === 'horizontal' && !decorative) {
+      return (
+        <div
+          ref={ref}
+          className={[styles.separator, styles['separator--labelled'], className].filter(Boolean).join(' ')}
+          role="separator"
+          aria-orientation="horizontal"
+          {...props}
+        >
+          <span className={styles['separator-line']} aria-hidden="true" />
+          <span className={styles['separator-label']}>{content}</span>
+          <span className={styles['separator-line']} aria-hidden="true" />
+        </div>
+      );
+    }
+
+    const cls = [
+      styles.separator,
+      styles[\`separator--\${orientation}\`],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        role={decorative ? 'none' : 'separator'}
+        aria-orientation={decorative ? undefined : orientation}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = 'Separator';
+"
+`;
+
+exports[`Separator snapshots > react css mode snapshot 2`] = `
+".separator {
+  border: none;
+  flex-shrink: 0;
+  background-color: var(--separator-color, var(--color-border));
+}
+
+.separator--horizontal {
+  width: 100%;
+  height: var(--separator-thickness, 1px);
+  margin: var(--separator-spacing, calc(var(--spacing-unit) * 2)) 0;
+}
+
+.separator--vertical {
+  align-self: stretch;
+  width: var(--separator-thickness, 1px);
+  min-height: 1em;
+  margin: 0 var(--separator-spacing, calc(var(--spacing-unit) * 2));
+}
+
+.separator--labelled {
+  display: flex;
+  align-items: center;
+  gap: var(--separator-label-gap, calc(var(--spacing-unit) * 2));
+  width: 100%;
+  height: auto;
+  margin: var(--separator-spacing, calc(var(--spacing-unit) * 2)) 0;
+  background: none;
+}
+
+.separator-line {
+  flex: 1;
+  height: var(--separator-thickness, 1px);
+  background-color: var(--separator-color, var(--color-border));
+}
+
+.separator-label {
+  flex-shrink: 0;
+  color: var(--separator-label-color, var(--color-text-muted));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+"
+`;
+
+exports[`Separator snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Separator } from './Separator';
+
+const meta: Meta<typeof Separator> = {
+  title: 'Crucible/Separator',
+  component: Separator,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    decorative:  { control: 'boolean' },
+    label:       { control: 'text' },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Separator>;
+
+export const Default: Story = {
+  args: { orientation: 'horizontal' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
+};
+
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => (
+    <div style={{ display: 'flex', alignItems: 'center', height: 40, gap: 12 }}>
+      <span>Home</span>
+      <Separator {...args} />
+      <span>Docs</span>
+    </div>
+  ),
+};
+
+export const WithLabel: Story = {
+  args: { orientation: 'horizontal', label: 'OR' },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
+};
+
+export const Decorative: Story = {
+  args: { orientation: 'horizontal', decorative: true },
+  render: (args) => (
+    <div style={{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
+};
+"
+`;
+
+exports[`Separator snapshots > react scss mode snapshot 1`] = `
+".separator {
+  border: none;
+  flex-shrink: 0;
+  background-color: var(--separator-color, var(--color-border));
+
+  &--horizontal {
+    width: 100%;
+    height: var(--separator-thickness, 1px);
+    margin: var(--separator-spacing, calc(var(--spacing-unit) * 2)) 0;
+  }
+
+  &--vertical {
+    align-self: stretch;
+    width: var(--separator-thickness, 1px);
+    min-height: 1em;
+    margin: 0 var(--separator-spacing, calc(var(--spacing-unit) * 2));
+  }
+
+  &--labelled {
+    display: flex;
+    align-items: center;
+    gap: var(--separator-label-gap, calc(var(--spacing-unit) * 2));
+    width: 100%;
+    height: auto;
+    margin: var(--separator-spacing, calc(var(--spacing-unit) * 2)) 0;
+    background: none;
+  }
+}
+
+.separator-line {
+  flex: 1;
+  height: var(--separator-thickness, 1px);
+  background-color: var(--separator-color, var(--color-border));
+}
+
+.separator-label {
+  flex-shrink: 0;
+  color: var(--separator-label-color, var(--color-text-muted));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+"
+`;
+
+exports[`Separator snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Layout direction of the divider */
+  orientation?: SeparatorOrientation;
+  /** Purely visual — removes the divider from the accessibility tree */
+  decorative?: boolean;
+  /** Optional centered label (horizontal orientation only) */
+  label?: string;
+}
+
+export const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
+  ({ orientation = 'horizontal', decorative = false, label, className, children, ...props }, ref) => {
+    const content = label ?? children;
+    const lineColor = 'bg-[var(--separator-color,var(--color-border))]';
+
+    if (content && orientation === 'horizontal' && !decorative) {
+      return (
+        <div
+          ref={ref}
+          className={['flex items-center gap-3 w-full my-2', className].filter(Boolean).join(' ')}
+          role="separator"
+          aria-orientation="horizontal"
+          {...props}
+        >
+          <span className={\`flex-1 h-px \${lineColor}\`} aria-hidden="true" />
+          <span className="shrink-0 text-sm whitespace-nowrap text-[var(--color-text-muted)]">{content}</span>
+          <span className={\`flex-1 h-px \${lineColor}\`} aria-hidden="true" />
+        </div>
+      );
+    }
+
+    const cls = [
+      'shrink-0',
+      lineColor,
+      orientation === 'horizontal' ? 'w-full h-px my-2' : 'self-stretch w-px min-h-[1em] mx-2',
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div
+        ref={ref}
+        className={cls}
+        role={decorative ? 'none' : 'separator'}
+        aria-orientation={decorative ? undefined : orientation}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = 'Separator';
+"
+`;
+
+exports[`Separator snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+interface Props {
+  orientation?: SeparatorOrientation;
+  decorative?:  boolean;
+  label?:       string;
+}
+
+withDefaults(defineProps<Props>(), {
+  orientation: 'horizontal',
+  decorative: false,
+  label: '',
+});
+</script>
+
+<template>
+  <div
+    v-if="label && orientation === 'horizontal' && !decorative"
+    class="separator separator--labelled"
+    role="separator"
+    aria-orientation="horizontal"
+  >
+    <span class="separator-line" aria-hidden="true" />
+    <span class="separator-label">{{ label }}</span>
+    <span class="separator-line" aria-hidden="true" />
+  </div>
+  <div
+    v-else
+    :class="['separator', \`separator--\${orientation}\`]"
+    :role="decorative ? 'none' : 'separator'"
+    :aria-orientation="decorative ? undefined : orientation"
+  />
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.separator {
+  border: none;
+  flex-shrink: 0;
+  background-color: var(--separator-color, var(--color-border));
+}
+
+.separator--horizontal {
+  width: 100%;
+  height: var(--separator-thickness, 1px);
+  margin: var(--separator-spacing, calc(var(--spacing-unit) * 2)) 0;
+}
+
+.separator--vertical {
+  align-self: stretch;
+  width: var(--separator-thickness, 1px);
+  min-height: 1em;
+  margin: 0 var(--separator-spacing, calc(var(--spacing-unit) * 2));
+}
+
+.separator--labelled {
+  display: flex;
+  align-items: center;
+  gap: var(--separator-label-gap, calc(var(--spacing-unit) * 2));
+  width: 100%;
+  height: auto;
+  margin: var(--separator-spacing, calc(var(--spacing-unit) * 2)) 0;
+  background: none;
+}
+
+.separator-line {
+  flex: 1;
+  height: var(--separator-thickness, 1px);
+  background-color: var(--separator-color, var(--color-border));
+}
+
+.separator-label {
+  flex-shrink: 0;
+  color: var(--separator-label-color, var(--color-text-muted));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+</style>
+"
+`;

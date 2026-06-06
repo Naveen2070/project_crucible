@@ -1,0 +1,45 @@
+{{> react/stories-header}}
+  argTypes: {
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    decorative:  { control: 'boolean' },
+    label:       { control: 'text' },
+  },
+{{> react/stories-footer}}
+
+export const Default: Story = {
+  args: { orientation: 'horizontal' },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
+};
+
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => (
+    <div style=\{{ display: 'flex', alignItems: 'center', height: 40, gap: 12 }}>
+      <span>Home</span>
+      <Separator {...args} />
+      <span>Docs</span>
+    </div>
+  ),
+};
+
+export const WithLabel: Story = {
+  args: { orientation: 'horizontal', label: 'OR' },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
+};
+
+export const Decorative: Story = {
+  args: { orientation: 'horizontal', decorative: true },
+  render: (args) => (
+    <div style=\{{ width: 320 }}>
+      <Separator {...args} />
+    </div>
+  ),
+};

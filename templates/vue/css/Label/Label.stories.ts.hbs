@@ -1,0 +1,63 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import Label from './Label.vue';
+
+const meta: Meta<typeof Label> = {
+  title: 'Crucible/{{name}}',
+  component: Label,
+  tags: ['autodocs'],
+  argTypes: {
+    size:     { control: 'select', options: {{> shared/size-options}} },
+    required: { control: 'boolean' },
+    disabled: { control: 'boolean' },
+    htmlFor:  { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Label>;
+
+export const Default: Story = {
+  args: { size: 'md' },
+  render: (args) => ({
+    components: { Label },
+    setup() {
+      return { args };
+    },
+    template: `<Label v-bind="args">Email address</Label>`,
+  }),
+};
+
+{{#each sizes}}
+export const {{capitalize this}}: Story = {
+  args: { size: '{{this}}' },
+  render: (args) => ({
+    components: { Label },
+    setup() {
+      return { args };
+    },
+    template: `<Label v-bind="args">{{capitalize this}} label</Label>`,
+  }),
+};
+{{/each}}
+
+export const Required: Story = {
+  args: { required: true },
+  render: (args) => ({
+    components: { Label },
+    setup() {
+      return { args };
+    },
+    template: `<Label v-bind="args">Full name</Label>`,
+  }),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: (args) => ({
+    components: { Label },
+    setup() {
+      return { args };
+    },
+    template: `<Label v-bind="args">Disabled field</Label>`,
+  }),
+};

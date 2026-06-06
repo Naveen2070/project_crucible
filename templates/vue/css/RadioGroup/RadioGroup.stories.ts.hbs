@@ -1,0 +1,97 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+{{#if features.compoundComponents}}
+import RadioGroup, { RadioGroupItemComp } from './RadioGroup.vue';
+{{else}}
+import RadioGroup from './RadioGroup.vue';
+{{/if}}
+
+const meta: Meta<typeof RadioGroup> = {
+  title: 'Crucible/RadioGroup',
+  component: RadioGroup,
+  tags: ['autodocs'],
+  argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    orientation: { control: 'select', options: ['vertical', 'horizontal'] },
+  },
+  args: { size: 'md', orientation: 'vertical' },
+};
+
+export default meta;
+type Story = StoryObj<typeof RadioGroup>;
+
+{{#if features.compoundComponents}}
+const compound = { RadioGroup, RadioGroupItem: RadioGroupItemComp };
+
+export const Default: Story = {
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <RadioGroup v-bind="args" defaultValue="comfortable" name="density">
+        <RadioGroupItem value="default" label="Default" />
+        <RadioGroupItem value="comfortable" label="Comfortable" />
+        <RadioGroupItem value="compact" label="Compact" />
+      </RadioGroup>
+    `,
+  }),
+};
+
+export const Horizontal: Story = {
+  args: { orientation: 'horizontal' },
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <RadioGroup v-bind="args" defaultValue="card" name="payment">
+        <RadioGroupItem value="card" label="Card" />
+        <RadioGroupItem value="paypal" label="PayPal" />
+        <RadioGroupItem value="bank" label="Bank transfer" />
+      </RadioGroup>
+    `,
+  }),
+};
+
+export const WithDisabled: Story = {
+  render: (args) => ({
+    components: compound,
+    setup() { return { args }; },
+    template: `
+      <RadioGroup v-bind="args" defaultValue="standard" name="shipping">
+        <RadioGroupItem value="standard" label="Standard" />
+        <RadioGroupItem value="express" label="Express" />
+        <RadioGroupItem value="overnight" label="Overnight" :disabled="true" />
+      </RadioGroup>
+    `,
+  }),
+};
+{{else}}
+const items = [
+  { value: 'default', label: 'Default' },
+  { value: 'comfortable', label: 'Comfortable' },
+  { value: 'compact', label: 'Compact' },
+];
+
+export const SchemaDriven: Story = {
+  render: (args) => ({
+    components: { RadioGroup },
+    setup() { return { args, items }; },
+    template: `<RadioGroup v-bind="args" :items="items" defaultValue="comfortable" name="density" />`,
+  }),
+};
+
+export const SchemaHorizontal: Story = {
+  args: { orientation: 'horizontal' },
+  render: (args) => ({
+    components: { RadioGroup },
+    setup() {
+      const data = [
+        { value: 'card', label: 'Card' },
+        { value: 'paypal', label: 'PayPal' },
+        { value: 'bank', label: 'Bank transfer', disabled: true },
+      ];
+      return { args, data };
+    },
+    template: `<RadioGroup v-bind="args" :items="data" defaultValue="card" name="payment" />`,
+  }),
+};
+{{/if}}

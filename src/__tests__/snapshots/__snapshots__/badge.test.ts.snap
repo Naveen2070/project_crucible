@@ -1,0 +1,401 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Badge snapshots > angular css mode snapshot (monolithic) 1`] = `
+"import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-badge',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './badge.component.html',
+  styleUrls: ['./badge.component.css'],
+})
+export class BadgeComponent {
+  @Input() variant: 'default' | 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive' = 'default';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+}
+"
+`;
+
+exports[`Badge snapshots > angular css mode snapshot (monolithic) 2`] = `
+"<span [class]="'badge badge--' + variant + ' badge--' + size">
+  <ng-content></ng-content>
+</span>
+"
+`;
+
+exports[`Badge snapshots > react css mode snapshot 1`] = `
+"import React from 'react';
+import styles from './Badge.module.css';
+export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive';
+export type BadgeSize    = 'sm' | 'md' | 'lg';
+
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  /** Visual style of the badge */
+  variant?: BadgeVariant;
+  /** Size of the badge */
+  size?: BadgeSize;
+}
+
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  ({ variant = 'default', size = 'md', className, children, ...props }, ref) => {
+    const cls = [
+      styles.badge,
+      styles[\`badge--\${variant}\`],
+      styles[\`badge--\${size}\`],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <span ref={ref} className={cls} {...props}>
+        {children}
+      </span>
+    );
+  }
+);
+
+Badge.displayName = 'Badge';
+"
+`;
+
+exports[`Badge snapshots > react css mode snapshot 2`] = `
+".badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--badge-gap, calc(var(--spacing-unit) * 1));
+  border: 1px solid transparent;
+  border-radius: var(--badge-radius, var(--radius-sm));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--badge-font-weight, 500);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Sizes */
+.badge--sm {
+  font-size: 0.6875rem;
+  padding: 2px 6px;
+}
+
+.badge--md {
+  font-size: var(--badge-font-size, 0.75rem);
+  padding: 3px 8px;
+}
+
+.badge--lg {
+  font-size: 0.8125rem;
+  padding: 4px 10px;
+}
+
+/* Variants */
+.badge--default {
+  background-color: var(--badge-secondary-bg, var(--color-secondary));
+  color: var(--color-text, #1A1A2E);
+}
+
+.badge--primary {
+  background-color: var(--badge-primary-bg, var(--color-primary));
+  color: var(--badge-on-color, #ffffff);
+}
+
+.badge--secondary {
+  background-color: var(--badge-secondary-bg, var(--color-secondary));
+  color: var(--color-text, #1A1A2E);
+}
+
+.badge--outline {
+  background-color: transparent;
+  border-color: var(--color-border, #E2E1F0);
+  color: var(--color-text, #1A1A2E);
+}
+
+.badge--success {
+  background-color: var(--badge-success-bg, var(--color-success));
+  color: var(--badge-on-color, #ffffff);
+}
+
+.badge--warning {
+  background-color: var(--badge-warning-bg, #f59e0b);
+  color: var(--badge-on-color, #ffffff);
+}
+
+.badge--destructive {
+  background-color: var(--badge-destructive-bg, var(--color-destructive));
+  color: var(--badge-on-color, #ffffff);
+}
+"
+`;
+
+exports[`Badge snapshots > react css mode snapshot 3`] = `
+"import type { Meta, StoryObj } from '@storybook/react';
+import React, { useState } from 'react';
+import { Badge } from './Badge';
+
+const meta: Meta<typeof Badge> = {
+  title: 'Crucible/Badge',
+  component: Badge,
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'primary', 'secondary', 'outline', 'success', 'warning', 'destructive'] },
+    size:    { control: 'select', options: ['sm', 'md', 'lg'] },
+  },
+};
+export default meta;
+type Story = StoryObj<typeof Badge>;
+
+export const Default: Story = {
+  args: { variant: 'default', size: 'md' },
+  render: (args) => <Badge {...args}>Badge</Badge>,
+};
+
+export const Primary: Story = {
+  args: { variant: 'primary' },
+  render: (args) => <Badge {...args}>Primary</Badge>,
+};
+export const Secondary: Story = {
+  args: { variant: 'secondary' },
+  render: (args) => <Badge {...args}>Secondary</Badge>,
+};
+export const Outline: Story = {
+  args: { variant: 'outline' },
+  render: (args) => <Badge {...args}>Outline</Badge>,
+};
+export const Success: Story = {
+  args: { variant: 'success' },
+  render: (args) => <Badge {...args}>Success</Badge>,
+};
+export const Warning: Story = {
+  args: { variant: 'warning' },
+  render: (args) => <Badge {...args}>Warning</Badge>,
+};
+export const Destructive: Story = {
+  args: { variant: 'destructive' },
+  render: (args) => <Badge {...args}>Destructive</Badge>,
+};
+
+export const SizeSm: Story = {
+  args: { size: 'sm' },
+  render: (args) => <Badge {...args}>Sm</Badge>,
+};
+export const SizeMd: Story = {
+  args: { size: 'md' },
+  render: (args) => <Badge {...args}>Md</Badge>,
+};
+export const SizeLg: Story = {
+  args: { size: 'lg' },
+  render: (args) => <Badge {...args}>Lg</Badge>,
+};
+"
+`;
+
+exports[`Badge snapshots > react scss mode snapshot 1`] = `
+".badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--badge-gap, calc(var(--spacing-unit) * 1));
+  border: 1px solid transparent;
+  border-radius: var(--badge-radius, var(--radius-sm));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--badge-font-weight, 500);
+  line-height: 1;
+  white-space: nowrap;
+
+  &--sm {
+    font-size: 0.6875rem;
+    padding: 2px 6px;
+  }
+
+  &--md {
+    font-size: var(--badge-font-size, 0.75rem);
+    padding: 3px 8px;
+  }
+
+  &--lg {
+    font-size: 0.8125rem;
+    padding: 4px 10px;
+  }
+
+  &--default {
+    background-color: var(--badge-secondary-bg, var(--color-secondary));
+    color: var(--color-text, #1A1A2E);
+  }
+
+  &--primary {
+    background-color: var(--badge-primary-bg, var(--color-primary));
+    color: var(--badge-on-color, #ffffff);
+  }
+
+  &--secondary {
+    background-color: var(--badge-secondary-bg, var(--color-secondary));
+    color: var(--color-text, #1A1A2E);
+  }
+
+  &--outline {
+    background-color: transparent;
+    border-color: var(--color-border, #E2E1F0);
+    color: var(--color-text, #1A1A2E);
+  }
+
+  &--success {
+    background-color: var(--badge-success-bg, var(--color-success));
+    color: var(--badge-on-color, #ffffff);
+  }
+
+  &--warning {
+    background-color: var(--badge-warning-bg, #f59e0b);
+    color: var(--badge-on-color, #ffffff);
+  }
+
+  &--destructive {
+    background-color: var(--badge-destructive-bg, var(--color-destructive));
+    color: var(--badge-on-color, #ffffff);
+  }
+}
+"
+`;
+
+exports[`Badge snapshots > react tailwind mode snapshot 1`] = `
+"import React from 'react';
+
+export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive';
+export type BadgeSize    = 'sm' | 'md' | 'lg';
+
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  /** Visual style of the badge */
+  variant?: BadgeVariant;
+  /** Size of the badge */
+  size?: BadgeSize;
+}
+
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+  default: 'bg-[var(--color-secondary)] text-[var(--color-text)]',
+  primary: 'bg-[var(--color-primary)] text-white',
+  secondary: 'bg-[var(--color-secondary)] text-[var(--color-text)]',
+  outline: 'bg-transparent border border-[var(--color-border)] text-[var(--color-text)]',
+  success: 'bg-[var(--color-success)] text-white',
+  warning: 'bg-[#f59e0b] text-white',
+  destructive: 'bg-[var(--color-destructive)] text-white',
+};
+
+const SIZE_CLASSES: Record<BadgeSize, string> = {
+  sm: 'text-[0.6875rem] px-1.5 py-0.5',
+  md: 'text-xs px-2 py-0.5',
+  lg: 'text-[0.8125rem] px-2.5 py-1',
+};
+
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  ({ variant = 'default', size = 'md', className, children, ...props }, ref) => {
+    const cls = [
+      'inline-flex items-center justify-center gap-1 rounded-[var(--radius-sm)] font-medium leading-none whitespace-nowrap',
+      VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <span ref={ref} className={cls} {...props}>
+        {children}
+      </span>
+    );
+  }
+);
+
+Badge.displayName = 'Badge';
+"
+`;
+
+exports[`Badge snapshots > vue css mode snapshot 1`] = `
+"<script setup lang="ts">
+export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive';
+export type BadgeSize    = 'sm' | 'md' | 'lg';
+
+interface Props {
+  variant?: BadgeVariant;
+  size?:    BadgeSize;
+}
+
+withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  size: 'md',
+});
+</script>
+
+<template>
+  <span :class="['badge', \`badge--\${variant}\`, \`badge--\${size}\`]">
+    <slot />
+  </span>
+</template>
+
+<style scoped>
+/* Generated by Crucible — edit freely, re-generate with --force */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--badge-gap, calc(var(--spacing-unit) * 1));
+  border: 1px solid transparent;
+  border-radius: var(--badge-radius, var(--radius-sm));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--badge-font-weight, 500);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge--sm {
+  font-size: 0.6875rem;
+  padding: 2px 6px;
+}
+
+.badge--md {
+  font-size: var(--badge-font-size, 0.75rem);
+  padding: 3px 8px;
+}
+
+.badge--lg {
+  font-size: 0.8125rem;
+  padding: 4px 10px;
+}
+
+.badge--default {
+  background-color: var(--badge-secondary-bg, var(--color-secondary));
+  color: var(--color-text, #1A1A2E);
+}
+
+.badge--primary {
+  background-color: var(--badge-primary-bg, var(--color-primary));
+  color: var(--badge-on-color, #ffffff);
+}
+
+.badge--secondary {
+  background-color: var(--badge-secondary-bg, var(--color-secondary));
+  color: var(--color-text, #1A1A2E);
+}
+
+.badge--outline {
+  background-color: transparent;
+  border-color: var(--color-border, #E2E1F0);
+  color: var(--color-text, #1A1A2E);
+}
+
+.badge--success {
+  background-color: var(--badge-success-bg, var(--color-success));
+  color: var(--badge-on-color, #ffffff);
+}
+
+.badge--warning {
+  background-color: var(--badge-warning-bg, #f59e0b);
+  color: var(--badge-on-color, #ffffff);
+}
+
+.badge--destructive {
+  background-color: var(--badge-destructive-bg, var(--color-destructive));
+  color: var(--badge-on-color, #ffffff);
+}
+</style>
+"
+`;

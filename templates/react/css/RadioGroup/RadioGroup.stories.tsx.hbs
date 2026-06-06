@@ -1,0 +1,104 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { RadioGroup } from './RadioGroup';
+
+const meta: Meta<typeof RadioGroup> = {
+  title: 'Crucible/RadioGroup',
+  component: RadioGroup,
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof RadioGroup>;
+
+{{#if features.compoundComponents}}
+export const Default: Story = {
+  render: () => (
+    <RadioGroup defaultValue="comfortable" name="density">
+      <RadioGroup.Item value="default" label="Default" />
+      <RadioGroup.Item value="comfortable" label="Comfortable" />
+      <RadioGroup.Item value="compact" label="Compact" />
+    </RadioGroup>
+  ),
+};
+
+export const Horizontal: Story = {
+  render: () => (
+    <RadioGroup defaultValue="card" orientation="horizontal" name="payment">
+      <RadioGroup.Item value="card" label="Card" />
+      <RadioGroup.Item value="paypal" label="PayPal" />
+      <RadioGroup.Item value="bank" label="Bank transfer" />
+    </RadioGroup>
+  ),
+};
+
+export const WithDisabled: Story = {
+  render: () => (
+    <RadioGroup defaultValue="standard" name="shipping">
+      <RadioGroup.Item value="standard" label="Standard" />
+      <RadioGroup.Item value="express" label="Express" />
+      <RadioGroup.Item value="overnight" label="Overnight (unavailable)" disabled />
+    </RadioGroup>
+  ),
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <div style=\{{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <RadioGroup defaultValue="a" size="sm" name="sm">
+        <RadioGroup.Item value="a" label="Small A" />
+        <RadioGroup.Item value="b" label="Small B" />
+      </RadioGroup>
+      <RadioGroup defaultValue="a" size="lg" name="lg">
+        <RadioGroup.Item value="a" label="Large A" />
+        <RadioGroup.Item value="b" label="Large B" />
+      </RadioGroup>
+    </div>
+  ),
+};
+
+export const Controlled: Story = {
+  render: function ControlledStory() {
+    const [value, setValue] = React.useState('one');
+    return (
+      <div style=\{{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <RadioGroup value={value} onValueChange={setValue} name="controlled">
+          <RadioGroup.Item value="one" label="One" />
+          <RadioGroup.Item value="two" label="Two" />
+          <RadioGroup.Item value="three" label="Three" />
+        </RadioGroup>
+        <span>Selected: <strong>{value}</strong></span>
+      </div>
+    );
+  },
+};
+{{else}}
+export const SchemaDriven: Story = {
+  render: () => (
+    <RadioGroup
+      defaultValue="comfortable"
+      name="density"
+      items={[
+        { value: 'default', label: 'Default' },
+        { value: 'comfortable', label: 'Comfortable' },
+        { value: 'compact', label: 'Compact', disabled: true },
+      ]}
+    />
+  ),
+};
+
+export const SchemaHorizontal: Story = {
+  render: () => (
+    <RadioGroup
+      defaultValue="card"
+      orientation="horizontal"
+      name="payment"
+      items={[
+        { value: 'card', label: 'Card' },
+        { value: 'paypal', label: 'PayPal' },
+        { value: 'bank', label: 'Bank transfer' },
+      ]}
+    />
+  ),
+};
+{{/if}}

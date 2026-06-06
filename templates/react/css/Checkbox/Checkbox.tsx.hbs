@@ -1,0 +1,79 @@
+import React, { useId, useRef, useEffect } from 'react';
+{{> react/styles-import}}
+
+export type CheckboxVariant = {{> shared/variant-types}};
+export type CheckboxSize    = {{> shared/size-types}};
+
+export interface CheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'onChange'> {
+  label?:    string;
+  variant?:  CheckboxVariant;
+  size?:     CheckboxSize;
+  error?:    string;
+  /** Render the indeterminate (mixed) visual state */
+  indeterminate?: boolean;
+  /** Convenience change handler returning the checked boolean */
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
+  (
+    { label, variant = 'default', size = 'md', error, indeterminate = false, onCheckedChange, id: providedId, className, disabled, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const errorId = `${id}-error`;
+    const isError = !!error || variant === 'error';
+    const innerRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (innerRef.current) {
+        innerRef.current.indeterminate = indeterminate;
+      }
+    }, [indeterminate]);
+
+    const setRefs = (node: HTMLInputElement | null) => {
+      innerRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    };
+
+    const inputCls = [
+      styles.checkbox,
+      styles[`checkbox--${size}`],
+      isError && styles['checkbox--error'],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div className={[styles['checkbox-field'], disabled && styles['checkbox-field--disabled']].filter(Boolean).join(' ')}>
+        <div className={styles['checkbox-row']}>
+          <input
+            ref={setRefs}
+            type="checkbox"
+            id={id}
+            className={inputCls}
+            disabled={disabled}
+            aria-invalid={isError}
+            aria-describedby={error ? errorId : undefined}
+            onChange={(e) => onCheckedChange?.(e.target.checked)}
+            {...props}
+          />
+          {label && (
+            <label htmlFor={id} className={styles.label}>
+              {label}
+            </label>
+          )}
+        </div>
+        {error && (
+          <span id={errorId} className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';

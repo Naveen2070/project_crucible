@@ -1,0 +1,40 @@
+import { Meta, StoryObj } from '@storybook/angular';
+import { SeparatorComponent } from './separator.component';
+
+const meta: Meta<SeparatorComponent> = {
+  title: 'Crucible/Separator',
+  component: SeparatorComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    decorative:  { control: 'boolean' },
+    label:       { control: 'text' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<SeparatorComponent>;
+
+export const Default: Story = {
+  args: { orientation: 'horizontal' },
+  render: (args) => ({
+    props: args,
+    template: `<div style="width:320px"><app-separator [orientation]="orientation" [decorative]="decorative" [label]="label"></app-separator></div>`,
+  }),
+};
+
+export const WithLabel: Story = {
+  args: { orientation: 'horizontal', label: 'OR' },
+  render: (args) => ({
+    props: args,
+    template: `<div style="width:320px"><app-separator [orientation]="orientation" [decorative]="decorative" [label]="label"></app-separator></div>`,
+  }),
+};
+
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => ({
+    props: args,
+    template: `<div style="display:flex;align-items:center;height:40px;gap:12px"><span>Home</span><app-separator [orientation]="orientation"></app-separator><span>Docs</span></div>`,
+  }),
+};

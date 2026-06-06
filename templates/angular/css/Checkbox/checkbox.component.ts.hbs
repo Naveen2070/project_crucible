@@ -1,0 +1,31 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-checkbox',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './checkbox.component.html',
+  styleUrls: ['./checkbox.component.{{#if (eq styleSystem "scss")}}scss{{else}}css{{/if}}'],
+})
+export class CheckboxComponent {
+  @Input() label = '';
+  @Input() checked = false;
+  @Input() indeterminate = false;
+  @Input() disabled = false;
+  @Input() error = '';
+  @Input() variant: {{> shared/variant-types}} = 'default';
+  @Input() size: {{> shared/size-types}} = 'md';
+
+  @Output() checkedChange = new EventEmitter<boolean>();
+
+  id = 'checkbox-' + Math.random().toString(36).substring(2, 9);
+
+  get isError(): boolean {
+    return this.variant === 'error' || !!this.error;
+  }
+
+  onChange(event: Event): void {
+    this.checkedChange.emit((event.target as HTMLInputElement).checked);
+  }
+}

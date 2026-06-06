@@ -1,6 +1,6 @@
 {
   "name": "@cruciblelab/crucible",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Crucible — Code Generation Engine that generates style system/spec-based components for React, Vue, and Angular. No runtime dependencies. You own every file generated.",
   "docs": "https://crucible-docs.naveenr.in",
   "main": "dist/cli/index.js",
@@ -18,8 +18,9 @@
   ],
   "scripts": {
     "audit:templates": "tsx scripts/audit-templates.ts",
+    "clean:dist": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prebuild": "npm run audit:templates",
-    "build": "tsc && tsx scripts/copy-manifests.ts",
+    "build": "npm run clean:dist && tsc && tsx scripts/copy-manifests.ts",
     "build:watch": "tsc --watch",
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
     "playground": "npm run dev --workspace=playground-react",
@@ -114,5 +115,14 @@
   },
   "engines": {
     "node": ">=20 <25"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.5.6": true,
+    "esbuild@0.27.4": true,
+    "esbuild@0.27.3": true,
+    "esbuild@0.25.12": true,
+    "vue-demi@0.14.10": true,
+    "lmdb@3.5.1": true,
+    "msgpackr-extract@3.0.3": true
   }
 }

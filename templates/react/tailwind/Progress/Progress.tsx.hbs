@@ -1,0 +1,97 @@
+import React from 'react';
+
+export type ProgressVariant = {{> shared/variant-types}};
+export type ProgressSize    = {{> shared/size-types}};
+
+export interface ProgressProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'role'> {
+  /** Current value (0..max) */
+  value?: number;
+  /** Maximum value */
+  max?: number;
+  /** Linear bar or circular ring */
+  variant?: ProgressVariant;
+  /** Bar thickness / ring diameter */
+  size?: ProgressSize;
+  /** Accessible label */
+  label?: string;
+  /** Show a continuous (looping) animation instead of a fixed value */
+  indeterminate?: boolean;
+}
+
+const LINEAR_SIZE: Record<ProgressSize, string> = {
+  sm: 'h-1',
+  md: 'h-2',
+  lg: 'h-3',
+};
+
+const CIRCULAR_SIZE: Record<ProgressSize, string> = {
+  sm: 'w-6 h-6',
+  md: 'w-10 h-10',
+  lg: 'w-14 h-14',
+};
+
+const RADIUS = 16;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ value = 0, max = 100, variant = 'linear', size = 'md', label, indeterminate = false, className, ...props }, ref) => {
+    const clamped = Math.min(Math.max(value, 0), max);
+    const pct = max > 0 ? (clamped / max) * 100 : 0;
+
+    const ariaProps = {
+      role: 'progressbar' as const,
+      'aria-valuemin': 0,
+      'aria-valuemax': max,
+      'aria-valuenow': indeterminate ? undefined : clamped,
+      'aria-label': label,
+    };
+
+    if (variant === 'circular') {
+      const dashoffset = indeterminate ? CIRCUMFERENCE * 0.75 : CIRCUMFERENCE * (1 - pct / 100);
+      const ringStyle = { strokeDasharray: CIRCUMFERENCE, strokeDashoffset: dashoffset };
+      const wrapCls = ['inline-flex', CIRCULAR_SIZE[size], className || ''].filter(Boolean).join(' ');
+      const svgCls = ['w-full h-full', indeterminate ? 'motion-safe:animate-spin' : '-rotate-90'].join(' ');
+
+      return (
+        <div ref={ref} className={wrapCls} {...ariaProps} {...props}>
+          <svg className={svgCls} viewBox="0 0 36 36">
+            <circle
+              className="stroke-[var(--progress-track-bg,var(--color-secondary))] [stroke-width:4]"
+              cx="18"
+              cy="18"
+              r={RADIUS}
+              fill="none"
+            />
+            <circle
+              className="stroke-[var(--progress-bar-bg,var(--color-primary))] [stroke-width:4] [stroke-linecap:round] transition-[stroke-dashoffset] duration-300"
+              cx="18"
+              cy="18"
+              r={RADIUS}
+              fill="none"
+              style={ringStyle}
+            />
+          </svg>
+        </div>
+      );
+    }
+
+    const barStyle = indeterminate ? undefined : { width: `${pct}%` };
+    const cls = [
+      'w-full overflow-hidden rounded-full bg-[var(--progress-track-bg,var(--color-secondary))]',
+      LINEAR_SIZE[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+    const barCls = [
+      'h-full rounded-[inherit] bg-[var(--progress-bar-bg,var(--color-primary))] transition-[width] duration-300',
+      indeterminate ? 'w-2/5 motion-safe:animate-pulse' : '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div ref={ref} className={cls} {...ariaProps} {...props}>
+        <div className={barCls} style={barStyle} />
+      </div>
+    );
+  }
+);
+
+Progress.displayName = 'Progress';

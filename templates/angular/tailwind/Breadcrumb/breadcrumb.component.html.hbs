@@ -1,0 +1,18 @@
+<nav aria-label="Breadcrumb" [class]="navClasses">
+  <ol class="flex flex-wrap items-center gap-2 m-0 p-0 list-none">
+    @for (item of display; track $index) {
+      <li class="inline-flex items-center gap-2">
+        @if (item.ellipsis) {
+          <span class="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">\{{ item.label }}</span>
+        } @else if (item.href && !$last) {
+          <a [href]="item.href" class="text-[var(--breadcrumb-link-color,var(--color-text-muted))] no-underline hover:underline hover:text-[var(--color-text)]">\{{ item.label }}</a>
+        } @else {
+          <span class="font-medium text-[var(--breadcrumb-active-color,var(--color-text))]" [attr.aria-current]="$last ? 'page' : null">\{{ item.label }}</span>
+        }
+        @if (!$last) {
+          <span class="text-[var(--breadcrumb-separator-color,var(--color-text-muted))] select-none" aria-hidden="true">\{{ separator }}</span>
+        }
+      </li>
+    }
+  </ol>
+</nav>
