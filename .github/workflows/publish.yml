@@ -18,7 +18,14 @@ on:
     types: [published]
 
 jobs:
+  # Gate: run the full CI suite (build + playground generation + unit + e2e) by
+  # reusing test.yml. Publishing only proceeds if this passes — single source of
+  # truth, no duplicated test steps.
+  test:
+    uses: ./.github/workflows/test.yml
+
   publish:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -53,12 +60,6 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Unit tests
-        run: npx vitest run
-
-      - name: E2E tests
-        run: npm run test:e2e
 
       # No NODE_AUTH_TOKEN: npm authenticates via OIDC against the trusted
       # publisher you configured on npmjs.com. Provenance is attached automatically.
