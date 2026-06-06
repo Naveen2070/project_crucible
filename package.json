@@ -18,8 +18,9 @@
   ],
   "scripts": {
     "audit:templates": "tsx scripts/audit-templates.ts",
+    "clean:dist": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prebuild": "npm run audit:templates",
-    "build": "tsc && tsx scripts/copy-manifests.ts",
+    "build": "npm run clean:dist && tsc && tsx scripts/copy-manifests.ts",
     "build:watch": "tsc --watch",
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
     "playground": "npm run dev --workspace=playground-react",
