@@ -9,8 +9,12 @@
 A code generation engine that scaffolds production-ready, style system/spec-based components
 into your project. No wrappers, no black-box libraries. You own every file generated.
 
-**Crucible is not a component library** — it's a code generation engine. It produces source
-files that live in your project, not a package that sits in `node_modules`.
+<p align="center">
+  <img src="assets/setup-cmd.gif" alt="Crucible demo" width="700">
+</p>
+
+**Crucible is not a component library** — it's a code generation engine. It produces source files
+that live in your project, not a package that sits in node_modules.
 
 [![npm version](https://img.shields.io/npm/v/@cruciblelab/crucible.svg)](https://www.npmjs.com/package/@cruciblelab/crucible)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
