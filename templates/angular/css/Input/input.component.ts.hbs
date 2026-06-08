@@ -1,6 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-input',
   standalone: true,
@@ -18,5 +20,5 @@ export class InputComponent {
   @Input() required = false;
   @Input() size: {{> shared/size-types}} = {{#if defaultSize}}'{{defaultSize}}'{{else}}'{{sizes.[0]}}'{{/if}};
 
-  id = 'input-' + Math.random().toString(36).substring(2, 9);
+  id = `input-${++uid}`;
 }

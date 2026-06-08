@@ -1,5 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
 
+let uid = 0;
+
 const variantClasses: Record<string, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
 {{/each}} };
@@ -30,7 +32,7 @@ export class SelectComponent {
   @ViewChild('listbox') listbox?: ElementRef;
   @ViewChild('trigger') trigger?: ElementRef;
 
-  id = 'select-' + Math.random().toString(36).substr(2, 9);
+  id = `select-${++uid}`;
   isOpen = false;
   activeIndex = -1;
   private searchString = '';

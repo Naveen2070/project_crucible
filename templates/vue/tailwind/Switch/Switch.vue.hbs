@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed{{#if vueUseId}}, useId{{else}}, getCurrentInstance{{/if}} } from 'vue';
 
 export type SwitchSize = {{> shared/size-types}};
 
@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:modelValue']);
 
-const generatedId = `switch-${Math.floor(Math.random() * 1000000)}`;
+const generatedId = {{#if vueUseId}}`switch-${useId()}`{{else}}`switch-${getCurrentInstance()?.uid ?? 0}`{{/if}};
 const switchId = computed(() => props.id || generatedId);
 
 const trackClasses: Record<SwitchSize, string> = {

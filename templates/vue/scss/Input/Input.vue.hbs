@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed{{#if vueUseId}}, useId{{else}}, getCurrentInstance{{/if}} } from 'vue';
 
 export type InputVariant = {{#each variants}}'{{{this}}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type InputSize    = {{#each sizes}}'{{{this}}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const showPassword = ref(false);
-const generatedId = `input-${Math.floor(Math.random() * 1000000)}`;
+const generatedId = {{#if vueUseId}}`input-${useId()}`{{else}}`input-${getCurrentInstance()?.uid ?? 0}`{{/if}};
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => `${inputId.value}-error`);
 const hintId = computed(() => `${inputId.value}-hint`);

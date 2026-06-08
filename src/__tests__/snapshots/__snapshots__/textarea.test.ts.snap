@@ -4,6 +4,8 @@ exports[`Textarea snapshots > angular css mode snapshot (monolithic) 1`] = `
 "import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-textarea',
   standalone: true,
@@ -23,7 +25,7 @@ export class TextareaComponent {
   @Input() variant: 'default' | 'error' = 'default';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
 
-  id = 'textarea-' + Math.random().toString(36).substring(2, 9);
+  id = \`textarea-\${++uid}\`;
 
   get isError(): boolean {
     return this.variant === 'error' || !!this.error;
@@ -462,7 +464,7 @@ Textarea.displayName = 'Textarea';
 
 exports[`Textarea snapshots > vue css mode snapshot 1`] = `
 "<script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 export type TextareaVariant = 'default' | 'error';
 export type TextareaSize    = 'sm' | 'md' | 'lg';
@@ -497,7 +499,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:modelValue']);
 
-const generatedId = \`textarea-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`textarea-\${useId()}\`;
 const textareaId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${textareaId.value}-error\`);
 const hintId = computed(() => \`\${textareaId.value}-hint\`);

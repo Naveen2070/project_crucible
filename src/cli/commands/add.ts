@@ -20,6 +20,7 @@ import {
 } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
 import { pathExists } from '../../utils/fs';
+import { detectVueVersion, supportsVueUseId } from '../../utils/semver';
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -120,6 +121,23 @@ export async function runAdd(components: string[], opts: any) {
       console.log(
         ansis.cyan('  Generating output that relies on native content projection (ng-content).\n'),
       );
+    }
+
+    // Vue ID strategy: useId() (Vue 3.5+) by default; deprecated fallback for older Vue.
+    let vueUseId = true;
+    if (config.framework === Framework.Vue) {
+      const vueVersion = await detectVueVersion(cwd);
+      vueUseId = supportsVueUseId(vueVersion);
+      if (!vueUseId && !opts.quiet) {
+        console.warn(
+          ansis.yellow(
+            `⚠ Detected Vue ${vueVersion} (<3.5). Generated components use a deprecated ID fallback.`,
+          ),
+        );
+        console.warn(
+          ansis.gray(`   useId() is the default — upgrade to Vue 3.5+ to use it.`),
+        );
+      }
     }
 
     // Pre-generation token validation (Linting pass)
@@ -225,7 +243,7 @@ export async function runAdd(components: string[], opts: any) {
     await Promise.all(
       Array.from(resolvedComponents).map(async (comp) => {
         if (opts.verbose) console.log(ansis.blue(`Generating ${comp}...`));
-        const model = buildComponentModel(comp, tokens, config, generateStories);
+        const model = buildComponentModel(comp, tokens, config, generateStories, vueUseId);
         const files = await renderComponent(model);
 
         await writeFiles(files, outDir, comp, {

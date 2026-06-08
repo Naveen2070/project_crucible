@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-checkbox',
   standalone: true,
@@ -19,7 +21,7 @@ export class CheckboxComponent {
 
   @Output() checkedChange = new EventEmitter<boolean>();
 
-  id = 'checkbox-' + Math.random().toString(36).substring(2, 9);
+  id = `checkbox-${++uid}`;
 
   get isError(): boolean {
     return this.variant === 'error' || !!this.error;

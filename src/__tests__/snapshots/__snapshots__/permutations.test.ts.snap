@@ -1076,6 +1076,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "dialog.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-Dialog',
   standalone: true,
@@ -1092,8 +1094,8 @@ export class DialogComponent {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = \`dialog-title-\${Math.random().toString(36).substr(2, 9)}\`;
-  descriptionId = \`dialog-desc-\${Math.random().toString(36).substr(2, 9)}\`;
+  titleId = \`dialog-title-\${++uid}\`;
+  descriptionId = \`dialog-desc-\${++uid}\`;
 
   onClose() {
     this.close.emit();
@@ -1492,6 +1494,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "input.component.ts": "import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-input',
   standalone: true,
@@ -1509,7 +1513,7 @@ export class InputComponent {
   @Input() required = false;
   @Input() size: 'sm' | 'md' | 'lg' = 'sm';
 
-  id = 'input-' + Math.random().toString(36).substring(2, 9);
+  id = \`input-\${++uid}\`;
 }
 ",
 }
@@ -2646,6 +2650,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "select.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-select',
   standalone: true,
@@ -2665,7 +2671,7 @@ export class SelectComponent {
 
   @Output() valueChange = new EventEmitter<any>();
 
-  id = 'select-' + Math.random().toString(36).substring(2, 9);
+  id = \`select-\${++uid}\`;
 
   onChange(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -5146,6 +5152,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "dialog.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-Dialog',
   standalone: true,
@@ -5162,8 +5170,8 @@ export class DialogComponent {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = \`dialog-title-\${Math.random().toString(36).substr(2, 9)}\`;
-  descriptionId = \`dialog-desc-\${Math.random().toString(36).substr(2, 9)}\`;
+  titleId = \`dialog-title-\${++uid}\`;
+  descriptionId = \`dialog-desc-\${++uid}\`;
 
   onClose() {
     this.close.emit();
@@ -5730,6 +5738,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "input.component.ts": "import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-input',
   standalone: true,
@@ -5747,7 +5757,7 @@ export class InputComponent {
   @Input() required = false;
   @Input() size: 'sm' | 'md' | 'lg' = 'sm';
 
-  id = 'input-' + Math.random().toString(36).substring(2, 9);
+  id = \`input-\${++uid}\`;
 }
 ",
 }
@@ -6878,6 +6888,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "select.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-select',
   standalone: true,
@@ -6897,7 +6909,7 @@ export class SelectComponent {
 
   @Output() valueChange = new EventEmitter<any>();
 
-  id = 'select-' + Math.random().toString(36).substring(2, 9);
+  id = \`select-\${++uid}\`;
 
   onChange(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -8941,6 +8953,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 ",
   "dialog.component.ts": "import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 
+let uid = 0;
+
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)]',
   confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
@@ -8965,8 +8979,8 @@ export class DialogComponent implements OnInit, OnDestroy {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = 'dialog-title-' + Math.random().toString(36).substring(2, 9);
-  descriptionId = 'dialog-desc-' + Math.random().toString(36).substring(2, 9);
+  titleId = \`dialog-title-\${++uid}\`;
+  descriptionId = \`dialog-desc-\${++uid}\`;
 
   ngOnInit() {}
 
@@ -10223,6 +10237,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 ",
   "select.component.ts": "import { Component, Input, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
 
+let uid = 0;
+
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
   error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
@@ -10254,7 +10270,7 @@ export class SelectComponent {
   @ViewChild('listbox') listbox?: ElementRef;
   @ViewChild('trigger') trigger?: ElementRef;
 
-  id = 'select-' + Math.random().toString(36).substr(2, 9);
+  id = \`select-\${++uid}\`;
   isOpen = false;
   activeIndex = -1;
   private searchString = '';
@@ -12513,6 +12529,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "dialog.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-Dialog',
   standalone: true,
@@ -12529,8 +12547,8 @@ export class DialogComponent {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = \`dialog-title-\${Math.random().toString(36).substr(2, 9)}\`;
-  descriptionId = \`dialog-desc-\${Math.random().toString(36).substr(2, 9)}\`;
+  titleId = \`dialog-title-\${++uid}\`;
+  descriptionId = \`dialog-desc-\${++uid}\`;
 
   onClose() {
     this.close.emit();
@@ -12929,6 +12947,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "input.component.ts": "import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-input',
   standalone: true,
@@ -12946,7 +12966,7 @@ export class InputComponent {
   @Input() required = false;
   @Input() size: 'sm' | 'md' | 'lg' = 'sm';
 
-  id = 'input-' + Math.random().toString(36).substring(2, 9);
+  id = \`input-\${++uid}\`;
 }
 ",
 }
@@ -14083,6 +14103,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "select.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-select',
   standalone: true,
@@ -14102,7 +14124,7 @@ export class SelectComponent {
 
   @Output() valueChange = new EventEmitter<any>();
 
-  id = 'select-' + Math.random().toString(36).substring(2, 9);
+  id = \`select-\${++uid}\`;
 
   onChange(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -16583,6 +16605,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "dialog.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-Dialog',
   standalone: true,
@@ -16599,8 +16623,8 @@ export class DialogComponent {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = \`dialog-title-\${Math.random().toString(36).substr(2, 9)}\`;
-  descriptionId = \`dialog-desc-\${Math.random().toString(36).substr(2, 9)}\`;
+  titleId = \`dialog-title-\${++uid}\`;
+  descriptionId = \`dialog-desc-\${++uid}\`;
 
   onClose() {
     this.close.emit();
@@ -17167,6 +17191,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "input.component.ts": "import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-input',
   standalone: true,
@@ -17184,7 +17210,7 @@ export class InputComponent {
   @Input() required = false;
   @Input() size: 'sm' | 'md' | 'lg' = 'sm';
 
-  id = 'input-' + Math.random().toString(36).substring(2, 9);
+  id = \`input-\${++uid}\`;
 }
 ",
 }
@@ -18315,6 +18341,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
   "select.component.ts": "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-select',
   standalone: true,
@@ -18334,7 +18362,7 @@ export class SelectComponent {
 
   @Output() valueChange = new EventEmitter<any>();
 
-  id = 'select-' + Math.random().toString(36).substring(2, 9);
+  id = \`select-\${++uid}\`;
 
   onChange(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -20378,6 +20406,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 ",
   "dialog.component.ts": "import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 
+let uid = 0;
+
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)]',
   confirm: 'bg-[var(--color-surface)] border-t-4 border-[var(--color-primary)]',
@@ -20402,8 +20432,8 @@ export class DialogComponent implements OnInit, OnDestroy {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = 'dialog-title-' + Math.random().toString(36).substring(2, 9);
-  descriptionId = 'dialog-desc-' + Math.random().toString(36).substring(2, 9);
+  titleId = \`dialog-title-\${++uid}\`;
+  descriptionId = \`dialog-desc-\${++uid}\`;
 
   ngOnInit() {}
 
@@ -21660,6 +21690,8 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 ",
   "select.component.ts": "import { Component, Input, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
 
+let uid = 0;
+
 const variantClasses: Record<string, string> = {
   default: 'bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]',
   error: 'bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]',
@@ -21691,7 +21723,7 @@ export class SelectComponent {
   @ViewChild('listbox') listbox?: ElementRef;
   @ViewChild('trigger') trigger?: ElementRef;
 
-  id = 'select-' + Math.random().toString(36).substr(2, 9);
+  id = \`select-\${++uid}\`;
   isOpen = false;
   activeIndex = -1;
   private searchString = '';
@@ -49281,7 +49313,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: css > Component: Dialog > renders correctly 1`] = `
 {
   "Dialog.vue": "<script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 export type DialogVariant = 'default' | 'confirm';
 export type DialogSize    = 'sm' | 'md' | 'lg';
@@ -49312,8 +49344,8 @@ const dialogClasses = computed(() => [
   \`Dialog--\${props.variant}\`,
 ]);
 
-const titleId = \`dialog-title-\${Math.floor(Math.random() * 1000000)}\`;
-const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
+const titleId = \`dialog-title-\${useId()}\`;
+const descriptionId = \`dialog-desc-\${useId()}\`;
 </script>
 
 <template>
@@ -49694,7 +49726,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: css > Component: Input > renders correctly 1`] = `
 {
   "Input.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
@@ -49730,7 +49762,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:modelValue']);
 
 const showPassword = ref(false);
-const generatedId = \`input-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`input-\${useId()}\`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${inputId.value}-error\`);
 const hintId = computed(() => \`\${inputId.value}-hint\`);
@@ -50163,7 +50195,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: css > Component: Popover > renders correctly 1`] = `
 {
   "Popover.vue": "<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance, useId } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -50227,7 +50259,7 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const contentId = \`popover-content-\${uid}\`;
 
 const contentRef = ref<HTMLElement | null>(null);
@@ -51060,7 +51092,7 @@ Generated by Crucible v1.0.0 | Theme: minimal | Framework: vue
 _This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
   "Select.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
@@ -51094,7 +51126,7 @@ const activeIndex = ref(-1);
 const searchString = ref('');
 let searchTimeout: any;
 
-const listboxId = \`select-listbox-\${Math.floor(Math.random() * 1000000)}\`;
+const listboxId = \`select-listbox-\${useId()}\`;
 const getOptionId = (index: number) => \`select-option-\${listboxId}-\${index}\`;
 
 const toggle = () => {
@@ -53697,7 +53729,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: scss > Component: Dialog > renders correctly 1`] = `
 {
   "Dialog.vue": "<script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 export type DialogVariant = 'default' | 'confirm';
 export type DialogSize    = 'sm' | 'md' | 'lg';
@@ -53728,8 +53760,8 @@ const dialogClasses = computed(() => [
   \`Dialog--\${props.variant}\`,
 ]);
 
-const titleId = \`dialog-title-\${Math.floor(Math.random() * 1000000)}\`;
-const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
+const titleId = \`dialog-title-\${useId()}\`;
+const descriptionId = \`dialog-desc-\${useId()}\`;
 </script>
 
 <template>
@@ -54110,7 +54142,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: scss > Component: Input > renders correctly 1`] = `
 {
   "Input.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
@@ -54142,7 +54174,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const showPassword = ref(false);
-const generatedId = \`input-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`input-\${useId()}\`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${inputId.value}-error\`);
 const hintId = computed(() => \`\${inputId.value}-hint\`);
@@ -54745,7 +54777,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: scss > Component: Popover > renders correctly 1`] = `
 {
   "Popover.vue": "<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance, useId } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -54809,7 +54841,7 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const contentId = \`popover-content-\${uid}\`;
 
 const contentRef = ref<HTMLElement | null>(null);
@@ -55642,7 +55674,7 @@ Generated by Crucible v1.0.0 | Theme: minimal | Framework: vue
 _This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
   "Select.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
@@ -55674,7 +55706,7 @@ const emit = defineEmits(['update:value']);
 const isOpen = ref(false);
 const activeIndex = ref(-1);
 
-const listboxId = \`select-listbox-\${Math.floor(Math.random() * 1000000)}\`;
+const listboxId = \`select-listbox-\${useId()}\`;
 const getOptionId = (index: number) => \`select-option-\${listboxId}-\${index}\`;
 
 const toggle = () => {
@@ -57924,7 +57956,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: tailwind > Component: Dialog > renders correctly 1`] = `
 {
   "Dialog.vue": "<script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, watch, useId } from 'vue';
 
 export type DialogVariant = 'default' | 'confirm';
 export type DialogSize    = 'sm' | 'md' | 'lg';
@@ -57988,8 +58020,8 @@ onUnmounted(() => {
   document.body.style.overflow = '';
 });
 
-const titleId = \`dialog-title-\${Math.floor(Math.random() * 1000000)}\`;
-const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
+const titleId = \`dialog-title-\${useId()}\`;
+const descriptionId = \`dialog-desc-\${useId()}\`;
 </script>
 
 <template>
@@ -58286,7 +58318,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: tailwind > Component: Input > renders correctly 1`] = `
 {
   "Input.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
@@ -58318,7 +58350,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const showPassword = ref(false);
-const generatedId = \`input-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`input-\${useId()}\`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${inputId.value}-error\`);
 const hintId = computed(() => \`\${inputId.value}-hint\`);
@@ -58636,7 +58668,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: minimal > StyleSystem: tailwind > Component: Popover > renders correctly 1`] = `
 {
   "Popover.vue": "<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance, useId } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -58700,7 +58732,7 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const contentId = \`popover-content-\${uid}\`;
 
 const contentRef = ref<HTMLElement | null>(null);
@@ -59425,7 +59457,7 @@ Generated by Crucible v1.0.0 | Theme: minimal | Framework: vue
 _This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
   "Select.vue": "<script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, useId } from 'vue';
 
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
@@ -59463,7 +59495,7 @@ const isOpen = ref(false);
 const activeIndex = ref(-1);
 const containerRef = ref<HTMLElement | null>(null);
 
-const listboxId = \`select-listbox-\${Math.floor(Math.random() * 1000000)}\`;
+const listboxId = \`select-listbox-\${useId()}\`;
 const getOptionId = (index: number) => \`select-option-\${listboxId}-\${index}\`;
 
 const toggle = () => {
@@ -61319,7 +61351,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: css > Component: Dialog > renders correctly 1`] = `
 {
   "Dialog.vue": "<script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 export type DialogVariant = 'default' | 'confirm';
 export type DialogSize    = 'sm' | 'md' | 'lg';
@@ -61350,8 +61382,8 @@ const dialogClasses = computed(() => [
   \`Dialog--\${props.variant}\`,
 ]);
 
-const titleId = \`dialog-title-\${Math.floor(Math.random() * 1000000)}\`;
-const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
+const titleId = \`dialog-title-\${useId()}\`;
+const descriptionId = \`dialog-desc-\${useId()}\`;
 </script>
 
 <template>
@@ -61732,7 +61764,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: css > Component: Input > renders correctly 1`] = `
 {
   "Input.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
@@ -61768,7 +61800,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:modelValue']);
 
 const showPassword = ref(false);
-const generatedId = \`input-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`input-\${useId()}\`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${inputId.value}-error\`);
 const hintId = computed(() => \`\${inputId.value}-hint\`);
@@ -62201,7 +62233,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: css > Component: Popover > renders correctly 1`] = `
 {
   "Popover.vue": "<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance, useId } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -62265,7 +62297,7 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const contentId = \`popover-content-\${uid}\`;
 
 const contentRef = ref<HTMLElement | null>(null);
@@ -63098,7 +63130,7 @@ Generated by Crucible v1.0.0 | Theme: soft | Framework: vue
 _This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
   "Select.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
@@ -63132,7 +63164,7 @@ const activeIndex = ref(-1);
 const searchString = ref('');
 let searchTimeout: any;
 
-const listboxId = \`select-listbox-\${Math.floor(Math.random() * 1000000)}\`;
+const listboxId = \`select-listbox-\${useId()}\`;
 const getOptionId = (index: number) => \`select-option-\${listboxId}-\${index}\`;
 
 const toggle = () => {
@@ -65735,7 +65767,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: scss > Component: Dialog > renders correctly 1`] = `
 {
   "Dialog.vue": "<script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 export type DialogVariant = 'default' | 'confirm';
 export type DialogSize    = 'sm' | 'md' | 'lg';
@@ -65766,8 +65798,8 @@ const dialogClasses = computed(() => [
   \`Dialog--\${props.variant}\`,
 ]);
 
-const titleId = \`dialog-title-\${Math.floor(Math.random() * 1000000)}\`;
-const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
+const titleId = \`dialog-title-\${useId()}\`;
+const descriptionId = \`dialog-desc-\${useId()}\`;
 </script>
 
 <template>
@@ -66148,7 +66180,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: scss > Component: Input > renders correctly 1`] = `
 {
   "Input.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
@@ -66180,7 +66212,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const showPassword = ref(false);
-const generatedId = \`input-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`input-\${useId()}\`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${inputId.value}-error\`);
 const hintId = computed(() => \`\${inputId.value}-hint\`);
@@ -66783,7 +66815,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: scss > Component: Popover > renders correctly 1`] = `
 {
   "Popover.vue": "<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance, useId } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -66847,7 +66879,7 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const contentId = \`popover-content-\${uid}\`;
 
 const contentRef = ref<HTMLElement | null>(null);
@@ -67680,7 +67712,7 @@ Generated by Crucible v1.0.0 | Theme: soft | Framework: vue
 _This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
   "Select.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
@@ -67712,7 +67744,7 @@ const emit = defineEmits(['update:value']);
 const isOpen = ref(false);
 const activeIndex = ref(-1);
 
-const listboxId = \`select-listbox-\${Math.floor(Math.random() * 1000000)}\`;
+const listboxId = \`select-listbox-\${useId()}\`;
 const getOptionId = (index: number) => \`select-option-\${listboxId}-\${index}\`;
 
 const toggle = () => {
@@ -69962,7 +69994,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: tailwind > Component: Dialog > renders correctly 1`] = `
 {
   "Dialog.vue": "<script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, watch, useId } from 'vue';
 
 export type DialogVariant = 'default' | 'confirm';
 export type DialogSize    = 'sm' | 'md' | 'lg';
@@ -70026,8 +70058,8 @@ onUnmounted(() => {
   document.body.style.overflow = '';
 });
 
-const titleId = \`dialog-title-\${Math.floor(Math.random() * 1000000)}\`;
-const descriptionId = \`dialog-desc-\${Math.floor(Math.random() * 1000000)}\`;
+const titleId = \`dialog-title-\${useId()}\`;
+const descriptionId = \`dialog-desc-\${useId()}\`;
 </script>
 
 <template>
@@ -70324,7 +70356,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: tailwind > Component: Input > renders correctly 1`] = `
 {
   "Input.vue": "<script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, useId } from 'vue';
 
 export type InputVariant = 'default' | 'error';
 export type InputSize    = 'sm' | 'md' | 'lg';
@@ -70356,7 +70388,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const showPassword = ref(false);
-const generatedId = \`input-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`input-\${useId()}\`;
 const inputId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${inputId.value}-error\`);
 const hintId = computed(() => \`\${inputId.value}-hint\`);
@@ -70674,7 +70706,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 exports[`Framework x Style-System Permutation Snapshots > Framework: vue > Theme: soft > StyleSystem: tailwind > Component: Popover > renders correctly 1`] = `
 {
   "Popover.vue": "<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, getCurrentInstance, useId } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface PopoverProps {
@@ -70738,7 +70770,7 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const contentId = \`popover-content-\${uid}\`;
 
 const contentRef = ref<HTMLElement | null>(null);
@@ -71463,7 +71495,7 @@ Generated by Crucible v1.0.0 | Theme: soft | Framework: vue
 _This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
   "Select.vue": "<script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, useId } from 'vue';
 
 export type SelectVariant = 'default' | 'error';
 export type SelectSize    = 'sm' | 'md' | 'lg';
@@ -71501,7 +71533,7 @@ const isOpen = ref(false);
 const activeIndex = ref(-1);
 const containerRef = ref<HTMLElement | null>(null);
 
-const listboxId = \`select-listbox-\${Math.floor(Math.random() * 1000000)}\`;
+const listboxId = \`select-listbox-\${useId()}\`;
 const getOptionId = (index: number) => \`select-option-\${listboxId}-\${index}\`;
 
 const toggle = () => {

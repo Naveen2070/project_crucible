@@ -4,6 +4,8 @@ exports[`Checkbox snapshots > angular css mode snapshot (monolithic) 1`] = `
 "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-checkbox',
   standalone: true,
@@ -22,7 +24,7 @@ export class CheckboxComponent {
 
   @Output() checkedChange = new EventEmitter<boolean>();
 
-  id = 'checkbox-' + Math.random().toString(36).substring(2, 9);
+  id = \`checkbox-\${++uid}\`;
 
   get isError(): boolean {
     return this.variant === 'error' || !!this.error;
@@ -445,7 +447,7 @@ Checkbox.displayName = 'Checkbox';
 
 exports[`Checkbox snapshots > vue css mode snapshot 1`] = `
 "<script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, useId } from 'vue';
 
 export type CheckboxVariant = 'default' | 'error';
 export type CheckboxSize    = 'sm' | 'md' | 'lg';
@@ -475,7 +477,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:modelValue']);
 
 const inputRef = ref<HTMLInputElement | null>(null);
-const generatedId = \`checkbox-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`checkbox-\${useId()}\`;
 const checkboxId = computed(() => props.id || generatedId);
 const errorId = computed(() => \`\${checkboxId.value}-error\`);
 const isError = computed(() => props.variant === 'error' || !!props.error);

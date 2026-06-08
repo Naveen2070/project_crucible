@@ -4,6 +4,8 @@ exports[`Switch snapshots > angular css mode snapshot (monolithic) 1`] = `
 "import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-switch',
   standalone: true,
@@ -19,7 +21,7 @@ export class SwitchComponent {
 
   @Output() checkedChange = new EventEmitter<boolean>();
 
-  id = 'switch-' + Math.random().toString(36).substring(2, 9);
+  id = \`switch-\${++uid}\`;
 
   toggle(): void {
     if (this.disabled) return;
@@ -477,7 +479,7 @@ Switch.displayName = 'Switch';
 
 exports[`Switch snapshots > vue css mode snapshot 1`] = `
 "<script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 export type SwitchSize = 'sm' | 'md' | 'lg';
 
@@ -499,7 +501,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:modelValue']);
 
-const generatedId = \`switch-\${Math.floor(Math.random() * 1000000)}\`;
+const generatedId = \`switch-\${useId()}\`;
 const switchId = computed(() => props.id || generatedId);
 
 const toggle = () => {

@@ -535,6 +535,49 @@ export function generateComponentFiles(name: string): ComponentDef {
 \*Story files are generated only when `generateStories: true` (opt-in via config or `--stories`
 flag).
 
+### 8.4 Plugin System
+
+The registry is **data-driven and pluggable** — components are not hard-coded. On startup,
+`initRegistry(cwd)` (`src/plugins/loader.ts`) populates the registry from plugins, and the
+exported `registry` / `COMPONENT_DEFAULTS` / `TAILWIND_VARIANT_DEFAULTS` are `Proxy` objects
+backed by the `pluginRegistry` singleton. Adding a component is therefore a pure **file
+addition** — no engine edits.
+
+**Load order** (`loadPlugins`):
+
+1. **Core plugin** — `src/registry/manifests/plugin.json` (the 25 built-in components).
+2. **Local project plugins** — every `.crucible/plugins/*/plugin.json` in the consumer's `cwd`.
+
+```mermaid
+graph TD
+    A[initRegistry cwd] --> B[load core plugin.json]
+    A --> C[scan .crucible/plugins/*]
+    B --> D[pluginRegistry.registerPlugin]
+    C -->|each plugin.json| E{engineVersion compatible?}
+    E -->|yes| D
+    E -->|no| F[skip + warn]
+    D --> G[registry / COMPONENT_DEFAULTS proxies]
+```
+
+**Key mechanics:**
+
+- **Manifests, not code.** A plugin ships a `PluginManifest` (`plugin.json`) listing
+  `ComponentManifest` JSON specs and a `templatesDir`. Templates are resolved per component via
+  `getComponentTemplatesDir`, so each plugin renders from its **own** templates root —
+  multi-root resolution, no central template folder to edit.
+- **`engineVersion` gating.** Each plugin may declare a semver range (e.g. `>=1.1.0`); if the
+  installed engine is older the plugin is skipped with a warning. Comparison uses the shared
+  `compareVersions` helper in `src/utils/semver.ts`.
+- **Collision = override.** If two plugins (or a plugin and core) provide the same component
+  `id`, the **last-loaded wins** and a collision warning is emitted — so a local plugin can
+  customize a built-in by reusing its id.
+- **Custom frameworks.** A plugin may also register `FrameworkManifest`s + a framework resolver
+  to add an entirely new target framework, not just components.
+
+> **Authoring guide:** see **[Custom Components via Plugins](custom-components-via-plugins.md)**
+> for a complete, copy-paste walkthrough (folder layout, manifest fields, template file map, and
+> the Handlebars model/helpers).
+
 ---
 
 ## 9. Style System — Three Modes
@@ -739,6 +782,21 @@ navigation.
   (`@floating-ui/react` · `@floating-ui/vue` · `@floating-ui/dom`) — the only component carrying
   floating-ui peers besides Popover/Tooltip. Tokens: `--menu-*` (background, border, shadow, item
   hover, min-width, z-index 50).
+
+### 9.13 Unique IDs — deterministic, framework-native (no `Math.random`)
+
+Components that wire ARIA relationships (`for`/`id`, `aria-describedby`, `aria-labelledby`) need a
+unique element id. Generation is **deterministic and collision-free per framework** — no
+`Math.random()` (which is non-deterministic, SSR-unsafe, and trips CodeQL's `js/insecure-randomness`).
+
+- **React** — `useId()` (React 18+).
+- **Vue** — `useId()` (**Vue 3.5+**) by default. At `crucible add` time the CLI detects the
+  consumer's installed Vue version (`detectVueVersion`/`supportsVueUseId` in `src/utils/semver.ts`)
+  and sets the `vueUseId` model flag. If an older Vue is detected, templates emit a **deprecated
+  fallback** (`getCurrentInstance()?.uid`) and the CLI prints an upgrade warning. This is the only
+  place generated Vue output is version-gated.
+- **Angular** — a module-level counter (`let uid = 0; … ${++uid}`), the idiom used by Angular
+  Material; works on every Angular version, no detection needed.
 
 ---
 

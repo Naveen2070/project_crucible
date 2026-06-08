@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, getCurrentInstance } from 'vue';
+import { ref, onMounted, onUnmounted, computed, getCurrentInstance{{#if vueUseId}}, useId{{/if}} } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
 
 interface TooltipProps {
@@ -54,7 +54,11 @@ const isOpen = computed({
   },
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+{{#if vueUseId}}
+const uid = useId();
+{{else}}
+const uid = (instance?.uid ?? 0).toString(36);
+{{/if}}
 const contentId = `tooltip-content-${uid}`;
 
 const contentRef = ref<HTMLElement | null>(null);

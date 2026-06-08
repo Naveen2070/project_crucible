@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed{{#if vueUseId}}, useId{{else}}, getCurrentInstance{{/if}} } from 'vue';
 
 export type SelectVariant = {{> shared/variant-types}};
 export type SelectSize    = {{> shared/size-types}};
@@ -33,7 +33,7 @@ const activeIndex = ref(-1);
 const searchString = ref('');
 let searchTimeout: any;
 
-const listboxId = `select-listbox-${Math.floor(Math.random() * 1000000)}`;
+const listboxId = {{#if vueUseId}}`select-listbox-${useId()}`{{else}}`select-listbox-${getCurrentInstance()?.uid ?? 0}`{{/if}};
 const getOptionId = (index: number) => `select-option-${listboxId}-${index}`;
 
 const toggle = () => {

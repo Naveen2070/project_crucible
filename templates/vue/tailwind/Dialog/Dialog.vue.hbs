@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, watch{{#if vueUseId}}, useId{{else}}, getCurrentInstance{{/if}} } from 'vue';
 
 export type DialogVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type DialogSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -62,8 +62,8 @@ onUnmounted(() => {
   document.body.style.overflow = '';
 });
 
-const titleId = `dialog-title-${Math.floor(Math.random() * 1000000)}`;
-const descriptionId = `dialog-desc-${Math.floor(Math.random() * 1000000)}`;
+const titleId = {{#if vueUseId}}`dialog-title-${useId()}`{{else}}`dialog-title-${getCurrentInstance()?.uid ?? 0}`{{/if}};
+const descriptionId = {{#if vueUseId}}`dialog-desc-${useId()}`{{else}}`dialog-desc-${getCurrentInstance()?.uid ?? 0}`{{/if}};
 </script>
 
 <template>
