@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **IDs no longer use `Math.random()`** in generated Vue and Angular components (CodeQL
+  `js/insecure-randomness`). React already used `useId()`; Vue and Angular now match.
+  - **Vue** — generated components use the native **`useId()`** composable (Vue **3.5+**) by
+    default. The generator detects the consumer's installed Vue version at `crucible add` time;
+    if an older Vue is found it emits a **deprecated fallback** (`getCurrentInstance()?.uid`) and
+    prints a warning recommending an upgrade. Generated Vue code now targets **Vue 3.5+**.
+  - **Angular** — generated components use a module-level incrementing counter
+    (`let uid = 0; … ${++uid}`), the idiom used by Angular Material. No version requirement.
+  - Deterministic, collision-free, and SSR-safe IDs; removes the recurring scanner finding.
+
+### Security
+
+- Eliminated cryptographically-weak `Math.random()` from all generated component ID generation
+  (false-positive ARIA-id usage, but removed for correctness and to clear the CodeQL alert).
+
 ## [1.1.0] - 2026-06-06
 
 > **App-Building Kit** — 14 new components bring the library to **25**, enough to scaffold a
