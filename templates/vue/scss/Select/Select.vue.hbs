@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed{{#if vueUseId}}, useId{{else}}, getCurrentInstance{{/if}} } from 'vue';
 
 export type SelectVariant = {{#each variants}}'{{{this}}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type SelectSize    = {{#each sizes}}'{{{this}}}'{{#unless @last}} | {{/unless}}{{/each}};
@@ -31,7 +31,7 @@ const emit = defineEmits(['update:value']);
 const isOpen = ref(false);
 const activeIndex = ref(-1);
 
-const listboxId = `select-listbox-${Math.floor(Math.random() * 1000000)}`;
+const listboxId = {{#if vueUseId}}`select-listbox-${useId()}`{{else}}`select-listbox-${getCurrentInstance()?.uid ?? 0}`{{/if}};
 const getOptionId = (index: number) => `select-option-${listboxId}-${index}`;
 
 const toggle = () => {

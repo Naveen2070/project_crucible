@@ -6,7 +6,7 @@ import {
   provide,
   reactive,
   computed,
-  getCurrentInstance,
+{{#if vueUseId}}  useId,{{else}}  getCurrentInstance,{{/if}}
   onMounted,
   onBeforeUnmount,
   ref,
@@ -209,7 +209,11 @@ const emit = defineEmits<{
   (e: 'valueChange', value: string | string[]): void;
 }>();
 
-const uid = (getCurrentInstance()?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+{{#if vueUseId}}
+const uid = useId();
+{{else}}
+const uid = (getCurrentInstance()?.uid ?? 0).toString(36);
+{{/if}}
 const rootId = `accordion-${uid}`;
 
 const triggers = new Map<string, TriggerRegistration>();
