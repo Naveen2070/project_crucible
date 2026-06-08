@@ -1,6 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+let uid = 0;
+
 @Component({
   selector: 'app-textarea',
   standalone: true,
@@ -19,7 +21,7 @@ export class TextareaComponent {
   @Input() variant: {{> shared/variant-types}} = 'default';
   @Input() size: {{> shared/size-types}} = 'md';
 
-  id = 'textarea-' + Math.random().toString(36).substring(2, 9);
+  id = `textarea-${++uid}`;
 
   get isError(): boolean {
     return this.variant === 'error' || !!this.error;

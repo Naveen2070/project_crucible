@@ -1,5 +1,7 @@
 import { Component, Input{{#if hasOutputClose}}, Output, EventEmitter{{/if}} } from '@angular/core';
 
+{{#if hasId}}let uid = 0;{{/if}}
+
 @Component({
   selector: 'app-{{toLowerCase name}}',
   templateUrl: './{{kebab name}}.component.html',
@@ -19,7 +21,7 @@ export class {{name}}Component {
   {{#if hasIsOpen}}@Input() isOpen = false;{{/if}}
   {{#if hasClassName}}@Input() className = '';{{/if}}
   {{#if hasId}}
-  @Input() id = '{{prefix}}-' + Math.random().toString(36).substr(2, 9);
+  @Input() id = `{{prefix}}-${++uid}`;
   {{/if}}
 
   {{#if hasOutputClose}}

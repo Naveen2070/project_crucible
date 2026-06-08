@@ -1,5 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 
+let uid = 0;
+
 const variantClasses: Record<string, string> = {
 {{#each variants}}  {{this}}: '{{lookup ../tailwindVariants this}}',
 {{/each}} };
@@ -23,8 +25,8 @@ export class DialogComponent implements OnInit, OnDestroy {
 
   @Output() close = new EventEmitter<void>();
 
-  titleId = 'dialog-title-' + Math.random().toString(36).substring(2, 9);
-  descriptionId = 'dialog-desc-' + Math.random().toString(36).substring(2, 9);
+  titleId = `dialog-title-${++uid}`;
+  descriptionId = `dialog-desc-${++uid}`;
 
   ngOnInit() {}
 
