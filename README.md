@@ -16,7 +16,17 @@ that live in your project, not a package that sits in node_modules.
 
 [![npm version](https://img.shields.io/npm/v/@cruciblelab/crucible.svg)](https://www.npmjs.com/package/@cruciblelab/crucible)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Node Engine](https://img.shields.io/node/v/@cruciblelab/crucible.svg)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue.svg)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![CI](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml/badge.svg)](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml)
+[![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
+[![Local-first](https://img.shields.io/badge/local--first-zero%20runtime%20deps-success.svg)](#why-crucible)
+[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.1.0)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.1.0)
+
+[![GitHub Stars](https://img.shields.io/github/stars/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/Naveen2070/project_crucible.svg)](https://github.com/Naveen2070/project_crucible/issues)
 
 ---
 
