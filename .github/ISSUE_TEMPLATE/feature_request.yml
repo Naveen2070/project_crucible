@@ -1,0 +1,50 @@
+name: ✨ Feature Request
+description: Suggest a new component, flag, or capability
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please describe the problem first — it helps us design the right solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do that Crucible doesn't support today?
+      placeholder: I want to scaffold a … but there's no way to …
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: The component, CLI flag, or behavior you'd like. Include an example invocation if relevant.
+      placeholder: |
+        Add a `Pagination` component, or a `--no-stories` flag for `crucible add` …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: framework-scope
+    attributes:
+      label: Framework scope
+      description: Which frameworks should this cover?
+      multiple: true
+      options:
+        - React
+        - Vue
+        - Angular
+        - All frameworks
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds or other approaches you've thought about.
+    validations:
+      required: false
