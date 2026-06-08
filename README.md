@@ -4,10 +4,16 @@
 
 # ⚗️ Crucible — Code Generation Engine
 
-**Generated once. Yours forever.**
+<p align="center"><img src="assets/logo.png" alt="Logo" width="200"></p>
 
-A code generation engine that scaffolds production-ready, style system/spec-based components into
-your project. No wrappers, no black-box libraries. You own every file generated.
+> **Generated once. Yours forever.**
+>
+> A code generation engine that scaffolds production-ready, style system/spec-based components into
+> your project. No wrappers, no black-box libraries. You own every file generated.
+
+<p align="center">
+  <img src="assets/setup-cmd.gif" alt="Crucible demo" width="700">
+</p>
 
 **Crucible is not a component library** — it's a code generation engine. It produces source files
 that live in your project, not a package that sits in `node_modules`.
@@ -101,50 +107,6 @@ npx crucible add Button
 
 ---
 
-## Installation
-
-Crucible is published on npm as
-**[`@cruciblelab/crucible`](https://www.npmjs.com/package/@cruciblelab/crucible)** and ships a
-single CLI binary, `crucible`. There are two ways to run it.
-
-### Option 1 — Run with `npx` (no install)
-
-Best for a quick try or one-off generation. `npx` fetches and runs the latest published version on
-demand; nothing is added to your project:
-
-```bash
-npx @cruciblelab/crucible@latest init
-npx @cruciblelab/crucible@latest add Button
-```
-
-### Option 2 — Add to your project (recommended)
-
-Install Crucible as a **project-local dev dependency** (not a global package). This pins the version
-in your `package.json` / lockfile, so every contributor and CI run generates with the exact same
-engine:
-
-```bash
-npm i -D @cruciblelab/crucible
-# yarn add -D @cruciblelab/crucible
-# pnpm add -D @cruciblelab/crucible
-```
-
-Then invoke the local binary with `npx crucible` — `npx` resolves it from `node_modules/.bin` (no
-network round-trip, no global install):
-
-```bash
-npx crucible init
-npx crucible add Button
-```
-
-> **Why not `-g` (global)?** A global install drifts from your project and isn't captured in your
-> lockfile, so different machines can scaffold with different versions. A project-local dev
-> dependency keeps generation reproducible. All examples below assume Option 2 and use
-> `npx crucible …`; if you prefer the no-install route, swap `crucible` for
-> `@cruciblelab/crucible@latest`.
-
----
-
 ## Quick Start
 
 ### 1. Initialize
@@ -169,80 +131,26 @@ npx crucible add Button -t soft            # Override theme
 
 Update `crucible.config.json` and regenerate, or edit generated files directly — they're yours.
 
-<details>
-<summary><b>See what <code>npx crucible add Button</code> generates</b></summary>
-
-<br>
-
-`Button/Button.tsx` (excerpt) — typed, accessible, zero-dependency source you own:
-
-```tsx
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant; // default | primary | secondary | outline | ghost | link | destructive
-  size?: ButtonSize; // xs | sm | md | lg | icon
-  loading?: boolean;
-  children: React.ReactNode;
-}
-
-export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props },
-    ref,
-  ) => {
-    /* className composition … */
-    return (
-      <button
-        ref={ref}
-        className={cls}
-        disabled={disabled || loading}
-        aria-disabled={disabled || loading}
-        aria-busy={loading}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  },
-);
-```
-
-Alongside it: `Button.module.css`, `Button.stories.tsx`, and a `Button/README.md` — all written into
-your project, with **zero runtime dependency**. Switch frameworks/styles with `--framework vue` or
-`-s tailwind` and the same component regenerates natively.
-
-</details>
-
 ---
 
 ## Available Components
 
-| Component      | Variants                                                            | Sizes                | States                      | Description                                                                                                                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------- | -------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Button`       | default, primary, secondary, outline, ghost, link, destructive      | xs, sm, md, lg, icon | disabled, loading           | Compound components, loading spinner                                                                                                                                                                                                                                   |
-| `Input`        | default, error                                                      | sm, md, lg           | disabled, error             | Password toggle, validation states                                                                                                                                                                                                                                     |
-| `Card`         | default, hoverable, clickable                                       | sm, md, lg           | —                           | Container with title, onClick, href                                                                                                                                                                                                                                    |
-| `Dialog`       | default, confirm                                                    | sm, md, lg           | open, closed                | Focus trap, scroll lock, closeable                                                                                                                                                                                                                                     |
-| `Select`       | default, error                                                      | sm, md, lg           | disabled, error, open       | Keyboard navigation, combobox pattern                                                                                                                                                                                                                                  |
-| `Popover`      | default, minimal                                                    | sm, md, lg           | open, closed, modal         | Floating-UI positioning, focus trap (modal), click/hover trigger, arrow                                                                                                                                                                                                |
-| `Table`        | default, striped, bordered, compact                                 | sm, md, lg           | loading, empty              | Client/server pagination, sorting, single/multi selection, virtualization (5k+ rows), optional caption                                                                                                                                                                 |
-| `Toast`        | default, success, error, warning, info, loading                     | sm, md, lg           | enter, visible, exit        | Sonner-style notifications: global `toast()` + `<Toaster>`, 6 positions, auto-dismiss, action button, rich colors, pause-on-hide                                                                                                                                       |
-| `Form`         | default, inline                                                     | sm, md, lg           | disabled, error, submitting | Dependency-free validation engine, react-hook-form adapter, compound (Root/Field/Item/Label/Control/Description/Message/Submit) + schema-driven modes, aria wiring                                                                                                     |
-| `Tabs`         | default, underline, pills                                           | sm, md, lg           | disabled                    | WAI-ARIA tabs pattern: compound (Root/List/Trigger/Content) + schema-driven, controlled/uncontrolled, manual/automatic activation, horizontal/vertical, roving tabindex; per-tab custom rendering (React ReactNode · Vue named slots · Angular `TabTemplateDirective`) |
-| `Tooltip`      | default, minimal                                                    | sm, md, lg           | open, closed                | Floating-UI label, `role="tooltip"` + `aria-describedby`, hover/focus/click triggers, compound (Root/Trigger/Portal/Content/Arrow), no focus trap, Escape to dismiss                                                                                                   |
-| `Label`        | —                                                                   | sm, md, lg           | disabled                    | Form label with required marker and `htmlFor` association                                                                                                                                                                                                              |
-| `Separator`    | —                                                                   | —                    | —                           | Horizontal/vertical divider, `role="separator"`, optional centered label, decorative mode                                                                                                                                                                              |
-| `Badge`        | default, primary, secondary, outline, success, warning, destructive | sm, md, lg           | —                           | Status/category label; Tailwind variant classes sourced from the manifest                                                                                                                                                                                              |
-| `Skeleton`     | default, text, circle, rect                                         | —                    | —                           | Loading placeholder with pulse animation, `aria-busy`, custom width/height                                                                                                                                                                                             |
-| `Avatar`       | circle, square                                                      | xs, sm, md, lg       | —                           | Image with initials fallback on load error, `role="img"`                                                                                                                                                                                                               |
-| `Textarea`     | default, error                                                      | sm, md, lg           | disabled, error             | Multi-line field with label/hint/error wiring, `rows`, `maxLength`, aria-invalid                                                                                                                                                                                       |
-| `Checkbox`     | default, error                                                      | sm, md, lg           | disabled, checked, error    | Native checkbox with indeterminate (ref/property-bound), label, error                                                                                                                                                                                                  |
-| `Switch`       | —                                                                   | sm, md, lg           | disabled, checked           | `role="switch"` toggle (track + thumb), controlled/uncontrolled                                                                                                                                                                                                        |
-| `Alert`        | default, info, success, warning, destructive                        | —                    | —                           | Inline `role="alert"` message with severity tint, icon, optional dismiss                                                                                                                                                                                               |
-| `Progress`     | linear, circular                                                    | sm, md, lg           | indeterminate               | `role="progressbar"` bar or SVG ring; determinate value or continuous loader                                                                                                                                                                                           |
-| `Breadcrumb`   | —                                                                   | sm, md, lg           | —                           | Items-driven nav trail, `aria-current="page"`, custom separator, `maxItems` collapse                                                                                                                                                                                   |
-| `RadioGroup`   | —                                                                   | sm, md, lg           | disabled                    | WAI-ARIA radiogroup, roving tabindex, arrow-to-select; compound (Root/Item)                                                                                                                                                                                            |
-| `Accordion`    | default, bordered, separated                                        | sm, md, lg           | disabled                    | Collapsible disclosure, single/multiple, `aria-expanded` + `role="region"`; compound (Root/Item/Trigger/Content)                                                                                                                                                       |
-| `DropdownMenu` | default, minimal                                                    | sm, md, lg           | open, closed                | Floating-UI menu with roving items + typeahead, `role="menu"`; compound (Root/Trigger/Content/Item/Separator/Label)                                                                                                                                                    |
+| Component | Variants                                                       | Sizes                | States                | Description                           |
+| --------- | -------------------------------------------------------------- | -------------------- | --------------------- | ------------------------------------- |
+| `Button`  | default, primary, secondary, outline, ghost, link, destructive | xs, sm, md, lg, icon | disabled, loading     | Compound components, loading spinner  |
+| `Input`   | default, error                                                 | sm, md, lg           | disabled, error       | Password toggle, validation states    |
+| `Card`    | default, hoverable, clickable                                  | sm, md, lg           | —                     | Container with title, onClick, href   |
+| `Dialog`  | default, confirm                                               | sm, md, lg           | open, closed          | Focus trap, scroll lock, closeable    |
+| `Select`  | default, error                                                 | sm, md, lg           | disabled, error, open | Keyboard navigation, combobox pattern |
+
+---
+
+## Documentation
+
+- [Documentation](https://crucible-docs.naveenr.in) — Official docs site
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design and data flow
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — Contribution guidelines
+- [ROADMAP.md](./ROADMAP.md) — Future plans
 
 ---
 
@@ -329,81 +237,6 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete technical details.
 
 ---
 
-## FAQ
-
-<details>
-<summary><b>Is this like shadcn/ui?</b></summary>
-
-It shares the same philosophy — you own the generated source instead of importing a package — but
-Crucible is **multi-framework and engine-driven**. The same component spec emits native **React, Vue
-3, and Angular** code across **CSS Modules, SCSS Modules, or Tailwind v4**, from a manifest-based
-generator rather than a copy-paste registry.
-
-</details>
-
-<details>
-<summary><b>What happens to my components when I run <code>npm update</code>?</b></summary>
-
-Nothing. Generated components are _your files_ — updating the Crucible dev dependency never touches
-them. A content hash protects files you've edited, so a later regenerate won't silently overwrite
-your changes; you regenerate only when you choose to.
-
-</details>
-
-<details>
-<summary><b>Do I need Crucible at runtime?</b></summary>
-
-No. Crucible is a **dev dependency** (or run via `npx`). It writes source code and then gets out of
-the way — **zero runtime footprint** in your shipped bundle.
-
-</details>
-
-<details>
-<summary><b>Which frameworks and style systems are supported?</b></summary>
-
-| Framework | CSS Modules | SCSS Modules | Tailwind v4 |
-| --------- | :---------: | :----------: | :---------: |
-| React     |     ✅      |      ✅      |     ✅      |
-| Vue 3     |     ✅      |      ✅      |     ✅      |
-| Angular   |     ✅      |      ✅      |     ✅      |
-
-</details>
-
-<details>
-<summary><b>Can I add my own components?</b></summary>
-
-Yes — Crucible is plug-and-play. Drop a component manifest and its templates into
-`.crucible/plugins/` and they appear in `crucible list` and `crucible add` with no changes to the
-engine. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the plugin contract.
-
-</details>
-
----
-
-## Documentation
-
-- [Documentation](https://crucible-docs.naveenr.in) — Official docs site
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design and data flow
-- [CONTRIBUTING.md](./CONTRIBUTING.md) — Contribution guidelines
-- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) — Community expectations
-- [SECURITY.md](./SECURITY.md) — Reporting vulnerabilities
-- [ROADMAP.md](./ROADMAP.md) — Future plans
-- [CHANGELOG.md](./CHANGELOG.md) — Release history
-
----
-
-## Support & Community
-
-- 💬 **Questions & ideas** — start a
-  [GitHub Discussion](https://github.com/Naveen2070/project_crucible/discussions)
-- 🐛 **Bugs & feature requests** — open an
-  [issue](https://github.com/Naveen2070/project_crucible/issues/new/choose) (templates provided)
-- 📖 **Docs** — [crucible-docs.naveenr.in](https://crucible-docs.naveenr.in)
-- 🤝 **Conduct** — please review our [Code of Conduct](./CODE_OF_CONDUCT.md)
-- 🔒 **Security** — report vulnerabilities privately per our [Security Policy](./SECURITY.md)
-
----
-
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting PRs.
@@ -431,12 +264,11 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 ## Project Status
 
-| Version | Status    | Description                                                                                                                                                                                                                                 |
-| ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v1.1.0  | ✅ Stable | **App-building kit** — added 14 components (Label, Separator, Badge, Skeleton, Avatar, Textarea, Checkbox, Switch, Alert, Progress, Breadcrumb, RadioGroup, Accordion, DropdownMenu) bringing the library to 25; 448 tests / 238 E2E phases |
-| v1.0.4  | ✅ Stable | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                                                                                                                                                              |
-| v1.0.3  | ✅ Stable | Manual dark mode strategy, Vue SCSS template fixes                                                                                                                                                                                          |
-| v1.0.0  | ✅ Stable | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases                                                                                                                                                             |
+| Version | Status    | Description                                                                     |
+| ------- | --------- | ------------------------------------------------------------------------------- |
+| v1.0.4  | ✅ Stable | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script  |
+| v1.0.3  | ✅ Stable | Manual dark mode strategy, Vue SCSS template fixes                              |
+| v1.0.0  | ✅ Stable | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases |
 
 ### v1.0.4 Features
 
