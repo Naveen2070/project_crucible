@@ -17,6 +17,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   # Gate: run the full CI suite (build + playground generation + unit + e2e) by
   # reusing test.yml. Publishing only proceeds if this passes — single source of
