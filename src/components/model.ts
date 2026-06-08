@@ -34,6 +34,8 @@ export interface ComponentModel {
     compoundComponents?: boolean;
   };
   generateStories: boolean;
+  /** Vue only: emit native `useId()` (Vue 3.5+) vs the deprecated `getCurrentInstance()` fallback. */
+  vueUseId: boolean;
   prefix: string;
   hasVariant: boolean;
   hasSize: boolean;
@@ -65,6 +67,7 @@ export function buildComponentModel(
   tokens: ResolvedTokens,
   config: CrucibleConfig,
   generateStories: boolean,
+  vueUseId: boolean = true,
 ): ComponentModel {
   const defaults = COMPONENT_DEFAULTS[name];
   if (!defaults) throw new Error(`Unknown component: ${name}. Run: crucible list`);
@@ -120,6 +123,7 @@ export function buildComponentModel(
         config.features.compoundComponents !== false && framework !== Framework.Angular,
     },
     generateStories,
+    vueUseId: framework === Framework.Vue ? vueUseId : false,
     prefix: defaults.prefix,
     hasVariant,
     hasSize,
