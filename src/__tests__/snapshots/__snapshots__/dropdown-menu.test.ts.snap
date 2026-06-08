@@ -1262,6 +1262,7 @@ import {
   onBeforeUnmount,
   nextTick,
   getCurrentInstance,
+  useId,
   type InjectionKey,
   type PropType,
 } from 'vue';
@@ -1468,7 +1469,7 @@ const isControlled = computed(() => {
   return 'open' in propsObj;
 });
 
-const uid = (instance?.uid ?? Math.floor(Math.random() * 1e9)).toString(36);
+const uid = useId();
 const rootId = \`menu-\${uid}\`;
 
 const internalOpen = ref(false);
