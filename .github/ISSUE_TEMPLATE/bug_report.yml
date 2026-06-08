@@ -1,0 +1,82 @@
+name: 🐛 Bug Report
+description: Report a problem with the Crucible CLI or generated output
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please fill out the sections below so we can reproduce it quickly.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including what you expected to happen instead.
+      placeholder: Running `crucible add Button` produced … but I expected …
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands you ran, in order.
+      placeholder: |
+        1. npx crucible init
+        2. npx crucible add Button -s tailwind
+        3. …
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      options:
+        - React
+        - Vue
+        - Angular
+        - Not framework-specific
+    validations:
+      required: true
+
+  - type: dropdown
+    id: style-system
+    attributes:
+      label: Style system
+      options:
+        - CSS Modules
+        - SCSS Modules
+        - Tailwind
+        - Not applicable
+    validations:
+      required: true
+
+  - type: input
+    id: crucible-version
+    attributes:
+      label: Crucible version
+      description: Output of `npx crucible --version`.
+      placeholder: 1.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node --version`.
+      placeholder: v22.x
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / output
+      description: Paste any CLI output, stack traces, or `--verbose` logs. This is automatically formatted as code.
+      render: shell
+    validations:
+      required: false

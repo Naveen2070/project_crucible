@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & Discussions
+    url: https://github.com/Naveen2070/project_crucible/discussions
+    about: Ask questions, share ideas, or get help using Crucible.
+  - name: 📖 Documentation
+    url: https://crucible-docs.naveenr.in
+    about: Read the official docs before filing an issue.
