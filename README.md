@@ -1,14 +1,16 @@
+<div align="center">
+
+<img src="assets/logo.png" alt="Crucible logo" width="200">
+
 # ⚗️ Crucible — Code Generation Engine
 
-<p align="center"><img src="assets/logo.png" alt="Logo" width="200"></p>
+**Generated once. Yours forever.**
 
-> **Generated once. Yours forever.**
->
-> A code generation engine that scaffolds production-ready, style system/spec-based components into
-> your project. No wrappers, no black-box libraries. You own every file generated.
+A code generation engine that scaffolds production-ready, style system/spec-based components
+into your project. No wrappers, no black-box libraries. You own every file generated.
 
-**Crucible is not a component library** — it's a code generation engine. It produces source files
-that live in your project, not a package that sits in node_modules.
+**Crucible is not a component library** — it's a code generation engine. It produces source
+files that live in your project, not a package that sits in `node_modules`.
 
 [![npm version](https://img.shields.io/npm/v/@cruciblelab/crucible.svg)](https://www.npmjs.com/package/@cruciblelab/crucible)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -23,6 +25,35 @@ that live in your project, not a package that sits in node_modules.
 [![GitHub Stars](https://img.shields.io/github/stars/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/network/members)
 [![GitHub Issues](https://img.shields.io/github/issues/Naveen2070/project_crucible.svg)](https://github.com/Naveen2070/project_crucible/issues)
+
+<code>npm i -D @cruciblelab/crucible</code> &nbsp;·&nbsp;
+<a href="https://crucible-docs.naveenr.in"><b>Docs</b></a> &nbsp;·&nbsp;
+<a href="#quick-start"><b>Quick Start</b></a> &nbsp;·&nbsp;
+<a href="https://github.com/Naveen2070/project_crucible/issues"><b>Report a Bug</b></a>
+
+<br>
+
+<img src="assets/setup-cmd.gif" alt="Crucible CLI in action — init and add a component" width="720">
+
+</div>
+
+---
+
+## Table of Contents
+
+- [Why Crucible?](#why-crucible)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Available Components](#available-components)
+- [CLI Reference](#cli-reference)
+- [Architecture](#architecture)
+- [FAQ](#faq)
+- [Documentation](#documentation)
+- [Support & Community](#support--community)
+- [Contributing](#contributing)
+- [License](#license)
+- [Project Status](#project-status)
 
 ---
 
@@ -128,6 +159,46 @@ npx crucible add Button -t soft            # Override theme
 
 Update `crucible.config.json` and regenerate, or edit generated files directly — they're yours.
 
+<details>
+<summary><b>See what <code>npx crucible add Button</code> generates</b></summary>
+
+<br>
+
+`Button/Button.tsx` (excerpt) — typed, accessible, zero-dependency source you own:
+
+```tsx
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant; // default | primary | secondary | outline | ghost | link | destructive
+  size?: ButtonSize; // xs | sm | md | lg | icon
+  loading?: boolean;
+  children: React.ReactNode;
+}
+
+export const ButtonRoot = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+    /* className composition … */
+    return (
+      <button
+        ref={ref}
+        className={cls}
+        disabled={disabled || loading}
+        aria-disabled={disabled || loading}
+        aria-busy={loading}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  },
+);
+```
+
+Alongside it: `Button.module.css`, `Button.stories.tsx`, and a `Button/README.md` — all written
+into your project, with **zero runtime dependency**. Switch frameworks/styles with
+`--framework vue` or `-s tailwind` and the same component regenerates natively.
+
+</details>
+
 ---
 
 ## Available Components
@@ -159,15 +230,6 @@ Update `crucible.config.json` and regenerate, or edit generated files directly �
 | `RadioGroup` | —                                                           | sm, md, lg           | disabled                    | WAI-ARIA radiogroup, roving tabindex, arrow-to-select; compound (Root/Item)                                                                                        |
 | `Accordion` | default, bordered, separated                                 | sm, md, lg           | disabled                    | Collapsible disclosure, single/multiple, `aria-expanded` + `role="region"`; compound (Root/Item/Trigger/Content)                                                   |
 | `DropdownMenu` | default, minimal                                          | sm, md, lg           | open, closed                | Floating-UI menu with roving items + typeahead, `role="menu"`; compound (Root/Trigger/Content/Item/Separator/Label)                                                |
-
----
-
-## Documentation
-
-- [Documentation](https://crucible-docs.naveenr.in) — Official docs site
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design and data flow
-- [CONTRIBUTING.md](./CONTRIBUTING.md) — Contribution guidelines
-- [ROADMAP.md](./ROADMAP.md) — Future plans
 
 ---
 
@@ -254,6 +316,75 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete technical details.
 
 ---
 
+## FAQ
+
+<details>
+<summary><b>Is this like shadcn/ui?</b></summary>
+
+It shares the same philosophy — you own the generated source instead of importing a package —
+but Crucible is **multi-framework and engine-driven**. The same component spec emits native
+**React, Vue 3, and Angular** code across **CSS Modules, SCSS Modules, or Tailwind v4**, from a
+manifest-based generator rather than a copy-paste registry.
+</details>
+
+<details>
+<summary><b>What happens to my components when I run <code>npm update</code>?</b></summary>
+
+Nothing. Generated components are *your files* — updating the Crucible dev dependency never
+touches them. A content hash protects files you've edited, so a later regenerate won't silently
+overwrite your changes; you regenerate only when you choose to.
+</details>
+
+<details>
+<summary><b>Do I need Crucible at runtime?</b></summary>
+
+No. Crucible is a **dev dependency** (or run via `npx`). It writes source code and then gets
+out of the way — **zero runtime footprint** in your shipped bundle.
+</details>
+
+<details>
+<summary><b>Which frameworks and style systems are supported?</b></summary>
+
+| Framework | CSS Modules | SCSS Modules | Tailwind v4 |
+| --------- | :---------: | :----------: | :---------: |
+| React     | ✅          | ✅           | ✅          |
+| Vue 3     | ✅          | ✅           | ✅          |
+| Angular   | ✅          | ✅           | ✅          |
+
+</details>
+
+<details>
+<summary><b>Can I add my own components?</b></summary>
+
+Yes — Crucible is plug-and-play. Drop a component manifest and its templates into
+`.crucible/plugins/` and they appear in `crucible list` and `crucible add` with no changes to
+the engine. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the plugin contract.
+</details>
+
+---
+
+## Documentation
+
+- [Documentation](https://crucible-docs.naveenr.in) — Official docs site
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design and data flow
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — Contribution guidelines
+- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) — Community expectations
+- [SECURITY.md](./SECURITY.md) — Reporting vulnerabilities
+- [ROADMAP.md](./ROADMAP.md) — Future plans
+- [CHANGELOG.md](./CHANGELOG.md) — Release history
+
+---
+
+## Support & Community
+
+- 💬 **Questions & ideas** — start a [GitHub Discussion](https://github.com/Naveen2070/project_crucible/discussions)
+- 🐛 **Bugs & feature requests** — open an [issue](https://github.com/Naveen2070/project_crucible/issues/new/choose) (templates provided)
+- 📖 **Docs** — [crucible-docs.naveenr.in](https://crucible-docs.naveenr.in)
+- 🤝 **Conduct** — please review our [Code of Conduct](./CODE_OF_CONDUCT.md)
+- 🔒 **Security** — report vulnerabilities privately per our [Security Policy](./SECURITY.md)
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting PRs.
@@ -295,3 +426,19 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 - **Added test:bun script**: Run tests with bun via `bun run test:bun`
 
 See [ROADMAP.md](./ROADMAP.md) for future plans
+
+---
+
+## Contributors
+
+Thanks to everyone who has contributed to Crucible!
+
+<a href="https://github.com/Naveen2070/project_crucible/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Naveen2070/project_crucible" alt="Contributors" />
+</a>
+
+## Star History
+
+<a href="https://star-history.com/#Naveen2070/project_crucible&Date">
+  <img src="https://api.star-history.com/svg?repos=Naveen2070/project_crucible&type=Date" alt="Star History Chart" width="600">
+</a>
