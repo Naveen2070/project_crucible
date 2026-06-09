@@ -871,6 +871,15 @@ export const PROHIBITED_PATTERNS: RegExp[] = [
 ];
 ```
 
+#### Template Parity Audit (`npm run audit:parity`)
+
+A second audit (`scripts/audit-parity.ts`, also run on `prebuild`) walks the
+component × framework × style matrix using the real framework resolvers and classifies every
+expected template as **ok** (present), **fallback** (missing but the engine's css-fallback covers
+it — e.g. Vue scss/tailwind reuse the css SFC), or **MISSING** (no template and no fallback). It
+exits non-zero only on MISSING, so genuinely-broken holes are caught while intentional fallbacks are
+just reported.
+
 ### 10.5 Angular 17+ Control Flow
 
 All Angular templates use the modern Angular 17+ control flow syntax (`@if`, `@for`) instead of the
@@ -942,7 +951,7 @@ Always use CSS custom properties for component values:
 | Style System | Value                                   |
 | ------------ | --------------------------------------- |
 | CSS          | `1px`                                   |
-| SCSS         | `1.5px`                                 |
+| SCSS         | `1px` (same as CSS)                     |
 | Tailwind     | `border-[1.5px]` (use bracket notation) |
 
 #### Tailwind Approach: CSS-in-Tailwind
@@ -1101,6 +1110,11 @@ defaults.
 | `--verbose`        | —         | Enable detailed logging              | `false`                |
 | `--quiet`          | —         | Disable logging except errors        | `false`                |
 | `--config <path>`  | —         | Path to config file                  | `crucible.config.json` |
+| `--strict`         | —         | Error on plugin collisions / incompatible plugins | `false`   |
+
+> `--strict` is read at bootstrap (before commander parses flags, like `--cwd`) and can also be set
+> persistently via `plugins.strict` in `crucible.config.json`. It turns plugin component-id
+> collisions and incompatible-`engineVersion` plugins into hard errors instead of warnings.
 
 #### Other Command Flags
 
@@ -1110,6 +1124,7 @@ defaults.
 | `tokens` | `--dry-run`      | Preview without writing       |
 | `init`   | `--yes` / `-y`   | Use defaults without prompts  |
 | `clean`  | `--all` / `-a`   | Also remove config file       |
+| `list`   | `--strict`       | Error on plugin collisions    |
 | `config` | `--json`         | Output raw JSON               |
 
 ### 12.3 generateStories Resolution
@@ -1268,7 +1283,7 @@ Adding a new framework is adding a template folder — **not modifying the engin
 graph BT
     L1["Layer 1 — Vitest Unit Tests<br/>188 tests: resolver, model, registry, CLI, utils"]
     L2["Layer 2 — Vitest Snapshot Tests<br/>231 component + theme-permutation tests"]
-    L3["Layer 3 — E2E CLI Automation<br/>238 phases covering all commands"]
+    L3["Layer 3 — E2E CLI Automation<br/>239 phases covering all commands"]
     L4["Layer 4 — Storybook + Chromatic<br/>Visual regression on every PR"]
     L1 --> L2 --> L3 --> L4
 ```
@@ -1285,35 +1300,37 @@ graph BT
 
 ### 15.3 Test Suite
 
-**Current: 448 tests across 48 test files + 238 E2E phases**
+**Current: 516 tests across 51 test files + 239 E2E phases**
 
-| Test File               | Coverage                                    |
-| ----------------------- | ------------------------------------------- |
-| `resolver.test.ts`      | Preset loading, user overrides, dark mode   |
-| `dark-resolver.test.ts` | OKLCH normalization, auto derivation        |
-| `model.test.ts`         | StyleSystem, a11y fields, compound flag     |
-| `config.test.ts`        | Schema validation, enum acceptance          |
-| `registry.test.ts`      | Path generation, framework/style combos     |
-| `doctor.test.ts`        | Circular ref detection                      |
-| `writer.test.ts`        | Hash system, dry-run, force, path traversal |
-| `plugins.test.ts`       | Plug-and-play: discovery, semver gating, registration, proxies, collision |
-| `snapshots/*.test.ts`   | Full pipeline output per component          |
-| `a11y/*.test.ts`        | Accessibility verification (axe)            |
+| Test File                      | Coverage                                    |
+| ------------------------------ | ------------------------------------------- |
+| `resolver.test.ts`             | Preset loading, user overrides, dark mode   |
+| `dark-resolver.test.ts`        | OKLCH normalization, auto derivation        |
+| `model.test.ts`                | StyleSystem, a11y fields, compound flag     |
+| `config.test.ts`               | Schema validation, enum acceptance          |
+| `registry.test.ts`             | Path generation, framework/style combos     |
+| `doctor.test.ts`               | Circular ref detection                      |
+| `writer.test.ts`               | Hash system, dry-run, force, path traversal |
+| `plugins.test.ts`              | Plug-and-play: discovery, semver gating, registration, proxies, collision |
+| `templates/css-scss-parity.test.ts` | css/scss style modules define the same class names (drift guard) |
+| `snapshots/*.test.ts`          | Full pipeline output per component          |
+| `a11y/*.test.ts`               | Accessibility verification (axe)            |
 
 ### 15.4 Test Coverage Phases
 
-| Category               | Tests   | Coverage                                          |
-| ---------------------- | ------- | ------------------------------------------------- |
-| Core engine            | 65      | resolver, model, registry, config, dark mode      |
-| Utility logic          | 75      | table paginator, sorter, virtualizer              |
-| Template audit         | 6       | logic-free template enforcement                   |
-| Accessibility (axe)    | 19      | per-component a11y + dark mode + interaction       |
-| Component snapshots    | 231     | full pipeline output + theme permutations          |
-| CLI / writer / doctor  | 42      | command flows, hash protection, setup validation  |
-| Plugin system          | 10      | discovery, semver gating, registration, proxies, collision |
-| **Total**              | **448** | **across 48 files**                                |
+| Category                    | Tests   | Coverage                                                          |
+| --------------------------- | ------- | ----------------------------------------------------------------- |
+| Core engine                 | 59      | resolver, model, registry, config, dark mode                      |
+| Utility logic               | 75      | table paginator, sorter, virtualizer                              |
+| Template audit / parity     | 57      | logic-free enforcement, helpers, css/scss class-name parity       |
+| Accessibility (axe)         | 19      | per-component a11y + dark mode + interaction                      |
+| Component snapshots         | 231     | full pipeline output + theme permutations                         |
+| CLI / writer / doctor / fs  | 52      | command flows, hash protection, path traversal                   |
+| Plugin system               | 10      | discovery, semver gating, collision, `--strict`                   |
+| Vue version detection       | 13      | `useId()` vs fallback gating across Vue versions                  |
+| **Total**                   | **516** | **across 51 files**                                               |
 
-E2E: **238 phases** ✅
+E2E: **239 phases** ✅
 
 ### 15.5 E2E Test Phases
 
@@ -1336,12 +1353,13 @@ across the full matrix, then CLI/infrastructure phases.
 | 236       | Plug-and-play — external local plugin generates a component from its own `templatesDir`    |
 | 237       | Plug-and-play — plugin component is discoverable via `list`                                |
 | 238       | Plug-and-play — plugin with incompatible `engineVersion` is skipped                        |
+| 239       | `--strict` — a plugin component-id collision exits non-zero (warns + overrides without it)  |
 
 Component order in the matrix: Button, Input, Card, Dialog, Select, Table, Popover, Toast, Form, Tabs,
 Tooltip, Label, Separator, Badge, Skeleton, Avatar, Textarea, Checkbox, Switch, Alert, Progress,
 Breadcrumb, RadioGroup, Accordion, DropdownMenu.
 
-**Total: 238 E2E phases** ✅
+**Total: 239 E2E phases** ✅
 
 ---
 

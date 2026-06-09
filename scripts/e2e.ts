@@ -385,6 +385,46 @@ async function runE2E() {
     await remove(path.join(TEST_DIR, '.crucible'));
   });
 
+  await infra('Plugin: component id collision errors under --strict', async () => {
+    const collideRoot = path.join(TEST_DIR, '.crucible/plugins/e2e-collide');
+    await ensureDir(path.join(collideRoot, 'components'));
+    await writeJson(path.join(collideRoot, 'plugin.json'), {
+      id: 'e2e-collide',
+      name: 'Collide Plugin',
+      version: '1.0.0',
+      engineVersion: '>=1.0.0',
+      components: ['components/button.json'],
+      templatesDir: './templates',
+    });
+    // Re-uses the core "Button" id → collision.
+    await writeJson(path.join(collideRoot, 'components/button.json'), {
+      id: 'Button',
+      name: 'Button',
+      frameworks: ['react'],
+      styleSystems: ['css'],
+      variants: [],
+      sizes: [],
+      states: [],
+      props: [],
+      prefix: 'button',
+      tailwindDefaults: {},
+    });
+
+    // Without --strict: collision warns + overrides, exits 0.
+    runCLI('list');
+
+    // With --strict: collision is a hard error (non-zero exit → runCLI throws).
+    let threw = false;
+    try {
+      runCLI('list --strict');
+    } catch {
+      threw = true;
+    }
+    if (!threw) throw new Error('expected --strict to error on component id collision');
+
+    await remove(path.join(TEST_DIR, '.crucible'));
+  });
+
   console.log(ansis.gray('\n🧹 Cleaning up...'));
   await remove(TEST_DIR);
 

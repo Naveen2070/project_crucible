@@ -7,6 +7,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`--strict` plugin mode.** `crucible add` / `crucible list` accept `--strict` (also settable
+  persistently via `plugins.strict` in `crucible.config.json`) to turn plugin component-id
+  collisions and incompatible-`engineVersion` plugins into hard errors instead of warnings.
+  Default off — existing behaviour (warn + override / skip) is unchanged.
+- **Complete Vue SCSS coverage.** Authored nested SCSS templates for **Form, Popover, Tabs, and
+  Tooltip** (the last four Vue components that fell back to the flat css SFC). Vue SCSS is now 25/25.
+- **`npm run audit:parity`.** A template-parity audit (also run on `prebuild`) reports the
+  component × framework × style matrix as ok / fallback / missing and fails on any genuinely-missing
+  template (one with no css fallback).
+- **CSS/SCSS drift guard.** A test renders each component's css and scss style modules, compiles the
+  scss with dart-sass, and asserts both define the same set of class names — so the hand-maintained
+  css/scss pair can no longer silently diverge. Adds `sass` + `postcss` dev dependencies.
+
 ### Changed
 
 - **Dependencies upgraded** across the CLI, dev tooling, and all playgrounds.
@@ -74,6 +89,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - **Tailwind auto-setup respects `--cwd`.** The automatic Tailwind install ran in the process
   working directory, ignoring `crucible add … --cwd <dir>`; it now installs into the target project.
+
+- **SCSS Table styling was broken (React + Angular).** The scss modules emitted kebab-case class
+  names (`.cell-bordered`, `.row-striped`, `.headerCell-sortable`) via `&-` concatenation, while the
+  shared component references camelCase (`cellBordered`, `rowStriped`, `headerCellSortable`) — so
+  bordered/striped/size/alignment styling never applied for SCSS users. The scss now concatenates to
+  camelCase (`&Bordered`) to match.
+
+- **Angular SCSS Button and Input were stale forks.** Their hand-nested scss had drifted from the
+  data-driven css templates (Button missing the `outline` / `link` / `icon` variants; Input using a
+  defunct `.input-field` class structure), so those styles were absent for Angular SCSS users. Both
+  now reuse the same shared base partial as the css templates, keeping them in lock-step.
+
+- **Docs:** corrected the SCSS border-width claim — SCSS uses `1px` like CSS (only Tailwind uses
+  `border-[1.5px]`); the previous "SCSS = 1.5px" note in ARCHITECTURE / CONTRIBUTING was wrong.
 
 - **Empty-string safety in template helpers.** The `capitalize` Handlebars helper and the internal
   `pascal` token helper no longer throw on an empty string; `readJson` now reports the offending
