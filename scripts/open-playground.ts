@@ -29,16 +29,10 @@ async function openStorybook(framework: Framework): Promise<void> {
 
   console.log(ansis.cyan(`\n📖 Opening Storybook for ${framework} on port ${port}...`));
 
-  let command: string;
-  let args: string[];
-
-  if (framework === 'angular') {
-    command = 'npx';
-    args = ['ng', 'run', 'playground-angular:storybook'];
-  } else {
-    command = 'npm';
-    args = ['run', 'storybook'];
-  }
+  // Every playground (including Angular) exposes a `storybook` npm script after
+  // `storybook init`; using it keeps this project-name agnostic.
+  const command = 'npm';
+  const args = ['run', 'storybook'];
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
