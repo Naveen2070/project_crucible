@@ -7,14 +7,20 @@ import { PluginManifest, ComponentManifest, LoadedPlugin } from './types';
 import { pluginRegistry } from './registry';
 import '../registry/frameworks'; // Ensure built-in frameworks are registered
 
-export async function initRegistry(cwd: string) {
-  const plugins = await loadPlugins(cwd);
+export interface RegistryOptions {
+  /** When true, incompatible plugins and collisions error instead of warning. */
+  strict?: boolean;
+}
+
+export async function initRegistry(cwd: string, opts: RegistryOptions = {}) {
+  pluginRegistry.setStrict(!!opts.strict);
+  const plugins = await loadPlugins(cwd, opts);
   for (const plugin of plugins) {
     pluginRegistry.registerPlugin(plugin);
   }
 }
 
-export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
+export async function loadPlugins(cwd: string, opts: RegistryOptions = {}): Promise<LoadedPlugin[]> {
   const plugins: LoadedPlugin[] = [];
   
   let engineVersion = '1.0.0';
@@ -37,7 +43,9 @@ export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
         root: path.dirname(coreManifestPath),
       });
     } else {
-      console.warn(ansis.yellow(`⚠ Skipping core plugin: incompatible engine version (needs ${manifest.engineVersion}, engine is ${engineVersion})`));
+      const detail = `core plugin: incompatible engine version (needs ${manifest.engineVersion}, engine is ${engineVersion})`;
+      if (opts.strict) throw new Error(detail);
+      console.warn(ansis.yellow(`⚠ Skipping ${detail}`));
     }
   }
 
@@ -55,7 +63,9 @@ export async function loadPlugins(cwd: string): Promise<LoadedPlugin[]> {
             const manifest = await readJson(manifestPath);
             
             if (!isCompatible(manifest.engineVersion, engineVersion)) {
-              console.warn(ansis.yellow(`⚠ Skipping plugin "${manifest.id}": incompatible engine version (needs ${manifest.engineVersion}, engine is ${engineVersion})`));
+              const detail = `plugin "${manifest.id}": incompatible engine version (needs ${manifest.engineVersion}, engine is ${engineVersion})`;
+              if (opts.strict) throw new Error(detail);
+              console.warn(ansis.yellow(`⚠ Skipping ${detail}`));
               continue;
             }
 

@@ -19,88 +19,9 @@
 {{/if}}
 {{/if}}
 
-.input-container {
-  display:        flex;
-  flex-direction: column;
-  gap:            var(--spacing-unit);
-  width:          100%;
-
-  .input-wrapper {
-    position: relative;
-    display:  flex;
-    width:    100%;
-  }
-
-  .input-field {
-    width:      100%;
-    padding:    0 var(--input-padding-x);
-    height:     var(--input-height);
-    font-family: var(--font-family);
-    font-size: 1rem;
-    color:      var(--color-text);
-    background: var(--color-surface);
-    border:     1px solid var(--input-border-color);
-    border-radius: var(--input-border-radius);
-    transition: var(--input-transition);
-
-    &::placeholder {
-      color: var(--color-text-muted);
-    }
-
-    &:focus {
-      outline:       none;
-      border-color:  var(--color-primary);
-      box-shadow:    0 0 0 3px var(--color-primary-foreground);
-    }
-
-    {{#if a11y.focusRing}}
-    &:focus-visible {
-      outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
-      outline-offset: {{a11y.focusRingOffset}};
-    }
-    {{/if}}
-
-    {{#if a11y.reduceMotion}}
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
-    {{/if}}
-  }
-
-  /* States */
-  &.input--disabled {
-    .input-field {
-      opacity:    0.45;
-      cursor:     not-allowed;
-      background: var(--color-background);
-    }
-  }
-
-  &.input--error {
-    .input-field {
-      border-color: var(--color-destructive);
-
-      &:focus {
-        box-shadow: 0 0 0 3px var(--color-destructive-foreground);
-      }
-    }
-  }
-
-  .input-label {
-    display:        block;
-    margin-bottom:  calc(var(--spacing-unit) * 1);
-    font-size:      0.875rem;
-    font-weight:    500;
-    color:          var(--color-text);
-  }
-
-  .input-hint {
-    margin-top:    calc(var(--spacing-unit) * 1);
-    font-size:    0.75rem;
-    color:        var(--color-text-muted);
-  }
-
-  &.input--error .input-hint {
-    color: var(--color-destructive);
-  }
-}
+{{!--
+  Uses the shared input-base partial (same source as the css template) so the class
+  structure stays in sync with the Input component. The drift guard
+  (src/__tests__/templates/css-scss-parity.test.ts) enforces this parity.
+--}}
+{{> shared/components/input-base}}

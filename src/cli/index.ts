@@ -21,7 +21,25 @@ async function bootstrap() {
   // Initialize registry with core and local plugins
   const cwdArgIndex = process.argv.indexOf('--cwd');
   const cwd = cwdArgIndex !== -1 ? path.resolve(process.cwd(), process.argv[cwdArgIndex + 1]) : process.cwd();
-  await initRegistry(cwd);
+
+  // `--strict` is read from argv here (bootstrap runs before commander parses flags),
+  // and can also be set persistently via `plugins.strict` in crucible.config.json.
+  let strict = process.argv.includes('--strict');
+  if (!strict) {
+    try {
+      const cfg = await readJson(path.join(cwd, 'crucible.config.json'));
+      strict = !!cfg?.plugins?.strict;
+    } catch {
+      /* no config / not readable — argv flag only */
+    }
+  }
+
+  try {
+    await initRegistry(cwd, { strict });
+  } catch (err: any) {
+    console.error(ansis.red(`✗ Plugin registry error: ${err.message}`));
+    process.exit(1);
+  }
 
   // Single source of truth for the CLI version: the package manifest.
   let version = '0.0.0';
@@ -120,6 +138,7 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .option('--no-stories', 'Skip story generation (overrides config default)')
     .option('--dry-run', 'Simulate generation without writing files')
     .option('--cwd <path>', 'Current working directory', '.')
+    .option('--strict', 'Error on plugin collisions / incompatible plugins')
     .option('--verbose', 'Enable verbose logging')
     .option('--quiet', 'Disable all logging except errors')
     .action((components: string[], opts: any) => {
@@ -131,6 +150,7 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .command('list')
     .alias('l')
     .description('Show all available components')
+    .option('--strict', 'Error on plugin collisions / incompatible plugins')
     .action(() => {
       runList();
     });
