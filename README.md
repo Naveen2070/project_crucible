@@ -417,7 +417,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 448 tests across 48 files
+- All tests pass (`npm test`) — 461 tests across 49 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
