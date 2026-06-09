@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, getCurrentInstance{{#if vueUseId}}, useId{{/if}} } from 'vue';
-import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
+import { useFloating, offset, flip, shift, autoUpdate, arrow, type Placement } from '@floating-ui/vue';
 
 interface TooltipProps {
   /** Controlled open state */

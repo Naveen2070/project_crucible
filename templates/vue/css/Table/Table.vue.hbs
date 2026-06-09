@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { sort, SortDirection } from './utils/table-sorter';
+import { sort, type SortDirection } from './utils/table-sorter';
 import { getPageData, getPageNumbers } from './utils/table-paginator';
-import { VirtualState, HeadlessVirtualizer } from './utils/virtualizer';
+import { type VirtualState, HeadlessVirtualizer } from './utils/virtualizer';
 
 export type TableVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type TableSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
