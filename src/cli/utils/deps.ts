@@ -7,6 +7,7 @@ import { registry, ComponentDef } from '../../registry/components';
 import { getPeerDependencies } from '../../registry/peer-deps';
 import { Framework } from '../../core/enums';
 import { pathExists, readJson } from '../../utils/fs';
+import { detectPackageManager, buildInstallCommand } from './pkg-manager';
 
 export interface DependencyCheck {
   missingComponents: string[];
@@ -115,12 +116,13 @@ export async function resolveDependencies(
 
   if (check.missingPeerDeps.length > 0) {
     for (const peerDep of check.missingPeerDeps) {
+      const pm = detectPackageManager(outputDir);
       if (options.yes) {
         if (!options.quiet) {
           console.log(ansis.cyan(`📦 Installing peer dependency: ${peerDep}...`));
         }
         try {
-          execSync(`npm install ${peerDep}`, {
+          execSync(buildInstallCommand(pm, [peerDep]), {
             cwd: outputDir,
             stdio: options.quiet ? 'pipe' : 'inherit',
           });
@@ -139,7 +141,7 @@ export async function resolveDependencies(
         });
         if (shouldInstall) {
           try {
-            execSync(`npm install ${peerDep}`, {
+            execSync(buildInstallCommand(pm, [peerDep]), {
               cwd: outputDir,
               stdio: 'inherit',
             });
@@ -198,13 +200,16 @@ export async function installPeerDependenciesSmart(
 
   if (toInstall.length > 0) {
     const unique = [...new Set(toInstall)];
-    const legacyFlag = framework === Framework.Angular ? '--legacy-peer-deps' : '';
+    const pm = detectPackageManager(cwd);
     console.log(ansis.cyan(`📦 Installing: ${unique.join(', ')}`));
     try {
-      execSync(`npm install ${unique.join(' ')} ${legacyFlag}`.trim(), {
-        cwd,
-        stdio: 'inherit',
-      });
+      execSync(
+        buildInstallCommand(pm, unique, { legacyPeerDeps: framework === Framework.Angular }),
+        {
+          cwd,
+          stdio: 'inherit',
+        },
+      );
     } catch {
       console.warn(ansis.yellow(`⚠ Failed to install: ${unique.join(', ')}`));
     }
