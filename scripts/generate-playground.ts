@@ -137,13 +137,101 @@ async function scaffoldPlayground(framework: Framework): Promise<void> {
         `npx @angular/cli@latest new ${framework} --directory ${framework} --defaults --skip-git --style=css`,
         { cwd: rootPlayground, stdio: 'inherit' },
       );
-      execSync('npm install', { cwd: playgroundPath, stdio: 'inherit' });
+      // @storybook/angular's peer range lags the latest Angular devkit; relax the
+      // strict peer check for this playground so installs are reproducible.
+      await writeFile(
+        path.join(playgroundPath, '.npmrc'),
+        'legacy-peer-deps=true\n',
+      );
+      execSync('npm install --legacy-peer-deps', { cwd: playgroundPath, stdio: 'inherit' });
     }
 
     console.log(ansis.cyan(`  Initializing Storybook for ${framework}...`));
     execSync(`npx storybook@latest init -y`, { cwd: playgroundPath, stdio: 'inherit' });
+
+    await patchStorybookConfig(framework);
   } catch (error: any) {
     throw new Error(`Failed to scaffold ${framework} playground: ${error.message}`);
+  }
+}
+
+/**
+ * Re-wire a freshly `storybook init`-ed playground to Crucible's generation
+ * pipeline: scope stories to `src/__generated__`, import the generated
+ * tokens.css, and align the Storybook dev port with STORYBOOK_PORTS.
+ */
+async function patchStorybookConfig(framework: Framework): Promise<void> {
+  const pg = getPlaygroundPath(framework);
+  const sbDir = path.join(pg, '.storybook');
+  const port = STORYBOOK_PORTS[framework];
+
+  const pick = (names: string[]) => names.map((n) => path.join(sbDir, n)).find(existsSync);
+
+  // 1. main.* — discover ONLY Crucible-generated stories (drop the init examples).
+  //    The `stories` key may be quoted ("stories") or unquoted depending on the
+  //    framework's storybook-init output, so match both.
+  const mainFile = pick(['main.ts', 'main.js', 'main.mjs', 'main.tsx']);
+  if (mainFile) {
+    let main = await readFile(mainFile, 'utf-8');
+    main = main.replace(
+      /["']?stories["']?:\s*\[[^\]]*\]/m,
+      `stories: [\n    '../src/__generated__/**/*.mdx',\n    '../src/__generated__/**/*.stories.@(js|jsx|mjs|ts|tsx)',\n  ]`,
+    );
+    await writeFile(mainFile, main);
+    console.log(ansis.gray(`  Patched ${framework}/.storybook/${path.basename(mainFile)} stories glob`));
+  }
+
+  // 2. preview.* — apply the generated design tokens (React/Vue import CSS directly).
+  if (framework !== 'angular') {
+    const previewFile = pick(['preview.ts', 'preview.tsx', 'preview.js', 'preview.jsx', 'preview.mjs']);
+    if (previewFile) {
+      let preview = await readFile(previewFile, 'utf-8');
+      const importLine = `import '../public/__generated__/tokens.css';`;
+      if (!preview.includes(importLine)) {
+        preview = `${importLine}\n${preview}`;
+        await writeFile(previewFile, preview);
+        console.log(ansis.gray(`  Patched ${framework}/.storybook/${path.basename(previewFile)} tokens import`));
+      }
+    }
+  }
+
+  // 3. ports — React/Vue via the npm script; Angular via angular.json + token styles.
+  if (framework !== 'angular') {
+    const pkgPath = path.join(pg, 'package.json');
+    const pkg = await readJson(pkgPath);
+    pkg.scripts = pkg.scripts ?? {};
+    if (typeof pkg.scripts.storybook === 'string') {
+      pkg.scripts.storybook = `storybook dev -p ${port}`;
+    }
+    await writeJson(pkgPath, pkg, { spaces: 2 });
+  } else {
+    const ngJsonPath = path.join(pg, 'angular.json');
+    if (existsSync(ngJsonPath)) {
+      const ng = await readJson(ngJsonPath);
+      const projName = Object.keys(ng.projects ?? {})[0];
+      const proj = ng.projects?.[projName];
+      const targets = proj?.architect ?? proj?.targets;
+      if (targets?.storybook) {
+        targets.storybook.options = { ...targets.storybook.options, port };
+      }
+      // Compodoc (autodocs arg-tables) is fragile to build and not needed for the
+      // component playground; disable it on both Storybook targets.
+      for (const name of ['storybook', 'build-storybook']) {
+        if (targets?.[name]?.options) {
+          targets[name].options.compodoc = false;
+          delete targets[name].options.compodocArgs;
+        }
+      }
+      // Surface the generated tokens.css through the build target Storybook reuses.
+      const build = targets?.build;
+      if (build?.options) {
+        build.options.styles = build.options.styles ?? [];
+        const tokensRef = 'public/__generated__/tokens.css';
+        if (!build.options.styles.includes(tokensRef)) build.options.styles.push(tokensRef);
+      }
+      await writeJson(ngJsonPath, ng, { spaces: 2 });
+      console.log(ansis.gray(`  Patched angular.json (storybook port ${port} + tokens style)`));
+    }
   }
 }
 
@@ -224,8 +312,12 @@ async function installDependencies(framework: Framework): Promise<void> {
   const playgroundPath = getPlaygroundPath(framework);
   console.log(ansis.gray(`  Installing dependencies for ${framework}...`));
 
+  // Angular: @storybook/angular peers an older devkit than Angular 22 ships, so
+  // relax npm's strict peer resolution (the resulting tree builds correctly).
+  const installCmd = framework === 'angular' ? 'npm install --legacy-peer-deps' : 'npm install';
+
   try {
-    execSync('npm install', {
+    execSync(installCmd, {
       cwd: playgroundPath,
       stdio: 'inherit',
     });

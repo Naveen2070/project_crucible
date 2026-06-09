@@ -1031,7 +1031,7 @@ import {
   useRole,
   useInteractions,
   safePolygon,
-  Placement,
+  type Placement,
   FloatingPortal,
   FloatingArrow,
   arrow,
@@ -1517,7 +1517,7 @@ import {
   useRole,
   useInteractions,
   safePolygon,
-  Placement,
+  type Placement,
   FloatingPortal,
   FloatingArrow,
   arrow,
@@ -1995,7 +1995,7 @@ _This file is auto-generated. Edit the source template or run \`crucible upgrade
 ",
   "Tooltip.vue": "<script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, getCurrentInstance, useId } from 'vue';
-import { useFloating, offset, flip, shift, autoUpdate, arrow, Placement } from '@floating-ui/vue';
+import { useFloating, offset, flip, shift, autoUpdate, arrow, type Placement } from '@floating-ui/vue';
 
 interface TooltipProps {
   /** Controlled open state */
@@ -2754,7 +2754,7 @@ import {
   useRole,
   useInteractions,
   safePolygon,
-  Placement,
+  type Placement,
   FloatingPortal,
   FloatingArrow,
   arrow,
@@ -3375,7 +3375,7 @@ import {
   useRole,
   useInteractions,
   safePolygon,
-  Placement,
+  type Placement,
   FloatingPortal,
   FloatingArrow,
   arrow,

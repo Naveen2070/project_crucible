@@ -9,6 +9,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Dependencies upgraded** across the CLI, dev tooling, and all playgrounds.
+  - **CLI runtime:** `commander` 13 → **15**, `ansis` 3 → **4**, plus in-range bumps to
+    `@inquirer/prompts`, `ajv`, and `prettier`.
+  - **Node requirement raised to `>=22.12 <25`** (was `>=20 <25`). Commander 15 is ESM-only, and the
+    CLI ships as CommonJS, so loading it via `require(esm)` needs Node **22.12+**.
+  - **Dev tooling:** Vitest 3 → **4**, `concurrently` 9 → **10**, `eslint` 9 → **10**; declared the
+    previously-transitive `glob` dependency; in-range bumps (`tsx`, `@types/*`, etc.).
+
+- **Playgrounds rebuilt as standalone projects** (no longer npm workspaces). Each `playground/<fw>`
+  is now scaffolded the recommended way — a fresh framework app (`npm create vite@latest` /
+  `ng new`) plus official `npx storybook@latest init` — with its own `node_modules` and lockfile.
+  - This **fixes the Angular Storybook build** (previously broken in the workspace because
+    `storybook` core hoisted to the root while `@angular-devkit/build-angular` stayed nested).
+  - Fresh scaffolds pull the latest toolchains: **Storybook 10.4.2**, **Vite 8**, **React 19**,
+    **Vue 3.5**, and **Angular 22** — all three Storybooks build green. The Angular playground sets
+    `legacy-peer-deps=true` (via `.npmrc`) because `@storybook/angular@10.4.2` peers an older devkit
+    than Angular 22 ships — the resulting tree installs and builds correctly — and disables Compodoc
+    on the Storybook targets (autodocs arg-tables, not needed and fragile to build).
+  - The root `package.json` is de-coupled from the playgrounds: Storybook/browser-test deps
+    (`@storybook/addon-vitest`, `@vitest/browser`, `@vitest/browser-playwright`, `playwright`) were
+    removed and the root Storybook Vitest project dropped; `react`/`react-dom` are declared for the
+    accessibility suite, which now dedupes React across the standalone playground.
+
+- **Generated React/Vue type-only imports** now use the inline `type` modifier
+  (`type Placement`, `type SortDirection`, `type VirtualState`) so generated components build under
+  Vite 8's rolldown bundler (which, unlike esbuild, rejects importing a type as a value).
+
 - **IDs no longer use `Math.random()`** in generated Vue and Angular components (CodeQL
   `js/insecure-randomness`). React already used `useId()`; Vue and Angular now match.
   - **Vue** — generated components use the native **`useId()`** composable (Vue **3.5+**) by
@@ -18,6 +45,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - **Angular** — generated components use a module-level incrementing counter
     (`let uid = 0; … ${++uid}`), the idiom used by Angular Material. No version requirement.
   - Deterministic, collision-free, and SSR-safe IDs; removes the recurring scanner finding.
+
+### Fixed
+
+- **Vue DropdownMenu no longer leaks styles onto other components.** Its teleported menu panel used
+  a generic global `.content` class (with `position: absolute`, shadow, and border); because the
+  styles are page-global, they bled onto every other `.content` element — most visibly making the
+  Accordion's expanded panel render as a floating, overlapping box. The panel is now namespaced as
+  `.menu-content` (CSS modules already isolate React; Tailwind is unaffected).
 
 ### Security
 

@@ -328,7 +328,7 @@ import {
   FloatingList,
   FloatingPortal,
   FloatingFocusManager,
-  Placement,
+  type Placement,
 } from '@floating-ui/react';
 import styles from './DropdownMenu.module.css';
 export type DropdownMenuSize = 'sm' | 'md' | 'lg';
@@ -939,7 +939,7 @@ import {
   FloatingList,
   FloatingPortal,
   FloatingFocusManager,
-  Placement,
+  type Placement,
 } from '@floating-ui/react';
 
 export type DropdownMenuSize = 'sm' | 'md' | 'lg';
@@ -1369,7 +1369,7 @@ export const DropdownMenuContent = defineComponent({
           {
             ref: (el: any) => (menu.contentRef.value = el as HTMLElement | null),
             role: 'menu',
-            class: ['content', \`size-\${props.size}\`, \`variant-\${props.variant}\`],
+            class: ['menu-content', \`size-\${props.size}\`, \`variant-\${props.variant}\`],
             style: [menu.floatingStyles.value, { visibility: menu.isPositioned.value ? 'visible' : 'hidden' }],
             'data-state': menu.open && menu.isPositioned.value ? 'open' : 'closed',
             tabindex: -1,
@@ -1607,7 +1607,7 @@ const handleMonolithicSelect = (item: DropdownMenuItemModel) => {
 <!--
   NOT scoped: DropdownMenuTrigger/Content/Item are separate component instances
   (and Content teleports to body), so Vue's scoped styles would not reach them.
-  Each rule is qualified by .menu-root / .content to avoid bleeding into other components.
+  Each rule is qualified by .menu-root / .menu-content to avoid bleeding into other components.
 -->
 <style >
 .menu-root {
@@ -1621,7 +1621,7 @@ const handleMonolithicSelect = (item: DropdownMenuItemModel) => {
   align-items: center;
   gap: calc(var(--spacing-unit, 4px) * 1.5);
 }
-.content {
+.menu-content {
   position: absolute;
   z-index: var(--menu-z-index, 50);
   min-width: var(--menu-min-width, 180px);
@@ -1640,25 +1640,25 @@ const handleMonolithicSelect = (item: DropdownMenuItemModel) => {
   color: var(--color-text, #1a1a2e);
   outline: none;
 }
-.content[data-state='open'] {
+.menu-content[data-state='open'] {
   animation: menu-show 120ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.content.variant-minimal {
+.menu-content.variant-minimal {
   border: none;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.08),
     0 2px 4px -1px rgba(0, 0, 0, 0.04);
 }
-.content.size-sm {
+.menu-content.size-sm {
   font-size: 0.8125rem;
 }
-.content.size-md {
+.menu-content.size-md {
   font-size: 0.875rem;
 }
-.content.size-lg {
+.menu-content.size-lg {
   font-size: 0.9375rem;
 }
-.content .item {
+.menu-content .item {
   all: unset;
   box-sizing: border-box;
   display: flex;
@@ -1672,21 +1672,21 @@ const handleMonolithicSelect = (item: DropdownMenuItemModel) => {
   color: inherit;
   user-select: none;
 }
-.content .item:hover:not([data-disabled]),
-.content .item:focus-visible {
+.menu-content .item:hover:not([data-disabled]),
+.menu-content .item:focus-visible {
   background-color: var(--menu-item-hover-bg, var(--color-secondary));
   outline: none;
 }
-.content .item[data-disabled] {
+.menu-content .item[data-disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.content .separator {
+.menu-content .separator {
   height: 1px;
   margin: calc(var(--spacing-unit, 4px) * 1) 0;
   background-color: var(--menu-border, var(--color-border));
 }
-.content .label {
+.menu-content .label {
   padding: calc(var(--spacing-unit, 4px) * 1.5) var(--menu-item-padding-x, calc(var(--spacing-unit) * 3));
   font-size: 0.75rem;
   font-weight: 600;
@@ -1705,7 +1705,7 @@ const handleMonolithicSelect = (item: DropdownMenuItemModel) => {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .content {
+  .menu-content {
     animation: none;
   }
 }

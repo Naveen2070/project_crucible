@@ -685,6 +685,13 @@ realized idiomatically per framework, with **no npm peer dependencies**.
   Vue's `<style scoped>` does not reach their DOM. The Vue Form CSS/SCSS template therefore uses a
   **non-scoped `<style>` with every rule qualified by the `.form` ancestor** (all parts render inside
   `<form class="form">`). Tailwind is unaffected — utility classes are inline on each element.
+- **Teleported content needs a namespaced class.** Non-scoped rules normally avoid bleed by being
+  qualified with the component's root ancestor (e.g. `.form`, `.tabs-root`, `.menu-root`). Content
+  rendered through `<Teleport to="body">` (DropdownMenu/Popover/Tooltip floating panels) escapes that
+  ancestor, so it **cannot** be qualified that way — it must instead use a **unique, component-prefixed
+  class** (e.g. `.menu-content`, not a generic `.content`). A generic class on teleported, page-global
+  styles silently bleeds onto every matching element elsewhere (this previously made the Accordion's
+  panel render as a floating box). React (CSS Modules) and Tailwind don't have this issue.
 - Tokens: `--form-*` (group/item gap, label, control height, error/description colors, radius) — see §4.4.
 
 ### 9.8 Tabs — Roving tabindex + manual/automatic activation

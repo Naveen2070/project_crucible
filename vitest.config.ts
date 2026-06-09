@@ -1,11 +1,9 @@
 import { defineConfig } from 'vitest/config';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
-const dirname =
-  typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
+// Storybook component tests live in the standalone React playground
+// (playground/react), which wires its own @storybook/addon-vitest via
+// `storybook init`. The root suite covers the engine (node) and the
+// generated-output accessibility checks (react-a11y).
 export default defineConfig({
   test: {
     coverage: {
@@ -27,35 +25,17 @@ export default defineConfig({
       },
       {
         extends: true,
+        // The a11y suite renders React components generated into the standalone
+        // playground/react, which resolves its own copy of React. Dedupe so the
+        // components and @testing-library/react share one React instance
+        // (otherwise hooks hit a null dispatcher).
+        resolve: { dedupe: ['react', 'react-dom'] },
         test: {
           name: 'react-a11y',
           globals: true,
           environment: 'jsdom',
           setupFiles: ['src/__tests__/a11y/setup.ts'],
           include: ['src/__tests__/a11y/**/*.test.tsx'],
-        },
-      },
-      {
-        extends: true,
-        plugins: [
-          // The plugin will run tests for the stories defined in your Storybook config
-          // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-          storybookTest({
-            configDir: path.join(dirname, 'playground/react/.storybook'),
-          }),
-        ],
-        test: {
-          name: 'storybook',
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: 'playwright',
-            instances: [
-              {
-                browser: 'chromium',
-              },
-            ],
-          },
         },
       },
     ],

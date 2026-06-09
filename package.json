@@ -23,8 +23,8 @@
     "build": "npm run clean:dist && tsc && tsx scripts/copy-manifests.ts",
     "build:watch": "tsc --watch",
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
-    "playground": "npm run dev --workspace=playground-react",
-    "storybook": "npm run storybook --workspace=playground-react",
+    "playground": "npm --prefix playground/react run dev",
+    "storybook": "npm --prefix playground/react run storybook",
     "generate:dev": "node dist/cli/index.js add Button --dev",
     "test": "vitest",
     "test:bun": "bunx vitest run --config vitest.config.ts",
@@ -45,9 +45,6 @@
     "pd:angular": "tsx scripts/open-playground.ts dev angular",
     "pd:vue": "tsx scripts/open-playground.ts dev vue"
   },
-  "workspaces": [
-    "playground/*"
-  ],
   "bin": {
     "crucible": "./bin/crucible.js"
   },
@@ -83,46 +80,47 @@
   },
   "homepage": "https://github.com/Naveen2070/project_crucible#readme",
   "dependencies": {
-    "@inquirer/prompts": "^8.3.2",
-    "ajv": "^8.18.0",
-    "ansis": "^3.0.0",
+    "@inquirer/prompts": "^8.5.2",
+    "ajv": "^8.20.0",
+    "ansis": "^4.3.1",
     "chokidar": "^5.0.0",
     "colorjs.io": "^0.6.1",
-    "commander": "^13.1.0",
+    "commander": "^15.0.0",
     "handlebars": "^4.7.9",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.3"
   },
   "devDependencies": {
-    "@storybook/addon-vitest": "^10.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/bun": "latest",
-    "@types/jsdom": "^28.0.1",
-    "@types/node": "^24.12.0",
-    "@types/react": "^19.2.14",
+    "@types/jsdom": "^28.0.3",
+    "@types/node": "^25.9.2",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@vitest/browser": "^3.2.4",
-    "@vitest/coverage-v8": "^3.2.4",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.39.4",
-    "jsdom": "^29.0.1",
-    "playwright": "^1.58.2",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.2",
-    "vitest": "^3.2.4",
+    "@vitest/coverage-v8": "^4.1.8",
+    "concurrently": "^10.0.3",
+    "eslint": "^10.4.1",
+    "glob": "^13.0.6",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8",
     "vitest-axe": "^0.1.0"
   },
   "engines": {
-    "node": ">=20 <25"
+    "node": ">=22.12 <25"
   },
   "allowScripts": {
     "@parcel/watcher@2.5.6": true,
-    "esbuild@0.27.4": true,
     "esbuild@0.27.3": true,
     "esbuild@0.25.12": true,
     "vue-demi@0.14.10": true,
     "lmdb@3.5.1": true,
-    "msgpackr-extract@3.0.3": true
+    "esbuild@0.27.7": true,
+    "esbuild@0.28.0": true,
+    "msgpackr-extract@3.0.4": true
   }
 }
