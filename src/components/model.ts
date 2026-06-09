@@ -1,7 +1,22 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { CrucibleConfig } from '../config/reader';
 import { ResolvedTokens } from '../tokens/resolver';
 import { Framework, StyleSystem, ComponentName } from '../core/enums';
 import { COMPONENT_DEFAULTS, TAILWIND_VARIANT_DEFAULTS } from '../registry/manifests/defaults';
+
+let cachedEngineVersion: string | null = null;
+/** Real engine version from the installed package, read once and cached. */
+export function getEngineVersion(): string {
+  if (cachedEngineVersion) return cachedEngineVersion;
+  try {
+    const pkg = JSON.parse(readFileSync(path.join(__dirname, '../../package.json'), 'utf-8'));
+    cachedEngineVersion = pkg.version || '1.0.0';
+  } catch {
+    cachedEngineVersion = '1.0.0';
+  }
+  return cachedEngineVersion!;
+}
 
 export interface ComponentModel {
   name: string;
@@ -96,7 +111,7 @@ export function buildComponentModel(
     name,
     framework,
     theme: config.theme,
-    engineVersion: '1.0.0', // Updated during generation or hardcoded for now
+    engineVersion: getEngineVersion(),
     isReact: framework === Framework.React,
     isAngular: framework === Framework.Angular,
     isVue: framework === Framework.Vue,
