@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { buildComponentModel } from '../components/model';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { buildComponentModel, getEngineVersion } from '../components/model';
 import { Framework, ComponentName } from '../core/enums';
 
 const mockTokens = {
@@ -85,5 +87,14 @@ describe('buildComponentModel', () => {
 
   it('throws for unknown component', () => {
     expect(() => buildComponentModel('NonExistentComponent' as any, mockTokens, mockConfig, false)).toThrow();
+  });
+
+  it('emits the real package version, not a hardcoded one', () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(__dirname, '../../package.json'), 'utf-8'),
+    );
+    const model = buildComponentModel(ComponentName.Button, mockTokens, mockConfig, false);
+    expect(model.engineVersion).toBe(pkg.version);
+    expect(getEngineVersion()).toBe(pkg.version);
   });
 });

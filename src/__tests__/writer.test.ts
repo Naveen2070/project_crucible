@@ -163,6 +163,33 @@ describe('writeFiles', () => {
     ).rejects.toThrow('path traversal');
   });
 
+  it('rejects writes into a sibling dir sharing a name prefix', async () => {
+    // `Button-evil` shares the `Button` prefix; a naive startsWith check would allow it.
+    const files = { '../Button-evil/leak.tsx': 'malicious content' };
+    await expect(
+      writeFiles(files, outputDir, componentName, { cwd: TEST_DIR, quiet: true }),
+    ).rejects.toThrow('path traversal');
+  });
+
+  it('honors a provided manifest version/hash without recomputing them', async () => {
+    const files = { 'Button.tsx': 'export const Button = () => {};' };
+    const hashes = await loadHashes(TEST_DIR);
+    hashes.engineVersion = 'CALLER-SET';
+    hashes.configHash = 'CALLER-HASH';
+
+    await writeFiles(files, outputDir, componentName, {
+      cwd: TEST_DIR,
+      quiet: true,
+      hashes,
+    });
+
+    // With a shared manifest provided, writeFiles must not overwrite caller-set
+    // metadata by re-reading package.json / crucible.config.json per component.
+    expect(hashes.engineVersion).toBe('CALLER-SET');
+    expect(hashes.configHash).toBe('CALLER-HASH');
+    expect(hashes.files['Button/Button.tsx']).toBeDefined();
+  });
+
   it('writes multiple files', async () => {
     const files = {
       'Button.tsx': 'export const Button = () => {};',

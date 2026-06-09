@@ -42,4 +42,11 @@ describe('resolveTokens', () => {
     const { darkCssVars } = resolveTokens({ ...mockConfig, darkMode: false });
     expect(darkCssVars).toBeNull();
   });
+
+  it('ignores prototype-polluting keys in user tokens', () => {
+    const malicious = JSON.parse('{"color": {"primary": "#FF0000"}, "__proto__": {"polluted": "yes"}}');
+    expect(() => resolveTokens({ ...mockConfig, tokens: malicious })).not.toThrow();
+    expect(({} as any).polluted).toBeUndefined();
+    expect((Object.prototype as any).polluted).toBeUndefined();
+  });
 });
