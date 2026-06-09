@@ -46,6 +46,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     (`let uid = 0; … ${++uid}`), the idiom used by Angular Material. No version requirement.
   - Deterministic, collision-free, and SSR-safe IDs; removes the recurring scanner finding.
 
+### Fixed
+
+- **Vue DropdownMenu no longer leaks styles onto other components.** Its teleported menu panel used
+  a generic global `.content` class (with `position: absolute`, shadow, and border); because the
+  styles are page-global, they bled onto every other `.content` element — most visibly making the
+  Accordion's expanded panel render as a floating, overlapping box. The panel is now namespaced as
+  `.menu-content` (CSS modules already isolate React; Tailwind is unaffected).
+
 ### Security
 
 - Eliminated cryptographically-weak `Math.random()` from all generated component ID generation
