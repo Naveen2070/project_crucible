@@ -113,24 +113,29 @@ export async function writeFiles(
   const now = new Date().toISOString();
   manifest.generatedAt = now;
 
-  let pkgVersion = '1.0.0';
-  try {
-    const pkg = await readJson(path.join(__dirname, '../../package.json'));
-    pkgVersion = pkg.version || '1.0.0';
-  } catch {
-    // ignore
-  }
-  manifest.engineVersion = pkgVersion;
-
-  // Try to get config hash
-  try {
-    const configPath = path.join(cwd, 'crucible.config.json');
-    if (await pathExists(configPath)) {
-      const configContent = await readFile(configPath, 'utf-8');
-      manifest.configHash = hashContent(configContent);
+  // When a shared manifest is passed in (multi-component generation), the caller has
+  // already populated engineVersion + configHash once. Only compute them here on the
+  // standalone path, to avoid re-reading package.json / config once per component.
+  if (!opts.hashes) {
+    let pkgVersion = '1.0.0';
+    try {
+      const pkg = await readJson(path.join(__dirname, '../../package.json'));
+      pkgVersion = pkg.version || '1.0.0';
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
+    manifest.engineVersion = pkgVersion;
+
+    // Try to get config hash
+    try {
+      const configPath = path.join(cwd, 'crucible.config.json');
+      if (await pathExists(configPath)) {
+        const configContent = await readFile(configPath, 'utf-8');
+        manifest.configHash = hashContent(configContent);
+      }
+    } catch {
+      // ignore
+    }
   }
 
   await Promise.all(
@@ -138,8 +143,11 @@ export async function writeFiles(
       const outPath = path.resolve(componentDir, filename);
       const hashKey = `${componentName}/${filename}`;
 
-      // Security: Path Traversal Protection
-      if (!outPath.startsWith(path.resolve(componentDir))) {
+      // Security: Path Traversal Protection. Use path.relative so a sibling dir
+      // sharing a string prefix (e.g. Card vs Card-evil) can't slip past a naive
+      // startsWith check. Reject anything that escapes componentDir or is absolute.
+      const rel = path.relative(path.resolve(componentDir), outPath);
+      if (rel.startsWith('..') || path.isAbsolute(rel)) {
         throw new Error(`Security breach: Attempted path traversal to ${outPath}`);
       }
 
