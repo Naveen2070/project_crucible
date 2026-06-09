@@ -1,22 +1,15 @@
 import type { StorybookConfig } from '@storybook/angular';
 
-import { dirname } from 'path';
-
-import { fileURLToPath } from 'url';
-
-/**
- * This function is used to resolve the absolute path of a package.
- * It is needed in projects that use Yarn PnP or are set up within a monorepo.
- */
-function getAbsolutePath(value: string) {
-  return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
-}
 const config: StorybookConfig = {
-  stories: [
-    '../src/__generated__/**/*.mdx',
-    '../src/__generated__/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+  "stories": [
+    "../src/__generated__/**/*.mdx",
+    "../src/__generated__/**/*.stories.@(js|jsx|mjs|ts|tsx)"
   ],
-  addons: [getAbsolutePath('@storybook/addon-a11y'), getAbsolutePath('@storybook/addon-docs')],
-  framework: getAbsolutePath('@storybook/angular'),
+  "addons": [
+    "@storybook/addon-a11y",
+    "@storybook/addon-docs",
+    "@storybook/addon-onboarding"
+  ],
+  "framework": "@storybook/angular"
 };
 export default config;

@@ -2,39 +2,14 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm",
-    "analytics": "a23b7792-8837-4aff-b5a6-c664e6cc7bf6"
+    "packageManager": "bun",
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
-    "playground-angular": {
+    "angular": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:class": {
-          "skipTests": true
-        },
-        "@schematics/angular:component": {
-          "skipTests": true
-        },
-        "@schematics/angular:directive": {
-          "skipTests": true
-        },
-        "@schematics/angular:guard": {
-          "skipTests": true
-        },
-        "@schematics/angular:interceptor": {
-          "skipTests": true
-        },
-        "@schematics/angular:pipe": {
-          "skipTests": true
-        },
-        "@schematics/angular:resolver": {
-          "skipTests": true
-        },
-        "@schematics/angular:service": {
-          "skipTests": true
-        }
-      },
+      "schematics": {},
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -50,7 +25,10 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": [
+              "src/styles.css",
+              "public/__generated__/tokens.css"
+            ]
           },
           "configurations": {
             "production": {
@@ -80,19 +58,22 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "playground-angular:build:production"
+              "buildTarget": "angular:build:production"
             },
             "development": {
-              "buildTarget": "playground-angular:build:development"
+              "buildTarget": "angular:build:development"
             }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
         },
         "storybook": {
           "builder": "@storybook/angular:start-storybook",
           "options": {
             "configDir": ".storybook",
-            "browserTarget": "playground-angular:build",
+            "browserTarget": "angular:build",
             "compodoc": false,
             "port": 6007
           }
@@ -101,7 +82,7 @@
           "builder": "@storybook/angular:build-storybook",
           "options": {
             "configDir": ".storybook",
-            "browserTarget": "playground-angular:build",
+            "browserTarget": "angular:build",
             "compodoc": false,
             "outputDir": "storybook-static"
           }
