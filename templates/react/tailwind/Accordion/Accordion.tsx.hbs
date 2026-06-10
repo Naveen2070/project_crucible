@@ -8,6 +8,7 @@ import React, {
   useRef,
   useId,
 } from 'react';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type AccordionSize = {{> shared/size-types}};
 export type AccordionVariant = {{> shared/variant-types}};
@@ -19,12 +20,6 @@ export interface AccordionOptions {
   defaultValue?: string | string[];
   onValueChange?: (value: string | string[]) => void;
   collapsible?: boolean;
-}
-
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 const toOpenSet = (value: string | string[] | undefined): Set<string> => {
@@ -45,8 +40,8 @@ export function useAccordion({
   const value = controlledValue ?? uncontrolledValue;
   const openSet = useMemo(() => toOpenSet(value), [value]);
   const rootId = useId();
-  const triggersRef = useRef<Map<string, TriggerRegistration>>(new Map());
-  const orderRef = useRef<string[]>([]);
+  const rovingRef = useRef<RovingFocusManager | null>(null);
+  if (rovingRef.current === null) rovingRef.current = new RovingFocusManager();
 
   const commit = useCallback(
     (next: string | string[]) => {
@@ -81,48 +76,23 @@ export function useAccordion({
 
   const registerTrigger = useCallback(
     (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-      const map = triggersRef.current;
-      if (el === null) {
-        map.delete(val);
-        orderRef.current = orderRef.current.filter((v) => v !== val);
-        return;
-      }
-      if (!map.has(val)) {
-        orderRef.current.push(val);
-      }
-      map.set(val, { value: val, disabled, el });
+      rovingRef.current!.register(val, disabled, el);
     },
     []
   );
 
   const focusTrigger = useCallback((val: string) => {
-    const entry = triggersRef.current.get(val);
-    entry?.el?.focus();
+    rovingRef.current!.focus(val);
   }, []);
 
   const moveFocus = useCallback(
-    (current: string, direction: 1 | -1) => {
-      const order = orderRef.current;
-      const enabled = order.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const idx = enabled.indexOf(current);
-      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-      const next = enabled[nextIdx];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (current: string, direction: 1 | -1) => rovingRef.current!.moveFocus(current, direction),
+    []
   );
 
   const focusEdge = useCallback(
-    (edge: 'first' | 'last') => {
-      const enabled = orderRef.current.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (edge: 'first' | 'last') => rovingRef.current!.focusEdge(edge),
+    []
   );
 
   return useMemo(

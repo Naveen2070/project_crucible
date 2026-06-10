@@ -11,6 +11,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type AccordionVariant = {{> shared/variant-types}};
 export type AccordionSize = {{> shared/size-types}};
@@ -47,6 +48,7 @@ export class AccordionComponent implements AfterViewInit, OnChanges {
 
   readonly rootId = `accordion-${++accordionUid}`;
   internalValue?: string | string[];
+  private roving = new RovingFocusManager();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['value'] && changes['value'].currentValue !== undefined) {
@@ -58,6 +60,8 @@ export class AccordionComponent implements AfterViewInit, OnChanges {
     if (this.internalValue === undefined) {
       this.internalValue = this.value ?? this.defaultValue;
     }
+    this.syncRoving();
+    this.triggers.changes.subscribe(() => this.syncRoving());
   }
 
   get currentValue(): string | string[] | undefined {
@@ -112,47 +116,26 @@ export class AccordionComponent implements AfterViewInit, OnChanges {
     let nextValue: string | null = null;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      nextValue = this.moveFocus(item.value, 1);
+      nextValue = this.roving.moveFocus(item.value, 1);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      nextValue = this.moveFocus(item.value, -1);
+      nextValue = this.roving.moveFocus(item.value, -1);
     } else if (event.key === 'Home') {
       event.preventDefault();
-      nextValue = this.focusEdge('first');
+      nextValue = this.roving.focusEdge('first');
     } else if (event.key === 'End') {
       event.preventDefault();
-      nextValue = this.focusEdge('last');
+      nextValue = this.roving.focusEdge('last');
     }
     void nextValue;
   }
 
-  private enabledOrder(): string[] {
-    return this.items.filter((i) => !i.disabled).map((i) => i.value);
-  }
-
-  private focusByValue(value: string): void {
-    const enabled = this.items.filter((i) => !i.disabled);
-    const enabledIdx = enabled.findIndex((i) => i.value === value);
-    if (enabledIdx < 0) return;
-    const allIdx = this.items.findIndex((i) => i.value === value);
-    this.triggers.toArray()[allIdx]?.nativeElement?.focus();
-  }
-
-  private moveFocus(current: string, direction: 1 | -1): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const idx = order.indexOf(current);
-    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
-    const next = order[nextIdx];
-    this.focusByValue(next);
-    return next;
-  }
-
-  private focusEdge(edge: 'first' | 'last'): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const next = edge === 'first' ? order[0] : order[order.length - 1];
-    this.focusByValue(next);
-    return next;
+  /** Keep the roving-focus manager in sync with the rendered triggers (by item order). */
+  private syncRoving(): void {
+    this.roving.clear();
+    const els = this.triggers.toArray();
+    this.items.forEach((item, i) =>
+      this.roving.register(item.value, !!item.disabled, els[i]?.nativeElement ?? null),
+    );
   }
 }

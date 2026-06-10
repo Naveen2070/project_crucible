@@ -9,6 +9,7 @@
   "states": ["disabled"],
   "props": ["type", "value", "defaultValue", "onValueChange", "collapsible"],
   "prefix": "accordion",
+  "utils": ["roving-focus"],
   "a11y": { "role": "region", "keyboardNav": true },
   "tailwindDefaults": {
     "default": "",

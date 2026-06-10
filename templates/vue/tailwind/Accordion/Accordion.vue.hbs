@@ -13,6 +13,7 @@ import {
   type InjectionKey,
   type PropType,
 } from 'vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type AccordionSize = {{> shared/size-types}};
 export type AccordionVariant = {{> shared/variant-types}};
@@ -23,12 +24,6 @@ export interface AccordionItem {
   label: string;
   content?: string;
   disabled?: boolean;
-}
-
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface AccordionApi {
@@ -243,8 +238,7 @@ const uid = (getCurrentInstance()?.uid ?? 0).toString(36);
 {{/if}}
 const rootId = `accordion-${uid}`;
 
-const triggers = new Map<string, TriggerRegistration>();
-const order: string[] = [];
+const roving = new RovingFocusManager();
 
 const toOpenSet = (value: string | string[] | undefined): Set<string> => {
   if (value == null) return new Set();
@@ -279,38 +273,14 @@ const toggle = (value: string) => {
   }
 };
 
-const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    triggers.delete(val);
-    const idx = order.indexOf(val);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!triggers.has(val)) order.push(val);
-  triggers.set(val, { value: val, disabled, el });
-};
+const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(val, disabled, el);
 
-const focusTrigger = (val: string) => {
-  triggers.get(val)?.el?.focus();
-};
+const focusTrigger = (val: string) => roving.focus(val);
 
-const moveFocus = (current: string, direction: 1 | -1) => {
-  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
-  if (enabled.length === 0) return null;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-  const next = enabled[nextIdx];
-  focusTrigger(next);
-  return next;
-};
+const moveFocus = (current: string, direction: 1 | -1) => roving.moveFocus(current, direction);
 
-const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
-  if (enabled.length === 0) return null;
-  const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-  focusTrigger(next);
-  return next;
-};
+const focusEdge = (edge: 'first' | 'last') => roving.focusEdge(edge);
 
 const api: AccordionApi = {
   get type() {
