@@ -12,6 +12,7 @@ import {
   type InjectionKey,
   type PropType,
 } from 'vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type RadioGroupSize = {{> shared/size-types}};
 export type RadioGroupOrientation = 'vertical' | 'horizontal';
@@ -20,12 +21,6 @@ export interface RadioGroupItem {
   value: string;
   label: string;
   disabled?: boolean;
-}
-
-interface ItemRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface RadioGroupApi {
@@ -130,8 +125,7 @@ const uid = (getCurrentInstance()?.uid ?? 0).toString(36);
 {{/if}}
 const rootId = `radio-${uid}`;
 
-const items = new Map<string, ItemRegistration>();
-const order: string[] = [];
+const roving = new RovingFocusManager();
 
 const internal = reactive({ value: props.value ?? props.defaultValue });
 
@@ -141,42 +135,18 @@ const setValue = (next: string) => {
   emit('valueChange', next);
 };
 
-const registerItem = (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    items.delete(val);
-    const idx = order.indexOf(val);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!items.has(val)) order.push(val);
-  items.set(val, { value: val, disabled, el });
-};
+const registerItem = (val: string, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(val, disabled, el);
 
-const focusItem = (val: string) => {
-  items.get(val)?.el?.focus();
-};
+const focusItem = (val: string) => roving.focus(val);
 
-const enabledOrder = () => order.filter((v) => !items.get(v)?.disabled);
+const enabledOrder = () => roving.enabled();
 
 const firstEnabled = () => enabledOrder()[0] ?? null;
 
-const moveFocus = (current: string, direction: 1 | -1) => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return null;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-  const next = enabled[nextIdx];
-  focusItem(next);
-  return next;
-};
+const moveFocus = (current: string, direction: 1 | -1) => roving.moveFocus(current, direction);
 
-const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return null;
-  const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-  focusItem(next);
-  return next;
-};
+const focusEdge = (edge: 'first' | 'last') => roving.focusEdge(edge);
 
 const onKeydown = (e: KeyboardEvent) => {
   const target = e.target as HTMLElement;

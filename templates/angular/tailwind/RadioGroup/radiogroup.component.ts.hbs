@@ -11,6 +11,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type RadioGroupSize = {{> shared/size-types}};
 export type RadioGroupOrientation = 'vertical' | 'horizontal';
@@ -43,6 +44,7 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
 
   readonly rootId = `radio-${++radioGroupUid}`;
   internalValue?: string;
+  private roving = new RovingFocusManager();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['value'] && changes['value'].currentValue !== undefined) {
@@ -54,6 +56,8 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
     if (this.internalValue === undefined) {
       this.internalValue = this.value ?? this.defaultValue;
     }
+    this.syncRoving();
+    this.radios.changes.subscribe(() => this.syncRoving());
   }
 
   get currentValue(): string | undefined {
@@ -124,13 +128,15 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
     const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
 
     let nextValue: string | null = null;
-    if (event.key === nextKey) { event.preventDefault(); nextValue = this.moveFocus(currentValue, 1); }
-    else if (event.key === prevKey) { event.preventDefault(); nextValue = this.moveFocus(currentValue, -1); }
-    else if (event.key === 'Home') { event.preventDefault(); nextValue = this.focusEdge('first'); }
-    else if (event.key === 'End') { event.preventDefault(); nextValue = this.focusEdge('last'); }
+    if (event.key === nextKey) { event.preventDefault(); nextValue = this.roving.moveFocus(currentValue, 1); }
+    else if (event.key === prevKey) { event.preventDefault(); nextValue = this.roving.moveFocus(currentValue, -1); }
+    else if (event.key === 'Home') { event.preventDefault(); nextValue = this.roving.focusEdge('first'); }
+    else if (event.key === 'End') { event.preventDefault(); nextValue = this.roving.focusEdge('last'); }
     if (nextValue) this.setValue(nextValue);
   }
 
+  // enabledOrder / firstEnabled derive from `items` (needed at render time for the
+  // initial tab stop, before ngAfterViewInit syncs the roving manager).
   private enabledOrder(): string[] {
     return this.items.filter((i) => !i.disabled).map((i) => i.value);
   }
@@ -139,27 +145,12 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
     return this.enabledOrder()[0] ?? null;
   }
 
-  private focusByValue(value: string): void {
-    const idx = this.items.findIndex((i) => i.value === value);
-    if (idx < 0) return;
-    this.radios.toArray()[idx]?.nativeElement?.focus();
-  }
-
-  private moveFocus(current: string, direction: 1 | -1): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const idx = order.indexOf(current);
-    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
-    const next = order[nextIdx];
-    this.focusByValue(next);
-    return next;
-  }
-
-  private focusEdge(edge: 'first' | 'last'): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const next = edge === 'first' ? order[0] : order[order.length - 1];
-    this.focusByValue(next);
-    return next;
+  /** Keep the roving-focus manager in sync with the rendered radios (by item order). */
+  private syncRoving(): void {
+    this.roving.clear();
+    const els = this.radios.toArray();
+    this.items.forEach((item, i) =>
+      this.roving.register(item.value, !!item.disabled, els[i]?.nativeElement ?? null),
+    );
   }
 }

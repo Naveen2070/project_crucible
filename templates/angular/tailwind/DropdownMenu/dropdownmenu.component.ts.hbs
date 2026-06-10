@@ -15,6 +15,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RovingFocusManager } from './utils/roving-focus';
 import { computePosition, autoUpdate, offset, flip, shift, type Placement } from '@floating-ui/dom';
 
 export type DropdownMenuSize = {{> shared/size-types}};
@@ -71,6 +72,7 @@ export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
 
   private cleanupFloating?: () => void;
   private contentMoved = false;
+  private roving = new RovingFocusManager<number>();
 
   constructor(
     private renderer: Renderer2,
@@ -82,6 +84,8 @@ export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
     if (this.open) {
       this.initFloating();
     }
+    this.syncRoving();
+    this.itemRefs.changes.subscribe(() => this.syncRoving());
   }
 
   ngOnDestroy() {
@@ -223,50 +227,36 @@ export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
   onContentKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      this.moveFocus(this.currentItemIndex(event), 1);
+      this.roving.moveFocus(this.currentItemIndex(event), 1);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      this.moveFocus(this.currentItemIndex(event), -1);
+      this.roving.moveFocus(this.currentItemIndex(event), -1);
     } else if (event.key === 'Home') {
       event.preventDefault();
-      this.focusEdge('first');
+      this.roving.focusEdge('first');
     } else if (event.key === 'End') {
       event.preventDefault();
-      this.focusEdge('last');
+      this.roving.focusEdge('last');
     }
   }
 
-  private enabledButtons(): HTMLButtonElement[] {
-    return this.itemRefs
-      .toArray()
-      .map((r) => r.nativeElement)
-      .filter((el) => !el.disabled);
-  }
-
+  // Item index (within `items`) of the focused button, or -1 — the manager maps it to
+  // the right position among enabled items.
   private currentItemIndex(event: KeyboardEvent): number {
     const target = event.target as HTMLButtonElement;
-    return this.enabledButtons().indexOf(target);
-  }
-
-  private moveFocus(current: number, direction: 1 | -1) {
-    const buttons = this.enabledButtons();
-    if (buttons.length === 0) return;
-    const nextIdx =
-      current === -1
-        ? direction === 1
-          ? 0
-          : buttons.length - 1
-        : (current + direction + buttons.length) % buttons.length;
-    buttons[nextIdx]?.focus();
-  }
-
-  private focusEdge(edge: 'first' | 'last') {
-    const buttons = this.enabledButtons();
-    if (buttons.length === 0) return;
-    (edge === 'first' ? buttons[0] : buttons[buttons.length - 1])?.focus();
+    return this.itemRefs.toArray().findIndex((r) => r.nativeElement === target);
   }
 
   private focusFirstItem() {
-    this.enabledButtons()[0]?.focus();
+    this.roving.focusEdge('first');
+  }
+
+  /** Keep the roving-focus manager in sync with the rendered items (by item order). */
+  private syncRoving(): void {
+    this.roving.clear();
+    const els = this.itemRefs.toArray();
+    this.items.forEach((item, i) =>
+      this.roving.register(i, !!item.disabled, els[i]?.nativeElement ?? null),
+    );
   }
 }

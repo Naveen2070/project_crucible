@@ -18,6 +18,7 @@ exports[`DropdownMenu snapshots > angular css mode snapshot (monolithic) 1`] = `
   PLATFORM_ID,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RovingFocusManager } from './utils/roving-focus';
 import { computePosition, autoUpdate, offset, flip, shift, type Placement } from '@floating-ui/dom';
 
 export type DropdownMenuSize = 'sm' | 'md' | 'lg';
@@ -75,6 +76,7 @@ export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
 
   private cleanupFloating?: () => void;
   private contentMoved = false;
+  private roving = new RovingFocusManager<number>();
 
   constructor(
     private renderer: Renderer2,
@@ -86,6 +88,8 @@ export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
     if (this.open) {
       this.initFloating();
     }
+    this.syncRoving();
+    this.itemRefs.changes.subscribe(() => this.syncRoving());
   }
 
   ngOnDestroy() {
@@ -202,51 +206,37 @@ export class DropdownMenuComponent implements AfterViewInit, OnDestroy {
   onContentKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      this.moveFocus(this.currentItemIndex(event), 1);
+      this.roving.moveFocus(this.currentItemIndex(event), 1);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      this.moveFocus(this.currentItemIndex(event), -1);
+      this.roving.moveFocus(this.currentItemIndex(event), -1);
     } else if (event.key === 'Home') {
       event.preventDefault();
-      this.focusEdge('first');
+      this.roving.focusEdge('first');
     } else if (event.key === 'End') {
       event.preventDefault();
-      this.focusEdge('last');
+      this.roving.focusEdge('last');
     }
   }
 
-  private enabledButtons(): HTMLButtonElement[] {
-    return this.itemRefs
-      .toArray()
-      .map((r) => r.nativeElement)
-      .filter((el) => !el.disabled);
-  }
-
+  // Item index (within \`items\`) of the focused button, or -1 — the manager maps it to
+  // the right position among enabled items.
   private currentItemIndex(event: KeyboardEvent): number {
     const target = event.target as HTMLButtonElement;
-    return this.enabledButtons().indexOf(target);
-  }
-
-  private moveFocus(current: number, direction: 1 | -1) {
-    const buttons = this.enabledButtons();
-    if (buttons.length === 0) return;
-    const nextIdx =
-      current === -1
-        ? direction === 1
-          ? 0
-          : buttons.length - 1
-        : (current + direction + buttons.length) % buttons.length;
-    buttons[nextIdx]?.focus();
-  }
-
-  private focusEdge(edge: 'first' | 'last') {
-    const buttons = this.enabledButtons();
-    if (buttons.length === 0) return;
-    (edge === 'first' ? buttons[0] : buttons[buttons.length - 1])?.focus();
+    return this.itemRefs.toArray().findIndex((r) => r.nativeElement === target);
   }
 
   private focusFirstItem() {
-    this.enabledButtons()[0]?.focus();
+    this.roving.focusEdge('first');
+  }
+
+  /** Keep the roving-focus manager in sync with the rendered items (by item order). */
+  private syncRoving(): void {
+    this.roving.clear();
+    const els = this.itemRefs.toArray();
+    this.items.forEach((item, i) =>
+      this.roving.register(i, !!item.disabled, els[i]?.nativeElement ?? null),
+    );
   }
 }
 "
@@ -1267,6 +1257,7 @@ import {
   type PropType,
 } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, type Placement } from '@floating-ui/vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type DropdownMenuSize = 'sm' | 'md' | 'lg';
 export type DropdownMenuVariant = 'default' | 'minimal';
@@ -1277,12 +1268,6 @@ export interface DropdownMenuItemModel {
   disabled?: boolean;
   separatorBefore?: boolean;
   onSelect?: () => void;
-}
-
-interface ItemRegistration {
-  id: number;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface DropdownMenuApi {
@@ -1478,8 +1463,7 @@ const open = computed(() => (isControlled.value ? !!props.open : internalOpen.va
 const triggerRef = ref<HTMLElement | null>(null);
 const contentRef = ref<HTMLElement | null>(null);
 
-const items = new Map<number, ItemRegistration>();
-const order: number[] = [];
+const roving = new RovingFocusManager<number>();
 
 const setOpen = (next: boolean) => {
   if (!isControlled.value) internalOpen.value = next;
@@ -1487,40 +1471,24 @@ const setOpen = (next: boolean) => {
   if (next) {
     nextTick(() => {
       const first = enabledOrder()[0];
-      if (first !== undefined) items.get(first)?.el?.focus();
+      if (first !== undefined) roving.focus(first);
     });
   } else {
     triggerRef.value?.focus();
   }
 };
 
-const enabledOrder = () => order.filter((id) => !items.get(id)?.disabled);
+const enabledOrder = () => roving.enabled();
 
-const registerItem = (id: number, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    items.delete(id);
-    const idx = order.indexOf(id);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!items.has(id)) order.push(id);
-  items.set(id, { id, disabled, el });
-};
-
-const focusItem = (id: number) => items.get(id)?.el?.focus();
+const registerItem = (id: number, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(id, disabled, el);
 
 const moveFocus = (current: number, direction: 1 | -1) => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? (direction === 1 ? 0 : enabled.length - 1) : (idx + direction + enabled.length) % enabled.length;
-  focusItem(enabled[nextIdx]);
+  roving.moveFocus(current, direction);
 };
 
 const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return;
-  focusItem(edge === 'first' ? enabled[0] : enabled[enabled.length - 1]);
+  roving.focusEdge(edge);
 };
 
 const onItemSelect = (onSelect?: () => void) => {

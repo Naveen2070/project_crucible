@@ -12,6 +12,7 @@ import {
   ref,
   type InjectionKey,
 } from 'vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type TabsSize = 'sm' | 'md' | 'lg';
 export type TabsVariant = 'default' | 'underline' | 'pills';
@@ -23,12 +24,6 @@ export interface TabsItem {
   label: string;
   content?: string;
   disabled?: boolean;
-}
-
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface TabsApi {
@@ -207,8 +202,7 @@ const uid = useId();
 const uid = (getCurrentInstance()?.uid ?? 0).toString(36);
 {{/if}}
 const rootId = `tabs-${uid}`;
-const triggers = new Map<string, TriggerRegistration>();
-const order: string[] = [];
+const roving = new RovingFocusManager();
 const internal = reactive({ value: props.value ?? props.defaultValue ?? props.items?.[0]?.value });
 
 const setValue = (next: string) => {
@@ -217,36 +211,14 @@ const setValue = (next: string) => {
   emit('valueChange', next);
 };
 
-const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    triggers.delete(val);
-    const idx = order.indexOf(val);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!triggers.has(val)) order.push(val);
-  triggers.set(val, { value: val, disabled, el });
-};
+const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(val, disabled, el);
 
-const focusTrigger = (val: string) => triggers.get(val)?.el?.focus();
+const focusTrigger = (val: string) => roving.focus(val);
 
-const moveFocus = (current: string, direction: 1 | -1) => {
-  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
-  if (enabled.length === 0) return null;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-  const next = enabled[nextIdx];
-  focusTrigger(next);
-  return next;
-};
+const moveFocus = (current: string, direction: 1 | -1) => roving.moveFocus(current, direction);
 
-const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
-  if (enabled.length === 0) return null;
-  const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-  focusTrigger(next);
-  return next;
-};
+const focusEdge = (edge: 'first' | 'last') => roving.focusEdge(edge);
 
 const api: TabsApi = {
   get value() { return props.value ?? internal.value; },

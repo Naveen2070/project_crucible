@@ -52,12 +52,18 @@ export class RovingFocusManager<K extends string | number = string> {
     return this.order.filter((v) => !this.items.get(v)?.disabled);
   }
 
-  /** Move focus from `current` by `direction` (1 = next, -1 = previous), wrapping around. */
+  /** Move focus from `current` by `direction` (1 = next, -1 = previous), wrapping around.
+   * If `current` isn't a known enabled item, lands on the first (next) or last (prev). */
   moveFocus(current: K, direction: 1 | -1): K | null {
     const enabled = this.enabled();
     if (enabled.length === 0) return null;
     const idx = enabled.indexOf(current);
-    const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
+    const nextIdx =
+      idx === -1
+        ? direction === 1
+          ? 0
+          : enabled.length - 1
+        : (idx + direction + enabled.length) % enabled.length;
     const next = enabled[nextIdx];
     this.focus(next);
     return next;

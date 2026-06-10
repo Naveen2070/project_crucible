@@ -9,6 +9,7 @@
   "states": ["open", "closed"],
   "props": ["open", "onOpenChange", "placement", "trigger", "closeOnSelect"],
   "prefix": "menu",
+  "utils": ["roving-focus"],
   "a11y": { "role": "menu", "keyboardNav": true },
   "dependencies": ["Button"],
   "peerDependencies": {

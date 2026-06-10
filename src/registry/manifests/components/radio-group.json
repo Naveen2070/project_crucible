@@ -9,6 +9,7 @@
   "states": ["disabled"],
   "props": ["value", "defaultValue", "onValueChange", "orientation", "name"],
   "prefix": "radio",
+  "utils": ["roving-focus"],
   "a11y": { "role": "radiogroup", "keyboardNav": true },
   "tailwindDefaults": {}
 }
