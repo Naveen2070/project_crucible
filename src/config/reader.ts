@@ -39,6 +39,10 @@ export interface CrucibleConfig {
     outputDir?: string;
     stories?: boolean;
   };
+  plugins?: {
+    /** Treat plugin collisions / incompatible plugins as hard errors. */
+    strict?: boolean;
+  };
 }
 
 export async function readConfig(configPath: string): Promise<CrucibleConfig> {

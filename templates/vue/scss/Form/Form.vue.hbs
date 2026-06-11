@@ -1,0 +1,633 @@
+<script lang="ts">
+import {
+  defineComponent,
+  h,
+  inject,
+  provide,
+  reactive,
+  computed,
+{{#if vueUseId}}  useId,{{else}}  getCurrentInstance,{{/if}}
+  onMounted,
+  onBeforeUnmount,
+  type InjectionKey,
+  type PropType,
+  type VNode,
+} from 'vue';
+
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+export type ValidationMode = 'onSubmit' | 'onBlur' | 'onChange' | 'onTouched' | 'all';
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSchemaField {
+  name: string;
+  label?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'textarea' | 'checkbox' | 'select';
+  placeholder?: string;
+  description?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  options?: Array<{ label: string; value: string }>;
+  defaultValue?: unknown;
+}
+
+export interface FormOptions {
+  defaultValues?: FormValues;
+  mode?: ValidationMode;
+  reValidateMode?: 'onChange' | 'onBlur';
+  onSubmit?: (values: FormValues) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+export interface FormApi {
+  readonly values: FormValues;
+  readonly errors: FieldErrors;
+  readonly touched: Record<string, boolean>;
+  readonly isSubmitting: boolean;
+  readonly isValid: boolean;
+  mode: ValidationMode;
+  getValue: (name: string) => unknown;
+  setValue: (name: string, value: unknown) => void;
+  setError: (name: string, message: string | undefined) => void;
+  setTouched: (name: string, touched?: boolean) => void;
+  registerField: (name: string, rules?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  validateField: (name: string) => Promise<string | undefined>;
+  validateAll: () => Promise<FieldErrors>;
+  runSubmit: () => Promise<FieldErrors>;
+  reset: (next?: FormValues) => void;
+}
+
+export interface FieldContext {
+  name: string;
+  formItemId: string;
+  descriptionId: string;
+  messageId: string;
+  isRequired: boolean;
+}
+
+export const FormContextKey: InjectionKey<FormApi> = Symbol('crucible-form');
+export const FieldContextKey: InjectionKey<FieldContext> = Symbol('crucible-form-field');
+
+/* ============================================================================
+ * Pure validation helper (shared with React/Angular ports)
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+export async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? `Must be at least ${min.value}.`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? `Must be at most ${max.value}.`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? `Must be at least ${minLength.value} characters.`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? `Must be at most ${maxLength.value} characters.`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+/* ============================================================================
+ * Dependency-free reactive form engine
+ * ========================================================================== */
+export function useForm(options: FormOptions = {}): FormApi {
+  const defaults: FormValues = { ...(options.defaultValues ?? {}) };
+  const state = reactive({
+    values: { ...defaults } as FormValues,
+    errors: {} as FieldErrors,
+    touched: {} as Record<string, boolean>,
+    isSubmitting: false,
+  });
+  const rules = new Map<string, { rule?: FieldRule; required?: boolean }>();
+  const mode: ValidationMode = options.mode ?? 'onSubmit';
+  const reValidate: 'onChange' | 'onBlur' = options.reValidateMode ?? 'onChange';
+
+  const composedRule = (name: string): FieldRule | undefined => {
+    const entry = rules.get(name);
+    if (!entry) return undefined;
+    if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+    return entry.rule;
+  };
+
+  const validateField = async (name: string): Promise<string | undefined> => {
+    const message = await evaluateRule(composedRule(name), state.values[name], state.values);
+    state.errors = { ...state.errors, [name]: message || undefined };
+    return message;
+  };
+
+  const validateAll = async (): Promise<FieldErrors> => {
+    const names = [...rules.keys()];
+    const results = await Promise.all(
+      names.map((name) => evaluateRule(composedRule(name), state.values[name], state.values)),
+    );
+    const next: FieldErrors = {};
+    names.forEach((name, i) => {
+      next[name] = results[i] || undefined;
+    });
+    state.errors = next;
+    return next;
+  };
+
+  const api: FormApi = {
+    get values() {
+      return state.values;
+    },
+    get errors() {
+      return state.errors;
+    },
+    get touched() {
+      return state.touched;
+    },
+    get isSubmitting() {
+      return state.isSubmitting;
+    },
+    get isValid() {
+      for (const message of Object.values(state.errors)) if (message) return false;
+      for (const [name, entry] of rules) {
+        if (entry.required || entry.rule?.required) {
+          const value = state.values[name];
+          if (value === undefined || value === null || value === '' || value === false) return false;
+        }
+      }
+      return true;
+    },
+    mode,
+    getValue: (name) => state.values[name],
+    setValue: (name, value) => {
+      state.values = { ...state.values, [name]: value };
+      const shouldValidate =
+        mode === 'onChange' || mode === 'all' || (state.errors[name] !== undefined && reValidate === 'onChange');
+      if (shouldValidate) void validateField(name);
+    },
+    setError: (name, message) => {
+      state.errors = { ...state.errors, [name]: message || undefined };
+    },
+    setTouched: (name, touched = true) => {
+      state.touched = { ...state.touched, [name]: touched };
+    },
+    registerField: (name, rule, required) => {
+      rules.set(name, { rule, required });
+      if (!(name in state.values)) state.values = { ...state.values, [name]: defaults[name] ?? '' };
+    },
+    unregisterField: (name) => {
+      rules.delete(name);
+    },
+    validateField,
+    validateAll,
+    runSubmit: async () => {
+      [...rules.keys()].forEach((name) => {
+        state.touched = { ...state.touched, [name]: true };
+      });
+      const found = await validateAll();
+      if (Object.values(found).some(Boolean)) {
+        options.onError?.(found);
+        return found;
+      }
+      try {
+        state.isSubmitting = true;
+        await options.onSubmit?.(state.values);
+      } finally {
+        state.isSubmitting = false;
+      }
+      return found;
+    },
+    reset: (next) => {
+      state.values = { ...(next ?? defaults) };
+      state.errors = {};
+      state.touched = {};
+      state.isSubmitting = false;
+    },
+  };
+  return api;
+}
+
+const useFormApi = (): FormApi => {
+  const api = inject(FormContextKey, null);
+  if (!api) throw new Error('Form sub-components must be used within <Form>.');
+  return api;
+};
+const useFieldCtx = (): FieldContext => {
+  const ctx = inject(FieldContextKey, null);
+  if (!ctx) throw new Error('Form field sub-components must be used within <FormField>.');
+  return ctx;
+};
+
+/* ============================================================================
+ * Compound sub-components (import from './Form.vue')
+ * ========================================================================== */
+export const FormField = defineComponent({
+  name: 'FormField',
+  props: {
+    name: { type: String, required: true },
+    rules: { type: Object as PropType<FieldRule>, default: undefined },
+    required: { type: Boolean, default: false },
+  },
+  setup(props, { slots }) {
+    const form = useFormApi();
+    {{#if vueUseId}}
+    const uid = useId();
+    {{else}}
+    const uid = (getCurrentInstance()?.uid ?? 0).toString(36);
+    {{/if}}
+    const ctx: FieldContext = {
+      name: props.name,
+      formItemId: `form-${uid}-item`,
+      descriptionId: `form-${uid}-description`,
+      messageId: `form-${uid}-message`,
+      isRequired: !!props.required || !!props.rules?.required,
+    };
+    provide(FieldContextKey, ctx);
+    onMounted(() => form.registerField(props.name, props.rules, props.required));
+    onBeforeUnmount(() => form.unregisterField(props.name));
+    return () => slots.default?.();
+  },
+});
+
+export const FormItem = defineComponent({
+  name: 'FormItem',
+  setup(_, { slots }) {
+    const form = useFormApi();
+    const ctx = useFieldCtx();
+    return () =>
+      h('div', { class: 'item', 'data-invalid': form.errors[ctx.name] ? 'true' : undefined }, slots.default?.());
+  },
+});
+
+export const FormLabel = defineComponent({
+  name: 'FormLabel',
+  setup(_, { slots }) {
+    const form = useFormApi();
+    const ctx = useFieldCtx();
+    return () =>
+      h(
+        'label',
+        { class: 'label', for: ctx.formItemId, 'data-invalid': form.errors[ctx.name] ? 'true' : undefined },
+        [slots.default?.(), ctx.isRequired ? h('span', { class: 'required', 'aria-hidden': 'true' }, '*') : null],
+      );
+  },
+});
+
+export const FormControl = defineComponent({
+  name: 'FormControl',
+  inheritAttrs: false,
+  props: { type: { type: String, default: 'text' } },
+  setup(props, { attrs }) {
+    const form = useFormApi();
+    const ctx = useFieldCtx();
+    const error = computed(() => form.errors[ctx.name]);
+    const describedBy = computed(
+      () => [ctx.descriptionId, error.value ? ctx.messageId : null].filter(Boolean).join(' ') || undefined,
+    );
+    const isCheckbox = computed(() => props.type === 'checkbox');
+    return () =>
+      h('input', {
+        ...attrs,
+        id: ctx.formItemId,
+        name: ctx.name,
+        type: props.type,
+        class: ['control', attrs.class],
+        ...(isCheckbox.value
+          ? { checked: !!form.getValue(ctx.name) }
+          : { value: (form.getValue(ctx.name) ?? '') as string }),
+        'aria-invalid': error.value ? 'true' : undefined,
+        'aria-required': ctx.isRequired ? 'true' : undefined,
+        'aria-describedby': describedBy.value,
+        onInput: (e: Event) => {
+          const t = e.target as HTMLInputElement;
+          form.setValue(ctx.name, t.type === 'checkbox' ? t.checked : t.value);
+        },
+        onBlur: () => {
+          form.setTouched(ctx.name, true);
+          if (form.mode === 'onBlur' || form.mode === 'onTouched' || form.mode === 'all') {
+            void form.validateField(ctx.name);
+          }
+        },
+      });
+  },
+});
+
+export const FormDescription = defineComponent({
+  name: 'FormDescription',
+  setup(_, { slots }) {
+    const ctx = useFieldCtx();
+    return () => h('p', { class: 'description', id: ctx.descriptionId }, slots.default?.());
+  },
+});
+
+export const FormMessage = defineComponent({
+  name: 'FormMessage',
+  setup(_, { slots }) {
+    const form = useFormApi();
+    const ctx = useFieldCtx();
+    return () => {
+      const error = form.errors[ctx.name];
+      const body = error ?? slots.default?.();
+      if (!body) return null;
+      return h(
+        'p',
+        { class: 'message', id: ctx.messageId, role: 'alert', 'aria-live': 'polite', 'data-invalid': error ? 'true' : undefined },
+        body,
+      );
+    };
+  },
+});
+
+export const FormSubmit = defineComponent({
+  name: 'FormSubmit',
+  props: { disableOnInvalid: { type: Boolean, default: false } },
+  setup(props, { slots, attrs }) {
+    const form = useFormApi();
+    const disabled = computed(() => form.isSubmitting || (props.disableOnInvalid && !form.isValid));
+    return () =>
+      h(
+        'button',
+        {
+          ...attrs,
+          type: 'submit',
+          class: ['submit', attrs.class],
+          disabled: disabled.value,
+          'data-state': form.isSubmitting ? 'submitting' : 'idle',
+        },
+        slots.default?.(),
+      );
+  },
+});
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    variant?: 'default' | 'inline';
+    size?: 'sm' | 'md' | 'lg';
+    mode?: ValidationMode;
+    defaultValues?: FormValues;
+    /** Schema-driven fields (monolithic mode). */
+    fields?: FormSchemaField[];
+  }>(),
+  { variant: 'default', size: 'md', mode: 'onSubmit', fields: () => [] },
+);
+
+const emit = defineEmits<{
+  (e: 'submit', values: FormValues): void;
+  (e: 'error', errors: FieldErrors): void;
+}>();
+
+const seededDefaults: FormValues = {
+  ...Object.fromEntries((props.fields ?? []).filter((f) => f.defaultValue !== undefined).map((f) => [f.name, f.defaultValue])),
+  ...(props.defaultValues ?? {}),
+};
+
+const form = useForm({
+  defaultValues: seededDefaults,
+  mode: props.mode,
+  onSubmit: (values) => emit('submit', values),
+  onError: (errors) => emit('error', errors),
+});
+provide(FormContextKey, form);
+
+{{#unless features.compoundComponents}}
+// Monolithic schema-driven: register every field up-front
+(props.fields ?? []).forEach((f) => form.registerField(f.name, f.rules, f.required));
+const describedById = (f: FormSchemaField) =>
+  [`form-${f.name}-description`, form.errors[f.name] ? `form-${f.name}-error` : null].filter(Boolean).join(' ') || undefined;
+const onFieldInput = (f: FormSchemaField, e: Event) => {
+  const t = e.target as HTMLInputElement;
+  form.setValue(f.name, t.type === 'checkbox' ? t.checked : t.value);
+};
+{{/unless}}
+
+const formClasses = computed(() => ['form', `variant-${props.variant}`, `size-${props.size}`]);
+
+const onSubmit = (e: Event) => {
+  e.preventDefault();
+  void form.runSubmit();
+};
+</script>
+
+<template>
+  <form :class="formClasses" role="{{a11y.role}}" novalidate @submit="onSubmit">
+    {{#if features.compoundComponents}}
+    <slot :form="form" />
+    {{else}}
+    <div v-for="f in fields" :key="f.name" class="item" :data-invalid="form.errors[f.name] ? 'true' : undefined">
+      <label v-if="f.label" :for="`form-${f.name}-control`" class="label" :data-invalid="form.errors[f.name] ? 'true' : undefined">
+        \{{ f.label }}
+        <span v-if="f.required || f.rules?.required" class="required" aria-hidden="true">*</span>
+      </label>
+
+      <textarea
+        v-if="f.type === 'textarea'"
+        :id="`form-${f.name}-control`"
+        :name="f.name"
+        class="control"
+        :placeholder="f.placeholder"
+        :value="(form.getValue(f.name) ?? '') as string"
+        :aria-invalid="form.errors[f.name] ? 'true' : undefined"
+        :aria-describedby="describedById(f)"
+        @input="onFieldInput(f, $event)"
+        @blur="form.setTouched(f.name, true)"
+      ></textarea>
+
+      <select
+        v-else-if="f.type === 'select'"
+        :id="`form-${f.name}-control`"
+        :name="f.name"
+        class="control"
+        :value="(form.getValue(f.name) ?? '') as string"
+        :aria-invalid="form.errors[f.name] ? 'true' : undefined"
+        :aria-describedby="describedById(f)"
+        @change="onFieldInput(f, $event)"
+        @blur="form.setTouched(f.name, true)"
+      >
+        <option v-for="opt in f.options || []" :key="opt.value" :value="opt.value">\{{ opt.label }}</option>
+      </select>
+
+      <input
+        v-else
+        :id="`form-${f.name}-control`"
+        :name="f.name"
+        :type="f.type || 'text'"
+        class="control"
+        :placeholder="f.placeholder"
+        :value="(form.getValue(f.name) ?? '') as string"
+        :aria-invalid="form.errors[f.name] ? 'true' : undefined"
+        :aria-describedby="describedById(f)"
+        @input="onFieldInput(f, $event)"
+        @blur="form.setTouched(f.name, true)"
+      />
+
+      <p v-if="f.description" :id="`form-${f.name}-description`" class="description">\{{ f.description }}</p>
+      <p
+        v-if="form.errors[f.name]"
+        :id="`form-${f.name}-error`"
+        class="message"
+        role="alert"
+        aria-live="polite"
+        data-invalid="true"
+      >
+        \{{ form.errors[f.name] }}
+      </p>
+    </div>
+
+    <slot />
+    <button type="submit" class="submit" :disabled="form.isSubmitting">
+      \{{ form.isSubmitting ? 'Submitting…' : 'Submit' }}
+    </button>
+    {{/if}}
+  </form>
+</template>
+
+<!--
+  NOT scoped: the compound sub-components (FormItem/FormLabel/FormControl/…) are
+  separate component instances, so Vue's scoped styles would not reach their DOM.
+  Every part renders inside the root .form, so each rule is qualified by .form —
+  global but safely namespaced by the form wrapper.
+-->
+<style lang="scss">
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-group-gap, {{tokens.componentTokens.form.groupGap}});
+  width: 100%;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+
+  &.variant-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  &.size-sm { font-size: 0.8125rem; }
+  &.size-md { font-size: 0.875rem; }
+  &.size-lg { font-size: 0.9375rem; }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-item-gap, {{tokens.componentTokens.form.itemGap}});
+    width: 100%;
+  }
+
+  &.variant-inline .item { width: auto; }
+
+  .label {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit, 4px) * 0.5);
+    font-size: 0.875rem;
+    font-weight: var(--form-label-weight, {{tokens.componentTokens.form.labelWeight}});
+    color: var(--form-label-color, {{tokens.componentTokens.form.labelColor}});
+
+    &[data-invalid='true'] {
+      color: var(--form-error-color, {{tokens.componentTokens.form.errorColor}});
+    }
+  }
+
+  .required {
+    color: var(--form-required-color, {{tokens.componentTokens.form.requiredColor}});
+  }
+
+  .control {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: var(--form-control-height-md, {{tokens.componentTokens.form.controlHeightMd}});
+    padding: 0 calc(var(--spacing-unit, 4px) * 3);
+    border: 1px solid var(--color-border, #e2e1f0);
+    border-radius: var(--form-radius, {{tokens.componentTokens.form.radius}});
+    background: var(--color-surface, #fff);
+    color: inherit;
+    font: inherit;
+    transition: var(--form-transition, {{tokens.componentTokens.form.transition}});
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--color-primary, #6c63ff);
+    }
+
+    &[aria-invalid='true'] {
+      border-color: var(--form-error-color, {{tokens.componentTokens.form.errorColor}});
+    }
+  }
+
+  .description {
+    margin: 0;
+    font-size: var(--form-description-size, {{tokens.componentTokens.form.descriptionSize}});
+    color: var(--form-description-color, {{tokens.componentTokens.form.descriptionColor}});
+  }
+
+  .message {
+    margin: 0;
+    font-size: var(--form-description-size, {{tokens.componentTokens.form.descriptionSize}});
+    color: var(--form-error-color, {{tokens.componentTokens.form.errorColor}});
+  }
+
+  .submit {
+    align-self: flex-start;
+    min-height: var(--form-control-height-md, {{tokens.componentTokens.form.controlHeightMd}});
+    padding: 0 calc(var(--spacing-unit, 4px) * 4);
+    border: none;
+    border-radius: var(--form-radius, {{tokens.componentTokens.form.radius}});
+    background: var(--color-primary, #6c63ff);
+    color: var(--color-primary-foreground, #fff);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    {{#if a11y.focusRing}}
+    &:focus-visible {
+      outline: {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
+      outline-offset: {{a11y.focusRingOffset}};
+    }
+    {{/if}}
+  }
+}
+</style>

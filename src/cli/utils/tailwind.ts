@@ -4,6 +4,7 @@ import ansis from 'ansis';
 import { confirm } from '@inquirer/prompts';
 import { execSync } from 'child_process';
 import { pathExists, readJson } from '../../utils/fs';
+import { detectPackageManager, buildInstallCommand } from './pkg-manager';
 
 export async function checkAndSetupTailwind(opts: { yes?: boolean; cwd?: string } = {}) {
   const cwd = opts.cwd || process.cwd();
@@ -58,14 +59,21 @@ export async function checkAndSetupTailwind(opts: { yes?: boolean; cwd?: string 
 
   console.log(ansis.cyan('Installing Tailwind CSS v4...'));
   try {
+    const pm = detectPackageManager(cwd);
     const isVite = pkg.devDependencies?.vite || pkg.dependencies?.vite;
     if (isVite) {
-      execSync('npm install tailwindcss @tailwindcss/vite', { stdio: 'inherit' });
+      execSync(buildInstallCommand(pm, ['tailwindcss', '@tailwindcss/vite']), {
+        cwd,
+        stdio: 'inherit',
+      });
       console.log(
         ansis.cyan('You may need to manually add @tailwindcss/vite to your vite.config.ts'),
       );
     } else {
-      execSync('npm install tailwindcss @tailwindcss/postcss', { stdio: 'inherit' });
+      execSync(buildInstallCommand(pm, ['tailwindcss', '@tailwindcss/postcss']), {
+        cwd,
+        stdio: 'inherit',
+      });
     }
 
     if (targetCssFile) {

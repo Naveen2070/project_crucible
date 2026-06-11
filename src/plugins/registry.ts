@@ -21,6 +21,7 @@ export class PluginRegistry {
   private frameworks: Map<string, FrameworkManifest> = new Map();
   private frameworkResolvers: Map<string, FrameworkResolver> = new Map();
   private plugins: LoadedPlugin[] = [];
+  private strict = false;
 
   private constructor() {}
 
@@ -29,6 +30,11 @@ export class PluginRegistry {
       PluginRegistry.instance = new PluginRegistry();
     }
     return PluginRegistry.instance;
+  }
+
+  /** When true, plugin collisions become hard errors instead of warnings. */
+  public setStrict(strict: boolean) {
+    this.strict = strict;
   }
 
   public registerPlugin(plugin: LoadedPlugin) {
@@ -40,12 +46,11 @@ export class PluginRegistry {
     for (const comp of plugin.components) {
       if (this.components.has(comp.id)) {
         const existingPluginId = this.componentToPluginId.get(comp.id);
-        console.warn(
-          ansis.yellow(
-            `⚠ Component collision: ID "${comp.id}" is already registered by plugin "${existingPluginId}". ` +
-            `Plugin "${plugin.manifest.id}" will override it.`
-          )
-        );
+        const detail =
+          `Component collision: ID "${comp.id}" is already registered by plugin "${existingPluginId}". ` +
+          `Plugin "${plugin.manifest.id}" ${this.strict ? 'cannot override it (--strict)' : 'will override it'}.`;
+        if (this.strict) throw new Error(detail);
+        console.warn(ansis.yellow(`⚠ ${detail}`));
       }
       this.components.set(comp.id, comp);
       this.registry.set(comp.id, generateComponentFiles(comp.name, comp.dependencies));
@@ -56,6 +61,11 @@ export class PluginRegistry {
     // Register Frameworks
     if (plugin.frameworks) {
       for (const fw of plugin.frameworks) {
+        if (this.frameworks.has(fw.id) && this.strict) {
+          throw new Error(
+            `Framework collision: "${fw.id}" is already registered; plugin "${plugin.manifest.id}" cannot override it (--strict).`,
+          );
+        }
         this.frameworks.set(fw.id, fw);
       }
     }

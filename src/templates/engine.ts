@@ -8,10 +8,13 @@ import { Framework, StyleSystem } from '../core/enums';
 import { FRAMEWORK_TARGETS } from '../registry/frameworks';
 import { pathExists } from '../utils/fs';
 import { pluginRegistry } from '../plugins/registry';
+import { IS_DEV_MODE } from '../config/dev-mode';
 
 Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
 Handlebars.registerHelper('includes', (arr: any[], val: any) => arr?.includes(val));
-Handlebars.registerHelper('capitalize', (str: string) => str[0].toUpperCase() + str.slice(1));
+Handlebars.registerHelper('capitalize', (str: string) =>
+  str ? str[0].toUpperCase() + str.slice(1) : str,
+);
 Handlebars.registerHelper('toLowerCase', (str: string) => str?.toLowerCase());
 Handlebars.registerHelper('kebab', (str: string) =>
   str
@@ -26,7 +29,10 @@ const loadedRoots = new Set<string>();
 let globalWatcher: ReturnType<typeof chokidar.watch> | null = null;
 const frameworkWatchers = new Map<string, ReturnType<typeof chokidar.watch>>();
 
-const isProduction = process.env.NODE_ENV === 'production';
+// Hot-reload watchers are only useful when developing Crucible itself (a checkout
+// with playground/ + scripts/). For installed CLIs IS_DEV_MODE is false, so we never
+// spin up chokidar watchers on the templates dir inside the user's node_modules.
+const watchEnabled = IS_DEV_MODE;
 
 function getCoreTemplatesRoot(): string {
   return path.join(__dirname, '../../templates');
@@ -64,7 +70,7 @@ async function registerPartials(framework: string, templatesRoot: string) {
     }
   }
 
-  if (!isProduction) {
+  if (watchEnabled) {
     setupFrameworkWatcher(framework, templatesRoot);
   }
 }
@@ -96,7 +102,7 @@ function invalidateCache(frameworkRoot?: string) {
 }
 
 function setupGlobalWatcher() {
-  if (globalWatcher || isProduction) return;
+  if (globalWatcher || !watchEnabled) return;
 
   const root = getCoreTemplatesRoot();
   const sharedPath = path.join(root, 'shared');
@@ -119,7 +125,7 @@ function setupFrameworkWatcher(framework: string, templatesRoot: string) {
   const frameworkShared = path.join(templatesRoot, framework, 'shared');
   const watcherKey = frameworkShared;
   
-  if (frameworkWatchers.has(watcherKey) || isProduction) return;
+  if (frameworkWatchers.has(watcherKey) || !watchEnabled) return;
 
   if (!fs.existsSync(frameworkShared)) return;
 
@@ -150,7 +156,7 @@ async function cleanupWatchers() {
 }
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
-  if (!isProduction) {
+  if (watchEnabled) {
     setupGlobalWatcher();
   }
 

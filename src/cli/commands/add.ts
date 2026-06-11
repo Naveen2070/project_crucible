@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
-import { buildComponentModel } from '../../components/model';
+import { buildComponentModel, getEngineVersion } from '../../components/model';
 import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../../templates/engine';
 import { writeFiles, loadHashes, saveHashes, hashContent } from '../../scaffold/writer';
 import { registry } from '../../registry/components';
@@ -217,6 +217,12 @@ export async function runAdd(components: string[], opts: any) {
         ansis.yellow(`   Run with --force to regenerate all components with new config.`),
       );
     }
+
+    // Populate manifest metadata once (engineVersion + current configHash). The shared
+    // `hashes` object is passed to every writeFiles call, so this avoids re-reading
+    // package.json and crucible.config.json once per component.
+    hashes.engineVersion = getEngineVersion();
+    hashes.configHash = currentConfigHash;
 
     await mkdir(outDir, { recursive: true });
 

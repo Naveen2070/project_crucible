@@ -267,6 +267,7 @@ crucible add Button --force            # Overwrite even if edited
 crucible add Button --dry-run          # Preview without writing
 crucible add Button --yes             # Skip all prompts (CI mode)
 crucible add Button --verbose          # Detailed logging
+crucible add Button --strict           # Error on plugin collisions / incompatible plugins
 ```
 
 ### Setup & Configuration
@@ -417,7 +418,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 461 tests across 49 files
+- All tests pass (`npm test`) — 516 tests across 51 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 

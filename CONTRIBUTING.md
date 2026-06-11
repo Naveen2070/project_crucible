@@ -68,6 +68,7 @@ Follow the architecture principles and make your changes.
 ```bash
 npm test                    # All tests must pass
 npm run audit:templates     # Templates must be logic-free
+npm run audit:parity        # css/scss/tailwind template matrix has no missing holes
 npm run build               # No TypeScript errors
 ```
 
@@ -96,7 +97,7 @@ A contribution is considered complete when:
 
 - [ ] All tests pass (`npm test`)
 - [ ] New features include tests
-- [ ] Templates pass audit (`npm run audit:templates`)
+- [ ] Templates pass audit (`npm run audit:templates`) and parity (`npm run audit:parity`)
 - [ ] No TypeScript errors (`npm run build`)
 - [ ] Playground works (`npm run dev`)
 
@@ -224,7 +225,7 @@ npm run dev            # Watch mode + playground (concurrent)
 
 ```bash
 npm test               # Run all tests (448 tests across 48 files)
-npm run test:e2e       # Run E2E script (238 phases)
+npm run test:e2e       # Run E2E script (239 phases)
 npm run test:watch    # Watch mode
 npm run test:coverage  # Coverage report
 ```
@@ -638,7 +639,7 @@ class="bg-white rounded-lg"
 | Style System | Syntax                |
 | ------------ | --------------------- |
 | CSS          | `border: 1px solid`   |
-| SCSS         | `border: 1.5px solid` |
+| SCSS         | `border: 1px solid`   |
 | Tailwind     | `border-[1.5px]`      |
 
 **Important:** Use `border-[1.5px]` NOT `border-1.5` in Tailwind templates.
@@ -650,7 +651,7 @@ When adding a new component, verify:
 - [ ] All compound sub-components have corresponding CSS classes (React/Vue)
 - [ ] All padding/margin values use CSS variables (`var(--component-*)`)
 - [ ] Border radius uses CSS variables (`var(--radius-*)`)
-- [ ] Border width follows standard (1px CSS, 1.5px SCSS/Tailwind)
+- [ ] Border width follows standard (1px CSS/SCSS, 1.5px Tailwind via `border-[1.5px]`)
 - [ ] Focus ring uses `{{a11y.focusRingColor}}` consistently
 - [ ] Class names follow BEM convention
 - [ ] Tailwind templates use `[var(--token)]` syntax for design tokens

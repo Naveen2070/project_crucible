@@ -100,9 +100,13 @@ export function resolveTokens(config: CrucibleConfig): ResolvedTokens {
   return { cssVars, darkCssVars, darkModeStrategy, js, componentTokens };
 }
 
+const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 function deepMerge(base: any, override: any): any {
   const result = { ...base };
   for (const key of Object.keys(override ?? {})) {
+    // Guard against prototype pollution from user-supplied config keys.
+    if (FORBIDDEN_KEYS.has(key)) continue;
     if (typeof override[key] === 'object' && !Array.isArray(override[key])) {
       result[key] = deepMerge(base[key] ?? {}, override[key]);
     } else {
@@ -117,5 +121,5 @@ function kebab(str: string): string {
 }
 
 function pascal(str: string): string {
-  return str[0].toUpperCase() + str.slice(1);
+  return str ? str[0].toUpperCase() + str.slice(1) : str;
 }

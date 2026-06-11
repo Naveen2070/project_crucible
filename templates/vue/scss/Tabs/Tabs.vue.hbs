@@ -1,0 +1,437 @@
+<script lang="ts">
+import {
+  defineComponent,
+  h,
+  inject,
+  provide,
+  reactive,
+  computed,
+{{#if vueUseId}}  useId,{{else}}  getCurrentInstance,{{/if}}
+  onMounted,
+  onBeforeUnmount,
+  ref,
+  type InjectionKey,
+  type PropType,
+} from 'vue';
+
+export type TabsSize = 'sm' | 'md' | 'lg';
+export type TabsVariant = 'default' | 'underline' | 'pills';
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'manual' | 'automatic';
+
+export interface TabsItem {
+  value: string;
+  label: string;
+  content?: string;
+  disabled?: boolean;
+}
+
+interface TriggerRegistration {
+  value: string;
+  disabled: boolean;
+  el: HTMLButtonElement | null;
+}
+
+export interface TabsApi {
+  readonly value: string | undefined;
+  setValue: (next: string) => void;
+  orientation: TabsOrientation;
+  activationMode: TabsActivationMode;
+  rootId: string;
+  registerTrigger: (val: string, disabled: boolean, el: HTMLButtonElement | null) => void;
+  moveFocus: (current: string, direction: 1 | -1) => string | null;
+  focusEdge: (edge: 'first' | 'last') => string | null;
+}
+
+export const TabsContextKey: InjectionKey<TabsApi> = Symbol('crucible-tabs');
+
+function useTabsApi(): TabsApi {
+  const ctx = inject(TabsContextKey, null);
+  if (!ctx) throw new Error('Tabs sub-components must be used inside <Tabs />');
+  return ctx;
+}
+
+export const buildTriggerId = (rootId: string, value: string) =>
+  `${rootId}-trigger-${value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+export const buildContentId = (rootId: string, value: string) =>
+  `${rootId}-content-${value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+
+export const TabsList = defineComponent({
+  name: 'TabsList',
+  setup(_, { slots }) {
+    const tabs = useTabsApi();
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const currentValue = target.getAttribute('data-value') ?? tabs.value ?? '';
+      const isHorizontal = tabs.orientation === 'horizontal';
+      const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
+      const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
+
+      let nextValue: string | null = null;
+      if (e.key === nextKey) {
+        e.preventDefault();
+        nextValue = tabs.moveFocus(currentValue, 1);
+      } else if (e.key === prevKey) {
+        e.preventDefault();
+        nextValue = tabs.moveFocus(currentValue, -1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        nextValue = tabs.focusEdge('first');
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        nextValue = tabs.focusEdge('last');
+      }
+      if (nextValue && tabs.activationMode === 'automatic') {
+        tabs.setValue(nextValue);
+      }
+    };
+
+    return () =>
+      h(
+        'div',
+        {
+          class: 'list',
+          role: 'tablist',
+          'aria-orientation': tabs.orientation,
+          'data-orientation': tabs.orientation,
+          onKeydown: onKeyDown,
+        },
+        slots.default?.(),
+      );
+  },
+});
+
+export const TabsTrigger = defineComponent({
+  name: 'TabsTrigger',
+  props: {
+    value: { type: String, required: true },
+    disabled: { type: Boolean, default: false },
+  },
+  setup(props, { slots }) {
+    const tabs = useTabsApi();
+    const elRef = ref<HTMLButtonElement | null>(null);
+
+    onMounted(() => tabs.registerTrigger(props.value, props.disabled, elRef.value));
+    onBeforeUnmount(() => tabs.registerTrigger(props.value, props.disabled, null));
+
+    return () => {
+      const isActive = tabs.value === props.value;
+      return h(
+        'button',
+        {
+          ref: (el: any) => (elRef.value = el as HTMLButtonElement | null),
+          type: 'button',
+          role: 'tab',
+          id: buildTriggerId(tabs.rootId, props.value),
+          'aria-selected': isActive,
+          'aria-controls': buildContentId(tabs.rootId, props.value),
+          'data-state': isActive ? 'active' : 'inactive',
+          'data-value': props.value,
+          'data-disabled': props.disabled ? '' : undefined,
+          disabled: props.disabled,
+          tabindex: isActive ? 0 : -1,
+          class: 'trigger',
+          onClick: () => {
+            if (props.disabled) return;
+            tabs.setValue(props.value);
+          },
+        },
+        slots.default?.(),
+      );
+    };
+  },
+});
+
+export const TabsContent = defineComponent({
+  name: 'TabsContent',
+  props: {
+    value: { type: String, required: true },
+    forceMount: { type: Boolean, default: false },
+  },
+  setup(props, { slots }) {
+    const tabs = useTabsApi();
+    return () => {
+      const isActive = tabs.value === props.value;
+      if (!isActive && !props.forceMount) return null;
+      return h(
+        'div',
+        {
+          role: 'tabpanel',
+          id: buildContentId(tabs.rootId, props.value),
+          'aria-labelledby': buildTriggerId(tabs.rootId, props.value),
+          'data-state': isActive ? 'active' : 'inactive',
+          'data-orientation': tabs.orientation,
+          hidden: !isActive,
+          tabindex: 0,
+          class: 'content',
+        },
+        slots.default?.(),
+      );
+    };
+  },
+});
+</script>
+
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    variant?: TabsVariant;
+    size?: TabsSize;
+    value?: string;
+    defaultValue?: string;
+    orientation?: TabsOrientation;
+    activationMode?: TabsActivationMode;
+    /** Schema-driven (monolithic) */
+    items?: TabsItem[];
+  }>(),
+  { variant: 'default', size: 'md', orientation: 'horizontal', activationMode: 'manual', items: () => [] },
+);
+
+const emit = defineEmits<{
+  (e: 'update:value', value: string): void;
+  (e: 'valueChange', value: string): void;
+}>();
+
+{{#if vueUseId}}
+const uid = useId();
+{{else}}
+const uid = (getCurrentInstance()?.uid ?? 0).toString(36);
+{{/if}}
+const rootId = `tabs-${uid}`;
+
+const triggers = new Map<string, TriggerRegistration>();
+const order: string[] = [];
+
+const internal = reactive({ value: props.value ?? props.defaultValue ?? props.items?.[0]?.value });
+
+const setValue = (next: string) => {
+  if (props.value === undefined) internal.value = next;
+  emit('update:value', next);
+  emit('valueChange', next);
+};
+
+const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
+  if (el === null) {
+    triggers.delete(val);
+    const idx = order.indexOf(val);
+    if (idx >= 0) order.splice(idx, 1);
+    return;
+  }
+  if (!triggers.has(val)) order.push(val);
+  triggers.set(val, { value: val, disabled, el });
+};
+
+const focusTrigger = (val: string) => {
+  triggers.get(val)?.el?.focus();
+};
+
+const moveFocus = (current: string, direction: 1 | -1) => {
+  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
+  if (enabled.length === 0) return null;
+  const idx = enabled.indexOf(current);
+  const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
+  const next = enabled[nextIdx];
+  focusTrigger(next);
+  return next;
+};
+
+const focusEdge = (edge: 'first' | 'last') => {
+  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
+  if (enabled.length === 0) return null;
+  const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
+  focusTrigger(next);
+  return next;
+};
+
+const api: TabsApi = {
+  get value() {
+    return props.value ?? internal.value;
+  },
+  setValue,
+  get orientation() {
+    return props.orientation;
+  },
+  get activationMode() {
+    return props.activationMode;
+  },
+  rootId,
+  registerTrigger,
+  moveFocus,
+  focusEdge,
+};
+
+provide(TabsContextKey, api);
+
+const rootClasses = computed(() => ['tabs-root', `variant-${props.variant}`, `size-${props.size}`]);
+</script>
+
+<template>
+  <div :class="rootClasses" :data-orientation="orientation">
+    {{#if features.compoundComponents}}
+    <slot :api="api" />
+    {{else}}
+    <TabsList>
+      <TabsTrigger
+        v-for="item in items"
+        :key="item.value"
+        :value="item.value"
+        :disabled="item.disabled"
+      >
+        <slot :name="`trigger-${item.value}`" :item="item">\{{ item.label }}</slot>
+      </TabsTrigger>
+    </TabsList>
+    <TabsContent v-for="item in items" :key="item.value" :value="item.value">
+      <slot :name="`content-${item.value}`" :item="item">\{{ item.content }}</slot>
+    </TabsContent>
+    {{/if}}
+  </div>
+</template>
+
+<!--
+  NOT scoped: TabsList/TabsTrigger/TabsContent are separate component instances,
+  so Vue's scoped styles would not reach their DOM. Each rule is qualified by
+  .tabs-root to avoid bleeding into other components.
+-->
+<style lang="scss">
+.tabs-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1a1a2e);
+
+  &[data-orientation='vertical'] {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--tabs-list-gap, {{tokens.componentTokens.tabs.listGap}});
+    flex-shrink: 0;
+  }
+
+  &[data-orientation='vertical'] .list {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .trigger {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--tabs-trigger-h, {{tokens.componentTokens.tabs.triggerHeightMd}});
+    padding: 0 var(--tabs-trigger-padding-x, {{tokens.componentTokens.tabs.triggerPaddingX}});
+    border-radius: var(--tabs-trigger-radius, {{tokens.componentTokens.tabs.triggerRadius}});
+    color: var(--tabs-trigger-color, {{tokens.componentTokens.tabs.triggerColor}});
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: var(--tabs-transition, {{tokens.componentTokens.tabs.transition}});
+
+    &:hover:not([data-disabled]):not([data-state='active']) {
+      background-color: var(--tabs-trigger-hover-bg, {{tokens.componentTokens.tabs.triggerHoverBg}});
+      color: var(--tabs-trigger-active-color, {{tokens.componentTokens.tabs.triggerActiveColor}});
+    }
+
+    &[data-state='active'] {
+      color: var(--tabs-trigger-active-color, {{tokens.componentTokens.tabs.triggerActiveColor}});
+    }
+
+    &[data-disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    {{#if a11y.focusRing}}
+    &:focus-visible {
+      outline: {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
+      outline-offset: {{a11y.focusRingOffset}};
+    }
+    {{/if}}
+  }
+
+  &.variant-default {
+    .list {
+      border-bottom: 1px solid var(--color-border, #e5e7eb);
+    }
+
+    .trigger[data-state='active'] {
+      box-shadow: inset 0 calc(-1 * var(--tabs-indicator-thickness, {{tokens.componentTokens.tabs.indicatorThickness}})) 0
+        var(--tabs-trigger-active-indicator, {{tokens.componentTokens.tabs.triggerActiveIndicator}});
+    }
+
+    &[data-orientation='vertical'] {
+      .list {
+        border-bottom: none;
+        border-right: 1px solid var(--color-border, #e5e7eb);
+      }
+
+      .trigger[data-state='active'] {
+        box-shadow: inset calc(-1 * var(--tabs-indicator-thickness, {{tokens.componentTokens.tabs.indicatorThickness}})) 0 0
+          var(--tabs-trigger-active-indicator, {{tokens.componentTokens.tabs.triggerActiveIndicator}});
+      }
+    }
+  }
+
+  &.variant-underline {
+    .list {
+      border-bottom: 1px solid var(--color-border, #e5e7eb);
+    }
+
+    .trigger {
+      border-radius: 0;
+    }
+
+    .trigger[data-state='active'] {
+      box-shadow: inset 0 calc(-1 * var(--tabs-indicator-thickness, {{tokens.componentTokens.tabs.indicatorThickness}})) 0
+        var(--tabs-trigger-active-indicator, {{tokens.componentTokens.tabs.triggerActiveIndicator}});
+    }
+  }
+
+  &.variant-pills .trigger[data-state='active'] {
+    background-color: var(--tabs-trigger-active-bg, {{tokens.componentTokens.tabs.triggerActiveBg}});
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+
+  &.size-sm .trigger {
+    height: var(--tabs-trigger-h, {{tokens.componentTokens.tabs.triggerHeightSm}});
+    font-size: 0.8125rem;
+  }
+
+  &.size-md .trigger {
+    height: var(--tabs-trigger-h, {{tokens.componentTokens.tabs.triggerHeightMd}});
+    font-size: 0.875rem;
+  }
+
+  &.size-lg .trigger {
+    height: var(--tabs-trigger-h, {{tokens.componentTokens.tabs.triggerHeightLg}});
+    font-size: 0.9375rem;
+  }
+
+  .content {
+    flex: 1;
+    padding-block: var(--tabs-content-padding-y, {{tokens.componentTokens.tabs.contentPaddingY}});
+    outline: none;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &[data-orientation='vertical'] .content {
+    padding-block: 0;
+    padding-inline: var(--tabs-content-padding-y, {{tokens.componentTokens.tabs.contentPaddingY}});
+  }
+}
+{{#if a11y.reduceMotion}}
+@media (prefers-reduced-motion: reduce) {
+  .tabs-root .trigger { transition: none; }
+}
+{{/if}}
+</style>

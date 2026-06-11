@@ -75,6 +75,12 @@
         "stories": { "type": "boolean", "default": false }
       },
       "default": {}
+    },
+    "plugins": {
+      "type": "object",
+      "properties": {
+        "strict": { "type": "boolean", "default": false }
+      }
     }
   },
   "required": ["version", "framework"]
