@@ -5,6 +5,7 @@ import { select, input, confirm } from '@inquirer/prompts';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
 import { pathExists } from '../../utils/fs';
+import { runAdd } from './add';
 
 const DEFAULT_CONFIG = `{
   "$schema": "./node_modules/@cruciblelab/crucible/dist/config/schema.json",
@@ -66,7 +67,9 @@ const DEFAULT_CONFIG = `{
 }
 `;
 
-export async function runInit(opts: { yes?: boolean; quiet?: boolean; cwd?: string } = {}) {
+export async function runInit(
+  opts: { yes?: boolean; quiet?: boolean; cwd?: string; skipComponentPrompt?: boolean } = {},
+) {
   const cwd = opts.cwd || process.cwd();
   const configPath = path.join(cwd, 'crucible.config.json');
 
@@ -141,4 +144,15 @@ export async function runInit(opts: { yes?: boolean; quiet?: boolean; cwd?: stri
 
   await writeFile(configPath, configContent, 'utf-8');
   if (!opts.quiet) console.log(ansis.green('✔ Created crucible.config.json with minimal setup.'));
+
+  // Onboarding: offer to scaffold components right away (the guided picker in `add`).
+  if (!opts.yes && !opts.quiet && !opts.skipComponentPrompt) {
+    const addNow = await confirm({
+      message: 'Add components now?',
+      default: true,
+    });
+    if (addNow) {
+      await runAdd([], { cwd, config: 'crucible.config.json' });
+    }
+  }
 }

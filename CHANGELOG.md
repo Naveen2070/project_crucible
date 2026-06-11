@@ -9,6 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`crucible ui` — interactive terminal console** (aliases `wizard`, `tui`). An opt-in, menu-driven
+  loop to **explore components and their metadata**, install (guided framework/style/theme/component
+  picker), and run **diff / status / update / remove** — all on top of the same commands. Bare
+  `crucible` still shows help; the console only runs when invoked. Zero new dependencies (built on
+  `@inquirer/prompts`).
+- **`crucible init` onboarding.** After creating the config, `init` offers to scaffold components
+  immediately via the guided picker (skipped with `-y`/`--quiet`).
+
 - **Component lifecycle commands.** Five new commands round out the workflow, all built on the shared
   generation core:
   - **`crucible info <component>`** — print a component's manifest (variants, sizes, states, props,
@@ -113,6 +121,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **`--framework` now affects generated output.** The flag previously only influenced
+  dependency-existence checks; the generated component still followed the config's framework.
+  `crucible add Button --framework vue` now actually emits a Vue component. (Also lets the
+  interactive console honour its framework selection.)
 - **Component dependencies are now actually auto-added.** `crucible add Dialog` correctly pulls in
   its `Button` dependency (when not already generated). The previous check tested whether a
   dependency was its *own* missing dependency — always false — so dependent components were never
