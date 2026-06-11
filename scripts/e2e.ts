@@ -272,6 +272,106 @@ async function runE2E() {
     }
   });
 
+  // ==================== LIFECYCLE COMMANDS (info/status/diff/update/remove) ====================
+  console.log(ansis.cyan('\n🧪 Component lifecycle commands'));
+
+  const CMD = 'cmd-suite';
+  const CMD_DIR = path.join(TEST_DIR, CMD);
+  const cmdConfig = (extra: Record<string, unknown> = {}) =>
+    writeJson(
+      path.join(CMD_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react',
+        styleSystem: 'css',
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y,
+        flags: { outputDir: OUT, stories: false },
+        ...extra,
+      },
+      { spaces: 2 },
+    );
+
+  await infra('info --json + unknown component errors', async () => {
+    const m = JSON.parse(runCLI('info Button --json'));
+    if (m.id !== 'Button' || !m.variants.includes('primary')) {
+      throw new Error('info --json returned unexpected shape');
+    }
+    let threw = false;
+    try {
+      runCLI('info DefinitelyNotARealComponent --json');
+    } catch {
+      threw = true;
+    }
+    if (!threw) throw new Error('info should fail for an unknown component');
+  });
+
+  await infra('list --json', async () => {
+    const arr = JSON.parse(runCLI('list --json'));
+    if (!Array.isArray(arr) || !arr.some((c: any) => c.id === 'Button')) {
+      throw new Error('list --json missing Button');
+    }
+  });
+
+  await infra('status/diff/update/remove lifecycle (isolated cwd)', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), { name: 'cmd-suite', dependencies: {} });
+    await cmdConfig();
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+    const main = path.join(CMD_DIR, OUT, 'Button/Button.tsx');
+
+    // Clean state right after add.
+    const clean = JSON.parse(runCLI(`status --cwd ${CMD} --json`));
+    if (clean.summary.missing !== 0 || clean.summary.modified !== 0) {
+      throw new Error('expected a clean status immediately after add');
+    }
+    const d0 = JSON.parse(runCLI(`diff --cwd ${CMD} --json`));
+    if (d0.changed.length !== 0) throw new Error('expected no diff immediately after add');
+
+    // Edit → status reports modified (informational, still exit 0); diff detects it.
+    await writeFile(main, (await readFile(main, 'utf-8')) + '\n// drift\n');
+    const mod = JSON.parse(runCLI(`status --cwd ${CMD} --json`));
+    if (mod.summary.modified < 1) throw new Error('status should report a modified file after an edit');
+    const d1 = JSON.parse(runCLI(`diff --cwd ${CMD} --json`));
+    if (!d1.changed.some((c: any) => c.status === 'modified')) {
+      throw new Error('diff should detect the edited file');
+    }
+
+    // update preserves edits without --force, overwrites with it.
+    runCLI(`update Button --cwd ${CMD} -y --quiet`);
+    if (!(await readFile(main, 'utf-8')).includes('// drift')) {
+      throw new Error('update must preserve user edits without --force');
+    }
+    runCLI(`update Button --cwd ${CMD} -y --force --quiet`);
+    if ((await readFile(main, 'utf-8')).includes('// drift')) {
+      throw new Error('update --force must overwrite user edits');
+    }
+
+    // Missing tracked file → status exits non-zero.
+    await remove(main);
+    let statusFailed = false;
+    try {
+      runCLI(`status --cwd ${CMD} --json`);
+    } catch {
+      statusFailed = true;
+    }
+    if (!statusFailed) throw new Error('status should exit non-zero when a tracked file is missing');
+
+    // remove deletes the component dir and untracks its files.
+    runCLI(`remove Button --cwd ${CMD} -y --quiet`);
+    if (await pathExists(path.join(CMD_DIR, OUT, 'Button'))) {
+      throw new Error('remove should delete the component directory');
+    }
+    const after = JSON.parse(runCLI(`status --cwd ${CMD} --json`));
+    if (after.files.some((f: any) => f.file.startsWith('Button/'))) {
+      throw new Error('remove should untrack the component files');
+    }
+
+    await remove(CMD_DIR);
+  });
+
   // ==================== PLUG-AND-PLAY (LOCAL PLUGINS) ====================
   console.log(ansis.cyan('\n🔌 Plug-and-play (.crucible/plugins)'));
 

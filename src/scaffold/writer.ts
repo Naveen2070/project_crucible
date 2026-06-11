@@ -31,6 +31,24 @@ export function hashContent(content: string): string {
   return crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);
 }
 
+/**
+ * Format generated content with Prettier exactly as `writeFiles` does (config cached per cwd),
+ * so callers like `diff` compare against the same bytes that would be written. Returns the input
+ * unchanged if Prettier can't format it.
+ */
+export async function formatFile(content: string, filepath: string, cwd: string): Promise<string> {
+  let prettierConfig = prettierConfigCache.get(cwd);
+  if (prettierConfig === undefined) {
+    prettierConfig = await prettier.resolveConfig(cwd);
+    prettierConfigCache.set(cwd, prettierConfig);
+  }
+  try {
+    return await prettier.format(content, { ...prettierConfig, filepath });
+  } catch {
+    return content;
+  }
+}
+
 export async function loadHashes(cwd: string): Promise<Manifest> {
   const manifestPath = path.join(cwd, HASH_FILE);
   const legacyPath = path.join(cwd, LEGACY_HASH_FILE);

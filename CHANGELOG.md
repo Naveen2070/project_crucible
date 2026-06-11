@@ -9,6 +9,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Component lifecycle commands.** Five new commands round out the workflow, all built on the shared
+  generation core:
+  - **`crucible info <component>`** — print a component's manifest (variants, sizes, states, props,
+    dependencies, peer deps, utils); `--json` for machine output.
+  - **`crucible status`** — drift report for generated components vs the manifest, classifying each
+    tracked file as ok / modified (user-edited) / missing, and flagging config/engine staleness.
+    Exits non-zero on missing/stale (CI-friendly); `--json` supported.
+  - **`crucible diff [component...]`** — show what would change if components were regenerated
+    (defaults to all tracked); `--json` lists changed files.
+  - **`crucible update [component...]`** — regenerate tracked components (defaults to all), preserving
+    user edits unless `--force`.
+  - **`crucible remove <component...>`** (alias `rm`) — delete generated components and untrack them,
+    warning when another component depends on the one being removed; `--dry-run` / `-y` supported.
+
 - **`--json` output for `list` and `doctor`.** `crucible list --json` emits the component registry
   (id, plugin, frameworks, style systems) and `crucible doctor --json` emits the structured check
   result (and exits non-zero on failure) — both suitable for scripting/CI.

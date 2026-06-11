@@ -7,6 +7,11 @@ import { runTokens } from './commands/tokens';
 import { runAdd } from './commands/add';
 import { runEject } from './commands/eject';
 import { runList } from './commands/list';
+import { runInfo } from './commands/info';
+import { runStatus } from './commands/status';
+import { runDiff } from './commands/diff';
+import { runUpdate } from './commands/update';
+import { runRemove } from './commands/remove';
 import { runClean, runPgClean } from './commands/clean';
 import { runConfigShow } from './commands/config-show';
 import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './commands/playground';
@@ -29,6 +34,9 @@ async function runCommand(name: string, fn: () => Promise<void> | void): Promise
     await cleanupWatchers();
     process.exit(1);
   }
+  // Always tear down any template watchers the engine may have started (dev mode), so commands
+  // that render in-memory (e.g. diff) don't hang the process waiting on chokidar.
+  await cleanupWatchers();
 }
 
 const program = new Command();
@@ -85,6 +93,11 @@ Examples:
   $ npx crucible add Input Card --framework react --cwd ./packages/ui
   $ npx crucible doctor
   $ npx crucible list
+  $ npx crucible info Button     # Show a component's metadata
+  $ npx crucible status          # Drift report for generated components
+  $ npx crucible diff Button     # Preview what regeneration would change
+  $ npx crucible update          # Regenerate tracked components (preserves edits)
+  $ npx crucible remove Button   # Delete a component and untrack it
   $ npx crucible tokens          # Regenerate tokens.css
   $ npx crucible tokens --force  # Force overwrite existing
   $ npx crucible pg:gen         # Generate playground
@@ -189,6 +202,72 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .option('--json', 'Output the component list as JSON')
     .option('--strict', 'Error on plugin collisions / incompatible plugins')
     .action((opts) => runCommand('list', () => runList({ json: opts.json })));
+
+  program
+    .command('info <component>')
+    .description('Show a component’s metadata (variants, props, dependencies, peer deps)')
+    .option('--json', 'Output the manifest as JSON')
+    .action((component: string, opts: any) =>
+      runCommand('info', () => runInfo(component, { json: opts.json })),
+    );
+
+  program
+    .command('status')
+    .alias('st')
+    .description('Report drift of generated components vs the manifest (ok / modified / missing)')
+    .option('--json', 'Output the status report as JSON')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((opts: any) =>
+      runCommand('status', () =>
+        runStatus({ json: opts.json, cwd: path.resolve(process.cwd(), opts.cwd) }),
+      ),
+    );
+
+  program
+    .command('diff [component...]')
+    .description('Show what would change if components were regenerated (defaults to all tracked)')
+    .option('--framework <fw>', 'Target framework')
+    .option('-s, --style <system>', 'Override style system (css|tailwind|scss)')
+    .option('--stories', 'Include story files in the diff')
+    .option('--json', 'Output the changed-file list as JSON')
+    .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((components: string[], opts: any) => runCommand('diff', () => runDiff(components, opts)));
+
+  program
+    .command('update [component...]')
+    .alias('up')
+    .description('Regenerate tracked components (defaults to all; preserves edits unless --force)')
+    .option('--framework <fw>', 'Target framework', Framework.React)
+    .option('-s, --style <system>', 'Override style system (css|tailwind|scss)')
+    .option('-t, --theme <name>', 'Override theme (minimal|soft)')
+    .option('-f, --force', 'Overwrite even if a file has been edited')
+    .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('-y, --yes', 'Skip interactive prompts and accept missing dependencies')
+    .option('--stories', 'Generate Storybook story file')
+    .option('--no-stories', 'Skip story generation (overrides config default)')
+    .option('--dry-run', 'Simulate regeneration without writing files')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .option('--verbose', 'Enable verbose logging')
+    .option('--quiet', 'Disable all logging except errors')
+    .action((components: string[], opts: any) =>
+      runCommand('update', () => {
+        if (opts.force) warnForce('crucible update');
+        return runUpdate(components, opts);
+      }),
+    );
+
+  program
+    .command('remove <component...>')
+    .alias('rm')
+    .description('Delete generated components and untrack them from the manifest')
+    .option('-y, --yes', 'Skip the confirmation prompt')
+    .option('--dry-run', 'Show what would be removed without deleting')
+    .option('--quiet', 'Disable all logging except errors')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((components: string[], opts: any) =>
+      runCommand('remove', () => runRemove(components, opts)),
+    );
 
   program
     .command('pg:gen [framework]')
