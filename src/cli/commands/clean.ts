@@ -5,6 +5,7 @@ import { pathExists } from '../../utils/fs';
 
 export interface CleanOptions {
   all?: boolean;
+  quiet?: boolean;
   cwd?: string;
 }
 
@@ -19,14 +20,14 @@ export async function runClean(opts: CleanOptions = {}) {
     pathsToDelete.push(path.join(cwd, 'crucible.config.json'));
   }
 
-  console.log(ansis.blue('\n🧹 Cleaning generated files...\n'));
+  if (!opts.quiet) console.log(ansis.blue('\n🧹 Cleaning generated files...\n'));
   for (const p of pathsToDelete) {
     if (await pathExists(p)) {
       await rm(p, { recursive: true, force: true });
-      console.log(ansis.green(`✔ Removed: ${path.relative(cwd, p)}`));
+      if (!opts.quiet) console.log(ansis.green(`✔ Removed: ${path.relative(cwd, p)}`));
     }
   }
-  console.log(ansis.blue('\n✨ Clean complete!\n'));
+  if (!opts.quiet) console.log(ansis.blue('\n✨ Clean complete!\n'));
 }
 
 export async function runPgClean() {

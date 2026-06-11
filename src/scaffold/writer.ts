@@ -3,12 +3,16 @@ import path from 'path';
 import crypto from 'crypto';
 import ansis from 'ansis';
 import * as prettier from 'prettier';
-import { pathExists, readJson } from '../utils/fs';
+import { pathExists } from '../utils/fs';
+import { getEngineVersion } from '../components/model';
 
 export const HASH_FILE = '.crucible/manifest.json';
 export const LEGACY_HASH_FILE = '.crucible-hashes.json';
 
-let cachedPrettierConfig: prettier.Config | null = null;
+// Resolved Prettier config, cached per cwd. Keyed by cwd (rather than a single process-global)
+// so callers that generate into different directories in one process — e.g. the TUI — don't
+// reuse a stale config. `undefined` = not yet resolved; `null` = resolved, no config found.
+const prettierConfigCache = new Map<string, prettier.Config | null>();
 
 export interface FileHashMeta {
   contentHash: string;
@@ -48,14 +52,8 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
         };
       }
 
-      let pkgVersion = '1.0.0';
-      try {
-        const pkg = await readJson(path.join(__dirname, '../../package.json'));
-        pkgVersion = pkg.version || '1.0.0';
-      } catch {}
-
       return {
-        engineVersion: pkgVersion,
+        engineVersion: getEngineVersion(),
         configHash: '',
         generatedAt: now,
         files,
@@ -65,14 +63,8 @@ export async function loadHashes(cwd: string): Promise<Manifest> {
     // Ignore and return default
   }
 
-  let pkgVersion = '1.0.0';
-  try {
-    const pkg = await readJson(path.join(__dirname, '../../package.json'));
-    pkgVersion = pkg.version || '1.0.0';
-  } catch {}
-
   return {
-    engineVersion: pkgVersion,
+    engineVersion: getEngineVersion(),
     configHash: '',
     generatedAt: new Date().toISOString(),
     files: {},
@@ -106,8 +98,10 @@ export async function writeFiles(
 
   const manifest = opts.hashes || (await loadHashes(cwd));
 
-  if (!cachedPrettierConfig) {
-    cachedPrettierConfig = await prettier.resolveConfig(cwd);
+  let prettierConfig = prettierConfigCache.get(cwd);
+  if (prettierConfig === undefined) {
+    prettierConfig = await prettier.resolveConfig(cwd);
+    prettierConfigCache.set(cwd, prettierConfig);
   }
 
   const now = new Date().toISOString();
@@ -117,14 +111,7 @@ export async function writeFiles(
   // already populated engineVersion + configHash once. Only compute them here on the
   // standalone path, to avoid re-reading package.json / config once per component.
   if (!opts.hashes) {
-    let pkgVersion = '1.0.0';
-    try {
-      const pkg = await readJson(path.join(__dirname, '../../package.json'));
-      pkgVersion = pkg.version || '1.0.0';
-    } catch {
-      // ignore
-    }
-    manifest.engineVersion = pkgVersion;
+    manifest.engineVersion = getEngineVersion();
 
     // Try to get config hash
     try {
@@ -155,7 +142,7 @@ export async function writeFiles(
       let formattedContent = content;
       try {
         formattedContent = await prettier.format(content, {
-          ...cachedPrettierConfig,
+          ...prettierConfig,
           filepath: outPath,
         });
       } catch (err) {

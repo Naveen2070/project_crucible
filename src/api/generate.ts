@@ -3,7 +3,11 @@ import { resolveTokens } from '../tokens/resolver';
 import { buildComponentModel } from '../components/model';
 import { renderComponent, renderGlobalTokens } from '../templates/engine';
 import { Framework } from '../core/enums';
-import { checkComponentDependencies, getComponentDefinition } from '../cli/utils/deps';
+import {
+  checkComponentDependencies,
+  checkComponentExists,
+  getComponentDefinition,
+} from '../cli/utils/deps';
 import { pluginRegistry } from '../plugins/registry';
 
 /**
@@ -58,8 +62,8 @@ export async function generate(req: GenerateRequest): Promise<GenerateResult> {
 
   const tokens = resolveTokens(config);
 
-  // Resolve transitive component dependencies + collect missing peer dependencies.
-  // (Behaviour preserved verbatim from the original `runAdd`.)
+  // Resolve component dependencies (e.g. Dialog needs Button) + collect missing peer
+  // dependencies. A dependency is auto-added only when it isn't already generated on disk.
   const resolvedComponents = new Set<string>(components);
   const peerDependencies: string[] = [];
 
@@ -67,8 +71,9 @@ export async function generate(req: GenerateRequest): Promise<GenerateResult> {
     const def = getComponentDefinition(comp);
     if (def?.dependencies) {
       for (const dep of def.dependencies) {
-        const exists = await checkComponentDependencies(dep, outDir, framework);
-        if (exists.missingComponents.includes(dep) && !resolvedComponents.has(dep)) {
+        if (resolvedComponents.has(dep)) continue;
+        const depExists = await checkComponentExists(dep, outDir, framework);
+        if (!depExists) {
           resolvedComponents.add(dep);
         }
       }
