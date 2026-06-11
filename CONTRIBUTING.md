@@ -152,11 +152,11 @@ npm test
 crucible/
 ├── src/
 │   ├── cli/
-│   │   ├── index.ts          # CLI entry point + all commands
-│   │   ├── doctor.ts         # crucible doctor command
-│   │   ├── init.ts           # crucible init command
-│   │   ├── tailwind.ts       # Tailwind auto-setup
-│   │   └── tokens.ts         # crucible tokens command
+│   │   ├── index.ts          # CLI entry point + command registration (runCommand boundary)
+│   │   └── commands/         # add, init, doctor, tokens, list, info, status,
+│   │                         #   diff, update, remove, ui, eject, clean, config, playground
+│   ├── api/
+│   │   └── generate.ts       # Pure generation core (used by add/update/diff/ui)
 │   ├── components/
 │   │   └── model.ts          # ComponentModel (IR layer)
 │   ├── config/
@@ -225,7 +225,7 @@ npm run dev            # Watch mode + playground (concurrent)
 
 ```bash
 npm test               # Run all tests (448 tests across 48 files)
-npm run test:e2e       # Run E2E script (239 phases)
+npm run test:e2e       # Run E2E script (242 phases)
 npm run test:watch    # Watch mode
 npm run test:coverage  # Coverage report
 ```
@@ -272,13 +272,32 @@ crucible add Button --dev
 crucible add
 ```
 
+### Interactive Console
+
+```bash
+crucible ui                # Menu-driven console (aliases: wizard, tui)
+```
+
+Explore components and metadata, install via a guided picker, and run diff/status/update/remove.
+Built on `@inquirer/prompts` (no full-screen TUI dependency). Opt-in — bare `crucible` prints help.
+
+### Manage Generated Components
+
+```bash
+crucible info Button       # Show a component's manifest metadata (--json)
+crucible status            # Drift report: ok / modified / missing (alias: st; --json)
+crucible diff [component]  # Preview what regeneration would change (--json)
+crucible update [component]# Regenerate tracked components (alias: up; --force to overwrite edits)
+crucible remove Button     # Delete + untrack a component (alias: rm; --dry-run, -y)
+```
+
 ### Setup & Configuration
 
 ```bash
-crucible init              # Scaffold config file (alias: i)
-crucible doctor            # Validate setup (alias: d)
+crucible init              # Scaffold config file (alias: i); offers to add components after
+crucible doctor            # Validate setup (alias: d; --json)
 crucible eject            # Copy preset to config (alias: e)
-crucible list             # Show available components (alias: l)
+crucible list             # Show available components (alias: l; --json)
 crucible config           # Show current config (alias: cfg)
 ```
 

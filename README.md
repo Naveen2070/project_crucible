@@ -94,9 +94,9 @@ npx crucible add Button
 | **Plug-and-Play**         | Add your own components via local plugins, no engine changes |
 | **User Ownership**        | Hash-based protection for user edits                         |
 | **Dependency Resolution** | Auto-scaffolds Button for Select/Dialog                      |
-| **Interactive CLI**       | Guided setup with @inquirer/prompts                          |
+| **Interactive CLI**       | Guided setup + `crucible ui` console (@inquirer/prompts)     |
 | **Prettier Integration**  | Auto-format all generated code                               |
-| **Test Coverage**         | 448 unit tests + 238 E2E phases                              |
+| **Test Coverage**         | 526 unit tests + 242 E2E phases                              |
 
 <p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
 
@@ -252,6 +252,18 @@ your project, with **zero runtime dependency**. Switch frameworks/styles with `-
 > **Note:** Commands marked `[dev only]` are for Crucible development. They show a warning when used
 > in production installations.
 
+### Interactive
+
+```bash
+crucible ui               # Interactive console (aliases: wizard, tui)
+```
+
+An opt-in, menu-driven terminal console: **browse/explore** components and their metadata, install
+via a guided picker (framework → style → theme → components → stories), and run **diff / status /
+update / remove** — all without leaving the prompt. Running bare `crucible` still prints help; the
+console only launches when you ask for it. (`crucible init` also offers to scaffold components right
+after creating the config.)
+
 ### Generate Components
 
 ```bash
@@ -273,14 +285,35 @@ crucible add Button --strict           # Error on plugin collisions / incompatib
 ### Setup & Configuration
 
 ```bash
-crucible init              # Scaffold config file (alias: i)
+crucible init              # Scaffold config file (alias: i); offers to add components after
 crucible init --yes       # Use defaults (no prompts)
 crucible doctor           # Validate setup (alias: d)
+crucible doctor --json    # Machine-readable check result (exits non-zero on failure)
 crucible list             # Show available components (alias: l)
+crucible list --json      # Machine-readable component registry
+crucible info Button      # Show a component's metadata (variants, props, deps, peer deps)
+crucible info Button --json
 crucible eject            # Copy preset to config (alias: e)
 crucible config           # Show current config (alias: cfg)
 crucible config --json    # Raw JSON output
 ```
+
+> Most commands accept `--quiet` (errors only) and `--cwd <path>`; `info`, `list`, `doctor`,
+> `status`, and `diff` support `--json` for scripting/CI.
+
+### Manage Generated Components
+
+```bash
+crucible status            # Drift report: ok / modified / missing, plus config/engine staleness (alias: st)
+crucible diff Button       # Preview what regeneration would change (defaults to all tracked)
+crucible update            # Regenerate tracked components, preserving edits (alias: up)
+crucible update Button --force   # Regenerate and overwrite local edits
+crucible remove Button     # Delete a component and untrack it (alias: rm)
+crucible remove Button --dry-run # Show what would be removed
+```
+
+`status` exits non-zero when tracked files are missing or the config/engine has drifted (handy in
+CI). `update` and `remove` operate on the components recorded in `.crucible/manifest.json`.
 
 ### Tokens
 
@@ -418,7 +451,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 516 tests across 51 files
+- All tests pass (`npm test`) — 526 tests across 53 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
