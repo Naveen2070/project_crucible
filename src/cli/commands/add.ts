@@ -112,6 +112,9 @@ export async function runAdd(components: string[], opts: any) {
 
     const framework =
       opts.framework !== Framework.React ? opts.framework : config.framework || Framework.React;
+    // Honour the `--framework` override in the generated output (not just dependency checks):
+    // `buildComponentModel` reads `config.framework`, so the resolved framework is applied here.
+    config.framework = framework;
     if (framework === Framework.Angular && !opts.quiet) {
       console.log(ansis.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
       console.log(

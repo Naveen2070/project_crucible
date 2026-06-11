@@ -12,6 +12,7 @@ import { runStatus } from './commands/status';
 import { runDiff } from './commands/diff';
 import { runUpdate } from './commands/update';
 import { runRemove } from './commands/remove';
+import { runUi } from './commands/ui';
 import { runClean, runPgClean } from './commands/clean';
 import { runConfigShow } from './commands/config-show';
 import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './commands/playground';
@@ -89,6 +90,7 @@ async function bootstrap() {
     `
 Examples:
   $ npx crucible init
+  $ npx crucible ui              # Interactive console (explore, install, diff, update…)
   $ npx crucible add Button
   $ npx crucible add Input Card --framework react --cwd ./packages/ui
   $ npx crucible doctor
@@ -202,6 +204,13 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .option('--json', 'Output the component list as JSON')
     .option('--strict', 'Error on plugin collisions / incompatible plugins')
     .action((opts) => runCommand('list', () => runList({ json: opts.json })));
+
+  program
+    .command('ui')
+    .aliases(['wizard', 'tui'])
+    .description('Interactive console — explore components & metadata, install, diff, update, remove')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((opts: any) => runCommand('ui', () => runUi({ cwd: opts.cwd })));
 
   program
     .command('info <component>')
