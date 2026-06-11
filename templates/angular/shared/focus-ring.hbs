@@ -1,8 +1,0 @@
-{{> shared/css-tokens}}
-
-{{#if a11y.focusRing}}
-:{{#if a11y.pseudoClasses}}{{a11y.pseudoClasses}}{{else}}focus-visible{{/if}} {
-  outline:        {{a11y.focusRingWidth}} solid {{a11y.focusRingColor}};
-  outline-offset: {{a11y.focusRingOffset}};
-}
-{{/if}}

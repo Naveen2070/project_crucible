@@ -16,7 +16,6 @@ const prettierConfigCache = new Map<string, prettier.Config | null>();
 
 export interface FileHashMeta {
   contentHash: string;
-  templateHash?: string;
   generatedAt: string;
 }
 

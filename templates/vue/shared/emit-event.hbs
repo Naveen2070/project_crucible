@@ -1,7 +1,0 @@
-const emit = defineEmits<{
-  (e: '{{eventName}}'{{#if eventPayload}}, {{eventPayload}}{{/if}}): void;
-}>();
-
-const {{methodName}} = ({{#if eventPayload}}payload{{/if}}) => {
-  emit('{{eventName}}'{{#if eventPayload}}, payload{{/if}});
-};
