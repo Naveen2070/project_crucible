@@ -24,6 +24,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Generation core extracted (internal).** Component/token rendering now lives in a pure
+  `generate()` (`src/api/generate.ts`) that returns file contents in memory with no console output,
+  `process.exit`, or prompts. `crucible add` is a thin shell over it; the same core will back the
+  upcoming `update`/`diff` commands and the interactive wizard. Generated output is byte-identical.
+
 - **Dependencies upgraded** across the CLI, dev tooling, and all playgrounds.
   - **CLI runtime:** `commander` 13 → **15**, `ansis` 3 → **4**, plus in-range bumps to
     `@inquirer/prompts`, `ajv`, and `prettier`.
