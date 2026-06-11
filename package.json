@@ -4,6 +4,7 @@
   "description": "Crucible — Code Generation Engine that generates style system/spec-based components for React, Vue, and Angular. No runtime dependencies. You own every file generated.",
   "docs": "https://crucible-docs.naveenr.in",
   "main": "dist/cli/index.js",
+  "types": "dist/cli/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
@@ -22,6 +23,7 @@
     "clean:dist": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prebuild": "npm run audit:templates && npm run audit:parity",
     "build": "npm run clean:dist && tsc && tsx scripts/copy-manifests.ts",
+    "prepublishOnly": "npm run build",
     "build:watch": "tsc --watch",
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
     "playground": "npm --prefix playground/react run dev",
@@ -33,7 +35,6 @@
     "test:coverage": "vitest --coverage",
     "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN",
     "pg": "tsx scripts/generate-playground.ts",
-    "pg:all": "tsx scripts/generate-playground.ts",
     "pg:react": "tsx scripts/generate-playground.ts react",
     "pg:angular": "tsx scripts/generate-playground.ts angular",
     "pg:vue": "tsx scripts/generate-playground.ts vue",

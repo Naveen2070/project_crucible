@@ -737,7 +737,7 @@ npm test -- --update
 ### Generate Playgrounds
 
 ```bash
-npm run pg:gen      # Generate all 3 frameworks
+npm run pg          # Generate all 3 frameworks
 npm run pg:react    # React only
 npm run pg:vue      # Vue only
 npm run pg:angular  # Angular only
@@ -821,7 +821,7 @@ npm test --update
 ### Playground not reflecting changes
 
 ```bash
-npm run pg:gen
+npm run pg
 ```
 
 ### TypeScript errors in generated files

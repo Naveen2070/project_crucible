@@ -1,5 +1,0 @@
-@Output() {{eventName}} = new EventEmitter<{{#if eventType}}{{eventType}}{{else}}void{{/if}}>();
-
-{{methodName}}() {
-  this.{{eventName}}.emit({{#if eventPayload}}{{eventPayload}}{{else}}{{/if}});
-}
