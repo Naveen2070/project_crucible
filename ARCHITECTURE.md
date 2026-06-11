@@ -1073,11 +1073,17 @@ defaults.
 
 | Command                    | Shorthand | Description                          |
 | -------------------------- | --------- | ------------------------------------ |
-| `crucible init`            | `i`       | Scaffold `crucible.config.json`      |
+| `crucible init`            | `i`       | Scaffold `crucible.config.json` (offers to add components after) |
+| `crucible ui`              | `wizard`, `tui` | Interactive console: explore/install/diff/status/update/remove |
 | `crucible add <component>` | `a`       | Generate component                   |
 | `crucible add --all`       | `a -a`    | Add all components                   |
-| `crucible doctor`          | `d`       | Validate setup                       |
-| `crucible list`            | `l`       | Show available components            |
+| `crucible doctor`          | `d`       | Validate setup (`--json` supported)  |
+| `crucible list`            | `l`       | Show available components (`--json` supported) |
+| `crucible info <component>`| —         | Show a component's manifest metadata (`--json`) |
+| `crucible status`          | `st`      | Drift report (ok/modified/missing; `--json`, CI exit code) |
+| `crucible diff [component...]` | —     | Preview what regeneration would change (`--json`) |
+| `crucible update [component...]` | `up` | Regenerate tracked components (preserves edits unless `--force`) |
+| `crucible remove <component...>` | `rm` | Delete components and untrack them   |
 | `crucible eject`           | `e`       | Copy preset tokens to config         |
 | `crucible tokens`          | `t`       | Regenerate `tokens.css`              |
 | `crucible tokens --force`  | `t -f`    | Force overwrite `tokens.css`         |
@@ -1124,10 +1130,34 @@ defaults.
 | `tokens` | `--dry-run`      | Preview without writing       |
 | `init`   | `--yes` / `-y`   | Use defaults without prompts  |
 | `clean`  | `--all` / `-a`   | Also remove config file       |
+| `list`   | `--json`         | Machine-readable component registry |
 | `list`   | `--strict`       | Error on plugin collisions    |
+| `doctor` | `--json`         | Structured check result (exits non-zero on failure) |
+| `info`   | `--json`         | Output the component manifest as JSON |
+| `status` | `--json`         | Structured drift report (exits non-zero on missing/stale) |
+| `diff`   | `--json`         | List changed files            |
+| `update` | `--force` / `-f` | Overwrite local edits when regenerating |
+| `remove` | `--dry-run`, `-y`| Preview / skip confirmation   |
 | `config` | `--json`         | Output raw JSON               |
 
-### 12.3 generateStories Resolution
+> `--quiet` (errors only) is supported by `init`, `add`, `tokens`, `eject`, `clean`, `update`, and
+> `remove`. Every command action runs inside a single error boundary (`runCommand`) that reports
+> failures uniformly, tears down dev-mode template watchers, and exits non-zero.
+
+### 12.3 Generation core & interactive console
+
+Component/token rendering lives in a pure `generate()` (`src/api/generate.ts`): it resolves
+dependencies, builds the component model, renders templates, computes the import-aware `utils` set,
+and renders the global tokens — returning all file contents **in memory** with no console output,
+`process.exit`, or prompts. `crucible add` is a thin shell over it (parse → `generate()` → write),
+and the same core backs `update`, `diff`, and the interactive console.
+
+`crucible ui` (`wizard`/`tui`) is an **opt-in** menu-driven console built on `@inquirer/prompts`
+(no full-screen TUI dependency; `ink` is ESM-only and avoided). It loops over explore (browse +
+`info` metadata), guided install, and `diff`/`status`/`update`/`remove`, reusing the same command
+functions. Bare `crucible` still prints help — the console only runs when invoked.
+
+### 12.4 generateStories Resolution
 
 ```mermaid
 flowchart LR
@@ -1138,7 +1168,7 @@ flowchart LR
     D -->|no flag| F[config.flags.stories ?? false]
 ```
 
-### 12.4 Output Directory Resolution
+### 12.5 Output Directory Resolution
 
 ```mermaid
 flowchart LR
@@ -1283,7 +1313,7 @@ Adding a new framework is adding a template folder — **not modifying the engin
 graph BT
     L1["Layer 1 — Vitest Unit Tests<br/>188 tests: resolver, model, registry, CLI, utils"]
     L2["Layer 2 — Vitest Snapshot Tests<br/>231 component + theme-permutation tests"]
-    L3["Layer 3 — E2E CLI Automation<br/>239 phases covering all commands"]
+    L3["Layer 3 — E2E CLI Automation<br/>242 phases covering all commands"]
     L4["Layer 4 — Storybook + Chromatic<br/>Visual regression on every PR"]
     L1 --> L2 --> L3 --> L4
 ```
@@ -1300,7 +1330,7 @@ graph BT
 
 ### 15.3 Test Suite
 
-**Current: 516 tests across 51 test files + 239 E2E phases**
+**Current: 526 tests across 53 test files + 242 E2E phases**
 
 | Test File                      | Coverage                                    |
 | ------------------------------ | ------------------------------------------- |
@@ -1311,6 +1341,8 @@ graph BT
 | `registry.test.ts`             | Path generation, framework/style combos     |
 | `doctor.test.ts`               | Circular ref detection                      |
 | `writer.test.ts`               | Hash system, dry-run, force, path traversal |
+| `api/generate.test.ts`         | Pure generation core: file output, dep auto-add, import-aware utils |
+| `line-diff.test.ts`            | LCS line-diff used by `crucible diff`        |
 | `plugins.test.ts`              | Plug-and-play: discovery, semver gating, registration, proxies, collision |
 | `templates/css-scss-parity.test.ts` | css/scss style modules define the same class names (drift guard) |
 | `snapshots/*.test.ts`          | Full pipeline output per component          |
@@ -1326,11 +1358,12 @@ graph BT
 | Accessibility (axe)         | 19      | per-component a11y + dark mode + interaction                      |
 | Component snapshots         | 231     | full pipeline output + theme permutations                         |
 | CLI / writer / doctor / fs  | 52      | command flows, hash protection, path traversal                   |
+| Generation core & utils     | 10      | `generate()` output / dep auto-add, LCS line-diff                 |
 | Plugin system               | 10      | discovery, semver gating, collision, `--strict`                   |
 | Vue version detection       | 13      | `useId()` vs fallback gating across Vue versions                  |
-| **Total**                   | **516** | **across 51 files**                                               |
+| **Total**                   | **526** | **across 53 files**                                               |
 
-E2E: **239 phases** ✅
+E2E: **242 phases** ✅
 
 ### 15.5 E2E Test Phases
 
@@ -1350,16 +1383,19 @@ across the full matrix, then CLI/infrastructure phases.
 | 233       | List command (registry-driven discovery)                                                  |
 | 234       | Error handling (unknown component)                                                        |
 | 235       | CLI `--version` matches package.json                                                      |
-| 236       | Plug-and-play — external local plugin generates a component from its own `templatesDir`    |
-| 237       | Plug-and-play — plugin component is discoverable via `list`                                |
-| 238       | Plug-and-play — plugin with incompatible `engineVersion` is skipped                        |
-| 239       | `--strict` — a plugin component-id collision exits non-zero (warns + overrides without it)  |
+| 236       | `info --json` returns the manifest; unknown component errors                               |
+| 237       | `list --json` returns the component registry                                               |
+| 238       | Lifecycle (isolated cwd): `status`/`diff` detect edits, `update` preserves vs `--force`, `remove` untracks |
+| 239       | Plug-and-play — external local plugin generates a component from its own `templatesDir`    |
+| 240       | Plug-and-play — plugin component is discoverable via `list`                                |
+| 241       | Plug-and-play — plugin with incompatible `engineVersion` is skipped                        |
+| 242       | `--strict` — a plugin component-id collision exits non-zero (warns + overrides without it)  |
 
 Component order in the matrix: Button, Input, Card, Dialog, Select, Table, Popover, Toast, Form, Tabs,
 Tooltip, Label, Separator, Badge, Skeleton, Avatar, Textarea, Checkbox, Switch, Alert, Progress,
 Breadcrumb, RadioGroup, Accordion, DropdownMenu.
 
-**Total: 239 E2E phases** ✅
+**Total: 242 E2E phases** ✅
 
 ---
 
