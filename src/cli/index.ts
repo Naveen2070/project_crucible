@@ -14,6 +14,22 @@ import { Framework } from '../core/enums';
 import { assertDevMode } from '../config/dev-mode';
 import { initRegistry } from '../plugins/loader';
 import { readJson } from '../utils/fs';
+import { cleanupWatchers } from '../templates/engine';
+
+/**
+ * Single error boundary for command actions: awaits the handler, and on any thrown error prints
+ * a consistent message, tears down template watchers, and exits non-zero. Returning the promise
+ * lets commander's `parseAsync` await it (block-body actions previously did not).
+ */
+async function runCommand(name: string, fn: () => Promise<void> | void): Promise<void> {
+  try {
+    await fn();
+  } catch (err: any) {
+    console.error(ansis.red(`✗ ${name} failed: ${err?.message ?? err}`));
+    await cleanupWatchers();
+    process.exit(1);
+  }
+}
 
 const program = new Command();
 
@@ -83,15 +99,25 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .alias('i')
     .description('Scaffold a default crucible.config.json')
     .option('-y, --yes', 'Skip prompts and use defaults')
+    .option('--quiet', 'Disable all logging except errors')
     .option('--cwd <path>', 'Current working directory', '.')
-    .action((opts) => runInit({ yes: opts.yes, cwd: path.resolve(process.cwd(), opts.cwd) }));
+    .action((opts) =>
+      runCommand('init', () =>
+        runInit({ yes: opts.yes, quiet: opts.quiet, cwd: path.resolve(process.cwd(), opts.cwd) }),
+      ),
+    );
 
   program
     .command('doctor')
     .alias('d')
     .description('Proactively validate your Crucible configuration and environment setup')
+    .option('--json', 'Output results as JSON')
     .option('--cwd <path>', 'Current working directory', '.')
-    .action((opts) => runDoctor({ cwd: path.resolve(process.cwd(), opts.cwd) }));
+    .action((opts) =>
+      runCommand('doctor', () =>
+        runDoctor({ json: opts.json, cwd: path.resolve(process.cwd(), opts.cwd) }),
+      ),
+    );
 
   program
     .command('tokens')
@@ -99,28 +125,36 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .description('Regenerate the global tokens.css file')
     .option('-f, --force', 'Overwrite existing tokens.css')
     .option('--dry-run', 'Show what would be generated without writing')
+    .option('--quiet', 'Disable all logging except errors')
     .option('--cwd <path>', 'Current working directory', '.')
-    .action((opts) => {
-      if (opts.force) warnForce('crucible tokens');
-      runTokens({
-        force: opts.force,
-        dryRun: opts.dryRun,
-        cwd: path.resolve(process.cwd(), opts.cwd || '.'),
-      });
-    });
+    .action((opts) =>
+      runCommand('tokens', () => {
+        if (opts.force) warnForce('crucible tokens');
+        return runTokens({
+          force: opts.force,
+          dryRun: opts.dryRun,
+          quiet: opts.quiet,
+          cwd: path.resolve(process.cwd(), opts.cwd || '.'),
+        });
+      }),
+    );
 
   program
     .command('eject')
     .alias('e')
     .description('Eject the built-in theme into your local crucible.config.json')
     .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('--quiet', 'Disable all logging except errors')
     .option('--cwd <path>', 'Current working directory', '.')
-    .action(async (opts) => {
-      await runEject({
-        config: opts.config,
-        cwd: opts.cwd,
-      });
-    });
+    .action((opts) =>
+      runCommand('eject', () =>
+        runEject({
+          config: opts.config,
+          quiet: opts.quiet,
+          cwd: opts.cwd,
+        }),
+      ),
+    );
 
   program
     .command('add [component...]')
@@ -141,19 +175,20 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .option('--strict', 'Error on plugin collisions / incompatible plugins')
     .option('--verbose', 'Enable verbose logging')
     .option('--quiet', 'Disable all logging except errors')
-    .action((components: string[], opts: any) => {
-      if (opts.force) warnForce('crucible add');
-      runAdd(components, opts);
-    });
+    .action((components: string[], opts: any) =>
+      runCommand('add', () => {
+        if (opts.force) warnForce('crucible add');
+        return runAdd(components, opts);
+      }),
+    );
 
   program
     .command('list')
     .alias('l')
     .description('Show all available components')
+    .option('--json', 'Output the component list as JSON')
     .option('--strict', 'Error on plugin collisions / incompatible plugins')
-    .action(() => {
-      runList();
-    });
+    .action((opts) => runCommand('list', () => runList({ json: opts.json })));
 
   program
     .command('pg:gen [framework]')
@@ -162,29 +197,35 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .option('--stories', 'Include story files', true)
     .option('--no-stories', 'Exclude story files')
     .option('-f, --force', 'Clean up existing generated files before generating')
-    .action(async (framework: string | undefined, opts: any) => {
-      assertDevMode('crucible pg:gen');
-      if (opts.force) warnForce('crucible pg:gen');
-      await runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
-    });
+    .action((framework: string | undefined, opts: any) =>
+      runCommand('pg:gen', () => {
+        assertDevMode('crucible pg:gen');
+        if (opts.force) warnForce('crucible pg:gen');
+        return runPlaygroundGenerate({ framework, stories: opts.stories, force: opts.force });
+      }),
+    );
 
   program
     .command('pg:open [framework]')
     .alias('po')
     .description('Open Storybook for a framework playground (dev only)')
-    .action(async (framework: string | undefined, opts: any) => {
-      assertDevMode('crucible pg:open');
-      await runPlaygroundOpen({ framework });
-    });
+    .action((framework: string | undefined) =>
+      runCommand('pg:open', () => {
+        assertDevMode('crucible pg:open');
+        return runPlaygroundOpen({ framework });
+      }),
+    );
 
   program
     .command('pg:dev [framework]')
     .alias('pd')
     .description('Start dev server for a framework playground (dev only)')
-    .action(async (framework: string | undefined, opts: any) => {
-      assertDevMode('crucible pg:dev');
-      await runPlaygroundDev({ framework });
-    });
+    .action((framework: string | undefined) =>
+      runCommand('pg:dev', () => {
+        assertDevMode('crucible pg:dev');
+        return runPlaygroundDev({ framework });
+      }),
+    );
 
   // clean command - remove generated files
   program
@@ -192,20 +233,21 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .alias('c')
     .description('Remove generated files from current directory')
     .option('-a, --all', 'Also remove crucible.config.json')
+    .option('--quiet', 'Disable all logging except errors')
     .option('--cwd <path>', 'Current working directory', '.')
-    .action(async (opts: any) => {
-      await runClean(opts);
-    });
+    .action((opts: any) => runCommand('clean', () => runClean(opts)));
 
   // pg:clean command - clean all playground folders
   program
     .command('pg:clean')
     .alias('pcl')
     .description('Clean all playground folders (dev only)')
-    .action(async () => {
-      assertDevMode('crucible pg:clean');
-      await runPgClean();
-    });
+    .action(() =>
+      runCommand('pg:clean', () => {
+        assertDevMode('crucible pg:clean');
+        return runPgClean();
+      }),
+    );
 
   // config command - show current crucible.config.json
   program
@@ -214,9 +256,7 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .description('Show current crucible.config.json')
     .option('--json', 'Output raw JSON')
     .option('--cwd <path>', 'Current working directory', '.')
-    .action(async (opts: any) => {
-      await runConfigShow(opts);
-    });
+    .action((opts: any) => runCommand('config', () => runConfigShow(opts)));
 
   await program.parseAsync();
 }

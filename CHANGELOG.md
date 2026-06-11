@@ -9,6 +9,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`--json` output for `list` and `doctor`.** `crucible list --json` emits the component registry
+  (id, plugin, frameworks, style systems) and `crucible doctor --json` emits the structured check
+  result (and exits non-zero on failure) — both suitable for scripting/CI.
+- **`--quiet` flag on `init`, `tokens`, `eject`, and `clean`** for scripted/non-interactive use
+  (suppresses all output except errors), matching `add`'s existing `--quiet`.
+
 - **`--strict` plugin mode.** `crucible add` / `crucible list` accept `--strict` (also settable
   persistently via `plugins.strict` in `crucible.config.json`) to turn plugin component-id
   collisions and incompatible-`engineVersion` plugins into hard errors instead of warnings.
@@ -28,6 +34,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `generate()` (`src/api/generate.ts`) that returns file contents in memory with no console output,
   `process.exit`, or prompts. `crucible add` is a thin shell over it; the same core will back the
   upcoming `update`/`diff` commands and the interactive wizard. Generated output is byte-identical.
+- **Fewer redundant reads (internal).** The engine version is read once from `package.json` and
+  cached (was re-read up to three times per `add`), and Prettier config is resolved once per `cwd`
+  (cached) so multi-directory generation in a single process can't reuse a stale config.
 
 - **Dependencies upgraded** across the CLI, dev tooling, and all playgrounds.
   - **CLI runtime:** `commander` 13 → **15**, `ansis` 3 → **4**, plus in-range bumps to
@@ -89,6 +98,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - Deterministic, collision-free, and SSR-safe IDs; removes the recurring scanner finding.
 
 ### Fixed
+
+- **Component dependencies are now actually auto-added.** `crucible add Dialog` correctly pulls in
+  its `Button` dependency (when not already generated). The previous check tested whether a
+  dependency was its *own* missing dependency — always false — so dependent components were never
+  scaffolded. Dependency resolution now uses an on-disk existence check.
+- **Consistent command error handling.** All CLI command actions run inside a single error boundary
+  that reports failures uniformly, tears down template watchers, and exits non-zero — replacing the
+  previously inconsistent per-command `try/catch`/`process.exit` and un-awaited action handlers.
 
 - **Vue DropdownMenu no longer leaks styles onto other components.** Its teleported menu panel used
   a generic global `.content` class (with `position: absolute`, shadow, and border); because the

@@ -66,7 +66,7 @@ const DEFAULT_CONFIG = `{
 }
 `;
 
-export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
+export async function runInit(opts: { yes?: boolean; quiet?: boolean; cwd?: string } = {}) {
   const cwd = opts.cwd || process.cwd();
   const configPath = path.join(cwd, 'crucible.config.json');
 
@@ -140,5 +140,5 @@ export async function runInit(opts: { yes?: boolean; cwd?: string } = {}) {
     .replace('"stories": false', `"stories": ${generateStories}`);
 
   await writeFile(configPath, configContent, 'utf-8');
-  console.log(ansis.green('✔ Created crucible.config.json with minimal setup.'));
+  if (!opts.quiet) console.log(ansis.green('✔ Created crucible.config.json with minimal setup.'));
 }

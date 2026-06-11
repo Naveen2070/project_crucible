@@ -64,6 +64,14 @@ describe('generate() core', () => {
     expect(result.tokens.content).toContain('--color-primary');
   });
 
+  it('auto-adds a component dependency that is not already generated', async () => {
+    // Dialog depends on Button; with a clean outDir, Button must be pulled in.
+    const result = await req({ components: ['Dialog'] });
+    expect(result.resolvedComponents).toContain('Dialog');
+    expect(result.resolvedComponents).toContain('Button');
+    expect(result.components.map((c) => c.name)).toContain('Button');
+  });
+
   it('reports missing peer dependencies for a component that needs them', async () => {
     const result = await req({ components: ['DropdownMenu'], framework: Framework.React });
     expect(result.peerDependencies).toContain('@floating-ui/react');

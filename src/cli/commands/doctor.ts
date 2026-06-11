@@ -74,9 +74,13 @@ export function detectCircularRefs(
   return circularRefs;
 }
 
-export async function runDoctor(opts: { cwd?: string } = {}) {
+export async function runDoctor(opts: { cwd?: string; json?: boolean } = {}) {
   const cwd = opts.cwd || process.cwd();
-  console.log(ansis.cyan(`\n⚗  Crucible Doctor — Checking setup in ${cwd}\n`));
+  // In --json mode, suppress the human-readable output; only the structured result is emitted.
+  const log = (...args: any[]) => {
+    if (!opts.json) console.log(...args);
+  };
+  log(ansis.cyan(`\n⚗  Crucible Doctor — Checking setup in ${cwd}\n`));
 
   const result: DoctorResult = {
     config: false,
@@ -98,11 +102,13 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
   try {
     configContent = await readFile(configPathAbsolute, 'utf-8');
     config = await readConfig(configPathRelative);
-    console.log(ansis.green('✔ Config file loaded and validated successfully.'));
+    log(ansis.green('✔ Config file loaded and validated successfully.'));
     result.config = true;
   } catch (error: any) {
-    console.log(ansis.red(`✗ Config Error: ${error.message}`));
-    console.log(ansis.yellow('\nRun `crucible init` to create a valid configuration file.'));
+    log(ansis.red(`✗ Config Error: ${error.message}`));
+    log(ansis.yellow('\nRun `crucible init` to create a valid configuration file.'));
+    if (opts.json) console.log(JSON.stringify({ ...result, error: error.message }, null, 2));
+    process.exitCode = 1;
     return;
   }
 
@@ -136,23 +142,23 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
         }
 
         if (hasTailwindDeps && hasTailwindImport) {
-          console.log(ansis.green('✔ Tailwind CSS configuration appears intact.'));
+          log(ansis.green('✔ Tailwind CSS configuration appears intact.'));
           result.tailwind = true;
         } else {
-          console.log(ansis.red('✗ Tailwind CSS configuration is incomplete or missing.'));
+          log(ansis.red('✗ Tailwind CSS configuration is incomplete or missing.'));
           if (!hasTailwindDeps)
-            console.log(ansis.gray('  - Missing tailwindcss dependency in package.json'));
+            log(ansis.gray('  - Missing tailwindcss dependency in package.json'));
           if (!hasTailwindImport)
-            console.log(ansis.gray('  - Missing @import "tailwindcss" in global CSS'));
+            log(ansis.gray('  - Missing @import "tailwindcss" in global CSS'));
         }
       } else {
-        console.log(ansis.yellow('⚠ Could not find package.json to verify Tailwind setup.'));
+        log(ansis.yellow('⚠ Could not find package.json to verify Tailwind setup.'));
       }
     } catch (e: any) {
-      console.log(ansis.red(`✗ Error checking Tailwind: ${e.message}`));
+      log(ansis.red(`✗ Error checking Tailwind: ${e.message}`));
     }
   } else {
-    console.log(ansis.gray('— Tailwind check skipped (not using Tailwind style system).'));
+    log(ansis.gray('— Tailwind check skipped (not using Tailwind style system).'));
     result.tailwind = true;
   }
 
@@ -163,14 +169,14 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     const testFile = path.join(outDir, '.crucible-test-write');
     await writeFile(testFile, '');
     await rm(testFile, { force: true });
-    console.log(
+    log(
       ansis.green(
         `✔ Output directory (${config?.flags?.outputDir ?? 'src/components'}) is writable.`,
       ),
     );
     result.outputDir = true;
   } catch (e: any) {
-    console.log(
+    log(
       ansis.red(`✗ Output Directory Error: Cannot write to output directory. ${e.message}`),
     );
   }
@@ -198,17 +204,17 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       }
 
       if (missingDeps.length === 0) {
-        console.log(ansis.green('✔ All peer dependencies are installed.'));
+        log(ansis.green('✔ All peer dependencies are installed.'));
       } else {
-        console.log(ansis.yellow('⚠ Missing peer dependencies (needed for full functionality):'));
+        log(ansis.yellow('⚠ Missing peer dependencies (needed for full functionality):'));
         for (const dep of missingDeps) {
-          console.log(ansis.gray(`  - ${dep}`));
+          log(ansis.gray(`  - ${dep}`));
         }
         result.peerDeps = false;
       }
     }
   } catch (e: any) {
-    console.log(ansis.yellow(`⚠ Could not check peer dependencies: ${e.message}`));
+    log(ansis.yellow(`⚠ Could not check peer dependencies: ${e.message}`));
   }
 
   // 5. Check TypeScript Configuration
@@ -235,19 +241,19 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       }
 
       if (issues.length === 0) {
-        console.log(ansis.green('✔ TypeScript configuration looks compatible.'));
+        log(ansis.green('✔ TypeScript configuration looks compatible.'));
       } else {
-        console.log(ansis.yellow('⚠ TypeScript configuration may cause issues:'));
+        log(ansis.yellow('⚠ TypeScript configuration may cause issues:'));
         for (const issue of issues) {
-          console.log(ansis.gray(`  - ${issue}`));
+          log(ansis.gray(`  - ${issue}`));
         }
         result.typescript = false;
       }
     } else {
-      console.log(ansis.gray('— TypeScript config check skipped (no tsconfig.json found).'));
+      log(ansis.gray('— TypeScript config check skipped (no tsconfig.json found).'));
     }
   } catch (e: any) {
-    console.log(ansis.yellow(`⚠ Could not check TypeScript configuration: ${e.message}`));
+    log(ansis.yellow(`⚠ Could not check TypeScript configuration: ${e.message}`));
   }
 
   // 6. Check for Circular Token References
@@ -256,23 +262,23 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       const circularRefs = detectCircularRefs(config.tokens.color);
 
       if (circularRefs.length === 0) {
-        console.log(ansis.green('✔ No circular references detected in custom tokens.'));
+        log(ansis.green('✔ No circular references detected in custom tokens.'));
       } else {
-        console.log(
+        log(
           ansis.yellow(
             '⚠ Circular references detected in custom tokens (will resolve to undefined):',
           ),
         );
         for (const ref of circularRefs) {
-          console.log(ansis.gray(`  - ${ref.path.join(' → ')}`));
+          log(ansis.gray(`  - ${ref.path.join(' → ')}`));
         }
         result.tokens = false;
       }
     } else {
-      console.log(ansis.gray('— Token check skipped (using preset tokens only).'));
+      log(ansis.gray('— Token check skipped (using preset tokens only).'));
     }
   } catch (e: any) {
-    console.log(ansis.yellow(`⚠ Could not check token references: ${e.message}`));
+    log(ansis.yellow(`⚠ Could not check token references: ${e.message}`));
   }
 
   // 7. Check Components Sync State
@@ -289,7 +295,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     const engineStale = manifest.engineVersion && manifest.engineVersion !== pkgVersion;
 
     if (Object.keys(manifest.files).length === 0) {
-      console.log(ansis.gray('— Sync state check skipped (no generated components found).'));
+      log(ansis.gray('— Sync state check skipped (no generated components found).'));
     } else {
       const outDir = path.join(cwd, config?.flags?.outputDir ?? 'src/components');
       const componentsOnDisk = new Set<string>();
@@ -305,33 +311,33 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
       if (componentsOnDisk.size > 0) {
         if (configStale || engineStale) {
           result.componentsSync = false;
-          console.log(ansis.yellow(`⚠ Some components are out of sync:`));
+          log(ansis.yellow(`⚠ Some components are out of sync:`));
           const compArray = Array.from(componentsOnDisk);
           if (configStale) {
-            console.log(
+            log(
               ansis.gray(
                 `  - Config drifted. Regenerate with: npx crucible add ${compArray.join(' ')} --force`,
               ),
             );
           }
           if (engineStale) {
-            console.log(
+            log(
               ansis.gray(
                 `  - Engine updated (${manifest.engineVersion} -> ${pkgVersion}). Regenerate with: npx crucible add ${compArray.join(' ')} --force`,
               ),
             );
           }
         } else {
-          console.log(
+          log(
             ansis.green('✔ All generated components are up to date with config and engine.'),
           );
         }
       } else {
-        console.log(ansis.gray('— Sync state check skipped (no generated files exist on disk).'));
+        log(ansis.gray('— Sync state check skipped (no generated files exist on disk).'));
       }
     }
   } catch (e: any) {
-    console.log(ansis.yellow(`⚠ Could not verify component sync state: ${e.message}`));
+    log(ansis.yellow(`⚠ Could not verify component sync state: ${e.message}`));
   }
 
   // 8. Check Hash Integrity
@@ -340,7 +346,7 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
     const outDir = path.join(cwd, config?.flags?.outputDir ?? 'src/components');
 
     if (Object.keys(manifest.files).length === 0) {
-      console.log(ansis.gray('— Hash integrity check skipped (no generated components found).'));
+      log(ansis.gray('— Hash integrity check skipped (no generated components found).'));
     } else {
       const compromisedFiles: string[] = [];
 
@@ -357,36 +363,43 @@ export async function runDoctor(opts: { cwd?: string } = {}) {
 
       if (compromisedFiles.length > 0) {
         result.hashIntegrity = false;
-        console.log(
+        log(
           ansis.yellow(
             `⚠ Hash integrity compromised (${compromisedFiles.length} file(s) modified externally):`,
           ),
         );
         for (const file of compromisedFiles.slice(0, 10)) {
-          console.log(ansis.gray(`  - ${file}`));
+          log(ansis.gray(`  - ${file}`));
         }
         if (compromisedFiles.length > 10) {
-          console.log(ansis.gray(`  ... and ${compromisedFiles.length - 10} more`));
+          log(ansis.gray(`  ... and ${compromisedFiles.length - 10} more`));
         }
         const uniqueComps = [...new Set(compromisedFiles.map((f) => f.split('/')[0]))];
-        console.log(
+        log(
           ansis.gray(
             `  Run with --force to sync: npx crucible add ${uniqueComps.join(' ')} --force`,
           ),
         );
       } else {
-        console.log(ansis.green('✔ All generated files have valid hash integrity.'));
+        log(ansis.green('✔ All generated files have valid hash integrity.'));
       }
     }
   } catch (e: any) {
-    console.log(ansis.yellow(`⚠ Could not verify hash integrity: ${e.message}`));
+    log(ansis.yellow(`⚠ Could not verify hash integrity: ${e.message}`));
   }
 
-  console.log('\n');
   const allPassed = Object.values(result).every(Boolean);
+
+  if (opts.json) {
+    console.log(JSON.stringify({ ...result, allPassed }, null, 2));
+    if (!allPassed) process.exitCode = 1;
+    return;
+  }
+
+  log('\n');
   if (allPassed) {
-    console.log(ansis.green.bold('All checks passed! Your Crucible setup is ready to go. 🚀'));
+    log(ansis.green.bold('All checks passed! Your Crucible setup is ready to go. 🚀'));
   } else {
-    console.log(ansis.yellow.bold('Some checks need attention. Review the warnings above.'));
+    log(ansis.yellow.bold('Some checks need attention. Review the warnings above.'));
   }
 }

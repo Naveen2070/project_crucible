@@ -2,10 +2,27 @@ import ansis from 'ansis';
 import { registry } from '../../registry/components';
 import { pluginRegistry } from '../../plugins/registry';
 
-export function runList() {
+export interface ListOptions {
+  json?: boolean;
+}
+
+export function runList(opts: ListOptions = {}) {
+  const entries = Object.entries(registry).map(([name, def]) => ({
+    id: name,
+    pluginId: pluginRegistry.getComponentPluginId(name) || 'core',
+    frameworks: def.frameworks,
+    styleSystems: def.styleSystems,
+  }));
+
+  if (opts.json) {
+    console.log(JSON.stringify(entries, null, 2));
+    return;
+  }
+
   console.log(ansis.cyan('Available components:'));
-  for (const [name, def] of Object.entries(registry)) {
-    const pluginId = pluginRegistry.getComponentPluginId(name) || 'core';
-    console.log(`  ${ansis.gray(pluginId + '/')}${ansis.bold(name)}  [${def.frameworks.join(', ')}]  [${def.styleSystems.join(', ')}]`);
+  for (const c of entries) {
+    console.log(
+      `  ${ansis.gray(c.pluginId + '/')}${ansis.bold(c.id)}  [${c.frameworks.join(', ')}]  [${c.styleSystems.join(', ')}]`,
+    );
   }
 }
