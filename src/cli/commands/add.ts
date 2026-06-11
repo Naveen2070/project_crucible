@@ -5,19 +5,15 @@ import { existsSync } from 'node:fs';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
-import { buildComponentModel, getEngineVersion } from '../../components/model';
-import { renderComponent, renderGlobalTokens, cleanupWatchers } from '../../templates/engine';
+import { getEngineVersion } from '../../components/model';
+import { cleanupWatchers } from '../../templates/engine';
+import { generate } from '../../api/generate';
 import { writeFiles, loadHashes, saveHashes, hashContent } from '../../scaffold/writer';
 import { registry } from '../../registry/components';
 import { pluginRegistry } from '../../plugins/registry';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
-import {
-  checkComponentDependencies,
-  formatDependencyMessage,
-  getComponentDefinition,
-  installPeerDependenciesSmart,
-} from '../utils/deps';
+import { installPeerDependenciesSmart } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
 import { pathExists } from '../../utils/fs';
 import { detectVueVersion, supportsVueUseId } from '../../utils/semver';
@@ -155,39 +151,23 @@ export async function runAdd(components: string[], opts: any) {
       ? path.join(cwd, 'src/__generated__')
       : path.join(cwd, config.flags?.outputDir ?? 'src/components');
 
-    // Dependency resolution using registry
-    const resolvedComponents = new Set<string>(normalizedComponents);
-    const allPeerDeps: string[] = [];
+    const generateStories =
+      opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
 
-    for (const comp of normalizedComponents) {
-      const def = getComponentDefinition(comp);
+    // Render everything in memory via the pure core: transitive dependency resolution,
+    // component sources, and the global tokens.css source. No files are written here.
+    const result = await generate({
+      components: normalizedComponents,
+      cwd,
+      outDir,
+      config,
+      framework,
+      generateStories,
+      vueUseId,
+    });
 
-      // Check component dependencies (e.g., Dialog needs Button)
-      if (def?.dependencies) {
-        for (const dep of def.dependencies) {
-          const exists = await checkComponentDependencies(dep, outDir, framework);
-          if (exists.missingComponents.includes(dep) && !resolvedComponents.has(dep)) {
-            resolvedComponents.add(dep);
-            if (!opts.quiet) {
-              console.log(formatDependencyMessage(comp, [dep]));
-            }
-          }
-        }
-      }
-
-      // Check peer dependencies (e.g., Dialog needs focus-trap-react)
-      const check = await checkComponentDependencies(comp, outDir, framework);
-      if (check.missingPeerDeps.length > 0) {
-        for (const peerDep of check.missingPeerDeps) {
-          if (!allPeerDeps.includes(peerDep)) {
-            allPeerDeps.push(peerDep);
-          }
-        }
-      }
-    }
-
-    if (allPeerDeps.length > 0) {
-      const installList = allPeerDeps.join(' ');
+    if (result.peerDependencies.length > 0) {
+      const installList = result.peerDependencies.join(' ');
       let shouldInstall = opts.yes;
       if (!shouldInstall) {
         shouldInstall = await confirm({
@@ -199,9 +179,6 @@ export async function runAdd(components: string[], opts: any) {
         await installPeerDependenciesSmart(framework, normalizedComponents, cwd);
       }
     }
-
-    const generateStories =
-      opts.stories !== undefined ? opts.stories : (config.flags?.stories ?? false);
 
     const hashes = await loadHashes(cwd);
 
@@ -231,9 +208,7 @@ export async function runAdd(components: string[], opts: any) {
     const tokensPath = path.join(tokensOutDir, 'tokens.css');
 
     if (!(await pathExists(tokensPath)) || configChanged) {
-      const model = buildComponentModel('Button', tokens, config, generateStories);
-      const tokensContent = await renderGlobalTokens(model);
-      await writeFile(tokensPath, tokensContent);
+      await writeFile(tokensPath, result.tokens.content);
       if (!opts.quiet) {
         console.log(
           ansis.gray(
@@ -247,10 +222,8 @@ export async function runAdd(components: string[], opts: any) {
     await importTokensInIndexHtml(framework, cwd);
 
     await Promise.all(
-      Array.from(resolvedComponents).map(async (comp) => {
+      result.components.map(async ({ name: comp, files, usedUtils }) => {
         if (opts.verbose) console.log(ansis.blue(`Generating ${comp}...`));
-        const model = buildComponentModel(comp, tokens, config, generateStories, vueUseId);
-        const files = await renderComponent(model);
 
         await writeFiles(files, outDir, comp, {
           force: opts.force,
@@ -260,16 +233,8 @@ export async function runAdd(components: string[], opts: any) {
           hashes,
         });
 
-        if (model.utils && model.utils.length > 0) {
-          // Only ship utils the generated files actually import — a manifest util may be
-          // used by some frameworks but not others (e.g. roving-focus: React DropdownMenu
-          // uses floating-ui instead), so we avoid emitting dead files.
-          const usedUtils = model.utils.filter((u) =>
-            Object.values(files).some((content) => content.includes(`./utils/${u}`)),
-          );
-          if (usedUtils.length > 0) {
-            await copyUtilsFiles(usedUtils, outDir, comp);
-          }
+        if (usedUtils.length > 0) {
+          await copyUtilsFiles(usedUtils, outDir, comp);
         }
 
         const storiesNote = generateStories ? ' + story' : '';
