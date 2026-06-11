@@ -9,6 +9,7 @@
   "states": ["disabled"],
   "props": ["value", "defaultValue", "onValueChange", "orientation", "activationMode"],
   "prefix": "tabs",
+  "utils": ["roving-focus"],
   "a11y": { "role": "tablist", "keyboardNav": true },
   "dependencies": [],
   "peerDependencies": {

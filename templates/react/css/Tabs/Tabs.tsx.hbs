@@ -8,6 +8,7 @@ import React, {
   useRef,
   useId,
 } from 'react';
+import { RovingFocusManager } from './utils/roving-focus';
 {{> react/styles-import}}
 
 export type TabsSize = 'sm' | 'md' | 'lg';
@@ -23,12 +24,6 @@ export interface TabsOptions {
   activationMode?: TabsActivationMode;
 }
 
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
-}
-
 export function useTabs({
   value: controlledValue,
   defaultValue,
@@ -39,8 +34,8 @@ export function useTabs({
   const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
   const value = controlledValue ?? uncontrolledValue;
   const rootId = useId();
-  const triggersRef = useRef<Map<string, TriggerRegistration>>(new Map());
-  const orderRef = useRef<string[]>([]);
+  const rovingRef = useRef<RovingFocusManager | null>(null);
+  if (rovingRef.current === null) rovingRef.current = new RovingFocusManager();
 
   const setValue = useCallback(
     (next: string) => {
@@ -54,48 +49,23 @@ export function useTabs({
 
   const registerTrigger = useCallback(
     (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-      const map = triggersRef.current;
-      if (el === null) {
-        map.delete(val);
-        orderRef.current = orderRef.current.filter((v) => v !== val);
-        return;
-      }
-      if (!map.has(val)) {
-        orderRef.current.push(val);
-      }
-      map.set(val, { value: val, disabled, el });
+      rovingRef.current!.register(val, disabled, el);
     },
     []
   );
 
   const focusTrigger = useCallback((val: string) => {
-    const entry = triggersRef.current.get(val);
-    entry?.el?.focus();
+    rovingRef.current!.focus(val);
   }, []);
 
   const moveFocus = useCallback(
-    (current: string, direction: 1 | -1) => {
-      const order = orderRef.current;
-      const enabled = order.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const idx = enabled.indexOf(current);
-      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-      const next = enabled[nextIdx];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (current: string, direction: 1 | -1) => rovingRef.current!.moveFocus(current, direction),
+    []
   );
 
   const focusEdge = useCallback(
-    (edge: 'first' | 'last') => {
-      const enabled = orderRef.current.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (edge: 'first' | 'last') => rovingRef.current!.focusEdge(edge),
+    []
   );
 
   return useMemo(

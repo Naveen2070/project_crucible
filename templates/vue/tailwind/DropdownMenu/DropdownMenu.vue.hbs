@@ -16,6 +16,7 @@ import {
   type PropType,
 } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate, type Placement } from '@floating-ui/vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type DropdownMenuSize = {{> shared/size-types}};
 export type DropdownMenuVariant = {{> shared/variant-types}};
@@ -26,12 +27,6 @@ export interface DropdownMenuItemModel {
   disabled?: boolean;
   separatorBefore?: boolean;
   onSelect?: () => void;
-}
-
-interface ItemRegistration {
-  id: number;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface DropdownMenuApi {
@@ -257,8 +252,7 @@ const open = computed(() => (isControlled.value ? !!props.open : internalOpen.va
 const triggerRef = ref<HTMLElement | null>(null);
 const contentRef = ref<HTMLElement | null>(null);
 
-const items = new Map<number, ItemRegistration>();
-const order: number[] = [];
+const roving = new RovingFocusManager<number>();
 
 const setOpen = (next: boolean) => {
   if (!isControlled.value) internalOpen.value = next;
@@ -266,40 +260,24 @@ const setOpen = (next: boolean) => {
   if (next) {
     nextTick(() => {
       const first = enabledOrder()[0];
-      if (first !== undefined) items.get(first)?.el?.focus();
+      if (first !== undefined) roving.focus(first);
     });
   } else {
     triggerRef.value?.focus();
   }
 };
 
-const enabledOrder = () => order.filter((id) => !items.get(id)?.disabled);
+const enabledOrder = () => roving.enabled();
 
-const registerItem = (id: number, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    items.delete(id);
-    const idx = order.indexOf(id);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!items.has(id)) order.push(id);
-  items.set(id, { id, disabled, el });
-};
-
-const focusItem = (id: number) => items.get(id)?.el?.focus();
+const registerItem = (id: number, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(id, disabled, el);
 
 const moveFocus = (current: number, direction: 1 | -1) => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? (direction === 1 ? 0 : enabled.length - 1) : (idx + direction + enabled.length) % enabled.length;
-  focusItem(enabled[nextIdx]);
+  roving.moveFocus(current, direction);
 };
 
 const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return;
-  focusItem(edge === 'first' ? enabled[0] : enabled[enabled.length - 1]);
+  roving.focusEdge(edge);
 };
 
 const onItemSelect = (onSelect?: () => void) => {

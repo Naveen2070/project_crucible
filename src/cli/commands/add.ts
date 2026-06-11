@@ -261,7 +261,15 @@ export async function runAdd(components: string[], opts: any) {
         });
 
         if (model.utils && model.utils.length > 0) {
-          await copyUtilsFiles(model.utils, outDir, comp);
+          // Only ship utils the generated files actually import — a manifest util may be
+          // used by some frameworks but not others (e.g. roving-focus: React DropdownMenu
+          // uses floating-ui instead), so we avoid emitting dead files.
+          const usedUtils = model.utils.filter((u) =>
+            Object.values(files).some((content) => content.includes(`./utils/${u}`)),
+          );
+          if (usedUtils.length > 0) {
+            await copyUtilsFiles(usedUtils, outDir, comp);
+          }
         }
 
         const storiesNote = generateStories ? ' + story' : '';

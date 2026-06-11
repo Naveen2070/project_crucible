@@ -14,6 +14,7 @@ exports[`Accordion snapshots > angular css mode snapshot (monolithic) 1`] = `
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type AccordionVariant = 'default' | 'bordered' | 'separated';
 export type AccordionSize = 'sm' | 'md' | 'lg';
@@ -50,6 +51,7 @@ export class AccordionComponent implements AfterViewInit, OnChanges {
 
   readonly rootId = \`accordion-\${++accordionUid}\`;
   internalValue?: string | string[];
+  private roving = new RovingFocusManager();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['value'] && changes['value'].currentValue !== undefined) {
@@ -61,6 +63,8 @@ export class AccordionComponent implements AfterViewInit, OnChanges {
     if (this.internalValue === undefined) {
       this.internalValue = this.value ?? this.defaultValue;
     }
+    this.syncRoving();
+    this.triggers.changes.subscribe(() => this.syncRoving());
   }
 
   get currentValue(): string | string[] | undefined {
@@ -115,48 +119,27 @@ export class AccordionComponent implements AfterViewInit, OnChanges {
     let nextValue: string | null = null;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      nextValue = this.moveFocus(item.value, 1);
+      nextValue = this.roving.moveFocus(item.value, 1);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      nextValue = this.moveFocus(item.value, -1);
+      nextValue = this.roving.moveFocus(item.value, -1);
     } else if (event.key === 'Home') {
       event.preventDefault();
-      nextValue = this.focusEdge('first');
+      nextValue = this.roving.focusEdge('first');
     } else if (event.key === 'End') {
       event.preventDefault();
-      nextValue = this.focusEdge('last');
+      nextValue = this.roving.focusEdge('last');
     }
     void nextValue;
   }
 
-  private enabledOrder(): string[] {
-    return this.items.filter((i) => !i.disabled).map((i) => i.value);
-  }
-
-  private focusByValue(value: string): void {
-    const enabled = this.items.filter((i) => !i.disabled);
-    const enabledIdx = enabled.findIndex((i) => i.value === value);
-    if (enabledIdx < 0) return;
-    const allIdx = this.items.findIndex((i) => i.value === value);
-    this.triggers.toArray()[allIdx]?.nativeElement?.focus();
-  }
-
-  private moveFocus(current: string, direction: 1 | -1): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const idx = order.indexOf(current);
-    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
-    const next = order[nextIdx];
-    this.focusByValue(next);
-    return next;
-  }
-
-  private focusEdge(edge: 'first' | 'last'): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const next = edge === 'first' ? order[0] : order[order.length - 1];
-    this.focusByValue(next);
-    return next;
+  /** Keep the roving-focus manager in sync with the rendered triggers (by item order). */
+  private syncRoving(): void {
+    this.roving.clear();
+    const els = this.triggers.toArray();
+    this.items.forEach((item, i) =>
+      this.roving.register(item.value, !!item.disabled, els[i]?.nativeElement ?? null),
+    );
   }
 }
 "
@@ -232,6 +215,7 @@ exports[`Accordion snapshots > react css mode snapshot 1`] = `
   useRef,
   useId,
 } from 'react';
+import { RovingFocusManager } from './utils/roving-focus';
 import styles from './Accordion.module.css';
 export type AccordionSize = 'sm' | 'md' | 'lg';
 export type AccordionVariant = 'default' | 'bordered' | 'separated';
@@ -243,12 +227,6 @@ export interface AccordionOptions {
   defaultValue?: string | string[];
   onValueChange?: (value: string | string[]) => void;
   collapsible?: boolean;
-}
-
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 const toOpenSet = (value: string | string[] | undefined): Set<string> => {
@@ -269,8 +247,8 @@ export function useAccordion({
   const value = controlledValue ?? uncontrolledValue;
   const openSet = useMemo(() => toOpenSet(value), [value]);
   const rootId = useId();
-  const triggersRef = useRef<Map<string, TriggerRegistration>>(new Map());
-  const orderRef = useRef<string[]>([]);
+  const rovingRef = useRef<RovingFocusManager | null>(null);
+  if (rovingRef.current === null) rovingRef.current = new RovingFocusManager();
 
   const commit = useCallback(
     (next: string | string[]) => {
@@ -305,48 +283,23 @@ export function useAccordion({
 
   const registerTrigger = useCallback(
     (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-      const map = triggersRef.current;
-      if (el === null) {
-        map.delete(val);
-        orderRef.current = orderRef.current.filter((v) => v !== val);
-        return;
-      }
-      if (!map.has(val)) {
-        orderRef.current.push(val);
-      }
-      map.set(val, { value: val, disabled, el });
+      rovingRef.current!.register(val, disabled, el);
     },
     []
   );
 
   const focusTrigger = useCallback((val: string) => {
-    const entry = triggersRef.current.get(val);
-    entry?.el?.focus();
+    rovingRef.current!.focus(val);
   }, []);
 
   const moveFocus = useCallback(
-    (current: string, direction: 1 | -1) => {
-      const order = orderRef.current;
-      const enabled = order.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const idx = enabled.indexOf(current);
-      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-      const next = enabled[nextIdx];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (current: string, direction: 1 | -1) => rovingRef.current!.moveFocus(current, direction),
+    []
   );
 
   const focusEdge = useCallback(
-    (edge: 'first' | 'last') => {
-      const enabled = orderRef.current.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (edge: 'first' | 'last') => rovingRef.current!.focusEdge(edge),
+    []
   );
 
   return useMemo(
@@ -996,6 +949,7 @@ exports[`Accordion snapshots > react tailwind mode snapshot 1`] = `
   useRef,
   useId,
 } from 'react';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type AccordionSize = 'sm' | 'md' | 'lg';
 export type AccordionVariant = 'default' | 'bordered' | 'separated';
@@ -1007,12 +961,6 @@ export interface AccordionOptions {
   defaultValue?: string | string[];
   onValueChange?: (value: string | string[]) => void;
   collapsible?: boolean;
-}
-
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 const toOpenSet = (value: string | string[] | undefined): Set<string> => {
@@ -1033,8 +981,8 @@ export function useAccordion({
   const value = controlledValue ?? uncontrolledValue;
   const openSet = useMemo(() => toOpenSet(value), [value]);
   const rootId = useId();
-  const triggersRef = useRef<Map<string, TriggerRegistration>>(new Map());
-  const orderRef = useRef<string[]>([]);
+  const rovingRef = useRef<RovingFocusManager | null>(null);
+  if (rovingRef.current === null) rovingRef.current = new RovingFocusManager();
 
   const commit = useCallback(
     (next: string | string[]) => {
@@ -1069,48 +1017,23 @@ export function useAccordion({
 
   const registerTrigger = useCallback(
     (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-      const map = triggersRef.current;
-      if (el === null) {
-        map.delete(val);
-        orderRef.current = orderRef.current.filter((v) => v !== val);
-        return;
-      }
-      if (!map.has(val)) {
-        orderRef.current.push(val);
-      }
-      map.set(val, { value: val, disabled, el });
+      rovingRef.current!.register(val, disabled, el);
     },
     []
   );
 
   const focusTrigger = useCallback((val: string) => {
-    const entry = triggersRef.current.get(val);
-    entry?.el?.focus();
+    rovingRef.current!.focus(val);
   }, []);
 
   const moveFocus = useCallback(
-    (current: string, direction: 1 | -1) => {
-      const order = orderRef.current;
-      const enabled = order.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const idx = enabled.indexOf(current);
-      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-      const next = enabled[nextIdx];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (current: string, direction: 1 | -1) => rovingRef.current!.moveFocus(current, direction),
+    []
   );
 
   const focusEdge = useCallback(
-    (edge: 'first' | 'last') => {
-      const enabled = orderRef.current.filter((v) => !triggersRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-      focusTrigger(next);
-      return next;
-    },
-    [focusTrigger]
+    (edge: 'first' | 'last') => rovingRef.current!.focusEdge(edge),
+    []
   );
 
   return useMemo(
@@ -1413,6 +1336,7 @@ import {
   type InjectionKey,
   type PropType,
 } from 'vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type AccordionSize = 'sm' | 'md' | 'lg';
 export type AccordionVariant = 'default' | 'bordered' | 'separated';
@@ -1423,12 +1347,6 @@ export interface AccordionItem {
   label: string;
   content?: string;
   disabled?: boolean;
-}
-
-interface TriggerRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface AccordionApi {
@@ -1612,8 +1530,7 @@ const emit = defineEmits<{
 const uid = useId();
 const rootId = \`accordion-\${uid}\`;
 
-const triggers = new Map<string, TriggerRegistration>();
-const order: string[] = [];
+const roving = new RovingFocusManager();
 
 const toOpenSet = (value: string | string[] | undefined): Set<string> => {
   if (value == null) return new Set();
@@ -1648,38 +1565,14 @@ const toggle = (value: string) => {
   }
 };
 
-const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    triggers.delete(val);
-    const idx = order.indexOf(val);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!triggers.has(val)) order.push(val);
-  triggers.set(val, { value: val, disabled, el });
-};
+const registerTrigger = (val: string, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(val, disabled, el);
 
-const focusTrigger = (val: string) => {
-  triggers.get(val)?.el?.focus();
-};
+const focusTrigger = (val: string) => roving.focus(val);
 
-const moveFocus = (current: string, direction: 1 | -1) => {
-  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
-  if (enabled.length === 0) return null;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-  const next = enabled[nextIdx];
-  focusTrigger(next);
-  return next;
-};
+const moveFocus = (current: string, direction: 1 | -1) => roving.moveFocus(current, direction);
 
-const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = order.filter((v) => !triggers.get(v)?.disabled);
-  if (enabled.length === 0) return null;
-  const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-  focusTrigger(next);
-  return next;
-};
+const focusEdge = (edge: 'first' | 'last') => roving.focusEdge(edge);
 
 const api: AccordionApi = {
   get type() {

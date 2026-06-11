@@ -65,6 +65,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`engineVersion`, `configHash`) is now computed once per `crucible add` instead of re-reading
   `package.json` and `crucible.config.json` once per component. Generated output is unchanged.
 
+- **Shared roving-focus utility.** The duplicated arrow-key / Home / End roving-focus logic in
+  Accordion, Tabs, RadioGroup, and DropdownMenu is now a single framework-agnostic
+  `utils/roving-focus.ts` (`RovingFocusManager`, key-generic for value- or index-keyed items),
+  shipped next to the component and shared across React/Vue/Angular. (Select keeps its
+  `aria-activedescendant` model; React DropdownMenu keeps floating-ui.) `crucible add` now only
+  emits a manifest `utils` file when the generated component actually imports it, so frameworks that
+  don't use a util no longer receive a dead file.
+
 - **IDs no longer use `Math.random()`** in generated Vue and Angular components (CodeQL
   `js/insecure-randomness`). React already used `useId()`; Vue and Angular now match.
   - **Vue** — generated components use the native **`useId()`** composable (Vue **3.5+**) by

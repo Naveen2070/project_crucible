@@ -14,6 +14,7 @@ exports[`RadioGroup snapshots > angular css mode snapshot (monolithic) 1`] = `
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type RadioGroupSize = 'sm' | 'md' | 'lg';
 export type RadioGroupOrientation = 'vertical' | 'horizontal';
@@ -47,6 +48,7 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
 
   readonly rootId = \`radio-\${++radioGroupUid}\`;
   internalValue?: string;
+  private roving = new RovingFocusManager();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['value'] && changes['value'].currentValue !== undefined) {
@@ -58,6 +60,8 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
     if (this.internalValue === undefined) {
       this.internalValue = this.value ?? this.defaultValue;
     }
+    this.syncRoving();
+    this.radios.changes.subscribe(() => this.syncRoving());
   }
 
   get currentValue(): string | undefined {
@@ -102,22 +106,24 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
     let nextValue: string | null = null;
     if (event.key === nextKey) {
       event.preventDefault();
-      nextValue = this.moveFocus(currentValue, 1);
+      nextValue = this.roving.moveFocus(currentValue, 1);
     } else if (event.key === prevKey) {
       event.preventDefault();
-      nextValue = this.moveFocus(currentValue, -1);
+      nextValue = this.roving.moveFocus(currentValue, -1);
     } else if (event.key === 'Home') {
       event.preventDefault();
-      nextValue = this.focusEdge('first');
+      nextValue = this.roving.focusEdge('first');
     } else if (event.key === 'End') {
       event.preventDefault();
-      nextValue = this.focusEdge('last');
+      nextValue = this.roving.focusEdge('last');
     }
     if (nextValue) {
       this.setValue(nextValue);
     }
   }
 
+  // enabledOrder / firstEnabled derive from \`items\` (needed at render time for the
+  // initial tab stop, before ngAfterViewInit syncs the roving manager).
   private enabledOrder(): string[] {
     return this.items.filter((i) => !i.disabled).map((i) => i.value);
   }
@@ -126,28 +132,13 @@ export class RadioGroupComponent implements AfterViewInit, OnChanges {
     return this.enabledOrder()[0] ?? null;
   }
 
-  private focusByValue(value: string): void {
-    const idx = this.items.findIndex((i) => i.value === value);
-    if (idx < 0) return;
-    this.radios.toArray()[idx]?.nativeElement?.focus();
-  }
-
-  private moveFocus(current: string, direction: 1 | -1): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const idx = order.indexOf(current);
-    const nextIdx = idx === -1 ? 0 : (idx + direction + order.length) % order.length;
-    const next = order[nextIdx];
-    this.focusByValue(next);
-    return next;
-  }
-
-  private focusEdge(edge: 'first' | 'last'): string | null {
-    const order = this.enabledOrder();
-    if (order.length === 0) return null;
-    const next = edge === 'first' ? order[0] : order[order.length - 1];
-    this.focusByValue(next);
-    return next;
+  /** Keep the roving-focus manager in sync with the rendered radios (by item order). */
+  private syncRoving(): void {
+    this.roving.clear();
+    const els = this.radios.toArray();
+    this.items.forEach((item, i) =>
+      this.roving.register(item.value, !!item.disabled, els[i]?.nativeElement ?? null),
+    );
   }
 }
 "
@@ -198,6 +189,7 @@ exports[`RadioGroup snapshots > react css mode snapshot 1`] = `
   useRef,
   useId,
 } from 'react';
+import { RovingFocusManager } from './utils/roving-focus';
 import styles from './RadioGroup.module.css';
 export type RadioGroupSize = 'sm' | 'md' | 'lg';
 export type RadioGroupOrientation = 'vertical' | 'horizontal';
@@ -210,12 +202,6 @@ export interface RadioGroupOptions {
   name?: string;
 }
 
-interface ItemRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
-}
-
 export function useRadioGroup({
   value: controlledValue,
   defaultValue,
@@ -226,8 +212,8 @@ export function useRadioGroup({
   const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
   const value = controlledValue ?? uncontrolledValue;
   const rootId = useId();
-  const itemsRef = useRef<Map<string, ItemRegistration>>(new Map());
-  const orderRef = useRef<string[]>([]);
+  const rovingRef = useRef<RovingFocusManager | null>(null);
+  if (rovingRef.current === null) rovingRef.current = new RovingFocusManager();
 
   const setValue = useCallback(
     (next: string) => {
@@ -241,52 +227,27 @@ export function useRadioGroup({
 
   const registerItem = useCallback(
     (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-      const map = itemsRef.current;
-      if (el === null) {
-        map.delete(val);
-        orderRef.current = orderRef.current.filter((v) => v !== val);
-        return;
-      }
-      if (!map.has(val)) {
-        orderRef.current.push(val);
-      }
-      map.set(val, { value: val, disabled, el });
+      rovingRef.current!.register(val, disabled, el);
     },
     []
   );
 
   const focusItem = useCallback((val: string) => {
-    const entry = itemsRef.current.get(val);
-    entry?.el?.focus();
+    rovingRef.current!.focus(val);
   }, []);
 
   const moveFocus = useCallback(
-    (current: string, direction: 1 | -1) => {
-      const order = orderRef.current;
-      const enabled = order.filter((v) => !itemsRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const idx = enabled.indexOf(current);
-      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-      const next = enabled[nextIdx];
-      focusItem(next);
-      return next;
-    },
-    [focusItem]
+    (current: string, direction: 1 | -1) => rovingRef.current!.moveFocus(current, direction),
+    []
   );
 
   const focusEdge = useCallback(
-    (edge: 'first' | 'last') => {
-      const enabled = orderRef.current.filter((v) => !itemsRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-      focusItem(next);
-      return next;
-    },
-    [focusItem]
+    (edge: 'first' | 'last') => rovingRef.current!.focusEdge(edge),
+    []
   );
 
   const firstEnabled = useCallback(() => {
-    const enabled = orderRef.current.filter((v) => !itemsRef.current.get(v)?.disabled);
+    const enabled = rovingRef.current!.enabled();
     return enabled[0] ?? null;
   }, []);
 
@@ -760,6 +721,7 @@ exports[`RadioGroup snapshots > react tailwind mode snapshot 1`] = `
   useRef,
   useId,
 } from 'react';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type RadioGroupSize = 'sm' | 'md' | 'lg';
 export type RadioGroupOrientation = 'vertical' | 'horizontal';
@@ -772,12 +734,6 @@ export interface RadioGroupOptions {
   name?: string;
 }
 
-interface ItemRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
-}
-
 export function useRadioGroup({
   value: controlledValue,
   defaultValue,
@@ -788,8 +744,8 @@ export function useRadioGroup({
   const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
   const value = controlledValue ?? uncontrolledValue;
   const rootId = useId();
-  const itemsRef = useRef<Map<string, ItemRegistration>>(new Map());
-  const orderRef = useRef<string[]>([]);
+  const rovingRef = useRef<RovingFocusManager | null>(null);
+  if (rovingRef.current === null) rovingRef.current = new RovingFocusManager();
 
   const setValue = useCallback(
     (next: string) => {
@@ -803,52 +759,27 @@ export function useRadioGroup({
 
   const registerItem = useCallback(
     (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-      const map = itemsRef.current;
-      if (el === null) {
-        map.delete(val);
-        orderRef.current = orderRef.current.filter((v) => v !== val);
-        return;
-      }
-      if (!map.has(val)) {
-        orderRef.current.push(val);
-      }
-      map.set(val, { value: val, disabled, el });
+      rovingRef.current!.register(val, disabled, el);
     },
     []
   );
 
   const focusItem = useCallback((val: string) => {
-    const entry = itemsRef.current.get(val);
-    entry?.el?.focus();
+    rovingRef.current!.focus(val);
   }, []);
 
   const moveFocus = useCallback(
-    (current: string, direction: 1 | -1) => {
-      const order = orderRef.current;
-      const enabled = order.filter((v) => !itemsRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const idx = enabled.indexOf(current);
-      const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-      const next = enabled[nextIdx];
-      focusItem(next);
-      return next;
-    },
-    [focusItem]
+    (current: string, direction: 1 | -1) => rovingRef.current!.moveFocus(current, direction),
+    []
   );
 
   const focusEdge = useCallback(
-    (edge: 'first' | 'last') => {
-      const enabled = orderRef.current.filter((v) => !itemsRef.current.get(v)?.disabled);
-      if (enabled.length === 0) return null;
-      const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-      focusItem(next);
-      return next;
-    },
-    [focusItem]
+    (edge: 'first' | 'last') => rovingRef.current!.focusEdge(edge),
+    []
   );
 
   const firstEnabled = useCallback(() => {
-    const enabled = orderRef.current.filter((v) => !itemsRef.current.get(v)?.disabled);
+    const enabled = rovingRef.current!.enabled();
     return enabled[0] ?? null;
   }, []);
 
@@ -1077,6 +1008,7 @@ import {
   type InjectionKey,
   type PropType,
 } from 'vue';
+import { RovingFocusManager } from './utils/roving-focus';
 
 export type RadioGroupSize = 'sm' | 'md' | 'lg';
 export type RadioGroupOrientation = 'vertical' | 'horizontal';
@@ -1085,12 +1017,6 @@ export interface RadioGroupItem {
   value: string;
   label: string;
   disabled?: boolean;
-}
-
-interface ItemRegistration {
-  value: string;
-  disabled: boolean;
-  el: HTMLButtonElement | null;
 }
 
 export interface RadioGroupApi {
@@ -1191,8 +1117,7 @@ const emit = defineEmits<{
 const uid = useId();
 const rootId = \`radio-\${uid}\`;
 
-const items = new Map<string, ItemRegistration>();
-const order: string[] = [];
+const roving = new RovingFocusManager();
 
 const internal = reactive({ value: props.value ?? props.defaultValue });
 
@@ -1202,42 +1127,18 @@ const setValue = (next: string) => {
   emit('valueChange', next);
 };
 
-const registerItem = (val: string, disabled: boolean, el: HTMLButtonElement | null) => {
-  if (el === null) {
-    items.delete(val);
-    const idx = order.indexOf(val);
-    if (idx >= 0) order.splice(idx, 1);
-    return;
-  }
-  if (!items.has(val)) order.push(val);
-  items.set(val, { value: val, disabled, el });
-};
+const registerItem = (val: string, disabled: boolean, el: HTMLButtonElement | null) =>
+  roving.register(val, disabled, el);
 
-const focusItem = (val: string) => {
-  items.get(val)?.el?.focus();
-};
+const focusItem = (val: string) => roving.focus(val);
 
-const enabledOrder = () => order.filter((v) => !items.get(v)?.disabled);
+const enabledOrder = () => roving.enabled();
 
 const firstEnabled = () => enabledOrder()[0] ?? null;
 
-const moveFocus = (current: string, direction: 1 | -1) => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return null;
-  const idx = enabled.indexOf(current);
-  const nextIdx = idx === -1 ? 0 : (idx + direction + enabled.length) % enabled.length;
-  const next = enabled[nextIdx];
-  focusItem(next);
-  return next;
-};
+const moveFocus = (current: string, direction: 1 | -1) => roving.moveFocus(current, direction);
 
-const focusEdge = (edge: 'first' | 'last') => {
-  const enabled = enabledOrder();
-  if (enabled.length === 0) return null;
-  const next = edge === 'first' ? enabled[0] : enabled[enabled.length - 1];
-  focusItem(next);
-  return next;
-};
+const focusEdge = (edge: 'first' | 'last') => roving.focusEdge(edge);
 
 const onKeydown = (e: KeyboardEvent) => {
   const target = e.target as HTMLElement;
