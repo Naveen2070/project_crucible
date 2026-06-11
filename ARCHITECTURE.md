@@ -1416,7 +1416,7 @@ playground/
 graph LR
     DEV[npm run dev] --> A[tsc --watch]
     DEV --> B[Vite dev server]
-    PG[npm run pg:gen] --> C[crucible pg:gen]
+    PG[npm run pg] --> C[crucible pg:gen]
     PG --> D[Generate all frameworks]
 ```
 
