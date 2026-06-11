@@ -96,7 +96,7 @@ npx crucible add Button
 | **Dependency Resolution** | Auto-scaffolds Button for Select/Dialog                      |
 | **Interactive CLI**       | Guided setup + `crucible ui` console (@inquirer/prompts)     |
 | **Prettier Integration**  | Auto-format all generated code                               |
-| **Test Coverage**         | 526 unit tests + 242 E2E phases                              |
+| **Test Coverage**         | 556 unit tests + 245 E2E phases                              |
 
 <p align="center"><img src="assets/mascot.png" alt="Mascot" width="300"></p>
 
@@ -451,7 +451,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 **Requirements:**
 
-- All tests pass (`npm test`) — 526 tests across 53 files
+- All tests pass (`npm test`) — 556 tests across 54 files
 - Templates pass audit (`npm run audit:templates`)
 - No TypeScript errors (`npm run build`)
 
