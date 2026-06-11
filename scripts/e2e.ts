@@ -372,6 +372,47 @@ async function runE2E() {
     await remove(CMD_DIR);
   });
 
+  await infra('doctor --json emits a parseable report', async () => {
+    await writeConfig('react', 'css');
+    // doctor exits non-zero when a check fails, but still prints JSON to stdout — capture either way.
+    let stdout: string;
+    try {
+      stdout = execSync(`node "${CLI_PATH}" doctor --json`, { cwd: TEST_DIR, encoding: 'utf-8' });
+    } catch (e: any) {
+      stdout = (e.stdout as string) ?? '';
+    }
+    const report = JSON.parse(stdout);
+    if (typeof report.allPassed !== 'boolean') {
+      throw new Error('doctor --json must include a boolean allPassed');
+    }
+  });
+
+  await infra('add --framework overrides config framework in output', async () => {
+    await writeConfig('react', 'css'); // config says react...
+    await remove(path.join(TEST_DIR, OUT, 'Button'));
+    runCLI('add Button --framework vue -y --quiet'); // ...but flag says vue
+    if (!(await pathExists(path.join(TEST_DIR, OUT, 'Button/Button.vue')))) {
+      throw new Error('--framework vue should emit Button.vue');
+    }
+    if (await pathExists(path.join(TEST_DIR, OUT, 'Button/Button.tsx'))) {
+      throw new Error('--framework vue must not emit a React .tsx');
+    }
+    await remove(path.join(TEST_DIR, OUT, 'Button'));
+  });
+
+  await infra('remove --dry-run leaves files on disk', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), { name: 'cmd-suite', dependencies: {} });
+    await cmdConfig();
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+    runCLI(`remove Button --cwd ${CMD} --dry-run`);
+    if (!(await pathExists(path.join(CMD_DIR, OUT, 'Button')))) {
+      throw new Error('remove --dry-run must not delete the component directory');
+    }
+    await remove(CMD_DIR);
+  });
+
   // ==================== PLUG-AND-PLAY (LOCAL PLUGINS) ====================
   console.log(ansis.cyan('\n🔌 Plug-and-play (.crucible/plugins)'));
 

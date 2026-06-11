@@ -1313,7 +1313,7 @@ Adding a new framework is adding a template folder — **not modifying the engin
 graph BT
     L1["Layer 1 — Vitest Unit Tests<br/>188 tests: resolver, model, registry, CLI, utils"]
     L2["Layer 2 — Vitest Snapshot Tests<br/>231 component + theme-permutation tests"]
-    L3["Layer 3 — E2E CLI Automation<br/>242 phases covering all commands"]
+    L3["Layer 3 — E2E CLI Automation<br/>245 phases covering all commands"]
     L4["Layer 4 — Storybook + Chromatic<br/>Visual regression on every PR"]
     L1 --> L2 --> L3 --> L4
 ```
@@ -1330,7 +1330,7 @@ graph BT
 
 ### 15.3 Test Suite
 
-**Current: 526 tests across 53 test files + 242 E2E phases**
+**Current: 556 tests across 54 test files + 245 E2E phases**
 
 | Test File                      | Coverage                                    |
 | ------------------------------ | ------------------------------------------- |
@@ -1343,6 +1343,7 @@ graph BT
 | `writer.test.ts`               | Hash system, dry-run, force, path traversal |
 | `api/generate.test.ts`         | Pure generation core: file output, dep auto-add, import-aware utils |
 | `line-diff.test.ts`            | LCS line-diff used by `crucible diff`        |
+| `cli-lifecycle.test.ts`        | `info`/`status`/`diff`/`update`/`remove`, `list --json`, `doctor --json`, `--framework` override |
 | `plugins.test.ts`              | Plug-and-play: discovery, semver gating, registration, proxies, collision |
 | `templates/css-scss-parity.test.ts` | css/scss style modules define the same class names (drift guard) |
 | `snapshots/*.test.ts`          | Full pipeline output per component          |
@@ -1359,11 +1360,12 @@ graph BT
 | Component snapshots         | 231     | full pipeline output + theme permutations                         |
 | CLI / writer / doctor / fs  | 52      | command flows, hash protection, path traversal                   |
 | Generation core & utils     | 10      | `generate()` output / dep auto-add, LCS line-diff                 |
+| Lifecycle commands (CLI)    | 30      | `info`/`status`/`diff`/`update`/`remove`, `list`/`doctor --json`, `--framework` override, output-dir util |
 | Plugin system               | 10      | discovery, semver gating, collision, `--strict`                   |
 | Vue version detection       | 13      | `useId()` vs fallback gating across Vue versions                  |
-| **Total**                   | **526** | **across 53 files**                                               |
+| **Total**                   | **556** | **across 54 files**                                               |
 
-E2E: **242 phases** ✅
+E2E: **245 phases** ✅
 
 ### 15.5 E2E Test Phases
 
@@ -1386,16 +1388,19 @@ across the full matrix, then CLI/infrastructure phases.
 | 236       | `info --json` returns the manifest; unknown component errors                               |
 | 237       | `list --json` returns the component registry                                               |
 | 238       | Lifecycle (isolated cwd): `status`/`diff` detect edits, `update` preserves vs `--force`, `remove` untracks |
-| 239       | Plug-and-play — external local plugin generates a component from its own `templatesDir`    |
-| 240       | Plug-and-play — plugin component is discoverable via `list`                                |
-| 241       | Plug-and-play — plugin with incompatible `engineVersion` is skipped                        |
-| 242       | `--strict` — a plugin component-id collision exits non-zero (warns + overrides without it)  |
+| 239       | `doctor --json` emits a parseable report (captures stdout even on non-zero exit)            |
+| 240       | `add --framework` overrides the config framework in generated output (`Button.vue`, no `.tsx`) |
+| 241       | `remove --dry-run` leaves files on disk                                                     |
+| 242       | Plug-and-play — external local plugin generates a component from its own `templatesDir`    |
+| 243       | Plug-and-play — plugin component is discoverable via `list`                                |
+| 244       | Plug-and-play — plugin with incompatible `engineVersion` is skipped                        |
+| 245       | `--strict` — a plugin component-id collision exits non-zero (warns + overrides without it)  |
 
 Component order in the matrix: Button, Input, Card, Dialog, Select, Table, Popover, Toast, Form, Tabs,
 Tooltip, Label, Separator, Badge, Skeleton, Avatar, Textarea, Checkbox, Switch, Alert, Progress,
 Breadcrumb, RadioGroup, Accordion, DropdownMenu.
 
-**Total: 242 E2E phases** ✅
+**Total: 245 E2E phases** ✅
 
 ---
 

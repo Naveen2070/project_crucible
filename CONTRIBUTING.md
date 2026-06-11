@@ -224,8 +224,8 @@ npm run dev            # Watch mode + playground (concurrent)
 ### Testing
 
 ```bash
-npm test               # Run all tests (448 tests across 48 files)
-npm run test:e2e       # Run E2E script (242 phases)
+npm test               # Run all tests (556 tests across 54 files)
+npm run test:e2e       # Run E2E script (245 phases)
 npm run test:watch    # Watch mode
 npm run test:coverage  # Coverage report
 ```
