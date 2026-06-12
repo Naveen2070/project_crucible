@@ -355,6 +355,105 @@ exports[`Alert snapshots > react scss mode snapshot 1`] = `
 "
 `;
 
+exports[`Alert snapshots > react scss mode snapshot 2`] = `
+".alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--alert-gap, calc(var(--spacing-unit) * 3));
+  padding: var(--alert-padding, calc(var(--spacing-unit) * 3));
+  border: 1px solid transparent;
+  border-radius: var(--alert-radius, var(--radius-md));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1A1A2E);
+
+  &--default {
+    background-color: var(--color-surface, #FFFFFF);
+    border-color: var(--color-border, #E2E1F0);
+  }
+
+  &--info {
+    background-color: color-mix(in srgb, var(--alert-info-accent, var(--color-primary)) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-info-accent, var(--color-primary));
+
+    .alert-icon {
+      color: var(--alert-info-accent, var(--color-primary));
+    }
+  }
+
+  &--success {
+    background-color: color-mix(in srgb, var(--alert-success-accent, var(--color-success)) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-success-accent, var(--color-success));
+
+    .alert-icon {
+      color: var(--alert-success-accent, var(--color-success));
+    }
+  }
+
+  &--warning {
+    background-color: color-mix(in srgb, var(--alert-warning-accent, #f59e0b) 12%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-warning-accent, #f59e0b);
+
+    .alert-icon {
+      color: var(--alert-warning-accent, #f59e0b);
+    }
+  }
+
+  &--destructive {
+    background-color: color-mix(in srgb, var(--alert-destructive-accent, var(--color-destructive)) 10%, var(--color-surface, #FFFFFF));
+    border-color: var(--alert-destructive-accent, var(--color-destructive));
+
+    .alert-icon {
+      color: var(--alert-destructive-accent, var(--color-destructive));
+    }
+  }
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  line-height: 1.4;
+  font-size: 1rem;
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.alert-description {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6B6B8A);
+}
+
+.alert-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+"
+`;
+
 exports[`Alert snapshots > react tailwind mode snapshot 1`] = `
 "import React from 'react';
 

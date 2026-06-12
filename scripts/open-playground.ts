@@ -4,6 +4,7 @@ import { select } from '@inquirer/prompts';
 import {
   FRAMEWORKS,
   type Framework,
+  assertFramework,
   promptGenerateIfNeeded,
   getStorybookPort,
 } from './generate-playground';
@@ -24,6 +25,7 @@ async function selectFramework(): Promise<Framework> {
 }
 
 async function openStorybook(framework: Framework): Promise<void> {
+  assertFramework(framework);
   const playgroundPath = path.join(process.cwd(), 'playground', framework);
   const port = getStorybookPort(framework);
 
@@ -87,6 +89,7 @@ export async function devPlayground(framework?: Framework): Promise<void> {
     return;
   }
 
+  assertFramework(selectedFramework);
   const playgroundPath = path.join(process.cwd(), 'playground', selectedFramework);
   const hasDevScript = selectedFramework === 'react' || selectedFramework === 'vue';
 
@@ -122,6 +125,7 @@ if (isMain) {
   const args = process.argv.slice(2);
   const command = args[0] || 'open';
   const framework = args[1] as Framework | undefined;
+  if (framework !== undefined) assertFramework(framework);
 
   if (command === 'dev') {
     devPlayground(framework).catch(console.error);

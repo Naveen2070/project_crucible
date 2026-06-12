@@ -177,6 +177,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Eliminated cryptographically-weak `Math.random()` from all generated component ID generation
   (false-positive ARIA-id usage, but removed for correctness and to clear the CodeQL alert).
 
+- **Template compilation no longer reads from a caller-derived path (CodeQL `js/code-injection`).**
+  `renderComponent` / `renderGlobalTokens` first reject any `framework` / `styleSystem` / component
+  name that isn't a known target (validated against the `Framework`/`StyleSystem` enums and the plugin
+  registry). The compile step itself now feeds `Handlebars.compile` a source obtained by *looking up*
+  the requested relative path in a per-root index that is populated by an untainted directory walk
+  (`readdir`), so the compiled source can never originate from user-controlled input — only a known,
+  in-tree `.hbs` file can be selected, and the resolved path is still confined to the trusted templates
+  root. Templates are trusted bundled files, so this is defense-in-depth. No behaviour change for valid
+  inputs.
+
+- **Allowlist validation in playground scripts (CodeQL `js/path-injection`).** The dev-only
+  `generate-playground` / `open-playground` scripts now validate the `framework` argument against the
+  known set at the path-construction chokepoint, so an out-of-set argv value can't flow into a
+  `path.join` / `execSync`. (These scripts are not shipped in the published package.)
+
 ## [1.1.0] - 2026-06-06
 
 > **App-Building Kit** — 14 new components bring the library to **25**, enough to scaffold a
