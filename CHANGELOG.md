@@ -177,13 +177,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Eliminated cryptographically-weak `Math.random()` from all generated component ID generation
   (false-positive ARIA-id usage, but removed for correctness and to clear the CodeQL alert).
 
-- **Allowlist validation before template compilation (CodeQL `js/code-injection`).** `renderComponent`
-  / `renderGlobalTokens` now reject any `framework` / `styleSystem` / component name that isn't a known
-  target (validated against the `Framework`/`StyleSystem` enums and the plugin registry) before it's
-  used to locate a `.hbs` file, and all template reads route through a single helper that refuses any
-  path resolving outside the trusted templates root. Templates are trusted bundled files, so this is
-  defense-in-depth — an unknown/crafted name can no longer steer a `Handlebars.compile` at an arbitrary
-  path. No behaviour change for valid inputs.
+- **Template compilation no longer reads from a caller-derived path (CodeQL `js/code-injection`).**
+  `renderComponent` / `renderGlobalTokens` first reject any `framework` / `styleSystem` / component
+  name that isn't a known target (validated against the `Framework`/`StyleSystem` enums and the plugin
+  registry). The compile step itself now feeds `Handlebars.compile` a source obtained by *looking up*
+  the requested relative path in a per-root index that is populated by an untainted directory walk
+  (`readdir`), so the compiled source can never originate from user-controlled input — only a known,
+  in-tree `.hbs` file can be selected, and the resolved path is still confined to the trusted templates
+  root. Templates are trusted bundled files, so this is defense-in-depth. No behaviour change for valid
+  inputs.
 
 - **Allowlist validation in playground scripts (CodeQL `js/path-injection`).** The dev-only
   `generate-playground` / `open-playground` scripts now validate the `framework` argument against the

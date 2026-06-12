@@ -278,6 +278,65 @@ exports[`Avatar snapshots > react scss mode snapshot 1`] = `
 "
 `;
 
+exports[`Avatar snapshots > react scss mode snapshot 2`] = `
+".avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  background-color: var(--avatar-fallback-bg, var(--color-secondary));
+  color: var(--avatar-fallback-color, var(--color-text));
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--avatar-font-weight, 600);
+  line-height: 1;
+  user-select: none;
+
+  &--circle {
+    border-radius: 9999px;
+  }
+
+  &--square {
+    border-radius: var(--avatar-radius, var(--radius-md));
+  }
+
+  &--xs {
+    width: 24px;
+    height: 24px;
+    font-size: 0.625rem;
+  }
+
+  &--sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  &--md {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+  }
+
+  &--lg {
+    width: 56px;
+    height: 56px;
+    font-size: 1.125rem;
+  }
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  line-height: 1;
+}
+"
+`;
+
 exports[`Avatar snapshots > react tailwind mode snapshot 1`] = `
 "import React, { useState } from 'react';
 

@@ -1,6 +1,7 @@
 import Handlebars from 'handlebars';
 import * as fs from 'node:fs';
 import { readFile, readdir, stat } from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import { ComponentModel } from '../components/model';
@@ -25,6 +26,10 @@ Handlebars.registerHelper('kebab', (str: string) =>
 Handlebars.registerHelper('hbs', (str: string) => `{{${str}}}`);
 
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
+// Per-root index of template *sources*, read during an untainted directory walk
+// (resolvedRoot -> relativePath -> file contents). Looking a source up here keeps the
+// string handed to Handlebars.compile filesystem-sourced rather than argv-derived.
+const sourceIndex = new Map<string, Map<string, string>>();
 const loadedRoots = new Set<string>();
 let globalWatcher: ReturnType<typeof chokidar.watch> | null = null;
 const frameworkWatchers = new Map<string, ReturnType<typeof chokidar.watch>>();
@@ -58,25 +63,71 @@ function assertModelInputs(model: ComponentModel): void {
 }
 
 /**
- * Read + compile a template, refusing any path that resolves outside `root`. Defense-in-depth
- * alongside `assertModelInputs`: even a registered name can't be used to escape the trusted
- * templates tree (mirrors the path-traversal guard in scaffold/writer.ts). Results are cached
- * by absolute template path.
+ * Walk `resolvedRoot` once and read every `.hbs` source it contains, keyed by the path relative
+ * to that root. The walk discovers files via `readdir` (filesystem-sourced names), so the source
+ * strings it stores never originate from caller/argv input. Cached per root; cleared by
+ * `invalidateCache` when a watcher fires.
+ */
+async function ensureSourceIndex(resolvedRoot: string): Promise<Map<string, string>> {
+  let sources = sourceIndex.get(resolvedRoot);
+  if (sources) return sources;
+  sources = new Map<string, string>();
+  await indexSources(resolvedRoot, resolvedRoot, sources);
+  sourceIndex.set(resolvedRoot, sources);
+  return sources;
+}
+
+async function indexSources(dir: string, root: string, out: Map<string, string>): Promise<void> {
+  let entries: Dirent[];
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  const pending: Promise<void>[] = [];
+  for (const entry of entries) {
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      pending.push(indexSources(abs, root, out));
+    } else if (entry.name.endsWith('.hbs')) {
+      pending.push(
+        readFile(abs, 'utf-8').then((src) => {
+          out.set(path.relative(root, abs), src);
+        }),
+      );
+    }
+  }
+  await Promise.all(pending);
+}
+
+/**
+ * Compile a template, refusing any path that resolves outside `root` (mirrors the path-traversal
+ * guard in scaffold/writer.ts) and — crucially — feeding `Handlebars.compile` a source obtained by
+ * *looking up* the relative path in `ensureSourceIndex` rather than reading the caller-supplied path
+ * directly. Because the index is populated by an untainted directory walk, the compiled source can
+ * never be steered by user-controlled input; `assertModelInputs` already restricts which known
+ * template gets selected. Compiled results are cached by absolute template path.
  */
 async function compileTemplateFile(
   tplPath: string,
   root: string,
 ): Promise<HandlebarsTemplateDelegate> {
-  const rel = path.relative(path.resolve(root), path.resolve(tplPath));
+  const resolvedRoot = path.resolve(root);
+  const resolvedPath = path.resolve(tplPath);
+  const rel = path.relative(resolvedRoot, resolvedPath);
   if (rel.startsWith('..') || path.isAbsolute(rel)) {
     throw new Error(`Security: template path escapes root: ${tplPath}`);
   }
 
-  let compiled = templateCache.get(tplPath);
+  let compiled = templateCache.get(resolvedPath);
   if (!compiled) {
-    const source = await readFile(tplPath, 'utf-8');
+    const sources = await ensureSourceIndex(resolvedRoot);
+    const source = sources.get(rel);
+    if (source === undefined) {
+      throw new Error(`Template not found under trusted root: ${tplPath}`);
+    }
     compiled = Handlebars.compile(source);
-    templateCache.set(tplPath, compiled);
+    templateCache.set(resolvedPath, compiled);
   }
   return compiled;
 }
@@ -136,6 +187,7 @@ async function registerPartialsFromDir(dir: string, prefix: string) {
 
 function invalidateCache(frameworkRoot?: string) {
   templateCache.clear();
+  sourceIndex.clear();
 
   if (frameworkRoot) {
     loadedRoots.delete(frameworkRoot);
