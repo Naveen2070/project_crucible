@@ -38,6 +38,49 @@ function getCoreTemplatesRoot(): string {
   return path.join(__dirname, '../../templates');
 }
 
+/**
+ * Reject render inputs that don't map to a known, in-tree target before any path is built
+ * from them. `framework`/`styleSystem`/`name` ultimately originate from CLI argv and are used
+ * to locate the `.hbs` files we then compile (Handlebars compiles templates to executable JS),
+ * so validating them against fixed allowlists keeps an unknown name from steering a read+compile
+ * at an arbitrary path. Membership checks here are the security barrier for that flow.
+ */
+function assertModelInputs(model: ComponentModel): void {
+  if (!Object.values(Framework).includes(model.framework as Framework)) {
+    throw new Error(`Unsupported framework: ${model.framework}`);
+  }
+  if (!Object.values(StyleSystem).includes(model.styleSystem as StyleSystem)) {
+    throw new Error(`Unsupported style system: ${model.styleSystem}`);
+  }
+  if (!pluginRegistry.getAllComponentIds().includes(model.name)) {
+    throw new Error(`Unknown component: ${model.name}`);
+  }
+}
+
+/**
+ * Read + compile a template, refusing any path that resolves outside `root`. Defense-in-depth
+ * alongside `assertModelInputs`: even a registered name can't be used to escape the trusted
+ * templates tree (mirrors the path-traversal guard in scaffold/writer.ts). Results are cached
+ * by absolute template path.
+ */
+async function compileTemplateFile(
+  tplPath: string,
+  root: string,
+): Promise<HandlebarsTemplateDelegate> {
+  const rel = path.relative(path.resolve(root), path.resolve(tplPath));
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`Security: template path escapes root: ${tplPath}`);
+  }
+
+  let compiled = templateCache.get(tplPath);
+  if (!compiled) {
+    const source = await readFile(tplPath, 'utf-8');
+    compiled = Handlebars.compile(source);
+    templateCache.set(tplPath, compiled);
+  }
+  return compiled;
+}
+
 async function registerPartials(framework: string, templatesRoot: string) {
   const coreRoot = getCoreTemplatesRoot();
 
@@ -156,6 +199,8 @@ async function cleanupWatchers() {
 }
 
 export async function renderComponent(model: ComponentModel): Promise<Record<string, string>> {
+  assertModelInputs(model);
+
   if (watchEnabled) {
     setupGlobalWatcher();
   }
@@ -194,50 +239,38 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 
     if (!(await pathExists(tplPath))) continue;
 
-    let compiled = templateCache.get(tplPath);
-    if (!compiled) {
-      const source = await readFile(tplPath, 'utf-8');
-      compiled = Handlebars.compile(source);
-      templateCache.set(tplPath, compiled);
-    }
-
+    const compiled = await compileTemplateFile(tplPath, templatesRoot);
     result[out] = compiled(model);
   }
 
   // Generate README.md with core fallback
+  let readmeRoot = templatesRoot;
   let readmePath = path.join(templatesRoot, 'shared', 'component-readme.hbs');
   if (!(await pathExists(readmePath))) {
-    readmePath = path.join(getCoreTemplatesRoot(), 'shared', 'component-readme.hbs');
+    readmeRoot = getCoreTemplatesRoot();
+    readmePath = path.join(readmeRoot, 'shared', 'component-readme.hbs');
   }
 
   if (await pathExists(readmePath)) {
-    let compiled = templateCache.get(readmePath);
-    if (!compiled) {
-      const source = await readFile(readmePath, 'utf-8');
-      compiled = Handlebars.compile(source);
-      templateCache.set(readmePath, compiled);
-    }
+    const compiled = await compileTemplateFile(readmePath, readmeRoot);
     result['README.md'] = compiled(model);
   }
 
   // Generate virtualization-adapters-guide.md for Table component with core fallback
   if (model.name === 'Table') {
+    let guideRoot = templatesRoot;
     let guidePath = path.join(
       templatesRoot,
       'shared',
       'virtualization-adapters-guide.md.hbs',
     );
     if (!(await pathExists(guidePath))) {
-      guidePath = path.join(getCoreTemplatesRoot(), 'shared', 'virtualization-adapters-guide.md.hbs');
+      guideRoot = getCoreTemplatesRoot();
+      guidePath = path.join(guideRoot, 'shared', 'virtualization-adapters-guide.md.hbs');
     }
 
     if (await pathExists(guidePath)) {
-      let compiled = templateCache.get(guidePath);
-      if (!compiled) {
-        const source = await readFile(guidePath, 'utf-8');
-        compiled = Handlebars.compile(source);
-        templateCache.set(guidePath, compiled);
-      }
+      const compiled = await compileTemplateFile(guidePath, guideRoot);
       result['virtualization-adapters-guide.md'] = compiled(model);
     }
   }
@@ -246,20 +279,23 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
 }
 
 export async function renderGlobalTokens(model: ComponentModel): Promise<string> {
+  assertModelInputs(model);
+
   const templatesRoot = pluginRegistry.getComponentTemplatesDir(model.name) || getCoreTemplatesRoot();
   await registerPartials(model.framework, templatesRoot);
-  
+
+  let tokensRoot = templatesRoot;
   let tplPath = path.join(templatesRoot, 'shared', 'global-tokens.css.hbs');
   if (!(await pathExists(tplPath))) {
-    tplPath = path.join(getCoreTemplatesRoot(), 'shared', 'global-tokens.css.hbs');
+    tokensRoot = getCoreTemplatesRoot();
+    tplPath = path.join(tokensRoot, 'shared', 'global-tokens.css.hbs');
   }
 
   if (!(await pathExists(tplPath))) {
     throw new Error(`Global tokens template not found: ${tplPath}`);
   }
 
-  const source = await readFile(tplPath, 'utf-8');
-  const compiled = Handlebars.compile(source);
+  const compiled = await compileTemplateFile(tplPath, tokensRoot);
   return compiled(model);
 }
 

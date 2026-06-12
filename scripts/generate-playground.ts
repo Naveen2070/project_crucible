@@ -64,7 +64,19 @@ interface GenerateOptions {
   force?: boolean;
 }
 
+/**
+ * Reject any framework value that isn't a known target before it's used to build a filesystem
+ * path or shell command. `framework` originates from CLI argv, and every playground path derives
+ * from `getPlaygroundPath`, so guarding here sanitizes the whole chain (path.join + execSync).
+ */
+export function assertFramework(fw: string): asserts fw is Framework {
+  if (!(FRAMEWORKS as readonly string[]).includes(fw)) {
+    throw new Error(`Unknown framework "${fw}". Expected one of: ${FRAMEWORKS.join(', ')}`);
+  }
+}
+
 function getPlaygroundPath(framework: Framework): string {
+  assertFramework(framework);
   return path.join(ROOT_DIR, 'playground', framework);
 }
 
