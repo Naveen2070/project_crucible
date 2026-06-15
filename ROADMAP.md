@@ -15,7 +15,7 @@ Crucible is a code generation engine, not a component library. The core philosop
 ### The Three Core Risks
 
 1. **The Code Generation Trap** — Users edit generated files. Without an upgrade path, Crucible is
-   write-once. This is the primary motivation for v1.2 (Migration Engine).
+   write-once. This is the primary motivation for v1.3 (Migration Engine).
 
 2. **Logic Leaking into Templates** — Every `{{#if}}` chain is a maintenance burden. Multi-framework
    support requires clean, logic-free templates enforced by the audit script.
@@ -29,7 +29,7 @@ Crucible is a code generation engine, not a component library. The core philosop
 
 ### Migration & Updates
 
-The v1.2 Migration Engine addresses the "write-once" problem with 3-way merge:
+The v1.3 Migration Engine addresses the "write-once" problem with 3-way merge:
 
 - `crucible upgrade` — Apply template improvements while preserving user edits
 - `crucible diff` — Preview what would change
@@ -45,7 +45,7 @@ Full code ownership means you maintain what you edit. However:
 
 ### Ecosystem & Adoption
 
-- Real-world examples and templates (v1.4)
+- Real-world examples and templates (v1.5)
 - Plugin system for community components (v1.1)
 - Multi-framework consistency across your entire organization
 
@@ -148,10 +148,10 @@ pattern:
 
 | Component                                                                | Description                        | Target  |
 | ------------------------------------------------------------------------ | ---------------------------------- | ------- |
-| Tag                                                                      | Removable/closable tag chip        | v1.2    |
-| Pagination                                                               | Standalone page navigation control | v1.2    |
-| Combobox                                                                 | Autocomplete / filterable Select   | v1.2    |
-| Slider                                                                   | Range input with keyboard support  | v1.2    |
+| Tag                                                                      | Removable/closable tag chip        | v1.3    |
+| Pagination                                                               | Standalone page navigation control | v1.3    |
+| Combobox                                                                 | Autocomplete / filterable Select   | v1.3    |
+| Slider                                                                   | Range input with keyboard support  | v1.3    |
 | Tabs Vertical presets · Toast promise helpers · more compound primitives | Incremental                        | rolling |
 
 > Have a component you need? Local **plugins** (see v1.1 below) let you add your own today without
@@ -174,13 +174,16 @@ gantt
 
     Additional Components       :2026-04-01, 2028-03-31
 
-    v1.2 Migration Engine (Design) :2026-09-01, 2026-09-30
-    v1.2 Migration Engine (Build)  :2026-10-01, 2026-11-30
-    v1.2 Stabilization & Release   :2026-12-01, 2026-12-31
+    v1.2 CLI Lifecycle & DX (Build) :2026-06-16, 2026-08-15
+    v1.2 Stabilization & Release    :2026-08-16, 2026-09-15
 
-    v1.3 Studio (Design + Core UI) :2027-01-01, 2027-02-28
-    v1.3 Studio (Features + Integrations) :2027-03-01, 2027-05-15
-    v1.3 Stabilization & Release   :2027-05-16, 2027-06-15
+    v1.3 Migration Engine (Design) :2026-09-16, 2026-10-31
+    v1.3 Migration Engine (Build)  :2026-11-01, 2026-12-31
+    v1.3 Stabilization & Release   :2027-01-01, 2027-01-31
+
+    v1.4 Studio (Design + Core UI) :2027-02-01, 2027-03-31
+    v1.4 Studio (Features + Integrations) :2027-04-01, 2027-06-15
+    v1.4 Stabilization & Release   :2027-06-16, 2027-07-15
 
     section v2.x
 
@@ -226,11 +229,32 @@ runtime; **no engine code changes are needed to add a component** — just a man
 | CLI plugin support                         | `crucible list` and `crucible add` via runtime registry    | ✅     |
 | App-building kit                           | 14 new components → 25 total (all 3 frameworks × 3 styles) | ✅     |
 | 448 tests / 238 E2E phases / 453 templates | Full coverage for the expanded kit                         | ✅     |
-| Writer provenance                          | `.crucible/manifest.json` storage (full provenance → v1.2) | 🚧     |
+| Writer provenance                          | `.crucible/manifest.json` storage (full provenance → v1.3) | 🚧     |
 
 ---
 
-## v1.2 — Migration Engine
+## v1.2 — CLI Lifecycle, Interactive Console & DX 🚧 In Progress
+
+> Targeted for **v1.2.0** (not yet released — more may land before the cut). A developer-experience
+> and lifecycle release built on the existing generation core: a guided terminal console plus the
+> commands to inspect, diff, update, and remove generated components.
+
+| Feature                                                              | Status |
+| -------------------------------------------------------------------- | ------ |
+| `crucible ui` interactive console (aliases `wizard` / `tui`)         | ✅     |
+| `crucible init` onboarding (offers guided scaffolding)               | ✅     |
+| Lifecycle commands — `info`, `status`, `diff`, `update`, `remove`    | ✅     |
+| `--json` output for `list` / `doctor` (+ `--quiet` on more commands) | ✅     |
+| `--strict` plugin mode (collision / engineVersion → hard error)      | ✅     |
+| Complete Vue SCSS coverage (25/25) + template-parity audit           | ✅     |
+| Dependency upgrades (commander 15, vitest 4, Storybook 10.4, …)      | ✅     |
+| Node floor raised to `>=22.12 <25` (drops Node 20/21)                | ✅     |
+| Security hardening — CodeQL code-injection + path-injection fixes    | ✅     |
+| Standalone playgrounds + esbuild 0.28.1 (dev advisory fixes)         | ✅     |
+
+---
+
+## v1.3 — Migration Engine
 
 ### The Problem
 
@@ -257,7 +281,7 @@ graph LR
 
 ---
 
-## v1.3 — Crucible Studio
+## v1.4 — Crucible Studio
 
 ### The Problem
 
@@ -286,7 +310,7 @@ graph LR
 
 ```mermaid
 flowchart LR
-    A["v1.0<br/>TypeScript CLI"] --> B["v1.3<br/>Bundle"]
+    A["v1.0<br/>TypeScript CLI"] --> B["v1.4<br/>Bundle"]
     B --> C["v2.0<br/>Go Binary"]
     C -.->|"if scale demands"| D["v3.0<br/>Rust Core"]
 ```
@@ -303,7 +327,7 @@ _Rust only if project scale demands sub-ms generation performance._
 
 ## Future Components (Long-term)
 
-Additional components beyond the current roadmap timeline. Priority re-evaluated after v1.4.
+Additional components beyond the current roadmap timeline. Priority re-evaluated after v1.5.
 
 | Component  | Description        |
 | ---------- | ------------------ |
@@ -320,7 +344,8 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 | ------- | ------------------------------------------------------------ | ------------- |
 | 1.0.0   | Core engine                                                  | ✅ March 2026 |
 | 1.1.0   | Plugin-ready architecture + app-building kit (25 components) | ✅ June 2026  |
-| 1.2.0   | Migration engine                                             | Q4 2026       |
-| 1.3.0   | Studio                                                       | Q2 2027       |
-| 1.4.0   | Ecosystem & examples                                         | Q3 2027       |
+| 1.2.0   | CLI lifecycle, interactive console & DX                      | 🚧 In Progress |
+| 1.3.0   | Migration engine                                             | Q4 2026       |
+| 1.4.0   | Studio                                                       | Q2 2027       |
+| 1.5.0   | Ecosystem & examples                                         | Q3 2027       |
 | 2.0.0   | Go binary                                                    | 2028          |
