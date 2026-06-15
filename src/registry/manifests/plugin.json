@@ -35,6 +35,7 @@
   "frameworks": [
     "frameworks/react.json",
     "frameworks/vue.json",
-    "frameworks/angular.json"
+    "frameworks/angular.json",
+    "frameworks/react-native.json"
   ]
 }

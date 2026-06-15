@@ -21,6 +21,10 @@ function getModuleExt(styleSystem: StyleSystem): string {
     case StyleSystem.CSS:
       return '.module.css';
     case StyleSystem.Tailwind:
+    case StyleSystem.NativeWind:
+    case StyleSystem.StyleSheet:
+      // No separate style-module file: Tailwind/NativeWind style inline; RN StyleSheet lives
+      // in the component file. (RN uses the resolver path, not this web-only precompute.)
       return '';
   }
 }
@@ -28,6 +32,7 @@ function getModuleExt(styleSystem: StyleSystem): string {
 function getComponentExt(framework: Framework): string {
   switch (framework) {
     case Framework.React:
+    case Framework.ReactNative:
       return '.tsx';
     case Framework.Vue:
       return '.vue';
@@ -39,6 +44,7 @@ function getComponentExt(framework: Framework): string {
 function getStoriesExt(framework: Framework): string {
   switch (framework) {
     case Framework.React:
+    case Framework.ReactNative:
       return '.stories.tsx';
     case Framework.Vue:
     case Framework.Angular:

@@ -3,6 +3,19 @@ import { pluginRegistry, FileTarget, FrameworkResolver } from '../plugins/regist
 
 export type { FileTarget };
 
+/**
+ * Valid style systems per framework — the single source of truth that replaces the old assumption
+ * that every framework supports every style. Web frameworks support the CSS family; React Native
+ * supports NativeWind (Tailwind classNames) and the built-in StyleSheet. Consumed by the parity
+ * audit, the CLI style validation, and the framework manifests.
+ */
+export const FRAMEWORK_STYLE_SYSTEMS: Record<string, StyleSystem[]> = {
+  [Framework.React]: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
+  [Framework.Vue]: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
+  [Framework.Angular]: [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS],
+  [Framework.ReactNative]: [StyleSystem.NativeWind, StyleSystem.StyleSheet],
+};
+
 export const FRAMEWORK_TARGETS: Record<string, FrameworkResolver> = {
   [Framework.React]: (name, styleSystem) => {
     const targets: FileTarget[] = [{ tpl: `${name}.tsx.hbs`, out: `${name}.tsx` }];
@@ -32,6 +45,15 @@ export const FRAMEWORK_TARGETS: Record<string, FrameworkResolver> = {
     return [
       { tpl: `${name}.vue.hbs`, out: `${name}.vue` },
       { tpl: `${name}.stories.ts.hbs`, out: `${name}.stories.ts`, isStory: true },
+    ];
+  },
+  // React Native. Both styles (nativewind / stylesheet) emit the same filenames; the engine
+  // selects the template from templates/react-native/<styleSystem>/<Component>/. There is no
+  // CSS fallback for RN, so each style dir carries its own .tsx + stories template.
+  [Framework.ReactNative]: (name) => {
+    return [
+      { tpl: `${name}.tsx.hbs`, out: `${name}.tsx` },
+      { tpl: `${name}.stories.tsx.hbs`, out: `${name}.stories.tsx`, isStory: true },
     ];
   },
 };

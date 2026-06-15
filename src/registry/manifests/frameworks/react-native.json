@@ -1,0 +1,7 @@
+{
+  "id": "react-native",
+  "name": "React Native",
+  "extension": "tsx",
+  "storiesExtension": "stories.tsx",
+  "styleSystems": ["nativewind", "stylesheet"]
+}
