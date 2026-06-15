@@ -17,6 +17,7 @@ import { installPeerDependenciesSmart } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
 import { pathExists } from '../../utils/fs';
 import { detectVueVersion, supportsVueUseId } from '../../utils/semver';
+import { configVersionHint } from '../utils/config-version';
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -82,6 +83,11 @@ export async function runAdd(components: string[], opts: any) {
 
     const configPathRelative = path.relative(process.cwd(), path.resolve(cwd, opts.config));
     const config = await readConfig(configPathRelative);
+
+    if (!opts.quiet) {
+      const hint = configVersionHint(config.version, getEngineVersion());
+      if (hint) console.warn(ansis.yellow(`⚠ ${hint}`));
+    }
 
     // Override style system from CLI flag
     if (opts.style) {
@@ -224,11 +230,11 @@ export async function runAdd(components: string[], opts: any) {
     // Import tokens.css into index.html
     await importTokensInIndexHtml(framework, cwd);
 
-    await Promise.all(
+    const writeResults = await Promise.all(
       result.components.map(async ({ name: comp, files, usedUtils }) => {
         if (opts.verbose) console.log(ansis.blue(`Generating ${comp}...`));
 
-        await writeFiles(files, outDir, comp, {
+        const writeResult = await writeFiles(files, outDir, comp, {
           force: opts.force,
           dryRun: opts.dryRun,
           quiet: opts.quiet,
@@ -251,8 +257,31 @@ export async function runAdd(components: string[], opts: any) {
             ) + dryRunNote,
           );
         }
+
+        return writeResult;
       }),
     );
+
+    // Aggregated summary: consolidate the per-file "user edits preserved" warnings into one
+    // actionable block at the end (instead of leaving them scattered through the run).
+    if (!opts.quiet) {
+      const preserved = writeResults.flatMap((r) => r.skipped);
+      const writtenCount = writeResults.reduce((n, r) => n + r.written.length, 0);
+      if (preserved.length > 0) {
+        const verb = opts.dryRun ? 'would be preserved' : 'preserved';
+        console.log(
+          ansis.yellow(
+            `\n⚠  ${preserved.length} file(s) ${verb} (user-edited, not overwritten):`,
+          ),
+        );
+        for (const f of preserved) console.log(ansis.gray(`   - ${f}`));
+        console.log(
+          ansis.gray(
+            `   ${writtenCount} file(s) ${opts.dryRun ? 'would be written' : 'written'}. Re-run with --force to overwrite the preserved ones.`,
+          ),
+        );
+      }
+    }
 
     if (!opts.dryRun) {
       await saveHashes(hashes, cwd);

@@ -94,6 +94,14 @@ export async function saveHashes(manifest: Manifest, cwd: string): Promise<void>
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
 }
 
+export interface WriteResult {
+  component: string;
+  /** hashKeys (`Component/file`) actually written (or, in dry-run, that would be written). */
+  written: string[];
+  /** hashKeys preserved because the file was user-edited and `--force` was not given. */
+  skipped: string[];
+}
+
 export async function writeFiles(
   files: Record<string, string>,
   outputDir: string,
@@ -105,7 +113,7 @@ export async function writeFiles(
     cwd?: string;
     hashes?: Manifest;
   } = {},
-): Promise<void> {
+): Promise<WriteResult> {
   const cwd = opts.cwd || process.cwd();
   const componentDir = path.join(outputDir, componentName);
 
@@ -141,6 +149,9 @@ export async function writeFiles(
       // ignore
     }
   }
+
+  const written: string[] = [];
+  const skipped: string[] = [];
 
   await Promise.all(
     Object.entries(files).map(async ([filename, content]) => {
@@ -186,12 +197,14 @@ export async function writeFiles(
               ansis.yellow(`   Use --force to overwrite, or manually merge your changes.`),
             );
           }
+          skipped.push(hashKey);
           return;
         }
       }
 
       if (opts.dryRun) {
         if (!opts.quiet) console.log(ansis.green(`~  ${hashKey} (would be written)`));
+        written.push(hashKey);
         return;
       }
 
@@ -201,6 +214,7 @@ export async function writeFiles(
         generatedAt: now,
       };
       if (!opts.quiet) console.log(ansis.green(`✓  ${hashKey}`));
+      written.push(hashKey);
     }),
   );
 
@@ -208,4 +222,6 @@ export async function writeFiles(
   if (!opts.hashes && !opts.dryRun) {
     await saveHashes(manifest, cwd);
   }
+
+  return { component: componentName, written, skipped };
 }

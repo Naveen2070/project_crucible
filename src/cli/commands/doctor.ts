@@ -8,6 +8,7 @@ import { getPeerDependencies } from '../../registry/peer-deps';
 import { pluginRegistry } from '../../plugins/registry';
 import { loadHashes, hashContent } from '../../scaffold/writer';
 import { pathExists, readJson } from '../../utils/fs';
+import { getEngineVersion, configVersionHint } from '../utils/config-version';
 
 interface DoctorResult {
   config: boolean;
@@ -104,6 +105,15 @@ export async function runDoctor(opts: { cwd?: string; json?: boolean } = {}) {
     config = await readConfig(configPathRelative);
     log(ansis.green('✔ Config file loaded and validated successfully.'));
     result.config = true;
+
+    // Advisory: flag a config older than the running engine (never fails the run).
+    const engineVersion = await getEngineVersion();
+    const versionHint = configVersionHint(config?.version, engineVersion);
+    if (versionHint) {
+      log(ansis.yellow(`⚠ ${versionHint}`));
+    } else if (config?.version) {
+      log(ansis.green(`✔ Config version (v${config.version}) is current with the engine.`));
+    }
   } catch (error: any) {
     log(ansis.red(`✗ Config Error: ${error.message}`));
     log(ansis.yellow('\nRun `crucible init` to create a valid configuration file.'));

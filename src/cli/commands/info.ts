@@ -3,10 +3,46 @@ import { pluginRegistry } from '../../plugins/registry';
 
 export interface InfoOptions {
   json?: boolean;
+  depsTree?: boolean;
 }
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Print an ASCII dependency tree for a component, recursing through manifest `dependencies`.
+ * Guards against cycles and flags any dependency that isn't a known component.
+ */
+function printDepsTree(rootId: string): void {
+  const seen = new Set<string>();
+  const lines: string[] = [];
+
+  const walk = (id: string, prefix: string, isLast: boolean, isRoot: boolean): void => {
+    const manifest = pluginRegistry.getComponentManifest(id);
+    const label = manifest ? manifest.name : `${id} ${ansis.red('(unknown)')}`;
+    lines.push(isRoot ? label : prefix + (isLast ? '└── ' : '├── ') + label);
+
+    if (!manifest) return;
+    if (seen.has(id)) {
+      // Cycle / already-expanded — avoid infinite recursion and noisy repeats.
+      if (manifest.dependencies?.length) {
+        lines[lines.length - 1] += ansis.gray(' ↻');
+      }
+      return;
+    }
+    seen.add(id);
+
+    const deps = manifest.dependencies ?? [];
+    deps.forEach((dep, i) => {
+      const last = i === deps.length - 1;
+      const childPrefix = isRoot ? '' : prefix + (isLast ? '    ' : '│   ');
+      walk(dep, childPrefix, last, false);
+    });
+  };
+
+  walk(rootId, '', true, true);
+  console.log('\n' + lines.join('\n') + '\n');
 }
 
 export function runInfo(componentName: string, opts: InfoOptions = {}) {
@@ -21,6 +57,15 @@ export function runInfo(componentName: string, opts: InfoOptions = {}) {
       ? `Did you mean: ${suggestions.join(', ')}?`
       : `Run 'crucible list' to see all components.`;
     throw new Error(`Unknown component: ${componentName}. ${hint}`);
+  }
+
+  if (opts.depsTree) {
+    if (opts.json) {
+      console.log(JSON.stringify({ id, dependencies: manifest.dependencies ?? [] }, null, 2));
+    } else {
+      printDepsTree(id);
+    }
+    return;
   }
 
   if (opts.json) {

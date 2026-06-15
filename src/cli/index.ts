@@ -15,7 +15,9 @@ import { runRemove } from './commands/remove';
 import { runUi } from './commands/ui';
 import { runClean, runPgClean } from './commands/clean';
 import { runConfigShow } from './commands/config-show';
+import { runCompletion } from './commands/completion';
 import { runPlaygroundGenerate, runPlaygroundOpen, runPlaygroundDev } from './commands/playground';
+import { maybeNotifyUpdate } from './utils/version-check';
 import { Framework } from '../core/enums';
 import { assertDevMode } from '../config/dev-mode';
 import { initRegistry } from '../plugins/loader';
@@ -83,7 +85,8 @@ async function bootstrap() {
     .description(
       'Design system engine — scaffolds native, fully-owned components directly into your project',
     )
-    .version(version);
+    .version(version)
+    .option('--no-update-check', 'Skip the npm update-availability check');
 
   program.addHelpText(
     'after',
@@ -216,8 +219,9 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .command('info <component>')
     .description('Show a component’s metadata (variants, props, dependencies, peer deps)')
     .option('--json', 'Output the manifest as JSON')
+    .option('--deps-tree', 'Show the component dependency tree instead of the full manifest')
     .action((component: string, opts: any) =>
-      runCommand('info', () => runInfo(component, { json: opts.json })),
+      runCommand('info', () => runInfo(component, { json: opts.json, depsTree: opts.depsTree })),
     );
 
   program
@@ -345,6 +349,20 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     .option('--json', 'Output raw JSON')
     .option('--cwd <path>', 'Current working directory', '.')
     .action((opts: any) => runCommand('config', () => runConfigShow(opts)));
+
+  // completion command - print a shell completion script (or component ids in --components mode)
+  program
+    .command('completion [shell]')
+    .description('Print a shell completion script (bash|zsh|fish)')
+    .option('--components', 'Print the component ids used for dynamic completion (internal)')
+    .action((shell: string | undefined, opts: any) =>
+      runCommand('completion', () => runCompletion(shell, { components: opts.components })),
+    );
+
+  // Best-effort update notifier — skipped for `completion` (its stdout is sourced/eval'd).
+  if (!process.argv.includes('completion')) {
+    await maybeNotifyUpdate(version);
+  }
 
   await program.parseAsync();
 }
