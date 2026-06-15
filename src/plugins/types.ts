@@ -32,6 +32,8 @@ export interface FrameworkManifest {
   name: string;
   extension: string;
   storiesExtension: string;
+  /** Style systems this framework supports (web → css/tailwind/scss; react-native → nativewind/stylesheet). */
+  styleSystems?: string[];
 }
 
 export interface PluginManifest {

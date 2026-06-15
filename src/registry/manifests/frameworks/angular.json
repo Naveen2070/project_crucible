@@ -2,5 +2,6 @@
   "id": "angular",
   "name": "Angular",
   "extension": "ts",
-  "storiesExtension": "stories.ts"
+  "storiesExtension": "stories.ts",
+  "styleSystems": ["css", "tailwind", "scss"]
 }
