@@ -43,6 +43,9 @@
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
   },
+  "overrides": {
+    "esbuild": "0.28.1"
+  },
   "eslintConfig": {
     "extends": [
       "plugin:storybook/recommended"
