@@ -3,9 +3,13 @@
   "type": "object",
   "properties": {
     "version": { "type": "string" },
-    "framework": { "type": "string", "enum": ["react", "angular", "vue"] },
+    "framework": { "type": "string", "enum": ["react", "angular", "vue", "react-native"] },
     "theme": { "type": "string", "enum": ["minimal", "soft", "custom"], "default": "minimal" },
-    "styleSystem": { "type": "string", "enum": ["css", "tailwind", "scss"], "default": "css" },
+    "styleSystem": {
+      "type": "string",
+      "enum": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
+      "default": "css"
+    },
     "darkMode": {
       "oneOf": [
         { "type": "boolean" },

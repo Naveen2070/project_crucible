@@ -2,12 +2,18 @@ export enum Framework {
   React = 'react',
   Vue = 'vue',
   Angular = 'angular',
+  ReactNative = 'react-native',
 }
 
 export enum StyleSystem {
   CSS = 'css',
   Tailwind = 'tailwind',
   SCSS = 'scss',
+  // React Native styling. NativeWind = Tailwind classNames for RN; StyleSheet = RN's
+  // built-in StyleSheet.create. Valid only for the react-native framework (see
+  // FRAMEWORK_STYLE_SYSTEMS in src/registry/frameworks.ts).
+  NativeWind = 'nativewind',
+  StyleSheet = 'stylesheet',
 }
 
 export enum ThemePreset {

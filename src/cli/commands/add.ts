@@ -13,6 +13,7 @@ import { registry } from '../../registry/components';
 import { pluginRegistry } from '../../plugins/registry';
 import { checkAndSetupTailwind } from '../utils/tailwind';
 import { Framework, StyleSystem } from '../../core/enums';
+import { FRAMEWORK_STYLE_SYSTEMS } from '../../registry/frameworks';
 import { installPeerDependenciesSmart } from '../utils/deps';
 import { importTokensInIndexHtml } from '../../scaffold/html';
 import { pathExists } from '../../utils/fs';
@@ -89,16 +90,18 @@ export async function runAdd(components: string[], opts: any) {
       if (hint) console.warn(ansis.yellow(`⚠ ${hint}`));
     }
 
-    // Override style system from CLI flag
+    // Override style system from CLI flag (accept any known style here; per-framework
+    // validity is enforced below once the framework is resolved).
     if (opts.style) {
-      const validStyles: StyleSystem[] = [StyleSystem.CSS, StyleSystem.Tailwind, StyleSystem.SCSS];
-      if (validStyles.includes(opts.style as StyleSystem)) {
+      if (Object.values(StyleSystem).includes(opts.style as StyleSystem)) {
         config.styleSystem = opts.style as StyleSystem;
         if (!opts.quiet)
           console.log(ansis.gray(`  Style system: ${config.styleSystem} (CLI override)`));
       } else {
         console.error(
-          ansis.red(`✗ Invalid style system: ${opts.style}. Use css, tailwind, or scss.`),
+          ansis.red(
+            `✗ Invalid style system: ${opts.style}. Known: ${Object.values(StyleSystem).join(', ')}.`,
+          ),
         );
         process.exit(1);
       }
@@ -121,6 +124,20 @@ export async function runAdd(components: string[], opts: any) {
     // Honour the `--framework` override in the generated output (not just dependency checks):
     // `buildComponentModel` reads `config.framework`, so the resolved framework is applied here.
     config.framework = framework;
+
+    // Per-framework style validity: web frameworks use css/tailwind/scss; react-native uses
+    // nativewind/stylesheet. Reject a style that doesn't belong to the resolved framework.
+    const validStyles = FRAMEWORK_STYLE_SYSTEMS[framework] ?? [];
+    if (validStyles.length && !validStyles.includes(config.styleSystem as StyleSystem)) {
+      console.error(
+        ansis.red(
+          `✗ Style "${config.styleSystem}" is not valid for framework "${framework}". ` +
+            `Valid: ${validStyles.join(', ')}.`,
+        ),
+      );
+      process.exit(1);
+    }
+
     if (framework === Framework.Angular && !opts.quiet) {
       console.log(ansis.cyan('\nℹ Angular uses an idiomatic unified pattern.'));
       console.log(

@@ -236,8 +236,9 @@ runtime; **no engine code changes are needed to add a component** — just a man
 ## v1.2 — CLI Lifecycle, Interactive Console & DX 🚧 In Progress
 
 > Targeted for **v1.2.0** (not yet released — more may land before the cut). A developer-experience
-> and lifecycle release built on the existing generation core: a guided terminal console plus the
-> commands to inspect, diff, update, and remove generated components.
+> and lifecycle release built on the existing generation core: a guided terminal console, the
+> commands to inspect, diff, update, and remove generated components, and a new **React Native**
+> target.
 
 | Feature                                                              | Status |
 | -------------------------------------------------------------------- | ------ |
@@ -251,6 +252,9 @@ runtime; **no engine code changes are needed to add a component** — just a man
 | Node floor raised to `>=22.12 <25` (drops Node 20/21)                | ✅     |
 | Security hardening — CodeQL code-injection + path-injection fixes    | ✅     |
 | Standalone playgrounds + esbuild 0.28.1 (dev advisory fixes)         | ✅     |
+| Shell completion · update notifier · `info --deps-tree`              | ✅     |
+| **React Native target — NativeWind *and* StyleSheet styling**        | 🚧     |
+| RN dependency preflight (react-native + Expo; nativewind/tailwind)   | 🚧     |
 
 ---
 
