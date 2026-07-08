@@ -48,7 +48,7 @@ export const COMPONENT_DEFAULTS: Record<string, ComponentMeta> = new Proxy({}, {
     if (!manifest) return undefined;
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { tailwindDefaults, ...meta } = manifest;
+    const { tailwindDefaults, nativewindDefaults, ...meta } = manifest;
     return meta as ComponentMeta;
   },
   ownKeys() {
@@ -66,6 +66,22 @@ export const TAILWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> =
   get(_, prop: string) {
     const manifest = pluginRegistry.getComponentManifest(prop);
     return manifest?.tailwindDefaults || {};
+  },
+  ownKeys() {
+    return pluginRegistry.getAllComponentIds();
+  },
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
+});
+
+export const NATIVEWIND_VARIANT_DEFAULTS: Record<string, Record<string, string>> = new Proxy({}, {
+  get(_, prop: string) {
+    const manifest = pluginRegistry.getComponentManifest(prop);
+    return manifest?.nativewindDefaults || {};
   },
   ownKeys() {
     return pluginRegistry.getAllComponentIds();

@@ -231,14 +231,17 @@ export async function runAdd(components: string[], opts: any) {
 
     const tokensOutDir = path.join(cwd, 'public/__generated__');
     await mkdir(tokensOutDir, { recursive: true });
-    const tokensPath = path.join(tokensOutDir, 'tokens.css');
+    const tokensFilename = result.tokens.filename;
+    const tokensPath = path.join(tokensOutDir, tokensFilename);
 
     if (!(await pathExists(tokensPath)) || configChanged) {
       await writeFile(tokensPath, result.tokens.content);
       if (!opts.quiet) {
         console.log(
           ansis.gray(
-            configChanged ? `  Updated tokens.css (config changed)` : `  Created tokens.css`,
+            configChanged
+              ? `  Updated ${tokensFilename} (config changed)`
+              : `  Created ${tokensFilename}`,
           ),
         );
       }

@@ -2,8 +2,8 @@
   "id": "Button",
   "name": "Button",
   "description": "Standard button component",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "primary", "secondary", "outline", "ghost", "link", "destructive"],
   "sizes": ["xs", "sm", "md", "lg", "icon"],
   "states": ["disabled", "loading"],
@@ -17,5 +17,14 @@
     "ghost": "bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]",
     "link": "bg-transparent text-[var(--color-primary)] underline-offset-4 hover:underline border-transparent",
     "destructive": "bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] border-transparent hover:opacity-90"
+  },
+  "nativewindDefaults": {
+    "default": "bg-primary text-primary-foreground border border-transparent",
+    "primary": "bg-primary text-primary-foreground border border-transparent",
+    "secondary": "bg-secondary text-secondary-foreground border border-transparent",
+    "outline": "bg-transparent text-foreground border border-border",
+    "ghost": "bg-transparent text-foreground border border-transparent",
+    "link": "bg-transparent text-primary underline border border-transparent",
+    "destructive": "bg-destructive text-destructive-foreground border border-transparent"
   }
 }

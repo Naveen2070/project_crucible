@@ -1,0 +1,109 @@
+import React from 'react';
+import { Pressable, Text, View, ActivityIndicator, type PressableProps, type ViewProps, type TextProps } from 'react-native';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}} };
+
+const sizeClasses: Record<string, string> = {
+  xs: 'px-2 py-1 text-xs',
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-5 py-2.5 text-base',
+  lg: 'px-7 py-3.5 text-lg',
+  icon: 'p-2.5 text-base',
+};
+
+export type ButtonVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ButtonSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface ButtonProps extends PressableProps {
+  variant?:  ButtonVariant;
+  size?:     ButtonSize;
+  loading?:  boolean;
+  children:  React.ReactNode;
+  className?: string;
+}
+
+{{#if features.compoundComponents}}
+export const ButtonRoot = React.forwardRef<View, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+    const cls = [
+      'flex-row items-center justify-center rounded-md active:opacity-80',
+      variantClasses[variant],
+      sizeClasses[size],
+      (disabled || loading) && 'opacity-45',
+      className,
+    ].filter(Boolean).join(' ');
+    const a11yState = { disabled: !!(disabled || loading), busy: loading };
+
+    return (
+      <Pressable
+        ref={ref}
+        className={cls}
+        disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={a11yState}
+        {...props}
+      >
+        {children}
+      </Pressable>
+    );
+  }
+);
+
+// ponytail: text color/size are read from the parent Pressable's className via NativeWind's
+// style inheritance (color, fontSize, … cascade to Text like CSS) — the same pattern used by
+// established NativeWind component kits. Pass an explicit className to override.
+export const ButtonLabel = ({ children, className, ...props }: TextProps & { className?: string }) => (
+  <Text className={className} {...props}>{children}</Text>
+);
+
+export const ButtonSpinner = ({ className, ...props }: Omit<React.ComponentProps<typeof ActivityIndicator>, 'size'> & { className?: string }) => (
+  <ActivityIndicator size="small" className={['mr-2', className].filter(Boolean).join(' ')} {...props} />
+);
+
+export const ButtonIcon = ({ children, className, ...props }: ViewProps & { className?: string }) => (
+  <View className={className} {...props}>{children}</View>
+);
+
+export const Button = Object.assign(ButtonRoot, {
+  Label: ButtonLabel,
+  Spinner: ButtonSpinner,
+  Icon: ButtonIcon,
+});
+
+Button.displayName = 'Button';
+ButtonRoot.displayName = 'Button.Root';
+ButtonLabel.displayName = 'Button.Label';
+ButtonSpinner.displayName = 'Button.Spinner';
+ButtonIcon.displayName = 'Button.Icon';
+{{else}}
+export const Button = React.forwardRef<View, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, className, ...props }, ref) => {
+    const cls = [
+      'flex-row items-center justify-center rounded-md active:opacity-80',
+      variantClasses[variant],
+      sizeClasses[size],
+      (disabled || loading) && 'opacity-45',
+      className,
+    ].filter(Boolean).join(' ');
+    const a11yState = { disabled: !!(disabled || loading), busy: loading };
+
+    return (
+      <Pressable
+        ref={ref}
+        className={cls}
+        disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={a11yState}
+        {...props}
+      >
+        {loading && <ActivityIndicator size="small" className="mr-2" />}
+        {typeof children === 'string' ? <Text>{children}</Text> : children}
+      </Pressable>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+{{/if}}

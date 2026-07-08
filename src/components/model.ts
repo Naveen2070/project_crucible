@@ -3,7 +3,11 @@ import path from 'node:path';
 import { CrucibleConfig } from '../config/reader';
 import { ResolvedTokens } from '../tokens/resolver';
 import { Framework, StyleSystem, ComponentName } from '../core/enums';
-import { COMPONENT_DEFAULTS, TAILWIND_VARIANT_DEFAULTS } from '../registry/manifests/defaults';
+import {
+  COMPONENT_DEFAULTS,
+  TAILWIND_VARIANT_DEFAULTS,
+  NATIVEWIND_VARIANT_DEFAULTS,
+} from '../registry/manifests/defaults';
 
 let cachedEngineVersion: string | null = null;
 /** Real engine version from the installed package, read once and cached. */
@@ -33,6 +37,8 @@ export interface ComponentModel {
   tokens: ResolvedTokens;
   darkModeStrategy: 'auto' | 'manual';
   tailwindVariants?: Record<string, string>;
+  /** RN NativeWind variant classes — semantic (theme-preset-backed), not web's CSS-var arbitrary values. */
+  nativewindVariants?: Record<string, string>;
   a11y: {
     focusRing: boolean;
     focusRingColor: string;
@@ -122,6 +128,7 @@ export function buildComponentModel(
     tokens,
     darkModeStrategy: tokens.darkModeStrategy,
     tailwindVariants: TAILWIND_VARIANT_DEFAULTS[name],
+    nativewindVariants: NATIVEWIND_VARIANT_DEFAULTS[name],
     a11y: {
       focusRing: config.features.focusRing ?? true,
       focusRingColor: config.a11y.focusRingColor ?? 'var(--color-primary)',

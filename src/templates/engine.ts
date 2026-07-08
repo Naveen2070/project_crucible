@@ -24,6 +24,7 @@ Handlebars.registerHelper('kebab', (str: string) =>
     .replace(/^-/, ''),
 );
 Handlebars.registerHelper('hbs', (str: string) => `{{${str}}}`);
+Handlebars.registerHelper('json', (obj: unknown) => JSON.stringify(obj, null, 2));
 
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
 // Per-root index of template *sources*, read during an untainted directory walk
@@ -330,17 +331,39 @@ export async function renderComponent(model: ComponentModel): Promise<Record<str
   return result;
 }
 
-export async function renderGlobalTokens(model: ComponentModel): Promise<string> {
+export interface GlobalTokensOutput {
+  filename: string;
+  content: string;
+}
+
+// RN has no CSS: StyleSheet ships a JS theme object, NativeWind ships a Tailwind preset.
+const GLOBAL_TOKENS_TEMPLATES: Record<string, { tpl: string; filename: string }> = {
+  [`${Framework.ReactNative}:${StyleSystem.StyleSheet}`]: {
+    tpl: 'global-tokens.theme.ts.hbs',
+    filename: 'theme.ts',
+  },
+  [`${Framework.ReactNative}:${StyleSystem.NativeWind}`]: {
+    tpl: 'global-tokens.tailwind.preset.js.hbs',
+    filename: 'tailwind.preset.js',
+  },
+};
+
+export async function renderGlobalTokens(model: ComponentModel): Promise<GlobalTokensOutput> {
   assertModelInputs(model);
+
+  const { tpl, filename } = GLOBAL_TOKENS_TEMPLATES[`${model.framework}:${model.styleSystem}`] ?? {
+    tpl: 'global-tokens.css.hbs',
+    filename: 'tokens.css',
+  };
 
   const templatesRoot = pluginRegistry.getComponentTemplatesDir(model.name) || getCoreTemplatesRoot();
   await registerPartials(model.framework, templatesRoot);
 
   let tokensRoot = templatesRoot;
-  let tplPath = path.join(templatesRoot, 'shared', 'global-tokens.css.hbs');
+  let tplPath = path.join(templatesRoot, 'shared', tpl);
   if (!(await pathExists(tplPath))) {
     tokensRoot = getCoreTemplatesRoot();
-    tplPath = path.join(tokensRoot, 'shared', 'global-tokens.css.hbs');
+    tplPath = path.join(tokensRoot, 'shared', tpl);
   }
 
   if (!(await pathExists(tplPath))) {
@@ -348,7 +371,7 @@ export async function renderGlobalTokens(model: ComponentModel): Promise<string>
   }
 
   const compiled = await compileTemplateFile(tplPath, tokensRoot);
-  return compiled(model);
+  return { filename, content: compiled(model) };
 }
 
 export { invalidateCache, cleanupWatchers };

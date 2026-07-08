@@ -21,8 +21,10 @@ export async function runTokens(opts: TokensOptions = {}) {
 
   const config = await readConfig(path.join(cwd, 'crucible.config.json'));
   const tokens = resolveTokens(config);
+  const model = buildComponentModel('Button', tokens, config, false);
+  const rendered = await renderGlobalTokens(model);
   const tokensOutDir = path.join(cwd, 'public/__generated__');
-  const tokensPath = path.join(tokensOutDir, 'tokens.css');
+  const tokensPath = path.join(tokensOutDir, rendered.filename);
 
   const exists = await pathExists(tokensPath);
 
@@ -36,19 +38,16 @@ export async function runTokens(opts: TokensOptions = {}) {
     return;
   }
 
-  const model = buildComponentModel('Button', tokens, config, false);
-  const tokensContent = await renderGlobalTokens(model);
-
   if (opts.dryRun) {
     if (!opts.quiet) {
       console.log(ansis.green(`~  ${tokensPath} (would be written)`));
-      console.log(ansis.gray(`\nContent preview:\n${tokensContent.slice(0, 500)}...`));
+      console.log(ansis.gray(`\nContent preview:\n${rendered.content.slice(0, 500)}...`));
     }
     return;
   }
 
   await mkdir(tokensOutDir, { recursive: true });
-  await writeFile(tokensPath, tokensContent);
+  await writeFile(tokensPath, rendered.content);
   if (!opts.quiet) {
     console.log(ansis.green(`✔  Generated ${tokensPath}`));
     console.log(ansis.gray(`   Theme: ${config.theme} | Dark mode: ${!!config.darkMode}`));
