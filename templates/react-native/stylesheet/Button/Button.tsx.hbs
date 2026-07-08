@@ -1,0 +1,121 @@
+import React from 'react';
+import { Pressable, Text, View, ActivityIndicator, StyleSheet, type PressableProps, type ViewProps, type TextProps } from 'react-native';
+// ponytail: relative path assumes the default layout (outDir=src/components, tokens in
+// public/__generated__) — adjust if you customized `flags.outputDir` in crucible.config.json.
+import { theme } from '../../../public/__generated__/theme';
+
+const variantStyles: Record<string, { container: object; text: object }> = {
+  default:     { container: { backgroundColor: theme.colorPrimary },     text: { color: theme.colorPrimaryForeground } },
+  primary:     { container: { backgroundColor: theme.colorPrimary },     text: { color: theme.colorPrimaryForeground } },
+  secondary:   { container: { backgroundColor: theme.colorSecondary },   text: { color: theme.colorSecondaryForeground } },
+  outline:     { container: { backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.colorBorder }, text: { color: theme.foreground } },
+  ghost:       { container: { backgroundColor: 'transparent' },          text: { color: theme.foreground } },
+  link:        { container: { backgroundColor: 'transparent' },          text: { color: theme.colorPrimary, textDecorationLine: 'underline' } },
+  destructive: { container: { backgroundColor: theme.colorDestructive }, text: { color: theme.colorDestructiveForeground } },
+};
+
+const sizeStyles: Record<string, { container: object; text: object }> = {
+  xs:   { container: { paddingHorizontal: 8,  paddingVertical: 4 },  text: { fontSize: 12 } },
+  sm:   { container: { paddingHorizontal: 12, paddingVertical: 6 },  text: { fontSize: 14 } },
+  md:   { container: { paddingHorizontal: 20, paddingVertical: 10 }, text: { fontSize: 16 } },
+  lg:   { container: { paddingHorizontal: 28, paddingVertical: 14 }, text: { fontSize: 18 } },
+  icon: { container: { padding: 10 },                                text: { fontSize: 16 } },
+};
+
+const styles = StyleSheet.create({
+  base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+  },
+  disabled: { opacity: 0.45 },
+  spinner: { marginRight: 8 },
+});
+
+export type ButtonVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ButtonSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface ButtonProps extends PressableProps {
+  variant?:  ButtonVariant;
+  size?:     ButtonSize;
+  loading?:  boolean;
+  children:  React.ReactNode;
+}
+
+{{#if features.compoundComponents}}
+export const ButtonRoot = React.forwardRef<View, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, style, ...props }, ref) => {
+    const variantStyle = variantStyles[variant];
+    const sizeStyle = sizeStyles[size];
+    const a11yState = { disabled: !!(disabled || loading), busy: loading };
+    const textStyle = { ...variantStyle.text, ...sizeStyle.text };
+
+    return (
+      <Pressable
+        ref={ref}
+        style={[styles.base, variantStyle.container, sizeStyle.container, (disabled || loading) && styles.disabled, style]}
+        disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={a11yState}
+        {...props}
+      >
+        <ButtonTextStyleContext.Provider value={textStyle}>
+          {children}
+        </ButtonTextStyleContext.Provider>
+      </Pressable>
+    );
+  }
+);
+
+// ponytail: RN Text doesn't inherit color/fontSize from its parent like CSS does, so ButtonLabel
+// reads the resolved variant/size text style from context instead of recomputing it.
+const ButtonTextStyleContext = React.createContext<object>({});
+
+export const ButtonLabel = ({ children, style, ...props }: TextProps) => {
+  const textStyle = React.useContext(ButtonTextStyleContext);
+  return <Text style={[textStyle, style]} {...props}>{children}</Text>;
+};
+
+export const ButtonSpinner = (props: Omit<React.ComponentProps<typeof ActivityIndicator>, 'size'>) => (
+  <ActivityIndicator size="small" style={styles.spinner} {...props} />
+);
+
+export const ButtonIcon = ({ children, ...props }: ViewProps) => <View {...props}>{children}</View>;
+
+export const Button = Object.assign(ButtonRoot, {
+  Label: ButtonLabel,
+  Spinner: ButtonSpinner,
+  Icon: ButtonIcon,
+});
+
+Button.displayName = 'Button';
+ButtonRoot.displayName = 'Button.Root';
+ButtonLabel.displayName = 'Button.Label';
+ButtonSpinner.displayName = 'Button.Spinner';
+ButtonIcon.displayName = 'Button.Icon';
+{{else}}
+export const Button = React.forwardRef<View, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading = false, disabled, children, style, ...props }, ref) => {
+    const variantStyle = variantStyles[variant];
+    const sizeStyle = sizeStyles[size];
+    const a11yState = { disabled: !!(disabled || loading), busy: loading };
+
+    return (
+      <Pressable
+        ref={ref}
+        style={[styles.base, variantStyle.container, sizeStyle.container, (disabled || loading) && styles.disabled, style]}
+        disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={a11yState}
+        {...props}
+      >
+        {loading && <ActivityIndicator size="small" style={styles.spinner} />}
+        {typeof children === 'string' ? <Text style={[variantStyle.text, sizeStyle.text]}>{children}</Text> : children}
+      </Pressable>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+{{/if}}

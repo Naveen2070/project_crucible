@@ -52,8 +52,8 @@ export interface GenerateResult {
   resolvedComponents: string[];
   /** Missing peer dependencies across the resolved set (deduped, in first-seen order). */
   peerDependencies: string[];
-  /** Rendered global tokens.css source — callers decide whether/when to write it. */
-  tokens: { content: string };
+  /** Rendered global tokens source — callers decide whether/when to write it. */
+  tokens: { content: string; filename: string };
 }
 
 export async function generate(req: GenerateRequest): Promise<GenerateResult> {
@@ -104,12 +104,12 @@ export async function generate(req: GenerateRequest): Promise<GenerateResult> {
   );
 
   const tokenModel = buildComponentModel('Button', tokens, config, generateStories);
-  const tokensContent = await renderGlobalTokens(tokenModel);
+  const renderedTokens = await renderGlobalTokens(tokenModel);
 
   return {
     components: generatedComponents,
     resolvedComponents: Array.from(resolvedComponents),
     peerDependencies,
-    tokens: { content: tokensContent },
+    tokens: renderedTokens,
   };
 }
