@@ -2,8 +2,8 @@
   "id": "Input",
   "name": "Input",
   "description": "Standard input field",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "error"],
   "sizes": ["sm", "md", "lg"],
   "states": ["disabled", "error"],
@@ -13,5 +13,9 @@
   "tailwindDefaults": {
     "default": "bg-[var(--color-surface)] border-[var(--color-border)] focus:border-[var(--color-primary)]",
     "error": "bg-[var(--color-surface)] border-[var(--color-destructive)] focus:border-[var(--color-destructive)]"
+  },
+  "nativewindDefaults": {
+    "default": "bg-surface border border-border text-foreground",
+    "error": "bg-surface border border-destructive text-foreground"
   }
 }
