@@ -1,0 +1,129 @@
+import React from 'react';
+import { View, Text, Pressable, Linking } from 'react-native';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}} };
+// ponytail: 'hoverable' has no touchscreen equivalent — same classes as 'default' on RN, kept as a
+// distinct variant only so switching `variant` doesn't require a framework-specific branch upstream.
+
+const sizeClasses: Record<string, string> = {
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+export type CardVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type CardSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface CardProps {
+  variant?:   CardVariant;
+  size?:      CardSize;
+  title?:     string;
+  children:   React.ReactNode;
+  onPress?:   () => void;
+  className?: string;
+  href?:      string;
+}
+
+{{#if features.compoundComponents}}
+export const CardRoot = ({ variant = 'default', size = 'md', children, onPress, className, href }: CardProps) => {
+  const isClickable = variant === 'clickable' || !!onPress || !!href;
+
+  const cls = [
+    'rounded-lg border',
+    variantClasses[variant],
+    sizeClasses[size],
+    className,
+  ].filter(Boolean).join(' ');
+
+  const handlePress = () => {
+    onPress?.();
+    if (href) Linking.openURL(href);
+  };
+
+  return isClickable ? (
+    <Pressable className={cls} onPress={handlePress} accessibilityRole="button">
+      {children}
+    </Pressable>
+  ) : (
+    <View className={cls}>{children}</View>
+  );
+};
+
+export const CardHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <View className={['mb-4', className].filter(Boolean).join(' ')}>{children}</View>
+);
+
+export const CardTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <Text className={['font-semibold text-lg text-foreground', className].filter(Boolean).join(' ')}>{children}</Text>
+);
+
+export const CardDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <Text className={['text-sm text-text-muted', className].filter(Boolean).join(' ')}>{children}</Text>
+);
+
+export const CardAction = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <View className={['flex-row items-center gap-2 self-end', className].filter(Boolean).join(' ')}>{children}</View>
+);
+
+export const CardContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <View className={className}>{children}</View>
+);
+
+export const CardFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <View className={['mt-4 flex-row items-center', className].filter(Boolean).join(' ')}>{children}</View>
+);
+
+export const Card = Object.assign(CardRoot, {
+  Header: CardHeader,
+  Title: CardTitle,
+  Description: CardDescription,
+  Action: CardAction,
+  Content: CardContent,
+  Footer: CardFooter,
+}) as typeof CardRoot & {
+  Header: typeof CardHeader;
+  Title: typeof CardTitle;
+  Description: typeof CardDescription;
+  Action: typeof CardAction;
+  Content: typeof CardContent;
+  Footer: typeof CardFooter;
+  displayName: string;
+};
+
+Card.displayName = 'Card';
+{{else}}
+export const Card = ({ variant = 'default', size = 'md', title, children, onPress, className, href }: CardProps) => {
+  const isClickable = variant === 'clickable' || !!onPress || !!href;
+
+  const cls = [
+    'rounded-lg border',
+    variantClasses[variant],
+    sizeClasses[size],
+    className,
+  ].filter(Boolean).join(' ');
+
+  const handlePress = () => {
+    onPress?.();
+    if (href) Linking.openURL(href);
+  };
+
+  const content = (
+    <>
+      {title && <Text className="font-bold text-lg mb-2 text-foreground">{title}</Text>}
+      {typeof children === 'string' ? <Text className="text-text-muted">{children}</Text> : children}
+    </>
+  );
+
+  return isClickable ? (
+    <Pressable className={cls} onPress={handlePress} accessibilityRole="button">
+      {content}
+    </Pressable>
+  ) : (
+    <View className={cls}>{content}</View>
+  );
+};
+
+Card.displayName = 'Card';
+{{/if}}
