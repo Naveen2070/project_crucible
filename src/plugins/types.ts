@@ -24,6 +24,8 @@ export interface ComponentManifest {
   dependencies?: string[];
   peerDependencies?: Record<string, string[]>;
   tailwindDefaults?: Record<string, string>;
+  /** RN NativeWind variant classes — semantic (theme-preset-backed), not web's CSS-var arbitrary values. */
+  nativewindDefaults?: Record<string, string>;
   extensions?: Record<string, any>;
 }
 
