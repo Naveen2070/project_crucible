@@ -1,0 +1,227 @@
+import React, { useId, useState, createContext, useContext } from 'react';
+import { View, Text, TextInput, Pressable, StyleSheet, type TextInputProps } from 'react-native';
+// ponytail: relative path assumes the default layout (outDir=src/components, tokens in
+// public/__generated__) — adjust if you customized `flags.outputDir` in crucible.config.json.
+import { theme } from '../../../public/__generated__/theme';
+
+const variantStyles: Record<string, object> = {
+  default: { backgroundColor: theme.colorSurface, borderColor: theme.colorBorder, color: theme.foreground },
+  error:   { backgroundColor: theme.colorSurface, borderColor: theme.colorDestructive, color: theme.foreground },
+};
+
+const sizeStyles: Record<string, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 6,  fontSize: 14 },
+  md: { paddingHorizontal: 16, paddingVertical: 8,  fontSize: 16 },
+  lg: { paddingHorizontal: 20, paddingVertical: 12, fontSize: 18 },
+};
+
+const styles = StyleSheet.create({
+  fieldGroup: { flexDirection: 'column', gap: 4, width: '100%' },
+  relative: { position: 'relative', width: '100%' },
+  field: { width: '100%', borderRadius: Number.parseInt(theme.radiusMd, 10) || 8, borderWidth: 1 },
+  disabled: { opacity: 0.5 },
+  withToggle: { paddingRight: 48 },
+  label: { fontWeight: '500', color: theme.foreground, fontSize: 14 },
+  required: { color: theme.colorDestructive },
+  hint: { fontSize: 12, color: theme.colorTextMuted },
+  error: { fontSize: 12, color: theme.colorDestructive },
+  toggle: { position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' },
+  toggleLabel: { fontSize: 14, color: theme.colorTextMuted },
+});
+
+export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface InputProps extends TextInputProps {
+  label?:    string;
+  variant?:  InputVariant;
+  size?:     InputSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+}
+
+{{#if features.compoundComponents}}
+interface InputContextValue {
+  id: string;
+  variant: InputVariant;
+  size: InputSize;
+  error?: string;
+  hint?: string;
+  required?: boolean;
+  editable?: boolean;
+}
+
+const InputContext = createContext<InputContextValue | undefined>(undefined);
+
+const useInputContext = () => {
+  const context = useContext(InputContext);
+  if (!context) throw new Error('Input sub-components must be used within Input');
+  return context;
+};
+
+export const InputRoot = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  error,
+  hint,
+  required,
+  editable,
+  id: providedId,
+  style,
+}: {
+  children: React.ReactNode;
+  variant?: InputVariant;
+  size?: InputSize;
+  error?: string;
+  hint?: string;
+  required?: boolean;
+  editable?: boolean;
+  id?: string;
+  style?: object;
+}) => {
+  const generatedId = useId();
+  const id = providedId || generatedId;
+  const contextValue = { id, variant, size, error, hint, required, editable };
+
+  return (
+    <InputContext.Provider value={contextValue}>
+      <View style={[styles.fieldGroup, style]}>
+        {children}
+      </View>
+    </InputContext.Provider>
+  );
+};
+
+export const InputLabel = ({ children, style }: { children: React.ReactNode; style?: object }) => {
+  const { required } = useInputContext();
+  return (
+    <Text style={[styles.label, style]}>
+      {children}
+      {required && <Text style={styles.required}> *</Text>}
+    </Text>
+  );
+};
+
+export const InputField = React.forwardRef<TextInput, TextInputProps>(
+  ({ style, secureTextEntry, ...props }, ref) => {
+    const { id, variant, size, error, editable } = useInputContext();
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = !!secureTextEntry;
+    const a11yState = { disabled: editable === false };
+    const togglePressedState = { pressed: showPassword };
+
+    return (
+      <View style={styles.relative}>
+        <TextInput
+          ref={ref}
+          nativeID={id}
+          style={[
+            styles.field,
+            variantStyles[error ? 'error' : variant],
+            sizeStyles[size],
+            isPassword && styles.withToggle,
+            editable === false && styles.disabled,
+            style,
+          ]}
+          secureTextEntry={isPassword && !showPassword}
+          editable={editable}
+          accessibilityState={a11yState}
+          {...props}
+        />
+        {isPassword && (
+          <Pressable
+            style={styles.toggle}
+            onPress={() => setShowPassword((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            accessibilityState={togglePressedState}
+          >
+            <Text style={styles.toggleLabel}>{showPassword ? 'Hide' : 'Show'}</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
+);
+
+export const InputError = ({ children, style }: { children: React.ReactNode; style?: object }) => (
+  <Text style={[styles.error, style]} accessibilityRole="alert">
+    {children}
+  </Text>
+);
+
+export const InputHint = ({ children, style }: { children: React.ReactNode; style?: object }) => (
+  <Text style={[styles.hint, style]}>
+    {children}
+  </Text>
+);
+
+export const Input = Object.assign(InputRoot, {
+  Label: InputLabel,
+  Field: InputField,
+  Error: InputError,
+  Hint: InputHint,
+});
+
+Input.displayName = 'Input';
+InputRoot.displayName = 'Input.Root';
+InputLabel.displayName = 'Input.Label';
+InputField.displayName = 'Input.Field';
+InputError.displayName = 'Input.Error';
+InputHint.displayName = 'Input.Hint';
+{{else}}
+export const Input = React.forwardRef<TextInput, InputProps>(
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, style, secureTextEntry, editable, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = !!secureTextEntry;
+    const a11yState = { disabled: editable === false };
+    const togglePressedState = { pressed: showPassword };
+
+    return (
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>
+          {label}
+          {required && <Text style={styles.required}> *</Text>}
+        </Text>
+        <View style={styles.relative}>
+          <TextInput
+            ref={ref}
+            nativeID={id}
+            style={[
+              styles.field,
+              variantStyles[error ? 'error' : variant],
+              sizeStyles[size],
+              isPassword && styles.withToggle,
+              editable === false && styles.disabled,
+              style,
+            ]}
+            secureTextEntry={isPassword && !showPassword}
+            editable={editable}
+            accessibilityState={a11yState}
+            {...props}
+          />
+          {isPassword && (
+            <Pressable
+              style={styles.toggle}
+              onPress={() => setShowPassword((v) => !v)}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              accessibilityState={togglePressedState}
+            >
+              <Text style={styles.toggleLabel}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </Pressable>
+          )}
+        </View>
+        {hint && !error && <Text style={styles.hint}>{hint}</Text>}
+        {error && <Text style={styles.error} accessibilityRole="alert">{error}</Text>}
+      </View>
+    );
+  }
+);
+
+Input.displayName = 'Input';
+{{/if}}

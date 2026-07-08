@@ -1,0 +1,215 @@
+import React, { useId, useState, createContext, useContext } from 'react';
+import { View, Text, TextInput, Pressable, type TextInputProps } from 'react-native';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}} };
+const sizeClasses: Record<string, string> = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-5 py-3 text-lg',
+};
+
+export type InputVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type InputSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface InputProps extends TextInputProps {
+  label?:      string;
+  variant?:    InputVariant;
+  size?:       InputSize;
+  error?:      string;
+  hint?:       string;
+  required?:   boolean;
+  className?:  string;
+}
+
+{{#if features.compoundComponents}}
+interface InputContextValue {
+  id: string;
+  variant: InputVariant;
+  size: InputSize;
+  error?: string;
+  hint?: string;
+  required?: boolean;
+  editable?: boolean;
+}
+
+const InputContext = createContext<InputContextValue | undefined>(undefined);
+
+const useInputContext = () => {
+  const context = useContext(InputContext);
+  if (!context) throw new Error('Input sub-components must be used within Input');
+  return context;
+};
+
+export const InputRoot = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  error,
+  hint,
+  required,
+  editable,
+  id: providedId,
+  className,
+}: {
+  children: React.ReactNode;
+  variant?: InputVariant;
+  size?: InputSize;
+  error?: string;
+  hint?: string;
+  required?: boolean;
+  editable?: boolean;
+  id?: string;
+  className?: string;
+}) => {
+  const generatedId = useId();
+  const id = providedId || generatedId;
+  const contextValue = { id, variant, size, error, hint, required, editable };
+
+  return (
+    <InputContext.Provider value={contextValue}>
+      <View className={['flex-col gap-1 w-full', className].filter(Boolean).join(' ')}>
+        {children}
+      </View>
+    </InputContext.Provider>
+  );
+};
+
+export const InputLabel = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const { required } = useInputContext();
+  return (
+    <Text className={['font-medium text-foreground text-sm', className].filter(Boolean).join(' ')}>
+      {children}
+      {required && <Text className="text-destructive"> *</Text>}
+    </Text>
+  );
+};
+
+export const InputField = React.forwardRef<TextInput, TextInputProps>(
+  ({ className, secureTextEntry, ...props }, ref) => {
+    const { id, variant, size, error, editable } = useInputContext();
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = !!secureTextEntry;
+    const a11yState = { disabled: editable === false };
+    const togglePressedState = { pressed: showPassword };
+
+    const cls = [
+      'w-full rounded-md',
+      variantClasses[variant],
+      sizeClasses[size],
+      isPassword && 'pr-12',
+      error && 'border-destructive',
+      editable === false && 'opacity-50',
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <View className="relative w-full">
+        <TextInput
+          ref={ref}
+          nativeID={id}
+          className={cls}
+          secureTextEntry={isPassword && !showPassword}
+          editable={editable}
+          accessibilityState={a11yState}
+          {...props}
+        />
+        {isPassword && (
+          <Pressable
+            className="absolute right-3 top-0 bottom-0 justify-center"
+            onPress={() => setShowPassword((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            accessibilityState={togglePressedState}
+          >
+            <Text className="text-sm text-text-muted">{showPassword ? 'Hide' : 'Show'}</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
+);
+
+export const InputError = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <Text className={['text-xs text-destructive', className].filter(Boolean).join(' ')} accessibilityRole="alert">
+    {children}
+  </Text>
+);
+
+export const InputHint = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <Text className={['text-xs text-text-muted', className].filter(Boolean).join(' ')}>
+    {children}
+  </Text>
+);
+
+export const Input = Object.assign(InputRoot, {
+  Label: InputLabel,
+  Field: InputField,
+  Error: InputError,
+  Hint: InputHint,
+});
+
+Input.displayName = 'Input';
+InputRoot.displayName = 'Input.Root';
+InputLabel.displayName = 'Input.Label';
+InputField.displayName = 'Input.Field';
+InputError.displayName = 'Input.Error';
+InputHint.displayName = 'Input.Hint';
+{{else}}
+export const Input = React.forwardRef<TextInput, InputProps>(
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, secureTextEntry, editable, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = !!secureTextEntry;
+    const a11yState = { disabled: editable === false };
+    const togglePressedState = { pressed: showPassword };
+
+    const cls = [
+      'w-full rounded-md',
+      variantClasses[variant],
+      sizeClasses[size],
+      isPassword && 'pr-12',
+      error && 'border-destructive',
+      editable === false && 'opacity-50',
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <View className="flex-col gap-1 w-full">
+        <Text className="font-medium text-foreground text-sm">
+          {label}
+          {required && <Text className="text-destructive"> *</Text>}
+        </Text>
+        <View className="relative w-full">
+          <TextInput
+            ref={ref}
+            nativeID={id}
+            className={cls}
+            secureTextEntry={isPassword && !showPassword}
+            editable={editable}
+            accessibilityState={a11yState}
+            {...props}
+          />
+          {isPassword && (
+            <Pressable
+              className="absolute right-3 top-0 bottom-0 justify-center"
+              onPress={() => setShowPassword((v) => !v)}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              accessibilityState={togglePressedState}
+            >
+              <Text className="text-sm text-text-muted">{showPassword ? 'Hide' : 'Show'}</Text>
+            </Pressable>
+          )}
+        </View>
+        {hint && !error && <Text className="text-xs text-text-muted">{hint}</Text>}
+        {error && <Text className="text-xs text-destructive" accessibilityRole="alert">{error}</Text>}
+      </View>
+    );
+  }
+);
+
+Input.displayName = 'Input';
+{{/if}}
