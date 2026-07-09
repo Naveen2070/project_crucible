@@ -1,9 +1,9 @@
 import path from 'path';
 import ansis from 'ansis';
 import { select, checkbox, confirm, search } from '@inquirer/prompts';
-import { registry } from '../../registry/components';
 import { pluginRegistry } from '../../plugins/registry';
 import { Framework, StyleSystem } from '../../core/enums';
+import { FRAMEWORK_STYLE_SYSTEMS, isMobileEligible, platformLabel } from '../../registry/frameworks';
 import { pathExists, readJson } from '../../utils/fs';
 import { loadHashes } from '../../scaffold/writer';
 import { trackedComponents } from '../utils/output-dir';
@@ -68,6 +68,14 @@ async function browse(ctx: UiContext) {
   }
 }
 
+const STYLE_LABELS: Record<string, string> = {
+  [StyleSystem.CSS]: 'CSS Modules',
+  [StyleSystem.SCSS]: 'SCSS Modules',
+  [StyleSystem.Tailwind]: 'Tailwind CSS',
+  [StyleSystem.NativeWind]: 'NativeWind',
+  [StyleSystem.StyleSheet]: 'StyleSheet',
+};
+
 /** Guided install: choose framework/style/theme/components/stories, then scaffold. */
 async function install(ctx: UiContext, config: any) {
   const framework = await select({
@@ -77,17 +85,15 @@ async function install(ctx: UiContext, config: any) {
       { name: 'React', value: Framework.React },
       { name: 'Vue 3', value: Framework.Vue },
       { name: 'Angular', value: Framework.Angular },
+      { name: 'React Native', value: Framework.ReactNative },
     ],
   });
 
+  const validStyles = FRAMEWORK_STYLE_SYSTEMS[framework] ?? [];
   const style = await select({
     message: 'Style system',
-    default: config.styleSystem,
-    choices: [
-      { name: 'CSS Modules', value: StyleSystem.CSS },
-      { name: 'SCSS Modules', value: StyleSystem.SCSS },
-      { name: 'Tailwind CSS', value: StyleSystem.Tailwind },
-    ],
+    default: validStyles.includes(config.styleSystem) ? config.styleSystem : validStyles[0],
+    choices: validStyles.map((s) => ({ name: STYLE_LABELS[s] ?? s, value: s })),
   });
 
   const theme = await select({
@@ -99,9 +105,14 @@ async function install(ctx: UiContext, config: any) {
     ],
   });
 
-  const available = Object.entries(registry)
-    .filter(([, def]) => def.frameworks.includes(framework))
-    .map(([name]) => name)
+  const available = pluginRegistry
+    .getAllComponentIds()
+    .filter((name) => {
+      const m = pluginRegistry.getComponentManifest(name);
+      if (!m?.frameworks.includes(framework)) return false;
+      if (framework === Framework.ReactNative && !isMobileEligible(m.platforms)) return false;
+      return true;
+    })
     .sort();
 
   if (available.length === 0) {
@@ -114,7 +125,11 @@ async function install(ctx: UiContext, config: any) {
     pageSize: 15,
     choices: available.map((name) => {
       const m = pluginRegistry.getComponentManifest(name);
-      return { name: m?.description ? `${name}  ${ansis.gray('— ' + m.description)}` : name, value: name };
+      const tag = framework === Framework.ReactNative ? '' : ansis.gray(`  [${platformLabel(m?.platforms)}]`);
+      return {
+        name: m?.description ? `${name}  ${ansis.gray('— ' + m.description)}${tag}` : `${name}${tag}`,
+        value: name,
+      };
     }),
   });
 

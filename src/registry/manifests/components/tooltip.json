@@ -2,6 +2,7 @@
   "id": "Tooltip",
   "name": "Tooltip",
   "description": "Floating tooltip label component",
+  "platforms": ["web"],
   "frameworks": ["react", "vue", "angular"],
   "styleSystems": ["css", "tailwind", "scss"],
   "variants": ["default", "minimal"],
