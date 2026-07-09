@@ -1,8 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, type TextProps } from 'react-native';
-// ponytail: relative path assumes the default layout (outDir=src/components, tokens in
-// public/__generated__) — adjust if you customized `flags.outputDir` in crucible.config.json.
-import { theme } from '../../../public/__generated__/theme';
+import { theme } from '{{themeImportPath}}';
 
 export type BadgeVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
 export type BadgeSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};

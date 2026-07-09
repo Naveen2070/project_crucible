@@ -1,8 +1,9 @@
 import { CrucibleConfig } from '../config/reader';
 import { resolveTokens } from '../tokens/resolver';
+import { getTokensOutDir, getThemeImportPath } from '../tokens/output-path';
 import { buildComponentModel } from '../components/model';
 import { renderComponent, renderGlobalTokens } from '../templates/engine';
-import { Framework } from '../core/enums';
+import { Framework, StyleSystem } from '../core/enums';
 import {
   checkComponentDependencies,
   checkComponentExists,
@@ -57,10 +58,14 @@ export interface GenerateResult {
 }
 
 export async function generate(req: GenerateRequest): Promise<GenerateResult> {
-  const { components, outDir, config, framework, generateStories } = req;
+  const { components, cwd, outDir, config, framework, generateStories } = req;
   const vueUseId = req.vueUseId ?? true;
 
   const tokens = resolveTokens(config);
+  const themeImportPath =
+    framework === Framework.ReactNative && config.styleSystem === StyleSystem.StyleSheet
+      ? getThemeImportPath(outDir, getTokensOutDir(cwd, framework))
+      : undefined;
 
   // Resolve component dependencies (e.g. Dialog needs Button) + collect missing peer
   // dependencies. A dependency is auto-added only when it isn't already generated on disk.
@@ -90,6 +95,7 @@ export async function generate(req: GenerateRequest): Promise<GenerateResult> {
   const generatedComponents: GeneratedComponent[] = await Promise.all(
     Array.from(resolvedComponents).map(async (comp) => {
       const model = buildComponentModel(comp, tokens, config, generateStories, vueUseId);
+      if (themeImportPath) model.themeImportPath = themeImportPath;
       const files = await renderComponent(model);
 
       // Only ship utils the generated files actually import — a manifest util may be used by

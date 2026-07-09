@@ -13,6 +13,7 @@ import { getEngineVersion, configVersionHint } from '../utils/config-version';
 interface DoctorResult {
   config: boolean;
   tailwind: boolean;
+  reactNative: boolean;
   outputDir: boolean;
   peerDeps: boolean;
   typescript: boolean;
@@ -86,6 +87,7 @@ export async function runDoctor(opts: { cwd?: string; json?: boolean } = {}) {
   const result: DoctorResult = {
     config: false,
     tailwind: false,
+    reactNative: false,
     outputDir: false,
     peerDeps: true,
     typescript: true,
@@ -170,6 +172,34 @@ export async function runDoctor(opts: { cwd?: string; json?: boolean } = {}) {
   } else {
     log(ansis.gray('— Tailwind check skipped (not using Tailwind style system).'));
     result.tailwind = true;
+  }
+
+  // 2b. Check React Native / NativeWind Setup (if applicable)
+  if (config?.framework === Framework.ReactNative) {
+    try {
+      const packageJsonPath = path.join(cwd, 'package.json');
+      if (await pathExists(packageJsonPath)) {
+        const pkg = await readJson(packageJsonPath);
+        const installed = { ...pkg.dependencies, ...pkg.devDependencies };
+        const required = ['react-native'];
+        if (config.styleSystem === StyleSystem.NativeWind) required.push('nativewind', 'tailwindcss');
+        const missing = required.filter((dep) => !installed[dep]);
+
+        if (missing.length === 0) {
+          log(ansis.green('✔ React Native dependencies are installed.'));
+          result.reactNative = true;
+        } else {
+          log(ansis.yellow(`⚠ Missing React Native dependencies: ${missing.join(', ')}`));
+          log(ansis.gray(`  Run: npx crucible add <component> --framework react-native (it will offer to install them)`));
+        }
+      } else {
+        log(ansis.yellow('⚠ Could not find package.json to verify React Native setup.'));
+      }
+    } catch (e: any) {
+      log(ansis.red(`✗ Error checking React Native setup: ${e.message}`));
+    }
+  } else {
+    result.reactNative = true;
   }
 
   // 3. Check Output Directory permissions
