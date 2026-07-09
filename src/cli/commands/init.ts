@@ -3,9 +3,19 @@ import path from 'path';
 import ansis from 'ansis';
 import { select, input, confirm } from '@inquirer/prompts';
 import { checkAndSetupTailwind } from '../utils/tailwind';
+import { checkReactNativeSetup } from '../utils/react-native';
 import { Framework, StyleSystem } from '../../core/enums';
+import { FRAMEWORK_STYLE_SYSTEMS } from '../../registry/frameworks';
 import { pathExists } from '../../utils/fs';
 import { runAdd } from './add';
+
+const STYLE_LABELS: Record<string, string> = {
+  [StyleSystem.CSS]: 'CSS Modules (Vanilla)',
+  [StyleSystem.SCSS]: 'SCSS Modules',
+  [StyleSystem.Tailwind]: 'Tailwind CSS',
+  [StyleSystem.NativeWind]: 'NativeWind',
+  [StyleSystem.StyleSheet]: 'StyleSheet',
+};
 
 const DEFAULT_CONFIG = `{
   "$schema": "./node_modules/@cruciblelab/crucible/dist/config/schema.json",
@@ -99,16 +109,14 @@ export async function runInit(
         { name: 'React', value: Framework.React },
         { name: 'Angular', value: Framework.Angular },
         { name: 'Vue 3', value: Framework.Vue },
+        { name: 'React Native', value: Framework.ReactNative },
       ],
     });
 
+    const validStyles = FRAMEWORK_STYLE_SYSTEMS[framework] ?? [];
     styleSystem = await select({
       message: 'Which styling system do you want to use?',
-      choices: [
-        { name: 'CSS Modules (Vanilla)', value: StyleSystem.CSS },
-        { name: 'SCSS Modules', value: StyleSystem.SCSS },
-        { name: 'Tailwind CSS', value: StyleSystem.Tailwind },
-      ],
+      choices: validStyles.map((s) => ({ name: STYLE_LABELS[s] ?? s, value: s })),
     });
 
     if (framework !== Framework.Angular) {
@@ -131,6 +139,10 @@ export async function runInit(
 
   if (styleSystem === StyleSystem.Tailwind) {
     await checkAndSetupTailwind({ yes: opts.yes, cwd });
+  }
+
+  if (framework === Framework.ReactNative) {
+    await checkReactNativeSetup(styleSystem, { yes: opts.yes, cwd });
   }
 
   const configContent = DEFAULT_CONFIG.replace(

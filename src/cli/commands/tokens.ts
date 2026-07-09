@@ -3,6 +3,7 @@ import path from 'path';
 import ansis from 'ansis';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
+import { getTokensOutDir } from '../../tokens/output-path';
 import { buildComponentModel } from '../../components/model';
 import { renderGlobalTokens } from '../../templates/engine';
 import { pathExists } from '../../utils/fs';
@@ -23,7 +24,7 @@ export async function runTokens(opts: TokensOptions = {}) {
   const tokens = resolveTokens(config);
   const model = buildComponentModel('Button', tokens, config, false);
   const rendered = await renderGlobalTokens(model);
-  const tokensOutDir = path.join(cwd, 'public/__generated__');
+  const tokensOutDir = getTokensOutDir(cwd, config.framework);
   const tokensPath = path.join(tokensOutDir, rendered.filename);
 
   const exists = await pathExists(tokensPath);

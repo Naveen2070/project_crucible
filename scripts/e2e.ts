@@ -171,6 +171,136 @@ async function runE2E() {
     }
   }
 
+  // ==================== REACT NATIVE MATRIX ====================
+  console.log(ansis.cyan('\n📱 React Native'));
+
+  // The RN dependency preflight (checkReactNativeSetup) only reads package.json declaratively —
+  // it never touches node_modules — so declaring these deps here satisfies it without a real
+  // `npm install` on every one of the 10 RN generate calls below. Restored to the plain
+  // test-project package.json afterward so it doesn't leak into the web Tailwind checks that run
+  // in later sections.
+  await writeJson(
+    path.join(TEST_DIR, 'package.json'),
+    {
+      name: 'test-project',
+      version: '1.0.0',
+      type: 'module',
+      dependencies: { 'react-native': '0.76.0', nativewind: '4.0.0', tailwindcss: '3.4.0' },
+    },
+    { spaces: 2 },
+  );
+
+  const RN_COMPONENTS = ['Button', 'Input', 'Card', 'Badge', 'Alert'];
+  const RN_STYLES = ['nativewind', 'stylesheet'] as const;
+  // `OUT` is 'src/components' (2 segments); a component lives one level deeper, so the default
+  // layout's relative import back up to the project-root `theme.ts` is 3 levels: `../../../theme`.
+  const RN_THEME_IMPORT = '../../../theme';
+
+  const writeRNConfig = (styleSystem: string) =>
+    writeJson(
+      path.join(TEST_DIR, 'crucible.config.json'),
+      {
+        version: '1.0.0',
+        framework: 'react-native',
+        styleSystem,
+        theme: 'minimal',
+        features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+        a11y,
+        flags: { outputDir: OUT, stories: true },
+      },
+      { spaces: 2 },
+    );
+
+  for (const comp of RN_COMPONENTS) {
+    for (const style of RN_STYLES) {
+      const phase = `RN ${comp} + ${cap(style)}`;
+      try {
+        await writeRNConfig(style);
+        await remove(path.join(TEST_DIR, OUT, comp));
+        await remove(path.join(TEST_DIR, 'theme.ts'));
+        await remove(path.join(TEST_DIR, 'tailwind.preset.js'));
+        runCLI(`add ${comp} --style ${style} -y --quiet`);
+
+        const main = path.join(TEST_DIR, OUT, `${comp}/${comp}.tsx`);
+        if (!(await pathExists(main))) throw new Error(`missing ${comp}.tsx`);
+        const src = await readFile(main, 'utf-8');
+
+        if (!src.includes("from 'react-native'")) throw new Error('missing react-native import');
+        for (const forbidden of ['<div', '<span', '<button', '<input ', 'aria-']) {
+          if (src.includes(forbidden)) throw new Error(`RN output must not contain "${forbidden}"`);
+        }
+        // Badge is a passive label (no interactive role, matching web Badge having no ARIA role).
+        if (comp !== 'Badge' && !src.includes('accessibilityRole') && !src.includes('accessibilityState')) {
+          throw new Error('missing accessibilityRole/accessibilityState');
+        }
+
+        const storiesFile = path.join(TEST_DIR, OUT, `${comp}/${comp}.stories.tsx`);
+        if (!(await pathExists(storiesFile))) throw new Error('missing .stories.tsx');
+
+        if (style === 'nativewind') {
+          if (!src.includes('className=')) throw new Error('NativeWind output must use className');
+          if (!(await pathExists(path.join(TEST_DIR, 'tailwind.preset.js')))) {
+            throw new Error('missing tailwind.preset.js at project root');
+          }
+        } else {
+          if (!src.includes('StyleSheet.create')) throw new Error('StyleSheet output must use StyleSheet.create');
+          if (!(await pathExists(path.join(TEST_DIR, 'theme.ts')))) {
+            throw new Error('missing theme.ts at project root');
+          }
+          if (!src.includes(`from '${RN_THEME_IMPORT}'`)) {
+            throw new Error(`theme import path should be "${RN_THEME_IMPORT}" for the default outputDir depth`);
+          }
+        }
+
+        console.log(ansis.green(`  ✓ ${phase}`));
+        results.push({ phase, passed: true });
+      } catch (e: any) {
+        console.log(ansis.red(`  ✗ ${phase}: ${e.message}`));
+        results.push({ phase, passed: false, error: e.message });
+      }
+    }
+  }
+
+  {
+    const phase = 'RN theme import path honours a custom outputDir';
+    try {
+      await writeJson(
+        path.join(TEST_DIR, 'crucible.config.json'),
+        {
+          version: '1.0.0',
+          framework: 'react-native',
+          styleSystem: 'stylesheet',
+          theme: 'minimal',
+          features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+          a11y,
+          flags: { outputDir: 'app/ui/components', stories: false },
+        },
+        { spaces: 2 },
+      );
+      await remove(path.join(TEST_DIR, 'app'));
+      await remove(path.join(TEST_DIR, 'theme.ts'));
+      runCLI('add Button --style stylesheet -y --quiet');
+      const src = await readFile(path.join(TEST_DIR, 'app/ui/components/Button/Button.tsx'), 'utf-8');
+      if (!src.includes("from '../../../../theme'")) {
+        throw new Error('theme import path did not adapt to the custom 3-level outputDir');
+      }
+      console.log(ansis.green(`  ✓ ${phase}`));
+      results.push({ phase, passed: true });
+    } catch (e: any) {
+      console.log(ansis.red(`  ✗ ${phase}: ${e.message}`));
+      results.push({ phase, passed: false, error: e.message });
+    }
+  }
+
+  await writeJson(
+    path.join(TEST_DIR, 'package.json'),
+    { name: 'test-project', version: '1.0.0', type: 'module' },
+    { spaces: 2 },
+  );
+  await remove(path.join(TEST_DIR, 'app'));
+  await remove(path.join(TEST_DIR, 'theme.ts'));
+  await remove(path.join(TEST_DIR, 'tailwind.preset.js'));
+
   // ==================== CLI / INFRASTRUCTURE ====================
   console.log(ansis.cyan('\n🔧 CLI & infrastructure'));
 
