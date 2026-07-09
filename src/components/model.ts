@@ -39,6 +39,13 @@ export interface ComponentModel {
   tailwindVariants?: Record<string, string>;
   /** RN NativeWind variant classes — semantic (theme-preset-backed), not web's CSS-var arbitrary values. */
   nativewindVariants?: Record<string, string>;
+  /**
+   * RN StyleSheet only: relative, extension-less import path from this component's own directory
+   * to the generated `theme.ts` (e.g. `../../../theme`), computed per-generation from the actual
+   * `outputDir` — see `src/tokens/output-path.ts`. Not set by `buildComponentModel` itself (it
+   * doesn't know `outDir`); `generate()` fills it in before rendering.
+   */
+  themeImportPath?: string;
   a11y: {
     focusRing: boolean;
     focusRingColor: string;

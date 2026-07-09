@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { checkbox, confirm } from '@inquirer/prompts';
 import { readConfig } from '../../config/reader';
 import { resolveTokens } from '../../tokens/resolver';
+import { getTokensOutDir } from '../../tokens/output-path';
 import { getEngineVersion } from '../../components/model';
 import { cleanupWatchers } from '../../templates/engine';
 import { generate } from '../../api/generate';
@@ -12,6 +13,7 @@ import { writeFiles, loadHashes, saveHashes, hashContent } from '../../scaffold/
 import { registry } from '../../registry/components';
 import { pluginRegistry } from '../../plugins/registry';
 import { checkAndSetupTailwind } from '../utils/tailwind';
+import { checkReactNativeSetup } from '../utils/react-native';
 import { Framework, StyleSystem } from '../../core/enums';
 import { FRAMEWORK_STYLE_SYSTEMS } from '../../registry/frameworks';
 import { installPeerDependenciesSmart } from '../utils/deps';
@@ -173,6 +175,11 @@ export async function runAdd(components: string[], opts: any) {
       await checkAndSetupTailwind({ yes: opts.yes, cwd });
     }
 
+    if (framework === Framework.ReactNative) {
+      if (opts.verbose) console.log(ansis.blue(`Checking React Native setup...`));
+      await checkReactNativeSetup(config.styleSystem, { yes: opts.yes, cwd });
+    }
+
     const outDir = opts.dev
       ? path.join(cwd, 'src/__generated__')
       : path.join(cwd, config.flags?.outputDir ?? 'src/components');
@@ -229,7 +236,7 @@ export async function runAdd(components: string[], opts: any) {
 
     await mkdir(outDir, { recursive: true });
 
-    const tokensOutDir = path.join(cwd, 'public/__generated__');
+    const tokensOutDir = getTokensOutDir(cwd, framework);
     await mkdir(tokensOutDir, { recursive: true });
     const tokensFilename = result.tokens.filename;
     const tokensPath = path.join(tokensOutDir, tokensFilename);

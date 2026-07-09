@@ -1,8 +1,6 @@
 import React, { useId, useState, createContext, useContext } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, type TextInputProps } from 'react-native';
-// ponytail: relative path assumes the default layout (outDir=src/components, tokens in
-// public/__generated__) — adjust if you customized `flags.outputDir` in crucible.config.json.
-import { theme } from '../../../public/__generated__/theme';
+import { theme } from '{{themeImportPath}}';
 
 const variantStyles: Record<string, object> = {
   default: { backgroundColor: theme.colorSurface, borderColor: theme.colorBorder, color: theme.foreground },
