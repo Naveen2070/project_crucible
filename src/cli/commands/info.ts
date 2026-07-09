@@ -1,5 +1,6 @@
 import ansis from 'ansis';
 import { pluginRegistry } from '../../plugins/registry';
+import { platformLabel } from '../../registry/frameworks';
 
 export interface InfoOptions {
   json?: boolean;
@@ -83,6 +84,7 @@ export function runInfo(componentName: string, opts: InfoOptions = {}) {
 
   row('Frameworks', manifest.frameworks.join(', '));
   row('Style systems', manifest.styleSystems.join(', '));
+  row('Platforms', platformLabel(manifest.platforms));
   row('Variants', manifest.variants.length ? manifest.variants.join(', ') : undefined);
   row('Sizes', manifest.sizes.length ? manifest.sizes.join(', ') : undefined);
   row('States', manifest.states.length ? manifest.states.join(', ') : undefined);
