@@ -2,8 +2,8 @@
   "id": "Badge",
   "name": "Badge",
   "description": "Small status or category label",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "primary", "secondary", "outline", "success", "warning", "destructive"],
   "sizes": ["sm", "md", "lg"],
   "states": [],
@@ -17,5 +17,14 @@
     "success": "bg-[var(--color-success)] text-white",
     "warning": "bg-[#f59e0b] text-white",
     "destructive": "bg-[var(--color-destructive)] text-white"
+  },
+  "nativewindDefaults": {
+    "default": "bg-secondary text-foreground",
+    "primary": "bg-primary text-white",
+    "secondary": "bg-secondary text-foreground",
+    "outline": "bg-transparent border border-border text-foreground",
+    "success": "bg-success text-white",
+    "warning": "bg-[#f59e0b] text-white",
+    "destructive": "bg-destructive text-white"
   }
 }
