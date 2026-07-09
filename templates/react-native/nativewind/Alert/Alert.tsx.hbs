@@ -1,0 +1,63 @@
+import React from 'react';
+import { View, Text, Pressable, type ViewProps } from 'react-native';
+
+export type AlertVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface AlertProps extends ViewProps {
+  variant?:   AlertVariant;
+  title?:     string;
+  closeable?: boolean;
+  onClose?:   () => void;
+  icon?:      React.ReactNode;
+  children?:  React.ReactNode;
+  className?: string;
+}
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+const VARIANT_CLASSES: Record<AlertVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}}
+};
+
+// ponytail: title/description/icon carry no color of their own — they inherit `text-*` from the
+// container's className via NativeWind's style inheritance, same pattern as Button.Label.
+export const Alert = React.forwardRef<View, AlertProps>(
+  ({ variant = 'default', title, closeable = false, onClose, icon, className, children, ...props }, ref) => {
+    const cls = [
+      'flex-row items-start gap-3 p-3 rounded-md border',
+      VARIANT_CLASSES[variant],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <View ref={ref} accessibilityRole="alert" className={cls} {...props}>
+        <Text className="leading-snug" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {icon ?? DEFAULT_ICONS[variant]}
+        </Text>
+        <View className="flex-1">
+          {title && <Text className="font-semibold text-sm mb-0.5">{title}</Text>}
+          {children && (typeof children === 'string' ? <Text className="text-[0.8125rem]">{children}</Text> : children)}
+        </View>
+        {closeable && (
+          <Pressable
+            className="active:opacity-60"
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss"
+          >
+            <Text className="text-lg leading-none">×</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
+);
+
+Alert.displayName = 'Alert';
