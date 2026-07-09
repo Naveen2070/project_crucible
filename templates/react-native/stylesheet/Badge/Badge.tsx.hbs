@@ -1,0 +1,47 @@
+import React from 'react';
+import { Text, StyleSheet, type TextProps } from 'react-native';
+// ponytail: relative path assumes the default layout (outDir=src/components, tokens in
+// public/__generated__) — adjust if you customized `flags.outputDir` in crucible.config.json.
+import { theme } from '../../../public/__generated__/theme';
+
+export type BadgeVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type BadgeSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface BadgeProps extends TextProps {
+  variant?: BadgeVariant;
+  size?:    BadgeSize;
+}
+
+const variantStyles: Record<BadgeVariant, object> = {
+  default:     { backgroundColor: theme.colorSecondary, color: theme.foreground },
+  primary:     { backgroundColor: theme.colorPrimary, color: '#ffffff' },
+  secondary:   { backgroundColor: theme.colorSecondary, color: theme.foreground },
+  outline:     { backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.colorBorder, color: theme.foreground },
+  success:     { backgroundColor: theme.colorSuccess, color: '#ffffff' },
+  warning:     { backgroundColor: '#f59e0b', color: '#ffffff' },
+  destructive: { backgroundColor: theme.colorDestructive, color: '#ffffff' },
+};
+
+const sizeStyles: Record<BadgeSize, object> = {
+  sm: { fontSize: 11, paddingHorizontal: 6,  paddingVertical: 2 },
+  md: { fontSize: 12, paddingHorizontal: 8,  paddingVertical: 2 },
+  lg: { fontSize: 13, paddingHorizontal: 10, paddingVertical: 4 },
+};
+
+const styles = StyleSheet.create({
+  base: { alignSelf: 'flex-start', borderRadius: Number.parseInt(theme.radiusSm, 10) || 4, fontWeight: '500' },
+});
+
+// ponytail: RN `Text` (unlike `View`) can hold background/padding/radius AND its own text color
+// at once, so — unlike Button — Badge needs no separate container element or inheritance trick.
+export const Badge = React.forwardRef<Text, BadgeProps>(
+  ({ variant = 'default', size = 'md', style, children, ...props }, ref) => {
+    return (
+      <Text ref={ref} style={[styles.base, variantStyles[variant], sizeStyles[size], style]} {...props}>
+        {children}
+      </Text>
+    );
+  }
+);
+
+Badge.displayName = 'Badge';

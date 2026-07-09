@@ -1,0 +1,72 @@
+import React from 'react';
+import { View, Text, Pressable, StyleSheet, type ViewProps } from 'react-native';
+// ponytail: relative path assumes the default layout (outDir=src/components, tokens in
+// public/__generated__) — adjust if you customized `flags.outputDir` in crucible.config.json.
+import { theme } from '../../../public/__generated__/theme';
+
+export type AlertVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface AlertProps extends ViewProps {
+  variant?:   AlertVariant;
+  title?:     string;
+  closeable?: boolean;
+  onClose?:   () => void;
+  icon?:      React.ReactNode;
+  children?:  React.ReactNode;
+}
+
+const DEFAULT_ICONS: Record<AlertVariant, string> = {
+  default: 'ℹ',
+  info: 'ℹ',
+  success: '✓',
+  warning: '⚠',
+  destructive: '✕',
+};
+
+function withAlpha(hex: string, alpha: string): string {
+  return hex + alpha;
+}
+
+const variantStyles: Record<AlertVariant, { container: object; text: object }> = {
+  default:     { container: { backgroundColor: theme.colorSurface, borderColor: theme.colorBorder }, text: { color: theme.foreground } },
+  info:        { container: { backgroundColor: withAlpha(theme.colorPrimary, '1A'), borderColor: theme.colorPrimary }, text: { color: theme.foreground } },
+  success:     { container: { backgroundColor: withAlpha(theme.colorSuccess, '1A'), borderColor: theme.colorSuccess }, text: { color: theme.foreground } },
+  warning:     { container: { backgroundColor: '#f59e0b1A', borderColor: '#f59e0b' }, text: { color: theme.foreground } },
+  destructive: { container: { backgroundColor: withAlpha(theme.colorDestructive, '1A'), borderColor: theme.colorDestructive }, text: { color: theme.foreground } },
+};
+
+const styles = StyleSheet.create({
+  base: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 12, borderRadius: Number.parseInt(theme.radiusMd, 10) || 8, borderWidth: 1 },
+  icon: { lineHeight: 18 },
+  body: { flex: 1 },
+  title: { fontWeight: '600', fontSize: 14, marginBottom: 2 },
+  description: { fontSize: 13 },
+  close: { lineHeight: 18, fontSize: 18 },
+});
+
+// StyleSheet variant sets color directly on each Text (no compound sub-components, so — unlike
+// Button — no context/inheritance trick is needed; every element here is rendered by this file).
+export const Alert = React.forwardRef<View, AlertProps>(
+  ({ variant = 'default', title, closeable = false, onClose, icon, style, children }, ref) => {
+    const variantStyle = variantStyles[variant];
+
+    return (
+      <View ref={ref} accessibilityRole="alert" style={[styles.base, variantStyle.container, style]}>
+        <Text style={[styles.icon, variantStyle.text]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {icon ?? DEFAULT_ICONS[variant]}
+        </Text>
+        <View style={styles.body}>
+          {title && <Text style={[styles.title, variantStyle.text]}>{title}</Text>}
+          {children && (typeof children === 'string' ? <Text style={[styles.description, variantStyle.text]}>{children}</Text> : children)}
+        </View>
+        {closeable && (
+          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss">
+            <Text style={[styles.close, variantStyle.text]}>×</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
+);
+
+Alert.displayName = 'Alert';

@@ -1,0 +1,43 @@
+import React from 'react';
+import { Text, type TextProps } from 'react-native';
+
+export type BadgeVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type BadgeSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface BadgeProps extends TextProps {
+  variant?: BadgeVariant;
+  size?:    BadgeSize;
+  className?: string;
+}
+
+const VARIANT_CLASSES: Record<BadgeVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}}
+};
+
+const SIZE_CLASSES: Record<BadgeSize, string> = {
+  sm: 'text-[0.6875rem] px-1.5 py-0.5',
+  md: 'text-xs px-2 py-0.5',
+  lg: 'text-[0.8125rem] px-2.5 py-1',
+};
+
+// ponytail: RN `Text` (unlike `View`) can hold background/padding/radius AND its own text color
+// at once, so — unlike Button — Badge needs no separate container element or inheritance trick.
+export const Badge = React.forwardRef<Text, BadgeProps>(
+  ({ variant = 'default', size = 'md', className, children, ...props }, ref) => {
+    const cls = [
+      'self-start rounded-sm font-medium',
+      VARIANT_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className || '',
+    ].filter(Boolean).join(' ');
+
+    return (
+      <Text ref={ref} className={cls} {...props}>
+        {children}
+      </Text>
+    );
+  }
+);
+
+Badge.displayName = 'Badge';
