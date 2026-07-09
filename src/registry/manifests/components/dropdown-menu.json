@@ -2,6 +2,7 @@
   "id": "DropdownMenu",
   "name": "DropdownMenu",
   "description": "Dropdown menu with floating-ui positioning, roving menu items, and typeahead",
+  "platforms": ["web"],
   "frameworks": ["react", "vue", "angular"],
   "styleSystems": ["css", "tailwind", "scss"],
   "variants": ["default", "minimal"],

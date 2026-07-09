@@ -2,6 +2,7 @@
   "id": "Table",
   "name": "Table",
   "description": "Data table component with sorting and pagination",
+  "platforms": ["web"],
   "frameworks": ["react", "vue", "angular"],
   "styleSystems": ["css", "tailwind", "scss"],
   "variants": ["default", "striped", "bordered", "compact"],

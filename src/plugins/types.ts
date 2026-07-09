@@ -26,6 +26,13 @@ export interface ComponentManifest {
   tailwindDefaults?: Record<string, string>;
   /** RN NativeWind variant classes — semantic (theme-preset-backed), not web's CSS-var arbitrary values. */
   nativewindDefaults?: Record<string, string>;
+  /**
+   * Platform intent — where this component conceptually belongs, independent of whether RN
+   * templates have been authored yet (that's what `frameworks` tracks). Omit for the common case
+   * (cross-platform: web + ios + android); set `["web"]` for web-only components (e.g. Toast,
+   * Tooltip, Popover, DropdownMenu, Table, Breadcrumb) that have no sensible mobile equivalent.
+   */
+  platforms?: ('web' | 'ios' | 'android')[];
   extensions?: Record<string, any>;
 }
 

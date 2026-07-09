@@ -16,6 +16,25 @@ export const FRAMEWORK_STYLE_SYSTEMS: Record<string, StyleSystem[]> = {
   [Framework.ReactNative]: [StyleSystem.NativeWind, StyleSystem.StyleSheet],
 };
 
+/**
+ * Platform intent (see `ComponentManifest.platforms`): missing → cross-platform (web+ios+android).
+ * `isMobileEligible` decides whether a component belongs in a React Native picker;
+ * `platformLabel` renders the intent as a short human-readable tag for `list`/`info`/the TUI.
+ */
+export function isMobileEligible(platforms?: string[]): boolean {
+  return !platforms || platforms.includes('ios') || platforms.includes('android');
+}
+
+export function platformLabel(platforms?: string[]): string {
+  const list = platforms ?? ['android', 'ios', 'web'];
+  if (list.length === 1 && list[0] === 'web') return 'Web only';
+  const order: Record<string, string> = { android: 'Android', ios: 'iOS', web: 'Web' };
+  return Object.keys(order)
+    .filter((p) => list.includes(p))
+    .map((p) => order[p])
+    .join(' · ');
+}
+
 export const FRAMEWORK_TARGETS: Record<string, FrameworkResolver> = {
   [Framework.React]: (name, styleSystem) => {
     const targets: FileTarget[] = [{ tpl: `${name}.tsx.hbs`, out: `${name}.tsx` }];

@@ -2,6 +2,7 @@
   "id": "Breadcrumb",
   "name": "Breadcrumb",
   "description": "Navigation breadcrumb trail driven by an items array",
+  "platforms": ["web"],
   "frameworks": ["react", "vue", "angular"],
   "styleSystems": ["css", "tailwind", "scss"],
   "variants": [],

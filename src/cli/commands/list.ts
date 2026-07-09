@@ -1,6 +1,7 @@
 import ansis from 'ansis';
 import { registry } from '../../registry/components';
 import { pluginRegistry } from '../../plugins/registry';
+import { platformLabel } from '../../registry/frameworks';
 
 export interface ListOptions {
   json?: boolean;
@@ -12,6 +13,7 @@ export function runList(opts: ListOptions = {}) {
     pluginId: pluginRegistry.getComponentPluginId(name) || 'core',
     frameworks: def.frameworks,
     styleSystems: def.styleSystems,
+    platforms: platformLabel(pluginRegistry.getComponentManifest(name)?.platforms),
   }));
 
   if (opts.json) {
@@ -22,7 +24,7 @@ export function runList(opts: ListOptions = {}) {
   console.log(ansis.cyan('Available components:'));
   for (const c of entries) {
     console.log(
-      `  ${ansis.gray(c.pluginId + '/')}${ansis.bold(c.id)}  [${c.frameworks.join(', ')}]  [${c.styleSystems.join(', ')}]`,
+      `  ${ansis.gray(c.pluginId + '/')}${ansis.bold(c.id)}  [${c.frameworks.join(', ')}]  [${c.styleSystems.join(', ')}]  ${ansis.gray(c.platforms)}`,
     );
   }
 }

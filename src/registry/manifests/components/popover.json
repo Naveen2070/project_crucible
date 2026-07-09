@@ -2,6 +2,7 @@
   "id": "Popover",
   "name": "Popover",
   "description": "Floating popover component",
+  "platforms": ["web"],
   "frameworks": ["react", "vue", "angular"],
   "styleSystems": ["css", "tailwind", "scss"],
   "variants": ["default", "minimal"],
