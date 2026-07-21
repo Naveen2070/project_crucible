@@ -1,6 +1,6 @@
 # ⚗ Crucible — System Architecture
 
-**Version:** 1.1.0 | **Date:** June 2026
+**Version:** 1.2.0 | **Date:** July 2026
 
 ---
 

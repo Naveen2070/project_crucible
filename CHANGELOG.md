@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-07-21
 
 ### Added
+
+- **React Native Framework Target (Beta)**. A brand new framework target bringing Crucible to mobile!
+  - Supports two style systems: **`nativewind`** (Tailwind-like classes for RN) and **`stylesheet`** (built-in `StyleSheet.create`).
+  - Includes a dedicated tokens pipeline for NativeWind presets and StyleSheet themes.
+  - Initial components ported: **Button, Input, Card, Alert, Badge**.
+  - **Dynamic relative paths for StyleSheet**: Improved output paths and theme import resolution.
+
+- **CLI DX Enhancements**:
+  - **Shell completion**: Added support for shell tab completion.
+  - **Update notifier**: Alerts the user when a newer version of the CLI is available.
+  - **Config version hint**: Displays the config version alongside other CLI information.
+  - **Dependency tree**: `info --deps-tree` now prints a hierarchical component dependency tree.
+
+- **Platform intent filtering**: The CLI now distinguishes between web-only and mobile-eligible components in manifests and the interactive UI.
 
 - **`crucible ui` — interactive terminal console** (aliases `wizard`, `tui`). An opt-in, menu-driven
   loop to **explore components and their metadata**, install (guided framework/style/theme/component
@@ -120,6 +134,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - Deterministic, collision-free, and SSR-safe IDs; removes the recurring scanner finding.
 
 ### Fixed
+
+- **Card compound/flat branch collision**: Resolved collisions in Card template branches and updated component READMEs to be React Native-aware.
 
 - **`--framework` now affects generated output.** The flag previously only influenced
   dependency-existence checks; the generated component still followed the config's framework.
