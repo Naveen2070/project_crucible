@@ -4,7 +4,7 @@
 >
 > **shadcn for multi-framework teams + automation**
 
-**Current Version:** 1.1.0 | **Last Updated:** June 2026
+**Current Version:** 1.2.0 | **Last Updated:** July 2026
 
 ---
 
@@ -168,18 +168,18 @@ gantt
     v1.0 Core Engine           :done, 2026-02-01, 2026-03-31
     v1.0 QA & Stabilization    :2026-04-01, 2026-04-25
 
-    v1.1 Plugin-Ready (Registry):2026-04-01, 2026-06-15
-    v1.1 Plugin-Ready (Loader)  :2026-06-16, 2026-08-01
-    v1.1 Stabilization & Release:2026-08-02, 2026-08-31
+    v1.1 Plugin-Ready (Registry):done, 2026-04-26, 2026-05-15
+    v1.1 Plugin-Ready (Loader)  :done, 2026-05-16, 2026-05-31
+    v1.1 Stabilization & Release:done, 2026-06-01, 2026-06-06
 
     Additional Components       :2026-04-01, 2028-03-31
 
-    v1.2 CLI Lifecycle & DX (Build) :2026-06-16, 2026-08-15
-    v1.2 Stabilization & Release    :2026-08-16, 2026-09-15
+    v1.2 CLI Lifecycle & DX (Build) :done, 2026-06-07, 2026-07-15
+    v1.2 Stabilization & Release    :done, 2026-07-16, 2026-07-21
 
-    v1.3 Migration Engine (Design) :2026-09-16, 2026-10-31
-    v1.3 Migration Engine (Build)  :2026-11-01, 2026-12-31
-    v1.3 Stabilization & Release   :2027-01-01, 2027-01-31
+    v1.3 Migration Engine (Design) :2026-07-22, 2026-09-30
+    v1.3 Migration Engine (Build)  :2026-10-01, 2026-11-30
+    v1.3 Stabilization & Release   :2026-12-01, 2026-12-31
 
     v1.4 Studio (Design + Core UI) :2027-02-01, 2027-03-31
     v1.4 Studio (Features + Integrations) :2027-04-01, 2027-06-15
@@ -233,9 +233,9 @@ runtime; **no engine code changes are needed to add a component** — just a man
 
 ---
 
-## v1.2 — CLI Lifecycle, Interactive Console & DX 🚧 In Progress
+## v1.2 — CLI Lifecycle, Interactive Console & DX ✅ Complete
 
-> Targeted for **v1.2.0** (not yet released — more may land before the cut). A developer-experience
+> Released as **v1.2.0** (July 2026). A developer-experience
 > and lifecycle release built on the existing generation core: a guided terminal console, the
 > commands to inspect, diff, update, and remove generated components, and a new **React Native**
 > target.
@@ -253,12 +253,12 @@ runtime; **no engine code changes are needed to add a component** — just a man
 | Security hardening — CodeQL code-injection + path-injection fixes    | ✅     |
 | Standalone playgrounds + esbuild 0.28.1 (dev advisory fixes)         | ✅     |
 | Shell completion · update notifier · `info --deps-tree`              | ✅     |
-| **React Native target — NativeWind *and* StyleSheet styling**        | 🚧     |
-| RN dependency preflight (react-native + Expo; nativewind/tailwind)   | 🚧     |
+| **React Native target — NativeWind *and* StyleSheet styling**        | ✅     |
+| RN dependency preflight (react-native + Expo; nativewind/tailwind)   | ✅     |
 
 ---
 
-## v1.3 — Migration Engine
+## v1.3 — Migration Engine 🚧 In Progress
 
 ### The Problem
 
@@ -337,8 +337,6 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 | ---------- | ------------------ |
 | Tag        | Removable tag      |
 | Pagination | Page navigation    |
-| Breadcrumb | Navigation path    |
-| Progress   | Progress indicator |
 
 ---
 
@@ -348,7 +346,7 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 | ------- | ------------------------------------------------------------ | ------------- |
 | 1.0.0   | Core engine                                                  | ✅ March 2026 |
 | 1.1.0   | Plugin-ready architecture + app-building kit (25 components) | ✅ June 2026  |
-| 1.2.0   | CLI lifecycle, interactive console & DX                      | 🚧 In Progress |
+| 1.2.0   | CLI lifecycle, interactive console & DX                      | ✅ July 2026   |
 | 1.3.0   | Migration engine                                             | Q4 2026       |
 | 1.4.0   | Studio                                                       | Q2 2027       |
 | 1.5.0   | Ecosystem & examples                                         | Q3 2027       |

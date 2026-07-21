@@ -20,7 +20,7 @@ that live in your project, not a package that sits in `node_modules`.
 [![CI](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml/badge.svg)](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 [![Local-first](https://img.shields.io/badge/local--first-zero%20runtime%20deps-success.svg)](#why-crucible)
-[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.1.0)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.1.0)
+[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.0)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.0)
 
 [![GitHub Stars](https://img.shields.io/github/stars/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/network/members)
@@ -84,8 +84,8 @@ npx crucible add Button
 
 | Feature                   | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
-| **Multi-Framework**       | React, Vue 3.5+, and Angular with full feature parity        |
-| **Style Systems**         | CSS Modules, SCSS Modules, or Tailwind CSS v4                |
+| **Multi-Framework**       | React, Vue 3.5+, Angular, and React Native (Beta)            |
+| **Style Systems**         | CSS/SCSS Modules, Tailwind v4, NativeWind, and StyleSheet    |
 | **Theme Presets**         | Built-in `minimal` and `soft` with deep merge                |
 | **Dark Mode**             | Automatic OKLCH-based perceptually uniform derivation        |
 | **Accessibility**         | WCAG 2.1 AA-compliant with ARIA, focus rings                 |
@@ -370,9 +370,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete technical details.
 <summary><b>Is this like shadcn/ui?</b></summary>
 
 It shares the same philosophy — you own the generated source instead of importing a package — but
-Crucible is **multi-framework and engine-driven**. The same component spec emits native **React, Vue
-3, and Angular** code across **CSS Modules, SCSS Modules, or Tailwind v4**, from a manifest-based
-generator rather than a copy-paste registry.
+Crucible is **multi-framework and engine-driven**. The same component spec emits native **React, Vue, Angular, or React Native** code. The component logic is written in a framework-agnostic meta-language (`.hbs` templates + JSON manifests), so we maintain a single source of truth that generates idiomatic code for all supported frameworks.
 
 </details>
 
@@ -396,11 +394,15 @@ the way — **zero runtime footprint** in your shipped bundle.
 <details>
 <summary><b>Which frameworks and style systems are supported?</b></summary>
 
-| Framework | CSS Modules | SCSS Modules | Tailwind v4 |
-| --------- | :---------: | :----------: | :---------: |
-| React     |     ✅      |      ✅      |     ✅      |
-| Vue 3.5+  |     ✅      |      ✅      |     ✅      |
-| Angular   |     ✅      |      ✅      |     ✅      |
+| Web Framework | CSS Modules | SCSS Modules | Tailwind v4 |
+| ------------- | :---------: | :----------: | :---------: |
+| React         |     ✅      |      ✅      |     ✅      |
+| Vue 3.5+      |     ✅      |      ✅      |     ✅      |
+| Angular       |     ✅      |      ✅      |     ✅      |
+
+| Mobile Framework | NativeWind | StyleSheet |
+| ---------------- | :--------: | :--------: |
+| React Native     |     🚧     |     🚧     |
 
 Generated Vue components use the native `useId()` composable (**Vue 3.5+**) for stable element IDs;
 on older Vue the CLI emits a deprecated fallback and warns you to upgrade.
@@ -474,10 +476,19 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version | Status    | Description                                                                                    |
 | ------- | --------- | ---------------------------------------------------------------------------------------------- |
+| v1.2.0  | ✅ Stable | CLI interactive UI wizard, component lifecycle commands, strict plugin mode, and optimizations   |
 | v1.1.0  | ✅ Stable | Plugin-ready architecture + 14 new components (25 total) · 448 tests / 238 E2E / 453 templates |
 | v1.0.4  | ✅ Stable | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                 |
 | v1.0.3  | ✅ Stable | Manual dark mode strategy, Vue SCSS template fixes                                             |
 | v1.0.0  | ✅ Stable | First stable release — 3 frameworks, 3 style systems, 230 tests + 19 E2E phases                |
+
+### v1.2.0 Highlights
+
+- **React Native Framework Target (Beta)**: Brings Crucible to mobile with NativeWind and StyleSheet support
+- **`crucible ui` wizard**: Interactive terminal console to explore and install components, guided onboarding
+- **Component lifecycle**: Five new commands (`info`, `status`, `diff`, `update`, `remove`)
+- **CLI DX enhancements**: Shell completion, update notifier, and dependency tree views
+- **Strict plugin mode**: Hard errors on component ID collisions and incompatible plugin versions
 
 ### v1.1.0 Highlights
 
