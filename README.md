@@ -292,10 +292,12 @@ crucible doctor --json    # Machine-readable check result (exits non-zero on fai
 crucible list             # Show available components (alias: l)
 crucible list --json      # Machine-readable component registry
 crucible info Button      # Show a component's metadata (variants, props, deps, peer deps)
+crucible info Button --deps-tree # Print a hierarchical component dependency tree
 crucible info Button --json
 crucible eject            # Copy preset to config (alias: e)
 crucible config           # Show current config (alias: cfg)
 crucible config --json    # Raw JSON output
+crucible completion       # Print a shell completion script (bash|zsh|fish)
 ```
 
 > Most commands accept `--quiet` (errors only) and `--cwd <path>`; `info`, `list`, `doctor`,
