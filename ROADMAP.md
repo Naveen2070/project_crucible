@@ -4,7 +4,7 @@
 >
 > **shadcn for multi-framework teams + automation**
 
-**Current Version:** 1.2.0 | **Last Updated:** 23-07-2026
+**Current Version:** 1.2.1 | **Last Updated:** 30-07-2026
 
 ---
 
@@ -347,6 +347,7 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 | 1.0.0   | Core engine                                                  | ✅ March 2026 |
 | 1.1.0   | Plugin-ready architecture + app-building kit (25 components) | ✅ June 2026  |
 | 1.2.0   | CLI lifecycle, interactive console & DX                      | ✅ 23-07-2026  |
+| 1.2.1   | Template engine performance fix and dependency updates       | ✅ 30-07-2026  |
 | 1.3.0   | Migration engine                                             | Q4 2026       |
 | 1.4.0   | Studio                                                       | Q2 2027       |
 | 1.5.0   | Ecosystem & examples                                         | Q3 2027       |

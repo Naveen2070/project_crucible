@@ -20,7 +20,7 @@ that live in your project, not a package that sits in `node_modules`.
 [![CI](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml/badge.svg)](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 [![Local-first](https://img.shields.io/badge/local--first-zero%20runtime%20deps-success.svg)](#why-crucible)
-[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.0)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.0)
+[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.1)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.1)
 
 [![GitHub Stars](https://img.shields.io/github/stars/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/network/members)
@@ -478,6 +478,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version | Status    | Description                                                                                    |
 | ------- | --------- | ---------------------------------------------------------------------------------------------- |
+| v1.2.1  | ✅ Stable | Template engine performance fix and dependency updates                                         |
 | v1.2.0  | ✅ Stable | CLI interactive UI wizard, component lifecycle commands, strict plugin mode, and optimizations   |
 | v1.1.0  | ✅ Stable | Plugin-ready architecture + 14 new components (25 total) · 448 tests / 238 E2E / 453 templates |
 | v1.0.4  | ✅ Stable | Replaced chalk with ansis, fs-extra with native node:fs, added test:bun script                 |
