@@ -108,7 +108,7 @@ export const InputField = React.forwardRef<TextInput, TextInputProps>(
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = !!secureTextEntry;
     const a11yState = { disabled: editable === false };
-    const togglePressedState = { pressed: showPassword };
+    const toggleSelectedState = { selected: showPassword };
 
     return (
       <View style={styles.relative}>
@@ -134,7 +134,7 @@ export const InputField = React.forwardRef<TextInput, TextInputProps>(
             onPress={() => setShowPassword((v) => !v)}
             accessibilityRole="button"
             accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-            accessibilityState={togglePressedState}
+            accessibilityState={toggleSelectedState}
           >
             <Text style={styles.toggleLabel}>{showPassword ? 'Hide' : 'Show'}</Text>
           </Pressable>
@@ -177,7 +177,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = !!secureTextEntry;
     const a11yState = { disabled: editable === false };
-    const togglePressedState = { pressed: showPassword };
+    const toggleSelectedState = { selected: showPassword };
 
     return (
       <View style={styles.fieldGroup}>
@@ -208,7 +208,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
               onPress={() => setShowPassword((v) => !v)}
               accessibilityRole="button"
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-              accessibilityState={togglePressedState}
+              accessibilityState={toggleSelectedState}
             >
               <Text style={styles.toggleLabel}>{showPassword ? 'Hide' : 'Show'}</Text>
             </Pressable>
