@@ -1,0 +1,32 @@
+{
+  "name": "crucible-rn-expo-playground",
+  "version": "1.2.2",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest"
+  },
+  "dependencies": {
+    "expo": "^57.0.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "^14.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "jest-expo": "~57.0.4",
+    "nativewind": "^4.2.6",
+    "tailwindcss": "^3.4.19",
+    "test-renderer": "^1.2.0",
+    "typescript": "^7.0.2"
+  }
+}

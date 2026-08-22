@@ -1,0 +1,59 @@
+name: RN Playground Tests
+
+# Targeted gate (plan: v1.2.2 P0.3): only runs when React Native generation or the
+# Expo/jest harness can actually change. Full unit/e2e coverage lives in test.yml.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'templates/react-native/**'
+      - 'src/tokens/**'
+      - 'src/templates/engine.ts'
+      - 'playground/rn-expo/**'
+      - 'scripts/generate-rn-playground.ts'
+      - '.github/workflows/rn-test.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'templates/react-native/**'
+      - 'src/tokens/**'
+      - 'src/templates/engine.ts'
+      - 'playground/rn-expo/**'
+      - 'scripts/generate-rn-playground.ts'
+      - '.github/workflows/rn-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  rn-playground:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: ["24.x"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install playground dependencies
+        run: npm install --no-audit --no-fund
+        working-directory: playground/rn-expo
+
+      - name: Generate RN components
+        run: npm run pg:rn
+
+      - name: Run jest-expo smoke tests
+        run: npm run test:rn

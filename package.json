@@ -28,6 +28,8 @@
     "dev": "concurrently \"npm run build:watch\" \"npm run playground\"",
     "playground": "npm --prefix playground/react run dev",
     "storybook": "npm --prefix playground/react run storybook",
+    "pg:rn": "tsx scripts/generate-rn-playground.ts",
+    "test:rn": "npm --prefix playground/rn-expo run test",
     "generate:dev": "node dist/cli/index.js add Button --dev",
     "test": "vitest",
     "test:bun": "bunx vitest run --config vitest.config.ts",
