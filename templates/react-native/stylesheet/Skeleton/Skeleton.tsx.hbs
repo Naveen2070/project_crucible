@@ -1,0 +1,107 @@
+import React, { useEffect, useRef } from 'react';
+import { AccessibilityInfo, Animated, StyleSheet, View, type ViewProps , type DimensionValue } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type SkeletonVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface SkeletonProps extends ViewProps {
+  /** Shape preset of the placeholder */
+  variant?: SkeletonVariant;
+  /** Explicit width (px number or RN dimension string) */
+  width?: DimensionValue;
+  /** Explicit height (px number or RN dimension string) */
+  height?: DimensionValue;
+  /** Toggle the pulse animation */
+  animated?: boolean;
+}
+
+const variantStyles: Record<SkeletonVariant, object> = {
+{{#each variants}}
+  {{this}}: { width: '100%', height: 16, borderRadius: Number.parseInt(theme.radiusSm, 10) || 4 },
+{{/each}}
+};
+
+// Shape overrides mirroring the web presets (circle = fixed square + full radius).
+variantStyles.circle = { width: 40, height: 40, borderRadius: 9999 };
+variantStyles.rect = { borderRadius: 0 };
+
+const styles = StyleSheet.create({
+  base: { overflow: 'hidden' },
+  fill: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: theme.colorSecondary,
+  },
+});
+
+// ponytail: web fades via CSS `motion-safe:animate-pulse`; RN has no CSS keyframes, so the
+// pulse is a classic-Animated opacity loop (1 → 0.3 → 1, useNativeDriver). When the crucible
+// config enables reduced-motion support (a11y.reduceMotion), the loop only starts if the OS
+// "reduce motion" setting is OFF and pauses/resumes if it changes at runtime.
+// Hoisted so Handlebars never parses an inline object literal as a helper.
+const BUSY_STATE = { busy: true } as const;
+
+export const Skeleton = React.forwardRef<View, SkeletonProps>(
+  ({ variant = 'default', width, height, animated = true, style, ...props }, ref) => {
+    const opacity = useRef(new Animated.Value(1)).current;
+    const fillStyle = { opacity };
+
+    useEffect(() => {
+      if (!animated) return undefined;
+
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        ]),
+      );
+
+{{#if a11y.reduceMotion}}
+      let cancelled = false;
+      let running = false;
+      const startIfAllowed = (reduced: boolean) => {
+        if (!cancelled && !reduced && !running) {
+          running = true;
+          pulse.start(({ finished }) => {
+            if (finished) running = false;
+          });
+        }
+      };
+      AccessibilityInfo.isReduceMotionEnabled()
+        .then((reduced) => startIfAllowed(reduced))
+        .catch(() => startIfAllowed(false));
+      const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (reduced) => {
+        if (reduced) {
+          pulse.stop();
+          running = false;
+          opacity.setValue(1);
+        } else {
+          startIfAllowed(false);
+        }
+      });
+      return () => {
+        cancelled = true;
+        subscription.remove();
+        pulse.stop();
+      };
+{{else}}
+      pulse.start();
+      return () => pulse.stop();
+{{/if}}
+    }, [animated, opacity]);
+
+    return (
+      <View
+        ref={ref}
+        style={[styles.base, variantStyles[variant], { width, height }, style]}
+        accessibilityState={BUSY_STATE}
+        accessibilityLiveRegion="polite"
+        {...props}
+      >
+        <Animated.View style={[styles.fill, { opacity }]} />
+      </View>
+    );
+  }
+);
+
+Skeleton.displayName = 'Skeleton';

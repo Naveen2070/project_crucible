@@ -1,0 +1,100 @@
+import React, { useState } from 'react';
+import { View, Text, Pressable, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type SwitchSize = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+const TRACK_STYLES: Record<SwitchSize, object> = {
+  sm: { width: 36, height: 20 },
+  md: { width: 44, height: 26 },
+  lg: { width: 56, height: 32 },
+};
+
+const THUMB_STYLES: Record<SwitchSize, object> = {
+  sm: { width: 16, height: 16 },
+  md: { width: 20, height: 20 },
+  lg: { width: 24, height: 24 },
+};
+
+// ponytail: thumb slides right by (trackWidth − thumbWidth − 2×padding) when checked —
+// plain conditional transforms instead of Animated keeps generated code logic-light.
+const THUMB_TRAVEL: Record<SwitchSize, object> = {
+  sm: { transform: [{ translateX: 16 }] },
+  md: { transform: [{ translateX: 20 }] },
+  lg: { transform: [{ translateX: 28 }] },
+};
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
+  track: { flexDirection: 'row', alignItems: 'center', padding: 2, borderRadius: 999 },
+  trackOn: { backgroundColor: theme.colorPrimary },
+  trackOff: { backgroundColor: theme.colorSecondary },
+  thumb: { borderRadius: 999, backgroundColor: '#ffffff' },
+  label: { fontSize: 14, color: theme.foreground },
+  disabled: { opacity: 0.5 },
+});
+
+export interface SwitchProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Called with the next checked value on toggle */
+  onCheckedChange?: (checked: boolean) => void;
+  /** Text shown next to the track; also becomes the accessibility label */
+  label?: string;
+  size?: SwitchSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const Switch = React.forwardRef<View, SwitchProps>(
+  (
+    {
+      checked: controlled,
+      defaultChecked = false,
+      onCheckedChange,
+      label,
+      size = 'md',
+      disabled,
+      children,
+      style,
+      accessibilityLabel,
+      ...props
+    },
+    ref
+  ) => {
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+  const a11yState = { checked, disabled: !!disabled };
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    return (
+      <Pressable
+        ref={ref}
+        style={[styles.row, disabled && styles.disabled, style]}
+        disabled={disabled}
+        onPress={toggle}
+        accessibilityRole="switch"
+        accessibilityState={a11yState}
+        accessibilityLabel={accessibilityLabel ?? label ?? (typeof children === 'string' ? children : undefined)}
+        {...props}
+      >
+        <View style={[styles.track, TRACK_STYLES[size], checked ? styles.trackOn : styles.trackOff]}>
+          <View style={[styles.thumb, THUMB_STYLES[size], checked && THUMB_TRAVEL[size]]} />
+        </View>
+        {label && <Text style={styles.label}>{label}</Text>}
+        {children}
+      </Pressable>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';

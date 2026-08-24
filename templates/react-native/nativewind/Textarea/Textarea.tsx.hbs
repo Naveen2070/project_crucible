@@ -1,0 +1,74 @@
+import React, { useId } from 'react';
+import { Text, TextInput, View, type TextInputProps } from 'react-native';
+
+const variantClasses: Record<string, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}} };
+const sizeClasses: Record<string, string> = {
+  sm: 'px-3 py-2 text-sm min-h-16',
+  md: 'px-3 py-2 text-base min-h-[88px]',
+  lg: 'px-4 py-3 text-lg min-h-[120px]',
+};
+
+export type TextareaVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TextareaSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface TextareaProps extends TextInputProps {
+  label?:      string;
+  variant?:    TextareaVariant;
+  size?:       TextareaSize;
+  error?:      string;
+  hint?:       string;
+  required?:   boolean;
+  /** ponytail: rows is a web layout hint — height comes from minHeight per size on mobile */
+  rows?:       number;
+  className?:  string;
+}
+
+// ponytail: web describedby/invalid semantics become visible hint/error
+// text below the field plus error text folded into accessibilityLabel.
+// Hoisted so Handlebars never parses an inline object literal as a helper.
+const DISABLED_STATE = { disabled: true } as const;
+
+export const Textarea = React.forwardRef<TextInput, TextareaProps>(
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, className, rows, multiline = true, editable, maxLength, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+
+    const cls = [
+      'w-full rounded-md border bg-surface text-foreground',
+      variantClasses[error ? 'error' : variant],
+      sizeClasses[size],
+      error && 'border-destructive',
+      editable === false && 'opacity-60',
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <View className="flex-col gap-1.5 w-full">
+        {label && (
+          <Text className="font-medium text-foreground text-sm">
+            {label}
+            {required && <Text className="text-destructive"> *</Text>}
+          </Text>
+        )}
+        <TextInput
+          ref={ref}
+          nativeID={id}
+          className={cls}
+          multiline={multiline}
+          textAlignVertical="top"
+          maxLength={maxLength}
+          editable={editable}
+          accessibilityLabel={label ? (error ? `${label}. ${error}` : label) : undefined}
+          accessibilityState={editable === false ? DISABLED_STATE : undefined}
+          {...props}
+        />
+        {hint && !error && <Text className="text-xs text-text-muted">{hint}</Text>}
+        {error && <Text className="text-xs text-destructive" accessibilityRole="alert">{error}</Text>}
+      </View>
+    );
+  }
+);
+
+Textarea.displayName = 'Textarea';

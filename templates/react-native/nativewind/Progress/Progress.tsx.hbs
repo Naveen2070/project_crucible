@@ -1,0 +1,66 @@
+import React from 'react';
+import { View, type ViewProps } from 'react-native';
+
+export type ProgressVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ProgressSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface ProgressProps extends ViewProps {
+  /** Current value (0..max); rendered as a percentage of the track */
+  value?:     number;
+  /** Maximum value */
+  max?:       number;
+  /** Linear bar or circular ring — see ponytail note below */
+  variant?:   ProgressVariant;
+  /** Track thickness */
+  size?:      ProgressSize;
+  /** Accessible label */
+  label?:     string;
+  /** Show a fixed-width bar instead of a percentage fill */
+  indeterminate?: boolean;
+  className?: string;
+}
+
+const VARIANT_CLASSES: Record<ProgressVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}}
+};
+
+const SIZE_CLASSES: Record<ProgressSize, string> = {
+  sm: 'h-1',
+  md: 'h-2',
+  lg: 'h-3',
+};
+
+// ponytail: 'circular' needs an SVG ring and RN has no SVG primitive without adding a
+// dependency, so BOTH variants render as the linear bar here; `variant` stays in the API so
+// upstream code doesn't need a framework-specific branch.
+export const Progress = React.forwardRef<View, ProgressProps>(
+  ({ value = 0, max = 100, variant = 'linear', size = 'md', label, indeterminate = false, className }, ref) => {
+    const clamped = Math.min(Math.max(value, 0), max);
+    const pct = max > 0 ? (clamped / max) * 100 : 0;
+  const a11yValue = { min: 0, max, now: value };
+
+    return (
+      <View
+        ref={ref}
+        className={[
+          'w-full overflow-hidden rounded-full',
+          VARIANT_CLASSES[variant],
+          SIZE_CLASSES[size],
+          className,
+        ].filter(Boolean).join(' ')}
+        accessibilityRole="progressbar"
+        accessibilityLabel={label}
+        accessibilityValue={a11yValue}
+      >
+        {/* Dynamic % width can't be a static className — inline style on the fill element ONLY. */}
+        <View
+          className={['h-full rounded-full bg-primary', indeterminate ? 'w-2/5 animate-pulse' : ''].filter(Boolean).join(' ')}
+          style={indeterminate ? undefined : { width: `${pct}%` }}
+        />
+      </View>
+    );
+  }
+);
+
+Progress.displayName = 'Progress';

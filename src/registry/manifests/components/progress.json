@@ -2,13 +2,17 @@
   "id": "Progress",
   "name": "Progress",
   "description": "Determinate or indeterminate progress bar",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["linear", "circular"],
   "sizes": ["sm", "md", "lg"],
   "states": ["indeterminate"],
   "props": ["value", "max", "label", "variant"],
   "prefix": "progress",
   "a11y": { "role": "progressbar" },
-  "tailwindDefaults": {}
+  "tailwindDefaults": {},
+  "nativewindDefaults": {
+    "linear": "bg-secondary",
+    "circular": "bg-secondary"
+  }
 }

@@ -1,0 +1,82 @@
+import React from 'react';
+import { View, Text, Image, type ViewProps } from 'react-native';
+
+export type AvatarVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type AvatarSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface AvatarProps extends ViewProps {
+  /** Image source; falls back to initials when missing or failed to load */
+  src?:      string;
+  /** Accessible label; also seeds the initials fallback */
+  alt?:      string;
+  /** Explicit fallback text (defaults to initials derived from alt) */
+  fallback?: string;
+  /** Shape of the avatar */
+  variant?:  AvatarVariant;
+  /** Diameter of the avatar */
+  size?:     AvatarSize;
+  className?: string;
+}
+
+const SHAPE_CLASSES: Record<AvatarVariant, string> = {
+{{#each variants}}  {{this}}: '{{lookup ../nativewindVariants this}}',
+{{/each}}
+};
+
+// ponytail: web sizes are w-6/w-8/w-10/w-14 → RN px 24/32/40/56 so both platforms render
+// the same physical diameter.
+const SIZE_CLASSES: Record<AvatarSize, string> = {
+  xs: 'w-6 h-6 text-[10px]',
+  sm: 'w-8 h-8 text-xs',
+  md: 'w-10 h-10 text-sm',
+  lg: 'w-14 h-14 text-lg',
+};
+
+function getInitials(text?: string): string {
+  return (text ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export const Avatar = React.forwardRef<View, AvatarProps>(
+  ({ src, alt = '', fallback, variant = 'circle', size = 'md', className, ...props }, ref) => {
+    const [errored, setErrored] = React.useState(false);
+    const showImage = Boolean(src) && !errored;
+    const imageSource = src ? { uri: src } : undefined;
+
+    const cls = [
+      'items-center justify-center overflow-hidden bg-secondary',
+      SHAPE_CLASSES[variant],
+      SIZE_CLASSES[size],
+      className,
+    ].filter(Boolean).join(' ');
+
+    return (
+      <View
+        ref={ref}
+        className={cls}
+        accessibilityRole="image"
+        accessibilityLabel={alt || fallback || undefined}
+        {...props}
+      >
+        {showImage && src ? (
+          <Image
+            source={imageSource}
+            resizeMode="cover"
+            className="h-full w-full"
+            onError={() => setErrored(true)}
+          />
+        ) : (
+          <Text className="font-semibold leading-none text-foreground">{getInitials(fallback || alt)}</Text>
+        )}
+      </View>
+    );
+  }
+);
+
+Avatar.displayName = 'Avatar';
