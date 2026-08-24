@@ -17,9 +17,17 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Card: { title: 'Title', children: <Text>Body</Text> },
   Badge: { children: 'New' },
   Alert: { title: 'Heads up', children: 'Detail' },
+  Label: { children: 'Email', required: true },
+  Avatar: { alt: 'Ada Lovelace' },
+  Progress: { value: 60 },
+  Separator: {},
+  Skeleton: { width: 120, height: 16 },
+  Switch: { defaultChecked: true },
+  Checkbox: { label: 'Accept terms' },
+  Textarea: { placeholder: 'Notes' },
 };
 
-/** Compound Input takes no input props on its root — compose through Input.Field. */
+/** Compound components take no render props on their root — compose through their parts. */
 function elementFor(name: string, Comp: any) {
   if (name === 'Input' && typeof Comp === 'object' && Comp !== null && 'Field' in Comp) {
     const Field = (Comp as any).Field;
@@ -29,6 +37,26 @@ function elementFor(name: string, Comp: any) {
       </Comp>
     );
   }
+  if (name === 'RadioGroup' && typeof Comp === 'object' && Comp !== null && 'Item' in Comp) {
+    const Item = (Comp as any).Item;
+    return (
+      <Comp defaultValue="a">
+        <Item value="a" label="One" />
+        <Item value="b" label="Two" />
+      </Comp>
+    );
+  }
+  if (name === 'RadioGroup') {
+    // Flat (non-compound) mode renders from an items array.
+    return (
+      <Comp
+        items={[
+          { value: 'a', label: 'One' },
+          { value: 'b', label: 'Two' },
+        ]}
+      />
+    );
+  }
   return <Comp {...(PROPS[name] ?? {})} />;
 }
 
@@ -36,6 +64,9 @@ function elementFor(name: string, Comp: any) {
 const EXPECTED_ROLES: Record<string, string | undefined> = {
   Button: 'button',
   Alert: 'alert',
+  Progress: 'progressbar',
+  Switch: 'switch',
+  Checkbox: 'checkbox',
 };
 
 function discover(): string[] {

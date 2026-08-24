@@ -1,0 +1,112 @@
+import React, { useState } from 'react';
+import { Text, Pressable, View, type PressableProps } from 'react-native';
+
+const BOX_CLASSES: Record<string, string> = {
+  sm: 'w-3.5 h-3.5',
+  md: 'w-[18px] h-[18px]',
+  lg: 'w-[22px] h-[22px]',
+};
+
+const GLYPH_CLASSES: Record<string, string> = {
+  sm: 'text-[10px]',
+  md: 'text-xs',
+  lg: 'text-sm',
+};
+
+const LABEL_CLASSES: Record<string, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+// ponytail: 'mixed' is not a valid RN accessibilityState value — indeterminate maps to
+// selected:true (deviation from the web ARIA mixed state).
+export interface CheckboxProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Render the indeterminate (mixed) visual state */
+  indeterminate?: boolean;
+  /** Convenience change handler returning the next checked boolean */
+  onCheckedChange?: (checked: boolean) => void;
+  /** Text shown next to the box; also becomes the accessibility label */
+  label?: string;
+  variant?: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+  size?: {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+  error?: string;
+}
+
+export const Checkbox = React.forwardRef<View, CheckboxProps>(
+  (
+    {
+      checked: controlled,
+      defaultChecked = false,
+      indeterminate = false,
+      onCheckedChange,
+      label,
+      variant = 'default',
+      size = 'md',
+      error,
+      disabled,
+      className,
+      children,
+      accessibilityLabel,
+      ...props
+    },
+    ref
+  ) => {
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+    const isError = !!error || variant === 'error';
+    const filled = checked || indeterminate;
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    const a11yState = indeterminate
+      ? { selected: true, disabled: !!disabled }
+      : { checked, disabled: !!disabled };
+
+    const boxCls = [
+      'items-center justify-center rounded-sm border',
+      BOX_CLASSES[size],
+      isError ? 'border-destructive' : 'border-border',
+      filled && (isError ? 'bg-destructive border-destructive' : 'bg-primary border-primary'),
+    ].filter(Boolean).join(' ');
+
+    return (
+      <View className={['flex-col gap-1 self-start', className].filter(Boolean).join(' ')}>
+        <Pressable
+          ref={ref}
+          className={['flex-row items-center gap-2 active:opacity-80', disabled && 'opacity-60'].filter(Boolean).join(' ')}
+          disabled={disabled}
+          onPress={toggle}
+          accessibilityRole="checkbox"
+          accessibilityState={a11yState}
+          accessibilityLabel={accessibilityLabel ?? label ?? (typeof children === 'string' ? children : undefined)}
+          {...props}
+        >
+          <View className={boxCls}>
+            {filled && (
+              <Text className={['font-bold leading-none text-white', GLYPH_CLASSES[size]].filter(Boolean).join(' ')}>
+                {indeterminate ? '—' : '✓'}
+              </Text>
+            )}
+          </View>
+          {label && <Text className={['leading-snug text-foreground', LABEL_CLASSES[size]].filter(Boolean).join(' ')}>{label}</Text>}
+          {children}
+        </Pressable>
+        {error && <Text className="text-xs text-destructive" accessibilityRole="alert">{error}</Text>}
+      </View>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';

@@ -1,0 +1,82 @@
+import React from 'react';
+import { View, Text, StyleSheet, type ViewProps } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+export interface SeparatorProps extends ViewProps {
+  /** Layout direction of the divider */
+  orientation?: SeparatorOrientation;
+  /** Purely visual — removes the divider from the accessibility tree */
+  decorative?: boolean;
+  /** Optional centered label (horizontal orientation only) */
+  label?: string;
+}
+
+const styles = StyleSheet.create({
+  lineHorizontal: {
+    height: StyleSheet.hairlineWidth,
+    width: '100%',
+    marginVertical: 8,
+    backgroundColor: theme.colorBorder,
+  },
+  lineVertical: {
+    width: 1,
+    minHeight: 16,
+    alignSelf: 'stretch',
+    marginHorizontal: 8,
+    backgroundColor: theme.colorBorder,
+  },
+  row: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  lineFill: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: theme.colorBorder,
+  },
+  labelText: {
+    marginHorizontal: 12,
+    fontSize: 14,
+    color: theme.foreground,
+    opacity: 0.6,
+  },
+});
+
+// ponytail: RN has no `separator` accessibility role, so a plain divider renders as a bare
+// decorative View (no accessibilityRole at all). The labeled mode keeps the container out of
+// the way with accessibilityRole="none" and exposes its text via accessibilityLabel instead.
+export const Separator = React.forwardRef<View, SeparatorProps>(
+  ({ orientation = 'horizontal', decorative = false, label, children, style, ...props }, ref) => {
+    const content = label ?? children;
+
+    if (content && orientation === 'horizontal' && !decorative) {
+      return (
+        <View
+          ref={ref}
+          style={[styles.row, style]}
+          accessibilityRole="none"
+          accessibilityLabel={typeof content === 'string' ? content : undefined}
+          {...props}
+        >
+          <View style={styles.lineFill} />
+          <Text style={styles.labelText}>{content}</Text>
+          <View style={styles.lineFill} />
+        </View>
+      );
+    }
+
+    return (
+      <View
+        ref={ref}
+        style={[orientation === 'horizontal' ? styles.lineHorizontal : styles.lineVertical, style]}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = 'Separator';

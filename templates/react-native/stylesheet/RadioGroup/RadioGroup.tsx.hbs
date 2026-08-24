@@ -1,0 +1,202 @@
+import React, { createContext, useContext, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, type PressableProps } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type RadioGroupSize = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type RadioGroupOrientation = 'vertical' | 'horizontal';
+
+export interface RadioGroupOptions {
+  /** Controlled selected value */
+  value?: string;
+  /** Initial selected value when uncontrolled */
+  defaultValue?: string;
+  /** Called with the next selected value */
+  onValueChange?: (value: string) => void;
+  /** Layout direction of the group */
+  orientation?: RadioGroupOrientation;
+  /** Form association name (metadata only on mobile — no native form submission) */
+  name?: string;
+}
+
+export interface RadioGroupProps extends RadioGroupOptions {
+  size?: RadioGroupSize;
+}
+
+const CIRCLE_STYLES: Record<RadioGroupSize, object> = {
+  sm: { width: 16, height: 16 },
+  md: { width: 18, height: 18 },
+  lg: { width: 22, height: 22 },
+};
+
+const DOT_STYLES: Record<RadioGroupSize, object> = {
+  sm: { width: 8, height: 8 },
+  md: { width: 10, height: 10 },
+  lg: { width: 12, height: 12 },
+};
+
+const LABEL_STYLES: Record<RadioGroupSize, object> = {
+  sm: { fontSize: 12 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 16 },
+};
+
+const styles = StyleSheet.create({
+  groupVertical: { flexDirection: 'column', gap: 8 },
+  groupHorizontal: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  circle: { alignItems: 'center', justifyContent: 'center', borderRadius: 999, borderWidth: 2, borderColor: theme.colorBorder },
+  circleOn: { borderColor: theme.colorPrimary },
+  dot: { borderRadius: 999, backgroundColor: theme.colorPrimary },
+  label: { color: theme.foreground },
+  description: { fontSize: 12, color: theme.foreground, opacity: 0.7 },
+  disabled: { opacity: 0.5 },
+});
+
+// ponytail: roving tabindex / arrow-key handling from the web version is intentionally
+// omitted — focus navigation is touch/screen-reader driven on mobile.
+{{#if features.compoundComponents}}
+interface RadioGroupContextValue {
+  value?: string;
+  setValue: (next: string) => void;
+  size: RadioGroupSize;
+}
+
+const RadioGroupContext = createContext<RadioGroupContextValue | undefined>(undefined);
+
+const useRadioGroupContext = () => {
+  const context = useContext(RadioGroupContext);
+  if (!context) throw new Error('RadioGroup sub-components must be used within RadioGroup');
+  return context;
+};
+
+export const RadioGroupRoot = ({
+  children,
+  value: controlled,
+  defaultValue,
+  onValueChange,
+  orientation = 'vertical',
+  size = 'md',
+}: RadioGroupProps & {
+  children: React.ReactNode;
+}) => {
+  const [uncontrolled, setUncontrolled] = useState(defaultValue);
+  const value = controlled ?? uncontrolled;
+
+  const setValue = (next: string) => {
+    if (controlled === undefined) setUncontrolled(next);
+    onValueChange?.(next);
+  };
+
+  const contextValue = { value, setValue, size };
+  return (
+    <RadioGroupContext.Provider value={contextValue}>
+      <View style={orientation === 'horizontal' ? styles.groupHorizontal : styles.groupVertical} accessibilityRole="radiogroup">
+        {children}
+      </View>
+    </RadioGroupContext.Provider>
+  );
+};
+
+export const RadioGroupItem = ({
+  value,
+  label,
+  description,
+  disabled,
+  ...props
+}: {
+  value: string;
+  label?: string;
+  description?: string;
+  disabled?: boolean;
+} & PressableProps) => {
+  const { value: selectedValue, size, setValue } = useRadioGroupContext();
+  const selected = selectedValue === value;
+  const a11yState = { checked: selected, disabled: !!disabled };
+
+  return (
+    <Pressable
+      style={[styles.item, disabled && styles.disabled]}
+      disabled={disabled}
+      onPress={() => setValue(value)}
+      accessibilityRole="radio"
+      accessibilityState={a11yState}
+      {...props}
+    >
+      <View style={[styles.circle, CIRCLE_STYLES[size], selected && styles.circleOn]}>
+        {selected && <View style={[styles.dot, DOT_STYLES[size]]} />}
+      </View>
+      {(label || description) && (
+        <View style={styles.groupVertical}>
+          {label && <Text style={[styles.label, LABEL_STYLES[size]]}>{label}</Text>}
+          {description && <Text style={styles.description}>{description}</Text>}
+        </View>
+      )}
+    </Pressable>
+  );
+};
+
+export const RadioGroup = Object.assign(RadioGroupRoot, {
+  Item: RadioGroupItem,
+});
+
+RadioGroup.displayName = 'RadioGroup';
+RadioGroupRoot.displayName = 'RadioGroup.Root';
+RadioGroupItem.displayName = 'RadioGroup.Item';
+{{else}}
+export interface RadioGroupItemData {
+  value: string;
+  label?: string;
+  description?: string;
+  disabled?: boolean;
+}
+
+export const RadioGroup = ({
+  items,
+  value: controlled,
+  defaultValue,
+  onValueChange,
+  orientation = 'vertical',
+  size = 'md',
+}: RadioGroupProps & {
+  items: RadioGroupItemData[];
+}) => {
+  const [uncontrolled, setUncontrolled] = useState(defaultValue);
+  const value = controlled ?? uncontrolled;
+
+  const setValue = (next: string) => {
+    if (controlled === undefined) setUncontrolled(next);
+    onValueChange?.(next);
+  };
+
+  return (
+    <View style={orientation === 'horizontal' ? styles.groupHorizontal : styles.groupVertical} accessibilityRole="radiogroup">
+      {items.map((item) => {
+        const selected = value === item.value;
+        const a11yState = { checked: selected, disabled: !!item.disabled };
+        return (
+          <Pressable
+            key={item.value}
+            style={[styles.item, item.disabled && styles.disabled]}
+            disabled={item.disabled}
+            onPress={() => setValue(item.value)}
+            accessibilityRole="radio"
+            accessibilityState={a11yState}
+          >
+            <View style={[styles.circle, CIRCLE_STYLES[size], selected && styles.circleOn]}>
+              {selected && <View style={[styles.dot, DOT_STYLES[size]]} />}
+            </View>
+            {(item.label || item.description) && (
+              <View style={styles.groupVertical}>
+                {item.label && <Text style={[styles.label, LABEL_STYLES[size]]}>{item.label}</Text>}
+                {item.description && <Text style={styles.description}>{item.description}</Text>}
+              </View>
+            )}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+};
+
+RadioGroup.displayName = 'RadioGroup';
+{{/if}}

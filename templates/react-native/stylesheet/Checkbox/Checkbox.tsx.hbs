@@ -1,0 +1,127 @@
+import React, { useState } from 'react';
+import { Text, Pressable, View, StyleSheet, type PressableProps , type StyleProp, type ViewStyle } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+const variantStyles: Record<string, object> = {
+  default:      { borderColor: theme.colorBorder },
+  error:        { borderColor: theme.colorDestructive },
+  checked:      { backgroundColor: theme.colorPrimary, borderColor: theme.colorPrimary },
+  checkedError: { backgroundColor: theme.colorDestructive, borderColor: theme.colorDestructive },
+};
+
+const boxStyles: Record<string, object> = {
+  sm: { width: 14, height: 14 },
+  md: { width: 18, height: 18 },
+  lg: { width: 22, height: 22 },
+};
+
+const glyphStyles: Record<string, object> = {
+  sm: { fontSize: 10 },
+  md: { fontSize: 12 },
+  lg: { fontSize: 14 },
+};
+
+const labelStyles: Record<string, object> = {
+  sm: { fontSize: 12 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 16 },
+};
+
+const styles = StyleSheet.create({
+  group: { flexDirection: 'column', gap: 4, alignSelf: 'flex-start' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  box: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: Number.parseInt(theme.radiusSm, 10) || 4,
+  },
+  disabledRow: { opacity: 0.6 },
+  label: { color: theme.foreground },
+  glyph: { color: '#FFFFFF', fontWeight: '700' },
+  error: { fontSize: 12, color: theme.colorDestructive },
+});
+
+// ponytail: 'mixed' is not a valid RN accessibilityState value — indeterminate maps to
+// selected:true (deviation from the web ARIA mixed state).
+export interface CheckboxProps extends PressableProps {
+  /** Plain style prop (Pressable's render-fn form unsupported) */
+  style?: StyleProp<ViewStyle>;
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Render the indeterminate (mixed) visual state */
+  indeterminate?: boolean;
+  /** Convenience change handler returning the next checked boolean */
+  onCheckedChange?: (checked: boolean) => void;
+  /** Text shown next to the box; also becomes the accessibility label */
+  label?: string;
+  variant?: {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+  size?: {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+  error?: string;
+}
+
+export const Checkbox = React.forwardRef<View, CheckboxProps>(
+  (
+    {
+      checked: controlled,
+      defaultChecked = false,
+      indeterminate = false,
+      onCheckedChange,
+      label,
+      variant = 'default',
+      size = 'md',
+      error,
+      disabled,
+      style,
+      children,
+      accessibilityLabel,
+      ...props
+    },
+    ref
+  ) => {
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+    const isError = !!error || variant === 'error';
+    const filled = checked || indeterminate;
+    const variantKey = filled ? (isError ? 'checkedError' : 'checked') : (isError ? 'error' : 'default');
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    const a11yState = indeterminate
+      ? { selected: true, disabled: !!disabled }
+      : { checked, disabled: !!disabled };
+
+    return (
+      <View style={[styles.group, style]}>
+        <Pressable
+          ref={ref}
+          style={[styles.row, disabled && styles.disabledRow]}
+          disabled={disabled}
+          onPress={toggle}
+          accessibilityRole="checkbox"
+          accessibilityState={a11yState}
+          accessibilityLabel={accessibilityLabel ?? label ?? (typeof children === 'string' ? children : undefined)}
+          {...props}
+        >
+          <View style={[styles.box, variantStyles[variantKey], boxStyles[size]]}>
+            {filled && <Text style={[styles.glyph, glyphStyles[size]]}>{indeterminate ? '—' : '✓'}</Text>}
+          </View>
+          {label && <Text style={[styles.label, labelStyles[size]]}>{label}</Text>}
+          {children}
+        </Pressable>
+        {error && <Text style={styles.error} accessibilityRole="alert">{error}</Text>}
+      </View>
+    );
+  }
+);
+
+Checkbox.displayName = 'Checkbox';

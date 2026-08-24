@@ -1,0 +1,53 @@
+import React from 'react';
+import { View, Text, type ViewProps } from 'react-native';
+
+export type SeparatorOrientation = 'horizontal' | 'vertical';
+
+export interface SeparatorProps extends ViewProps {
+  /** Layout direction of the divider */
+  orientation?: SeparatorOrientation;
+  /** Purely visual — removes the divider from the accessibility tree */
+  decorative?: boolean;
+  /** Optional centered label (horizontal orientation only) */
+  label?: string;
+  className?: string;
+}
+
+// ponytail: RN has no `separator` accessibility role, so a plain divider renders as a bare
+// decorative View (no accessibilityRole at all). The labeled mode keeps the container out of
+// the way with accessibilityRole="none" and exposes its text via accessibilityLabel instead.
+export const Separator = React.forwardRef<View, SeparatorProps>(
+  ({ orientation = 'horizontal', decorative = false, label, className, children, ...props }, ref) => {
+    const content = label ?? children;
+
+    if (content && orientation === 'horizontal' && !decorative) {
+      return (
+        <View
+          ref={ref}
+          className={['flex-row w-full items-center my-2', className].filter(Boolean).join(' ')}
+          accessibilityRole="none"
+          accessibilityLabel={typeof content === 'string' ? content : undefined}
+          {...props}
+        >
+          <View className="h-px flex-1 bg-border" />
+          <Text className="mx-3 shrink-0 text-sm text-foreground opacity-60">{content}</Text>
+          <View className="h-px flex-1 bg-border" />
+        </View>
+      );
+    }
+
+    return (
+      <View
+        ref={ref}
+        className={[
+          'shrink-0 bg-border',
+          orientation === 'horizontal' ? 'h-px w-full my-2' : 'w-px self-stretch min-h-4 mx-2',
+          className,
+        ].filter(Boolean).join(' ')}
+        {...props}
+      />
+    );
+  }
+);
+
+Separator.displayName = 'Separator';

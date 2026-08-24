@@ -1,0 +1,86 @@
+import React from 'react';
+import { View, Text, Image, StyleSheet, type ViewProps } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type AvatarVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type AvatarSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface AvatarProps extends ViewProps {
+  /** Image source; falls back to initials when missing or failed to load */
+  src?:      string;
+  /** Accessible label; also seeds the initials fallback */
+  alt?:      string;
+  /** Explicit fallback text (defaults to initials derived from alt) */
+  fallback?: string;
+  /** Shape of the avatar */
+  variant?:  AvatarVariant;
+  /** Diameter of the avatar */
+  size?:     AvatarSize;
+}
+
+const shapeStyles: Record<AvatarVariant, object> = {
+  circle: { borderRadius: 9999 },
+  square: { borderRadius: Number.parseInt(theme.radiusMd, 10) || 8 },
+};
+
+// ponytail: web sizes are w-6/w-8/w-10/w-14 → RN px 24/32/40/56 so both platforms render
+// the same physical diameter.
+const sizeStyles: Record<AvatarSize, object> = {
+  xs: { width: 24, height: 24, fontSize: 10 },
+  sm: { width: 32, height: 32, fontSize: 12 },
+  md: { width: 40, height: 40, fontSize: 14 },
+  lg: { width: 56, height: 56, fontSize: 18 },
+};
+
+const styles = StyleSheet.create({
+  base: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: theme.colorSecondary,
+  },
+  image: { width: '100%', height: '100%' },
+  initials: { fontWeight: '600', color: theme.foreground },
+});
+
+function getInitials(text?: string): string {
+  return (text ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export const Avatar = React.forwardRef<View, AvatarProps>(
+  ({ src, alt = '', fallback, variant = 'circle', size = 'md', style, ...props }, ref) => {
+    const [errored, setErrored] = React.useState(false);
+    const showImage = Boolean(src) && !errored;
+    const imageSource = src ? { uri: src } : undefined;
+
+    return (
+      <View
+        ref={ref}
+        style={[styles.base, shapeStyles[variant], sizeStyles[size], style]}
+        accessibilityRole="image"
+        accessibilityLabel={alt || fallback || undefined}
+        {...props}
+      >
+        {showImage && src ? (
+          <Image
+            source={imageSource}
+            resizeMode="cover"
+            style={styles.image}
+            onError={() => setErrored(true)}
+          />
+        ) : (
+          <Text style={styles.initials}>{getInitials(fallback || alt)}</Text>
+        )}
+      </View>
+    );
+  }
+);
+
+Avatar.displayName = 'Avatar';
