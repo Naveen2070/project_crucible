@@ -34,6 +34,10 @@ const RN_COMPONENTS = [
   'RadioGroup',
   'Textarea',
   'Checkbox',
+  'Accordion',
+  'Tabs',
+  'Dialog',
+  'Form',
 ];
 const RN_STYLES = ['nativewind', 'stylesheet'] as const;
 

@@ -1,5 +1,409 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`React Native snapshots > StyleSystem: nativewind > Component: Accordion > renders correctly 1`] = `
+{
+  "Accordion.stories.tsx": "// Crucible preview examples for Accordion (React Native / NativeWind).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) — these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Accordion {...AccordionPreviews.default}>…</Accordion>\`) — not a Storybook CSF file.
+import type { AccordionRootProps, AccordionSize } from './Accordion';
+
+// ponytail: compound mode — presets configure <Accordion.Root>; supply Item/Trigger/Content children.
+export const AccordionPreviews: Record<string, AccordionRootProps & { size?: AccordionSize }> = {
+  default: {},
+  bordered: {},
+  separated: {},
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+  singleOpen: { defaultValue: 'overview' },
+  multipleOpen: { type: 'multiple', defaultValue: ['shipping', 'billing'] },
+  nonCollapsible: { collapsible: false, defaultValue: 'terms' },
+};
+",
+  "Accordion.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Animated,
+  type PressableProps,
+  type GestureResponderEvent,
+} from 'react-native';
+
+export type AccordionVariant = 'default' | 'bordered' | 'separated';
+export type AccordionSize    = 'sm' | 'md' | 'lg';
+export type AccordionType = 'single' | 'multiple';
+
+export interface AccordionOptions {
+  /** Whether one ("single") or many ("multiple") items can be open at once */
+  type?: AccordionType;
+  /** Controlled open item value(s) */
+  value?: string | string[];
+  /** Initial open item value(s) when uncontrolled */
+  defaultValue?: string | string[];
+  /** Called with the next open value(s) */
+  onValueChange?: (value: string | string[]) => void;
+  /** In "single" mode, whether the open item can be collapsed again */
+  collapsible?: boolean;
+}
+
+const ROOT_VARIANT_CLASSES: Record<AccordionVariant, string> = {
+  default: '',
+  bordered: 'border border-border rounded-md',
+  separated: 'flex flex-col gap-2',
+ };
+
+const ITEM_VARIANT_CLASSES: Record<AccordionVariant, string> = {
+  default: 'border-b border-border',
+  bordered: 'border-b border-border',
+  separated: 'border border-border rounded-md overflow-hidden',
+};
+
+const TRIGGER_SIZE_CLASSES: Record<AccordionSize, string> = {
+  sm: 'px-3 py-2',
+  md: 'px-4 py-3',
+  lg: 'px-5 py-4',
+};
+
+const TRIGGER_TEXT_CLASSES: Record<AccordionSize, string> = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+};
+
+/** Generous cap for the height-reveal animation — content taller than this gets clipped. */
+const MAX_CONTENT_HEIGHT = 500;
+
+// ponytail: a11y.reduceMotion from the crucible config collapses the reveal/rotate durations
+// to 0ms so open/close snaps instantly — the RN counterpart of the web build honoring the
+// OS reduced-motion preference. Same mechanics, zero motion.
+const MOTION_DURATION_MS = 0;
+
+const toOpenList = (value: string | string[] | undefined): string[] => {
+  if (value == null || value === '') return [];
+  return Array.isArray(value) ? value : [value];
+};
+
+const useAccordionState = ({
+  type = 'single',
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  collapsible = true,
+}: AccordionOptions = {}) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | string[] | undefined>(
+    defaultValue
+  );
+  const value = controlledValue ?? uncontrolledValue;
+  const openSet = useMemo(() => new Set(toOpenList(value)), [value]);
+
+  const commit = useCallback(
+    (next: string | string[]) => {
+      if (controlledValue === undefined) setUncontrolledValue(next);
+      onValueChange?.(next);
+    },
+    [controlledValue, onValueChange]
+  );
+
+  const toggle = useCallback(
+    (itemValue: string) => {
+      if (type === 'multiple') {
+        const next = new Set(openSet);
+        if (next.has(itemValue)) next.delete(itemValue);
+        else next.add(itemValue);
+        commit(Array.from(next));
+        return;
+      }
+      const wasOpen = openSet.has(itemValue);
+      if (wasOpen) commit(collapsible ? '' : itemValue);
+      else commit(itemValue);
+    },
+    [type, openSet, collapsible, commit]
+  );
+
+  const isOpen = useCallback((itemValue: string) => openSet.has(itemValue), [openSet]);
+
+  return { isOpen, toggle };
+};
+
+interface TriggerBaseProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  label: React.ReactNode;
+  size: AccordionSize;
+  open: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}
+
+// ponytail: RN has no accordion role — the trigger is a button whose expanded state rides on
+// its accessibility state. Roving focus / arrow-key plumbing from the web build is omitted;
+// navigation is touch/screen-reader driven on mobile.
+const TriggerBase = ({ label, size, open, disabled, onToggle, ...props }: TriggerBaseProps) => {
+  const rotate = useRef(new Animated.Value(open ? 1 : 0)).current;
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const triggerState = { disabled, expanded: open };
+  const chevronStyle = {
+    transform: [
+      { rotate: rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) },
+    ],
+  };
+
+  useEffect(() => {
+    Animated.timing(rotate, {
+      toValue: open ? 1 : 0,
+      duration: MOTION_DURATION_MS,
+      useNativeDriver: true,
+    }).start();
+  }, [open, rotate]);
+
+  const handlePress = (event: GestureResponderEvent) => {
+    props.onPress?.(event);
+    if (!disabled) onToggle();
+  };
+
+  return (
+    <Pressable
+      {...props}
+      className={[TRIGGER_SIZE_CLASSES[size], disabled && 'opacity-50'].filter(Boolean).join(' ')}
+      disabled={disabled}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityState={triggerState}
+    >
+      <Text
+        className={[
+          'min-w-0 flex-1 text-left font-medium text-foreground',
+          TRIGGER_TEXT_CLASSES[size],
+        ].filter(Boolean).join(' ')}
+      >
+        {label}
+      </Text>
+      <Animated.Text className="leading-none text-text-muted" style={chevronStyle}>
+        ›
+      </Animated.Text>
+    </Pressable>
+  );
+};
+
+interface ContentBaseProps {
+  children?: React.ReactNode;
+  open: boolean;
+  className?: string;
+}
+
+// ponytail: height reveal via an interpolated maxHeight cap (layout prop → JS driver). The
+// body stays mounted so closing animates too; when closed it is clipped to zero height,
+// faded out, and pointer-events are cut off.
+const ContentBase = ({ children, open, className }: ContentBaseProps) => {
+  const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
+  const bodyStyle = {
+    maxHeight: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, MAX_CONTENT_HEIGHT],
+    }),
+    opacity: progress,
+  };
+  const pointerRule = open ? 'auto' : 'none';
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: open ? 1 : 0,
+      duration: MOTION_DURATION_MS,
+      useNativeDriver: false,
+    }).start();
+  }, [open, progress]);
+
+  return (
+    <Animated.View
+      className={['overflow-hidden', className].filter(Boolean).join(' ')}
+      style={bodyStyle}
+      pointerEvents={pointerRule}
+    >
+      <View className="px-4 pb-4">{children}</View>
+    </Animated.View>
+  );
+};
+
+interface AccordionContextValue {
+  isOpen: (value: string) => boolean;
+  toggle: (value: string) => void;
+}
+
+const AccordionContext = createContext<AccordionContextValue | undefined>(undefined);
+
+const useAccordionContext = () => {
+  const context = useContext(AccordionContext);
+  if (!context) throw new Error('Accordion sub-components must be used within Accordion.Root');
+  return context;
+};
+
+interface AccordionItemContextValue {
+  value: string;
+  disabled: boolean;
+}
+
+const ItemContext = createContext<AccordionItemContextValue | undefined>(undefined);
+
+const useItemContext = () => {
+  const context = useContext(ItemContext);
+  if (!context) throw new Error('Accordion.Trigger / Accordion.Content must be used within Accordion.Item');
+  return context;
+};
+
+export interface AccordionRootProps extends AccordionOptions {
+  children?: React.ReactNode;
+  variant?: AccordionVariant;
+  className?: string;
+}
+
+export const AccordionRoot = ({
+  children,
+  variant = 'default',
+  className,
+  ...options
+}: AccordionRootProps) => {
+  const accordion = useAccordionState(options);
+
+  return (
+    <AccordionContext.Provider value={accordion}>
+      <View
+        className={['w-full', ROOT_VARIANT_CLASSES[variant], className].filter(Boolean).join(' ')}
+      >
+        {children}
+      </View>
+    </AccordionContext.Provider>
+  );
+};
+
+export interface AccordionItemProps {
+  /** Unique id this item toggles — referenced by Accordion's value/defaultValue */
+  value: string;
+  disabled?: boolean;
+  variant?: AccordionVariant;
+  children?: React.ReactNode;
+}
+
+export const AccordionItem = ({
+  value,
+  disabled = false,
+  variant = 'default',
+  children,
+}: AccordionItemProps) => {
+  const { isOpen } = useAccordionContext();
+  const open = isOpen(value);
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const itemContextValue = { value, disabled };
+
+  return (
+    <ItemContext.Provider value={itemContextValue}>
+      <View
+        className={[ITEM_VARIANT_CLASSES[variant], disabled && 'opacity-50']
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {children}
+      </View>
+    </ItemContext.Provider>
+  );
+};
+
+export interface AccordionTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  size?: AccordionSize;
+}
+
+export const AccordionTrigger = ({
+  size = 'md',
+  onPress,
+  disabled,
+  children,
+  ...props
+}: AccordionTriggerProps) => {
+  const { isOpen, toggle } = useAccordionContext();
+  const { value, disabled: itemDisabled } = useItemContext();
+  const open = isOpen(value);
+  const isDisabled = disabled ?? itemDisabled;
+
+  return (
+    <TriggerBase
+      {...props}
+      label={children}
+      size={size}
+      open={open}
+      disabled={!!isDisabled}
+      onToggle={() => toggle(value)}
+      onPress={onPress}
+    />
+  );
+};
+
+export interface AccordionContentProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export const AccordionContent = ({ children, className }: AccordionContentProps) => {
+  const { isOpen } = useAccordionContext();
+  const { value } = useItemContext();
+  const open = isOpen(value);
+
+  return (
+    <ContentBase open={open} className={className}>
+      {children}
+    </ContentBase>
+  );
+};
+
+export const Accordion = Object.assign(AccordionRoot, {
+  Root: AccordionRoot,
+  Item: AccordionItem,
+  Trigger: AccordionTrigger,
+  Content: AccordionContent,
+});
+
+Accordion.displayName = 'Accordion';
+AccordionRoot.displayName = 'Accordion.Root';
+AccordionItem.displayName = 'Accordion.Item';
+AccordionTrigger.displayName = 'Accordion.Trigger';
+AccordionContent.displayName = 'Accordion.Content';
+",
+  "README.md": "# Accordion
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`bordered\`- \`separated\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`
+
+## Design Tokens
+
+This component's classNames resolve against the generated \`tailwind.preset.js\` — add
+\`presets: [require('./tailwind.preset.js')]\` to your \`tailwind.config.js\`. Re-run
+\`crucible tokens --force\` (or \`crucible add ... --force\`) after changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
 exports[`React Native snapshots > StyleSystem: nativewind > Component: Alert > renders correctly 1`] = `
 {
   "Alert.stories.tsx": "// Crucible preview examples for Alert (React Native / NativeWind).
@@ -754,6 +1158,838 @@ Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
 
 ## States
 - \`disabled\`- \`checked\`- \`error\`
+
+## Design Tokens
+
+This component's classNames resolve against the generated \`tailwind.preset.js\` — add
+\`presets: [require('./tailwind.preset.js')]\` to your \`tailwind.config.js\`. Re-run
+\`crucible tokens --force\` (or \`crucible add ... --force\`) after changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
+exports[`React Native snapshots > StyleSystem: nativewind > Component: Dialog > renders correctly 1`] = `
+{
+  "Dialog.stories.tsx": "// Crucible preview examples for Dialog (React Native / NativeWind).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) - these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Dialog isOpen onClose {...DialogPreviews.default}>...</Dialog>\`),
+// not a Storybook CSF file.
+import type { DialogRootProps } from './Dialog';
+
+export const DialogPreviews: Record<string, Omit<DialogRootProps, 'isOpen' | 'onClose' | 'children'>> = {
+  default: { variant: 'default' },
+  confirm: { variant: 'confirm' },
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+ };
+",
+  "Dialog.tsx": "import React, { createContext, useContext } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  ScrollView,
+  type PressableProps,
+  type GestureResponderEvent,
+} from 'react-native';
+
+export type DialogVariant = 'default' | 'confirm';
+export type DialogSize    = 'sm' | 'md' | 'lg';
+
+const SIZE_MAX_WIDTHS: Record<string, number> = {
+  sm: 320,
+  md: 400,
+  lg: 480,
+};
+
+const CARD_VARIANT_CLASSES: Record<string, string> = {
+  default: 'rounded-lg',
+  // ponytail: confirm dialogs carry a top accent edge, mirroring the web border-t treatment.
+  confirm: 'rounded-lg border-t-4 border-primary',
+};
+
+interface DialogContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  variant: DialogVariant;
+  size: DialogSize;
+}
+
+const DialogContext = createContext<DialogContextValue | undefined>(undefined);
+
+const useDialogContext = () => {
+  const ctx = useContext(DialogContext);
+  if (!ctx) throw new Error('Dialog parts must be used within Dialog');
+  return ctx;
+};
+
+// ponytail: React Native has no native dialog role - the card relies on
+// accessibilityViewIsModal (iOS) plus an explicit accessibilityLabel instead of
+// the web focus-trap/dialog-role pattern. Android hardware back closes via
+// Modal's onRequestClose.
+export interface DialogRootProps {
+  /** Whether the dialog is currently shown */
+  isOpen: boolean;
+  /** Called when the overlay, close control or hardware back requests dismissal */
+  onClose: () => void;
+  /** Visual variant of the dialog card */
+  variant?: DialogVariant;
+  /** Maximum width of the dialog card */
+  size?: DialogSize;
+  children?: React.ReactNode;
+}
+
+export const DialogRoot = ({
+  isOpen,
+  onClose,
+  variant = 'default',
+  size = 'md',
+  children,
+}: DialogRootProps) => {
+  const contextValue = { isOpen, onClose, variant, size };
+
+  return <DialogContext.Provider value={contextValue}>{children}</DialogContext.Provider>;
+};
+
+interface DialogCloseProps extends PressableProps {
+  /** Accessible name for the close control (defaults to "Close") */
+  label?: string;
+}
+
+export const DialogClose = ({ onPress, label = 'Close', ...props }: DialogCloseProps) => {
+  const { onClose } = useDialogContext();
+
+  const handlePress = (event: GestureResponderEvent) => {
+    onPress?.(event);
+    onClose();
+  };
+
+  return (
+    <Pressable onPress={handlePress} accessibilityRole="button" accessibilityLabel={label} {...props}>
+      <Text className="text-base leading-6 text-text-muted">✕</Text>
+    </Pressable>
+  );
+};
+
+export interface DialogContentProps {
+  /** Accessible name for the dialog card - always provide one (RN has no dialog role) */
+  accessibilityLabel?: string;
+  children?: React.ReactNode;
+}
+
+export const DialogContent = ({ accessibilityLabel, children }: DialogContentProps) => {
+  const { isOpen, onClose, variant, size } = useDialogContext();
+
+  const backdropPress = () => {
+    onClose();
+  };
+
+  const cardWidth = { maxWidth: SIZE_MAX_WIDTHS[size] ?? SIZE_MAX_WIDTHS.md };
+  const cardClasses = ['w-full bg-surface', CARD_VARIANT_CLASSES[variant]]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      statusBarTranslucent
+      animationType="fade"
+      onRequestClose={() => {
+        onClose();
+      }}
+    >
+      <View className="flex-1">
+        <Pressable
+          className="absolute inset-0 bg-black/50"
+          onPress={backdropPress}
+          accessibilityLabel="Close dialog"
+        />
+        <View className="flex-1 justify-center items-center px-6">
+          <View
+            className={cardClasses}
+            style={cardWidth}
+            accessibilityViewIsModal
+            accessibilityLabel={accessibilityLabel}
+          >
+            {children}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export const DialogHeader = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <View
+    className={['flex-row items-center justify-between gap-3 px-5 pt-5', className]
+      .filter(Boolean)
+      .join(' ')}
+  >
+    {children}
+  </View>
+);
+
+export const DialogTitle = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <Text
+    className={['flex-shrink text-lg font-semibold text-foreground', className]
+      .filter(Boolean)
+      .join(' ')}
+  >
+    {children}
+  </Text>
+);
+
+export const DialogBody = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => <ScrollView className="px-5 py-4">{children}</ScrollView>;
+
+export const DialogFooter = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <View
+    className={['flex-row justify-end gap-2 px-5 pb-5 pt-2', className].filter(Boolean).join(' ')}
+  >
+    {children}
+  </View>
+);
+
+export const Dialog = Object.assign(DialogRoot, {
+  // ponytail: the web Overlay part is baked into Content here - the Modal's backdrop
+  // layer IS the overlay, so no separate component is exposed.
+  Content: DialogContent,
+  Header: DialogHeader,
+  Title: DialogTitle,
+  Close: DialogClose,
+  Body: DialogBody,
+  Footer: DialogFooter,
+});
+
+Dialog.displayName = 'Dialog';
+DialogRoot.displayName = 'Dialog.Root';
+DialogContent.displayName = 'Dialog.Content';
+DialogHeader.displayName = 'Dialog.Header';
+DialogTitle.displayName = 'Dialog.Title';
+DialogClose.displayName = 'Dialog.Close';
+DialogBody.displayName = 'Dialog.Body';
+DialogFooter.displayName = 'Dialog.Footer';
+
+",
+  "README.md": "# Dialog
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`confirm\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`open\`- \`closed\`
+
+## Design Tokens
+
+This component's classNames resolve against the generated \`tailwind.preset.js\` — add
+\`presets: [require('./tailwind.preset.js')]\` to your \`tailwind.config.js\`. Re-run
+\`crucible tokens --force\` (or \`crucible add ... --force\`) after changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
+exports[`React Native snapshots > StyleSystem: nativewind > Component: Form > renders correctly 1`] = `
+{
+  "Form.stories.tsx": "// Crucible preview examples for Form (React Native / NativeWind).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) — these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Form {...FormPreviews.default} />\`), not a Storybook CSF file.
+import type { FormRootProps, FormSubmitProps } from './Form';
+
+/** Stable no-op handler so preset objects stay referentially stable across renders. */
+const noop = () => {};
+
+export const FormPreviews: Record<string, FormRootProps> = {
+  default: { variant: 'default' },
+  inline: { variant: 'inline' },
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+  login: { defaultValues: { email: '', password: '' }, onSubmit: noop, onError: noop },
+  disabled: { disabled: true },
+};
+
+export const FormSubmitPreviews: Record<string, FormSubmitProps> = {
+  idle: { label: 'Save changes' },
+  disabled: { label: 'Save changes', disabled: true },
+  submitting: { label: 'Saving…', disabled: true },
+  disableOnInvalid: { label: 'Continue', disableOnInvalid: true },
+};
+",
+  "Form.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  type PressableProps,
+  type GestureResponderEvent,
+} from 'react-native';
+
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSubmitHelpers {
+  reset: (next?: Partial<FormValues>) => void;
+  setError: (name: string, message: string) => void;
+  setValues: (patch: Partial<FormValues>) => void;
+}
+
+export interface FormOptions {
+  defaultValues?: Partial<FormValues>;
+  onSubmit?: (values: FormValues, helpers: FormSubmitHelpers) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+interface RegisteredField {
+  rule?: FieldRule;
+  required?: boolean;
+}
+
+export type FormVariant = 'default' | 'inline';
+export type FormSize    = 'sm' | 'md' | 'lg';
+
+/* ============================================================================
+ * Class maps (semantic NativeWind tokens backed by the theme preset)
+ * ========================================================================== */
+const ROOT_VARIANT_CLASSES: Record<string, string> = {
+  default: 'flex flex-col gap-4',
+  inline: 'flex flex-row flex-wrap items-end gap-4',
+ };
+
+const LABEL_SIZE_CLASSES: Record<FormSize, string> = {
+  sm: 'text-[0.8125rem]',
+  md: 'text-sm',
+  lg: 'text-[0.9375rem]',
+};
+
+const SUBMIT_SIZE_CLASSES: Record<FormSize, string> = {
+  sm: 'px-3 py-1.5',
+  md: 'px-4 py-2',
+  lg: 'px-5 py-3',
+};
+
+// Hoisted so Handlebars never parses an inline object/class literal as a helper.
+const REQUIRED_STAR_CLASS = ['text-destructive'].filter(Boolean).join(' ');
+const SCHEMA_INPUT_CLASS = [
+  'w-full rounded-md border border-border bg-surface px-3 py-2 text-base text-foreground',
+].filter(Boolean).join(' ');
+
+/* ============================================================================
+ * Pure helpers (ported verbatim from the web Form template)
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? \`Must be at least \${min.value}.\`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? \`Must be at most \${max.value}.\`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? \`Must be at least \${minLength.value} characters.\`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? \`Must be at most \${maxLength.value} characters.\`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+/** Merges a field-level required flag over its rules, mirroring the web engine. */
+function composeRule(entry: RegisteredField | undefined): FieldRule | undefined {
+  if (!entry) return undefined;
+  if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+  return entry.rule;
+}
+
+/* ============================================================================
+ * Contexts
+ * ========================================================================== */
+interface FormContextValue {
+  values: FormValues;
+  errors: FieldErrors;
+  submitting: boolean;
+  disabled: boolean;
+  isValid: boolean;
+  size: FormSize;
+  setValue: (name: string, value: unknown) => void;
+  registerField: (name: string, rule?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  submit: () => Promise<void>;
+}
+
+const FormContext = createContext<FormContextValue | undefined>(undefined);
+
+const useFormContext = () => {
+  const context = useContext(FormContext);
+  if (!context) throw new Error('Form sub-components must be used within Form.Root');
+  return context;
+};
+
+export interface FieldContextValue {
+  name: string;
+  label?: string;
+  hint?: string;
+  isRequired: boolean;
+}
+
+const FieldContext = createContext<FieldContextValue | undefined>(undefined);
+
+const useFormField = () => {
+  const context = useContext(FieldContext);
+  if (!context) throw new Error('Form.Label, Form.Control and Form.Message must be used within Form.Field');
+  return context;
+};
+
+/* ============================================================================
+ * Props
+ * ========================================================================== */
+export interface FormRootProps extends FormOptions {
+  children?: React.ReactNode;
+  variant?: FormVariant;
+  size?: FormSize;
+  disabled?: boolean;
+  className?: string;
+}
+
+export interface FormFieldProps {
+  /** Data key this field binds to in the form values record */
+  name: string;
+  label?: string;
+  hint?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  children: React.ReactNode | ((field: FieldContextValue) => React.ReactNode);
+  className?: string;
+}
+
+export interface FormControlProps {
+  /** Overrides the accessible label announced to assistive tech (defaults to the Field label) */
+  label?: string;
+  /** Overrides the accessible hint announced to assistive tech (defaults to the Field hint) */
+  hint?: string;
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export interface FormMessageProps {
+  /** Static fallback text shown when the field has no validation error */
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export interface FormSubmitProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Button caption when no children are supplied */
+  label?: string;
+  /** Disable the press while validation fails — default false so a press surfaces the errors */
+  disableOnInvalid?: boolean;
+  className?: string;
+}
+
+/* ============================================================================
+ * Internal components
+ * ========================================================================== */
+const InternalRoot = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  disabled = false,
+  defaultValues,
+  onSubmit,
+  onError,
+  className,
+}: FormRootProps) => {
+  const [values, setValuesState] = useState<FormValues>({ ...(defaultValues ?? {}) });
+  const [errors, setErrorsState] = useState<FieldErrors>({});
+  const [fieldRules, setFieldRules] = useState<Record<string, RegisteredField>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  // Mirrors of the latest state so submit()/setValue() can read synchronously.
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+  const errorsRef = useRef(errors);
+  errorsRef.current = errors;
+  const fieldRulesRef = useRef(fieldRules);
+  fieldRulesRef.current = fieldRules;
+  const defaultsRef = useRef(defaultValues);
+  defaultsRef.current = defaultValues;
+  const onSubmitRef = useRef(onSubmit);
+  onSubmitRef.current = onSubmit;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
+  const reset = useCallback((next?: Partial<FormValues>) => {
+    setValuesState({ ...(next ?? defaultsRef.current) });
+    setErrorsState({});
+  }, []);
+
+  const setFieldError = useCallback((name: string, message: string) => {
+    setErrorsState((prev) => ({ ...prev, [name]: message || undefined }));
+  }, []);
+
+  const applyPatch = useCallback((patch: Partial<FormValues>) => {
+    setValuesState((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const registerField = useCallback((name: string, rule?: FieldRule, required?: boolean) => {
+    setFieldRules((prev) => ({ ...prev, [name]: { rule, required } }));
+  }, []);
+
+  const unregisterField = useCallback((name: string) => {
+    setFieldRules((prev) => {
+      if (!(name in prev)) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }, []);
+
+  // Re-validates a field that already shows an error (the RN counterpart of the
+  // web engine's reValidateMode: 'onChange').
+  const setValue = useCallback((name: string, value: unknown) => {
+    setValuesState((prev) => ({ ...prev, [name]: value }));
+    const composed = composeRule(fieldRulesRef.current[name]);
+    if (!composed || errorsRef.current[name] === undefined) return;
+    const candidate = { ...valuesRef.current, [name]: value };
+    void evaluateRule(composed, value, candidate).then((message) => {
+      setErrorsState((prev) => ({ ...prev, [name]: message ?? undefined }));
+    });
+  }, []);
+
+  const submit = useCallback(async () => {
+    const snapshot = valuesRef.current;
+    const names = Object.keys(fieldRulesRef.current);
+    const results = await Promise.all(
+      names.map((name) =>
+        evaluateRule(composeRule(fieldRulesRef.current[name]), snapshot[name], snapshot),
+      ),
+    );
+    const found: FieldErrors = {};
+    names.forEach((name, index) => {
+      found[name] = results[index] || undefined;
+    });
+    setErrorsState(found);
+    if (Object.values(found).some(Boolean)) {
+      onErrorRef.current?.(found);
+      return;
+    }
+    try {
+      setSubmitting(true);
+      await onSubmitRef.current?.(snapshot, {
+        reset,
+        setError: setFieldError,
+        setValues: applyPatch,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }, [reset, setFieldError, applyPatch]);
+
+  const isValid = useMemo(() => {
+    for (const message of Object.values(errors)) if (message) return false;
+    for (const [fieldName, entry] of Object.entries(fieldRules)) {
+      if (!entry.required && !entry.rule?.required) continue;
+      const candidate = values[fieldName];
+      if (candidate === undefined || candidate === null || candidate === '' || candidate === false) {
+        return false;
+      }
+    }
+    return true;
+  }, [errors, fieldRules, values]);
+
+  const contextValue: FormContextValue = {
+    values,
+    errors,
+    submitting,
+    disabled,
+    isValid,
+    size,
+    setValue,
+    registerField,
+    unregisterField,
+    submit,
+  };
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <View
+        className={[
+          'w-full',
+          ROOT_VARIANT_CLASSES[variant],
+          disabled && 'opacity-60',
+          className,
+        ].filter(Boolean).join(' ')}
+      >
+        {children}
+      </View>
+    </FormContext.Provider>
+  );
+};
+
+const InternalField = ({
+  name,
+  label,
+  hint,
+  required = false,
+  rules,
+  children,
+  className,
+}: FormFieldProps) => {
+  const { registerField, unregisterField } = useFormContext();
+
+  const fieldContext = useMemo<FieldContextValue>(
+    () => ({ name, label, hint, isRequired: !!required || !!rules?.required }),
+    [name, label, hint, required, rules],
+  );
+
+  useEffect(() => {
+    registerField(name, rules, required);
+    return () => unregisterField(name);
+  }, [name, rules, required, registerField, unregisterField]);
+
+  const content = typeof children === 'function' ? children(fieldContext) : children;
+
+  // Absorbs the layout role of the web Form.Item wrapper.
+  return (
+    <FieldContext.Provider value={fieldContext}>
+      <View className={['w-full gap-2', className].filter(Boolean).join(' ')}>{content}</View>
+    </FieldContext.Provider>
+  );
+};
+
+const InternalLabel = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+  const { name, isRequired } = useFormField();
+  const { errors, size } = useFormContext();
+  const labelCls = [
+    'font-medium text-foreground',
+    LABEL_SIZE_CLASSES[size],
+    errors[name] && 'text-destructive',
+    className,
+  ].filter(Boolean).join(' ');
+
+  return (
+    <Text className={labelCls}>
+      {children}
+      {isRequired && <Text className={REQUIRED_STAR_CLASS}> *</Text>}
+    </Text>
+  );
+};
+
+const InternalControl = ({ label: providedLabel, hint: providedHint, children, className }: FormControlProps) => {
+  const field = useFormField();
+  const a11yLabel = providedLabel ?? field.label;
+  const a11yHint = providedHint ?? field.hint;
+
+  return (
+    <View
+      className={['w-full', className].filter(Boolean).join(' ')}
+      accessibilityLabel={a11yLabel}
+      accessibilityHint={a11yHint}
+    >
+      {children}
+    </View>
+  );
+};
+
+const InternalMessage = ({ children, className }: FormMessageProps) => {
+  const { name } = useFormField();
+  const { errors } = useFormContext();
+  const body = errors[name] ?? children;
+  if (!body) return null;
+
+  return (
+    <Text className={['text-xs text-destructive', className].filter(Boolean).join(' ')} accessibilityRole="alert">
+      {body}
+    </Text>
+  );
+};
+
+const InternalSubmit = ({
+  label,
+  disableOnInvalid = false,
+  disabled,
+  onPress,
+  children,
+  className,
+  ...props
+}: FormSubmitProps) => {
+  const { submit, submitting, isValid, disabled: formDisabled, size } = useFormContext();
+  const isDisabled = !!disabled || formDisabled || submitting || (disableOnInvalid && !isValid);
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const submitA11yState = { disabled: isDisabled, busy: submitting };
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    if (!isDisabled) void submit();
+  };
+
+  const frameCls = [
+    'self-start flex-row items-center justify-center rounded-md bg-primary active:opacity-80',
+    SUBMIT_SIZE_CLASSES[size],
+    isDisabled && 'opacity-50',
+    className,
+  ].filter(Boolean).join(' ');
+  const labelCls = ['font-medium text-primary-foreground', LABEL_SIZE_CLASSES[size]]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <Pressable
+      className={frameCls}
+      onPress={handlePress}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={submitA11yState}
+      {...props}
+    >
+      <Text className={labelCls}>{children ?? label}</Text>
+    </Pressable>
+  );
+};
+
+export const FormRoot = InternalRoot;
+export const FormField = InternalField;
+export const FormLabel = InternalLabel;
+export const FormControl = InternalControl;
+export const FormMessage = InternalMessage;
+export const FormSubmit = InternalSubmit;
+
+/**
+ * Form — compound API. Compose freely:
+ *   <Form.Root onSubmit={handleSubmit} onError={handleErrors}>
+ *     <Form.Field name="email" label="Email" required rules={emailRules}>
+ *       <Form.Control><TextInput keyboardType="email-address" /></Form.Control>
+ *       <Form.Message />
+ *     </Form.Field>
+ *     <Form.Submit label="Save" />
+ *   </Form.Root>
+ */
+export const Form = Object.assign(FormRoot, {
+  Root: FormRoot,
+  Field: FormField,
+  Label: FormLabel,
+  Control: FormControl,
+  Message: FormMessage,
+  Submit: FormSubmit,
+});
+
+Object.assign(Form, { displayName: 'Form' });
+Object.assign(FormRoot, { displayName: 'Form.Root' });
+Object.assign(FormField, { displayName: 'Form.Field' });
+Object.assign(FormLabel, { displayName: 'Form.Label' });
+Object.assign(FormControl, { displayName: 'Form.Control' });
+Object.assign(FormMessage, { displayName: 'Form.Message' });
+Object.assign(FormSubmit, { displayName: 'Form.Submit' });
+",
+  "README.md": "# Form
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`inline\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`- \`error\`- \`submitting\`
 
 ## Design Tokens
 
@@ -1748,6 +2984,286 @@ Switch.displayName = 'Switch';
 }
 `;
 
+exports[`React Native snapshots > StyleSystem: nativewind > Component: Tabs > renders correctly 1`] = `
+{
+  "README.md": "# Tabs
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`underline\`- \`pills\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`
+
+## Design Tokens
+
+This component's classNames resolve against the generated \`tailwind.preset.js\` — add
+\`presets: [require('./tailwind.preset.js')]\` to your \`tailwind.config.js\`. Re-run
+\`crucible tokens --force\` (or \`crucible add ... --force\`) after changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+  "Tabs.stories.tsx": "// Crucible preview examples for Tabs (React Native / NativeWind).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) — these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Tabs.Root {...TabsPreviews.underline}>...</Tabs.Root>\`), not a Storybook CSF file.
+import type { TabsOptions } from './Tabs';
+
+export const TabsPreviews: Record<string, TabsOptions> = {
+  default: { variant: 'default' },
+  underline: { variant: 'underline' },
+  pills: { variant: 'pills' },
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+  controlled: { variant: 'underline', value: 'payments' },
+  vertical: { orientation: 'vertical' },
+};
+",
+  "Tabs.tsx": "import React, { createContext, useContext, useState } from 'react';
+import { View, Text, Pressable, type PressableProps , type GestureResponderEvent } from 'react-native';
+
+// ponytail: active-trigger looks are fixed here rather than driven by the manifest
+// nativewindVariants map because tabs style the SELECTED trigger per variant, not
+// the whole component — tabs.json carries equivalent per-variant hints instead.
+
+const TRIGGER_SHAPE: Record<string, string> = {
+  default: 'rounded-md',
+  underline: 'rounded-none border-b-2 border-transparent',
+  pills: 'rounded-full',
+};
+
+const TRIGGER_ACTIVE: Record<string, string> = {
+  default: 'bg-secondary',
+  underline: 'border-primary',
+  pills: 'bg-primary',
+};
+
+const TRIGGER_SIZE: Record<string, string> = {
+  sm: 'px-3 h-8',
+  md: 'px-4 h-9',
+  lg: 'px-5 h-11',
+};
+
+const LABEL_SIZE: Record<string, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+const LIST_BORDERED: Record<string, string> = {
+  default: 'border-b border-border',
+  underline: 'border-b border-border',
+  pills: '',
+};
+
+export type TabsVariant = 'default' | 'underline' | 'pills';
+export type TabsSize    = 'sm' | 'md' | 'lg';
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'manual' | 'automatic';
+
+export interface TabsOptions {
+  /** Visual variant of the trigger list */
+  variant?: TabsVariant;
+  /** Trigger sizing */
+  size?: TabsSize;
+  /** Controlled active tab value */
+  value?: string;
+  /** Initial active tab value when uncontrolled */
+  defaultValue?: string;
+  /** Called with the next value whenever a trigger is pressed */
+  onValueChange?: (value: string) => void;
+  /**
+   * 'vertical' stacks the trigger list in a column. Deviation from the web tabs
+   * pattern: the active content still renders BELOW the list, not beside it.
+   */
+  orientation?: TabsOrientation;
+  /**
+   * Accepted for parity with the web tabs pattern but inert on touch — mobile
+   * has no focus-before-activate distinction, so every press selects its tab
+   * immediately ('automatic' behavior).
+   */
+  activationMode?: TabsActivationMode;
+}
+
+interface TabsContextValue {
+  value?: string;
+  setValue: (next: string) => void;
+  variant: TabsVariant;
+  size: TabsSize;
+  orientation: TabsOrientation;
+}
+
+const TabsContext = createContext<TabsContextValue | undefined>(undefined);
+
+const useTabsContext = () => {
+  const context = useContext(TabsContext);
+  if (!context) throw new Error('Tabs sub-components must be used within Tabs.Root');
+  return context;
+};
+
+export interface TabsRootProps extends TabsOptions {
+  children: React.ReactNode;
+  variant?: TabsVariant;
+  size?: TabsSize;
+  className?: string;
+}
+
+interface TabsListProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface TabsTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  value: string;
+  className?: string;
+}
+
+interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const InternalRoot = ({
+  children,
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  orientation = 'horizontal',
+  variant = 'default',
+  size = 'md',
+  className,
+  ...props
+}: TabsRootProps) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
+  const value = controlledValue ?? uncontrolledValue;
+
+  const setValue = (next: string) => {
+    if (controlledValue === undefined) {
+      setUncontrolledValue(next);
+    }
+    onValueChange?.(next);
+  };
+
+  const contextValue: TabsContextValue = { value, setValue, variant, size, orientation };
+
+  return (
+    <TabsContext.Provider value={contextValue}>
+      <View className={['w-full', className].filter(Boolean).join(' ')} {...props}>
+        {children}
+      </View>
+    </TabsContext.Provider>
+  );
+};
+
+const InternalList = ({ children, className }: TabsListProps) => {
+  const { variant, orientation } = useTabsContext();
+
+  const listCls = [
+    'shrink-0',
+    orientation === 'vertical' ? 'flex-col items-stretch' : 'flex-row items-center',
+    LIST_BORDERED[variant],
+    className,
+  ].filter(Boolean).join(' ');
+
+  return (
+    <View className={listCls} accessibilityRole="tablist">
+      {children}
+    </View>
+  );
+};
+
+const InternalTrigger = ({
+  value,
+  disabled = false,
+  className,
+  children,
+  onPress,
+  ...props
+}: TabsTriggerProps) => {
+  const { value: activeValue, setValue, variant, size } = useTabsContext();
+  const isActive = activeValue === value;
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    setValue(value);
+  };
+
+  const triggerA11yState = { selected: isActive, disabled: !!disabled };
+
+  const frameCls = [
+    'flex-row items-center justify-center',
+    TRIGGER_SHAPE[variant],
+    TRIGGER_SIZE[size],
+    isActive && TRIGGER_ACTIVE[variant],
+    disabled && 'opacity-50',
+    className,
+  ].filter(Boolean).join(' ');
+
+  const labelCls = [
+    'font-medium',
+    LABEL_SIZE[size],
+    isActive ? (variant === 'pills' ? 'text-white' : 'text-foreground') : 'text-text-muted',
+  ].filter(Boolean).join(' ');
+
+  return (
+    <Pressable
+      className={frameCls}
+      onPress={handlePress}
+      disabled={disabled}
+      accessibilityRole="tab"
+      accessibilityState={triggerA11yState}
+      {...props}
+    >
+      <Text className={labelCls}>{children}</Text>
+    </Pressable>
+  );
+};
+
+const InternalContent = ({ value, children, className }: TabsContentProps) => {
+  const { value: activeValue } = useTabsContext();
+
+  if (activeValue !== value) {
+    return null;
+  }
+
+  return (
+    <View className={['py-4', className].filter(Boolean).join(' ')}>
+      {children}
+    </View>
+  );
+};
+
+InternalRoot.displayName = 'Tabs.Root';
+InternalList.displayName = 'Tabs.List';
+InternalTrigger.displayName = 'Tabs.Trigger';
+InternalContent.displayName = 'Tabs.Content';
+
+export const TabsRoot = InternalRoot;
+export const TabsList = InternalList;
+export const TabsTrigger = InternalTrigger;
+export const TabsContent = InternalContent;
+
+export const Tabs = Object.assign(TabsRoot, {
+  List: TabsList,
+  Trigger: TabsTrigger,
+  Content: TabsContent,
+});
+
+Tabs.displayName = 'Tabs';
+",
+}
+`;
+
 exports[`React Native snapshots > StyleSystem: nativewind > Component: Textarea > renders correctly 1`] = `
 {
   "README.md": "# Textarea
@@ -1818,7 +3334,7 @@ export interface TextareaProps extends TextInputProps {
   className?:  string;
 }
 
-// ponytail: aria-describedby/aria-invalid from the web version become visible hint/error
+// ponytail: web describedby/invalid semantics become visible hint/error
 // text below the field plus error text folded into accessibilityLabel.
 // Hoisted so Handlebars never parses an inline object literal as a helper.
 const DISABLED_STATE = { disabled: true } as const;
@@ -1865,6 +3381,423 @@ export const Textarea = React.forwardRef<TextInput, TextareaProps>(
 );
 
 Textarea.displayName = 'Textarea';
+",
+}
+`;
+
+exports[`React Native snapshots > StyleSystem: stylesheet > Component: Accordion > renders correctly 1`] = `
+{
+  "Accordion.stories.tsx": "// Crucible preview examples for Accordion (React Native / StyleSheet).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) — these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Accordion {...AccordionPreviews.default}>…</Accordion>\`) — not a Storybook CSF file.
+import type { AccordionRootProps, AccordionSize } from './Accordion';
+
+// ponytail: compound mode — presets configure <Accordion.Root>; supply Item/Trigger/Content children.
+export const AccordionPreviews: Record<string, AccordionRootProps & { size?: AccordionSize }> = {
+  default: {},
+  bordered: {},
+  separated: {},
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+  singleOpen: { defaultValue: 'overview' },
+  multipleOpen: { type: 'multiple', defaultValue: ['shipping', 'billing'] },
+  nonCollapsible: { collapsible: false, defaultValue: 'terms' },
+};
+",
+  "Accordion.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Animated,
+  StyleSheet,
+  type PressableProps,
+  type GestureResponderEvent,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import { theme } from '../../../theme';
+
+export type AccordionVariant = 'default' | 'bordered' | 'separated';
+export type AccordionSize    = 'sm' | 'md' | 'lg';
+export type AccordionType = 'single' | 'multiple';
+
+export interface AccordionOptions {
+  /** Whether one ("single") or many ("multiple") items can be open at once */
+  type?: AccordionType;
+  /** Controlled open item value(s) */
+  value?: string | string[];
+  /** Initial open item value(s) when uncontrolled */
+  defaultValue?: string | string[];
+  /** Called with the next open value(s) */
+  onValueChange?: (value: string | string[]) => void;
+  /** In "single" mode, whether the open item can be collapsed again */
+  collapsible?: boolean;
+}
+
+const ROOT_VARIANT_STYLES: Record<AccordionVariant, object> = {
+  default: {},
+  bordered: {
+    borderWidth: 1,
+    borderColor: theme.colorBorder,
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+  },
+  separated: { gap: 8 },
+};
+
+const ITEM_VARIANT_STYLES: Record<AccordionVariant, object> = {
+  default: { borderBottomWidth: 1, borderBottomColor: theme.colorBorder },
+  bordered: { borderBottomWidth: 1, borderBottomColor: theme.colorBorder },
+  separated: {
+    borderWidth: 1,
+    borderColor: theme.colorBorder,
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+    overflow: 'hidden',
+  },
+};
+
+const TRIGGER_SIZE_STYLES: Record<AccordionSize, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 8 },
+  md: { paddingHorizontal: 16, paddingVertical: 12 },
+  lg: { paddingHorizontal: 20, paddingVertical: 16 },
+};
+
+const LABEL_SIZE_STYLES: Record<AccordionSize, object> = {
+  sm: { fontSize: 14 },
+  md: { fontSize: 16 },
+  lg: { fontSize: 18 },
+};
+
+/** Generous cap for the height-reveal animation — content taller than this gets clipped. */
+const MAX_CONTENT_HEIGHT = 500;
+
+// ponytail: a11y.reduceMotion from the crucible config collapses the reveal/rotate durations
+// to 0ms so open/close snaps instantly — the RN counterpart of the web build honoring the
+// OS reduced-motion preference. Same mechanics, zero motion.
+const MOTION_DURATION_MS = 0;
+
+const styles = StyleSheet.create({
+  root: { width: '100%' },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  headerLabel: { flexShrink: 1, fontWeight: '500', color: theme.foreground },
+  chevron: { color: theme.colorTextMuted, fontSize: 18 },
+  clipper: { overflow: 'hidden' },
+  contentInner: { paddingHorizontal: 16, paddingBottom: 16 },
+  disabled: { opacity: 0.5 },
+});
+
+const toOpenList = (value: string | string[] | undefined): string[] => {
+  if (value == null || value === '') return [];
+  return Array.isArray(value) ? value : [value];
+};
+
+const useAccordionState = ({
+  type = 'single',
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  collapsible = true,
+}: AccordionOptions = {}) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | string[] | undefined>(
+    defaultValue
+  );
+  const value = controlledValue ?? uncontrolledValue;
+  const openSet = useMemo(() => new Set(toOpenList(value)), [value]);
+
+  const commit = useCallback(
+    (next: string | string[]) => {
+      if (controlledValue === undefined) setUncontrolledValue(next);
+      onValueChange?.(next);
+    },
+    [controlledValue, onValueChange]
+  );
+
+  const toggle = useCallback(
+    (itemValue: string) => {
+      if (type === 'multiple') {
+        const next = new Set(openSet);
+        if (next.has(itemValue)) next.delete(itemValue);
+        else next.add(itemValue);
+        commit(Array.from(next));
+        return;
+      }
+      const wasOpen = openSet.has(itemValue);
+      if (wasOpen) commit(collapsible ? '' : itemValue);
+      else commit(itemValue);
+    },
+    [type, openSet, collapsible, commit]
+  );
+
+  const isOpen = useCallback((itemValue: string) => openSet.has(itemValue), [openSet]);
+
+  return { isOpen, toggle };
+};
+
+interface TriggerBaseProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  label: React.ReactNode;
+  size: AccordionSize;
+  open: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+// ponytail: RN has no accordion role — the trigger is a button whose expanded state rides on
+// its accessibility state. Roving focus / arrow-key plumbing from the web build is omitted;
+// navigation is touch/screen-reader driven on mobile.
+const TriggerBase = ({ label, size, open, disabled, onToggle, style, ...props }: TriggerBaseProps) => {
+  const rotate = useRef(new Animated.Value(open ? 1 : 0)).current;
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const triggerState = { disabled, expanded: open };
+  const chevronStyle = {
+    transform: [
+      { rotate: rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) },
+    ],
+  };
+
+  useEffect(() => {
+    Animated.timing(rotate, {
+      toValue: open ? 1 : 0,
+      duration: MOTION_DURATION_MS,
+      useNativeDriver: true,
+    }).start();
+  }, [open, rotate]);
+
+  const handlePress = (event: GestureResponderEvent) => {
+    props.onPress?.(event);
+    if (!disabled) onToggle();
+  };
+
+  return (
+    <Pressable
+      {...props}
+      style={[styles.headerRow, TRIGGER_SIZE_STYLES[size], disabled && styles.disabled, style]}
+      disabled={disabled}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityState={triggerState}
+    >
+      <Text style={[styles.headerLabel, LABEL_SIZE_STYLES[size]]}>{label}</Text>
+      <Animated.Text style={[styles.chevron, chevronStyle]}>›</Animated.Text>
+    </Pressable>
+  );
+};
+
+interface ContentBaseProps {
+  children?: React.ReactNode;
+  open: boolean;
+  style?: StyleProp<ViewStyle>;
+}
+
+// ponytail: height reveal via an interpolated maxHeight cap (layout prop → JS driver). The
+// body stays mounted so closing animates too; when closed it is clipped to zero height,
+// faded out, and pointer-events are cut off.
+const ContentBase = ({ children, open, style }: ContentBaseProps) => {
+  const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
+  const bodyStyle = {
+    maxHeight: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, MAX_CONTENT_HEIGHT],
+    }),
+    opacity: progress,
+  };
+  const pointerRule = open ? 'auto' : 'none';
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: open ? 1 : 0,
+      duration: MOTION_DURATION_MS,
+      useNativeDriver: false,
+    }).start();
+  }, [open, progress]);
+
+  return (
+    <Animated.View style={[styles.clipper, bodyStyle, style]} pointerEvents={pointerRule}>
+      <View style={styles.contentInner}>{children}</View>
+    </Animated.View>
+  );
+};
+
+interface AccordionContextValue {
+  isOpen: (value: string) => boolean;
+  toggle: (value: string) => void;
+}
+
+const AccordionContext = createContext<AccordionContextValue | undefined>(undefined);
+
+const useAccordionContext = () => {
+  const context = useContext(AccordionContext);
+  if (!context) throw new Error('Accordion sub-components must be used within Accordion.Root');
+  return context;
+};
+
+interface AccordionItemContextValue {
+  value: string;
+  disabled: boolean;
+}
+
+const ItemContext = createContext<AccordionItemContextValue | undefined>(undefined);
+
+const useItemContext = () => {
+  const context = useContext(ItemContext);
+  if (!context) throw new Error('Accordion.Trigger / Accordion.Content must be used within Accordion.Item');
+  return context;
+};
+
+export interface AccordionRootProps extends AccordionOptions {
+  children?: React.ReactNode;
+  variant?: AccordionVariant;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionRoot = ({
+  children,
+  variant = 'default',
+  style,
+  ...options
+}: AccordionRootProps) => {
+  const accordion = useAccordionState(options);
+
+  return (
+    <AccordionContext.Provider value={accordion}>
+      <View style={[styles.root, ROOT_VARIANT_STYLES[variant], style]}>{children}</View>
+    </AccordionContext.Provider>
+  );
+};
+
+export interface AccordionItemProps {
+  /** Unique id this item toggles — referenced by Accordion's value/defaultValue */
+  value: string;
+  disabled?: boolean;
+  variant?: AccordionVariant;
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionItem = ({
+  value,
+  disabled = false,
+  variant = 'default',
+  style,
+  children,
+}: AccordionItemProps) => {
+  const { isOpen } = useAccordionContext();
+  const open = isOpen(value);
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const itemContextValue = { value, disabled };
+
+  return (
+    <ItemContext.Provider value={itemContextValue}>
+      <View style={[ITEM_VARIANT_STYLES[variant], disabled && styles.disabled, style]}>
+        {children}
+      </View>
+    </ItemContext.Provider>
+  );
+};
+
+export interface AccordionTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  size?: AccordionSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionTrigger = ({
+  size = 'md',
+  onPress,
+  disabled,
+  style,
+  children,
+  ...props
+}: AccordionTriggerProps) => {
+  const { isOpen, toggle } = useAccordionContext();
+  const { value, disabled: itemDisabled } = useItemContext();
+  const open = isOpen(value);
+  const isDisabled = disabled ?? itemDisabled;
+
+  return (
+    <TriggerBase
+      {...props}
+      label={children}
+      size={size}
+      open={open}
+      disabled={!!isDisabled}
+      onToggle={() => toggle(value)}
+      onPress={onPress}
+      style={style}
+    />
+  );
+};
+
+export interface AccordionContentProps {
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionContent = ({ children, style }: AccordionContentProps) => {
+  const { isOpen } = useAccordionContext();
+  const { value } = useItemContext();
+  const open = isOpen(value);
+
+  return (
+    <ContentBase open={open} style={style}>
+      {children}
+    </ContentBase>
+  );
+};
+
+export const Accordion = Object.assign(AccordionRoot, {
+  Root: AccordionRoot,
+  Item: AccordionItem,
+  Trigger: AccordionTrigger,
+  Content: AccordionContent,
+});
+
+Accordion.displayName = 'Accordion';
+AccordionRoot.displayName = 'Accordion.Root';
+AccordionItem.displayName = 'Accordion.Item';
+AccordionTrigger.displayName = 'Accordion.Trigger';
+AccordionContent.displayName = 'Accordion.Content';
+",
+  "README.md": "# Accordion
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`bordered\`- \`separated\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`
+
+## Design Tokens
+
+This component reads its tokens from the generated \`theme.ts\` (a plain JS object — see
+\`../../../theme\`). Re-run \`crucible tokens --force\` (or \`crucible add ... --force\`) after
+changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
 ",
 }
 `;
@@ -2662,6 +4595,833 @@ Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
 
 ## States
 - \`disabled\`- \`checked\`- \`error\`
+
+## Design Tokens
+
+This component reads its tokens from the generated \`theme.ts\` (a plain JS object — see
+\`../../../theme\`). Re-run \`crucible tokens --force\` (or \`crucible add ... --force\`) after
+changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
+exports[`React Native snapshots > StyleSystem: stylesheet > Component: Dialog > renders correctly 1`] = `
+{
+  "Dialog.stories.tsx": "// Crucible preview examples for Dialog (React Native / StyleSheet).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) - these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Dialog isOpen onClose {...DialogPreviews.default}>...</Dialog>\`),
+// not a Storybook CSF file.
+import type { DialogRootProps } from './Dialog';
+
+export const DialogPreviews: Record<string, Omit<DialogRootProps, 'isOpen' | 'onClose' | 'children'>> = {
+  default: { variant: 'default' },
+  confirm: { variant: 'confirm' },
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+ };
+",
+  "Dialog.tsx": "import React, { createContext, useContext } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+  type GestureResponderEvent,
+} from 'react-native';
+import { theme } from '../../../theme';
+
+export type DialogVariant = 'default' | 'confirm';
+export type DialogSize    = 'sm' | 'md' | 'lg';
+
+const SIZE_MAX_WIDTHS: Record<string, number> = {
+  sm: 320,
+  md: 400,
+  lg: 480,
+};
+
+interface DialogContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  variant: DialogVariant;
+  size: DialogSize;
+}
+
+const DialogContext = createContext<DialogContextValue | undefined>(undefined);
+
+const useDialogContext = () => {
+  const ctx = useContext(DialogContext);
+  if (!ctx) throw new Error('Dialog parts must be used within Dialog');
+  return ctx;
+};
+
+// ponytail: React Native has no native dialog role - the card relies on
+// accessibilityViewIsModal (iOS) plus an explicit accessibilityLabel instead of
+// the web focus-trap/dialog-role pattern. Android hardware back closes via
+// Modal's onRequestClose.
+export interface DialogRootProps {
+  /** Whether the dialog is currently shown */
+  isOpen: boolean;
+  /** Called when the overlay, close control or hardware back requests dismissal */
+  onClose: () => void;
+  /** Visual variant of the dialog card */
+  variant?: DialogVariant;
+  /** Maximum width of the dialog card */
+  size?: DialogSize;
+  children?: React.ReactNode;
+}
+
+export const DialogRoot = ({
+  isOpen,
+  onClose,
+  variant = 'default',
+  size = 'md',
+  children,
+}: DialogRootProps) => {
+  const contextValue = { isOpen, onClose, variant, size };
+
+  return <DialogContext.Provider value={contextValue}>{children}</DialogContext.Provider>;
+};
+
+interface DialogCloseProps extends Omit<PressableProps, 'style'> {
+  /** Accessible name for the close control (defaults to "Close") */
+  label?: string;
+  /** Plain style prop (Pressable's render-fn form unsupported) */
+  style?: StyleProp<ViewStyle>;
+}
+
+export const DialogClose = ({ onPress, label = 'Close', style, ...props }: DialogCloseProps) => {
+  const { onClose } = useDialogContext();
+
+  const handlePress = (event: GestureResponderEvent) => {
+    onPress?.(event);
+    onClose();
+  };
+
+  return (
+    <Pressable onPress={handlePress} style={[styles.close, style]} accessibilityRole="button" accessibilityLabel={label} {...props}>
+      <Text style={styles.closeGlyph}>✕</Text>
+    </Pressable>
+  );
+};
+
+export interface DialogContentProps {
+  /** Accessible name for the dialog card - always provide one (RN has no dialog role) */
+  accessibilityLabel?: string;
+  children?: React.ReactNode;
+}
+
+const styles = StyleSheet.create({
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.5)' },
+  wrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  cardBase: { width: '100%', backgroundColor: theme.colorSurface, borderRadius: Number.parseInt(theme.radiusMd, 10) || 8 },
+  cardConfirm: { borderTopWidth: 4, borderTopColor: theme.colorPrimary },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 20, paddingTop: 20 },
+  title: { flexShrink: 1, fontSize: 17, fontWeight: '600', color: theme.foreground },
+  close: { padding: 4 },
+  closeGlyph: { fontSize: 16, lineHeight: 22, color: theme.colorTextMuted },
+  body: { paddingHorizontal: 20, paddingVertical: 16 },
+  footer: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 8 },
+});
+
+export const DialogContent = ({ accessibilityLabel, children }: DialogContentProps) => {
+  const { isOpen, onClose, variant, size } = useDialogContext();
+
+  const backdropPress = () => {
+    onClose();
+  };
+
+  const cardWidth = { maxWidth: SIZE_MAX_WIDTHS[size] ?? SIZE_MAX_WIDTHS.md };
+  const cardClasses =
+    variant === 'confirm' ? [styles.cardBase, styles.cardConfirm] : styles.cardBase;
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      statusBarTranslucent
+      animationType="fade"
+      onRequestClose={() => {
+        onClose();
+      }}
+    >
+      <View style={styles.wrapper}>
+        <View style={StyleSheet.absoluteFill}>
+          <Pressable style={styles.backdrop} onPress={backdropPress} accessibilityLabel="Close dialog" />
+        </View>
+        <View
+          style={[cardClasses, cardWidth]}
+          accessibilityViewIsModal
+          accessibilityLabel={accessibilityLabel}
+        >
+          {children}
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export const DialogHeader = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <View style={[styles.header, style]}>{children}</View>;
+
+export const DialogTitle = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <Text style={[styles.title, style]}>{children}</Text>;
+
+export const DialogBody = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <ScrollView style={styles.body}>{children}</ScrollView>;
+
+export const DialogFooter = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <View style={[styles.footer, style]}>{children}</View>;
+
+export const Dialog = Object.assign(DialogRoot, {
+  // ponytail: the web Overlay part is baked into Content here - the Modal's backdrop
+  // layer IS the overlay, so no separate component is exposed.
+  Content: DialogContent,
+  Header: DialogHeader,
+  Title: DialogTitle,
+  Close: DialogClose,
+  Body: DialogBody,
+  Footer: DialogFooter,
+});
+
+Dialog.displayName = 'Dialog';
+DialogRoot.displayName = 'Dialog.Root';
+DialogContent.displayName = 'Dialog.Content';
+DialogHeader.displayName = 'Dialog.Header';
+DialogTitle.displayName = 'Dialog.Title';
+DialogClose.displayName = 'Dialog.Close';
+DialogBody.displayName = 'Dialog.Body';
+DialogFooter.displayName = 'Dialog.Footer';
+
+",
+  "README.md": "# Dialog
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`confirm\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`open\`- \`closed\`
+
+## Design Tokens
+
+This component reads its tokens from the generated \`theme.ts\` (a plain JS object — see
+\`../../../theme\`). Re-run \`crucible tokens --force\` (or \`crucible add ... --force\`) after
+changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+}
+`;
+
+exports[`React Native snapshots > StyleSystem: stylesheet > Component: Form > renders correctly 1`] = `
+{
+  "Form.stories.tsx": "// Crucible preview examples for Form (React Native / StyleSheet).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) — these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Form {...FormPreviews.default} />\`), not a Storybook CSF file.
+import type { FormRootProps, FormSubmitProps } from './Form';
+
+/** Stable no-op handler so preset objects stay referentially stable across renders. */
+const noop = () => {};
+
+export const FormPreviews: Record<string, FormRootProps> = {
+  default: { variant: 'default' },
+  inline: { variant: 'inline' },
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+  login: { defaultValues: { email: '', password: '' }, onSubmit: noop, onError: noop },
+  disabled: { disabled: true },
+  padded: { style: { paddingHorizontal: 16 } },
+};
+
+export const FormSubmitPreviews: Record<string, FormSubmitProps> = {
+  idle: { label: 'Save changes' },
+  disabled: { label: 'Save changes', disabled: true },
+  submitting: { label: 'Saving…', disabled: true },
+  disableOnInvalid: { label: 'Continue', disableOnInvalid: true },
+};
+",
+  "Form.tsx": "import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+  type TextStyle,
+  type GestureResponderEvent,
+} from 'react-native';
+import { theme } from '../../../theme';
+
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSubmitHelpers {
+  reset: (next?: Partial<FormValues>) => void;
+  setError: (name: string, message: string) => void;
+  setValues: (patch: Partial<FormValues>) => void;
+}
+
+export interface FormOptions {
+  defaultValues?: Partial<FormValues>;
+  onSubmit?: (values: FormValues, helpers: FormSubmitHelpers) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+interface RegisteredField {
+  rule?: FieldRule;
+  required?: boolean;
+}
+
+export type FormVariant = 'default' | 'inline';
+export type FormSize    = 'sm' | 'md' | 'lg';
+
+/* ============================================================================
+ * Style maps
+ * ========================================================================== */
+const ROOT_VARIANT_STYLES: Record<string, object> = {
+  default: { flexDirection: 'column', gap: 16 },
+  inline: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', gap: 16 },
+};
+
+const LABEL_SIZE_STYLES: Record<string, object> = {
+  sm: { fontSize: 13 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 15 },
+};
+
+const SUBMIT_SIZE_STYLES: Record<string, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 6 },
+  md: { paddingHorizontal: 16, paddingVertical: 8 },
+  lg: { paddingHorizontal: 20, paddingVertical: 10 },
+};
+
+const styles = StyleSheet.create({
+  root: { width: '100%' },
+  disabledRoot: { opacity: 0.6 },
+  fieldGroup: { width: '100%', gap: 8 },
+  controlWrap: { width: '100%' },
+  label: { fontWeight: '500', color: theme.foreground },
+  labelError: { color: theme.colorDestructive },
+  requiredStar: { color: theme.colorDestructive },
+  message: { fontSize: 12, color: theme.colorDestructive },
+  submit: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+    backgroundColor: theme.colorPrimary,
+  },
+  submitDisabled: { opacity: 0.5 },
+  submitLabel: { fontWeight: '500', color: theme.colorPrimaryForeground },
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: theme.colorBorder,
+    backgroundColor: theme.colorSurface,
+    color: theme.foreground,
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+  },
+  inputInvalid: { borderColor: theme.colorDestructive },
+});
+
+/* ============================================================================
+ * Pure helpers (ported verbatim from the web Form template)
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? \`Must be at least \${min.value}.\`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? \`Must be at most \${max.value}.\`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? \`Must be at least \${minLength.value} characters.\`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? \`Must be at most \${maxLength.value} characters.\`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+/** Merges a field-level required flag over its rules, mirroring the web engine. */
+function composeRule(entry: RegisteredField | undefined): FieldRule | undefined {
+  if (!entry) return undefined;
+  if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+  return entry.rule;
+}
+
+/* ============================================================================
+ * Contexts
+ * ========================================================================== */
+interface FormContextValue {
+  values: FormValues;
+  errors: FieldErrors;
+  submitting: boolean;
+  disabled: boolean;
+  isValid: boolean;
+  size: FormSize;
+  setValue: (name: string, value: unknown) => void;
+  registerField: (name: string, rule?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  submit: () => Promise<void>;
+}
+
+const FormContext = createContext<FormContextValue | undefined>(undefined);
+
+const useFormContext = () => {
+  const context = useContext(FormContext);
+  if (!context) throw new Error('Form sub-components must be used within Form.Root');
+  return context;
+};
+
+export interface FieldContextValue {
+  name: string;
+  label?: string;
+  hint?: string;
+  isRequired: boolean;
+}
+
+const FieldContext = createContext<FieldContextValue | undefined>(undefined);
+
+const useFormField = () => {
+  const context = useContext(FieldContext);
+  if (!context) throw new Error('Form.Label, Form.Control and Form.Message must be used within Form.Field');
+  return context;
+};
+
+/* ============================================================================
+ * Props
+ * ========================================================================== */
+export interface FormRootProps extends FormOptions {
+  children?: React.ReactNode;
+  variant?: FormVariant;
+  size?: FormSize;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}
+
+export interface FormFieldProps {
+  /** Data key this field binds to in the form values record */
+  name: string;
+  label?: string;
+  hint?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  children: React.ReactNode | ((field: FieldContextValue) => React.ReactNode);
+  style?: StyleProp<ViewStyle>;
+}
+
+export interface FormControlProps {
+  /** Overrides the accessible label announced to assistive tech (defaults to the Field label) */
+  label?: string;
+  /** Overrides the accessible hint announced to assistive tech (defaults to the Field hint) */
+  hint?: string;
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+export interface FormMessageProps {
+  /** Static fallback text shown when the field has no validation error */
+  children?: React.ReactNode;
+  style?: StyleProp<TextStyle>;
+}
+
+export interface FormSubmitProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Button caption when no children are supplied */
+  label?: string;
+  /** Disable the press while validation fails — default false so a press surfaces the errors */
+  disableOnInvalid?: boolean;
+  style?: StyleProp<ViewStyle>;
+}
+
+/* ============================================================================
+ * Internal components
+ * ========================================================================== */
+const InternalRoot = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  disabled = false,
+  defaultValues,
+  onSubmit,
+  onError,
+  style,
+}: FormRootProps) => {
+  const [values, setValuesState] = useState<FormValues>({ ...(defaultValues ?? {}) });
+  const [errors, setErrorsState] = useState<FieldErrors>({});
+  const [fieldRules, setFieldRules] = useState<Record<string, RegisteredField>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  // Mirrors of the latest state so submit()/setValue() can read synchronously.
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+  const errorsRef = useRef(errors);
+  errorsRef.current = errors;
+  const fieldRulesRef = useRef(fieldRules);
+  fieldRulesRef.current = fieldRules;
+  const defaultsRef = useRef(defaultValues);
+  defaultsRef.current = defaultValues;
+  const onSubmitRef = useRef(onSubmit);
+  onSubmitRef.current = onSubmit;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
+  const reset = useCallback((next?: Partial<FormValues>) => {
+    setValuesState({ ...(next ?? defaultsRef.current) });
+    setErrorsState({});
+  }, []);
+
+  const setFieldError = useCallback((name: string, message: string) => {
+    setErrorsState((prev) => ({ ...prev, [name]: message || undefined }));
+  }, []);
+
+  const applyPatch = useCallback((patch: Partial<FormValues>) => {
+    setValuesState((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const registerField = useCallback((name: string, rule?: FieldRule, required?: boolean) => {
+    setFieldRules((prev) => ({ ...prev, [name]: { rule, required } }));
+  }, []);
+
+  const unregisterField = useCallback((name: string) => {
+    setFieldRules((prev) => {
+      if (!(name in prev)) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }, []);
+
+  // Re-validates a field that already shows an error (the RN counterpart of the
+  // web engine's reValidateMode: 'onChange').
+  const setValue = useCallback((name: string, value: unknown) => {
+    setValuesState((prev) => ({ ...prev, [name]: value }));
+    const composed = composeRule(fieldRulesRef.current[name]);
+    if (!composed || errorsRef.current[name] === undefined) return;
+    const candidate = { ...valuesRef.current, [name]: value };
+    void evaluateRule(composed, value, candidate).then((message) => {
+      setErrorsState((prev) => ({ ...prev, [name]: message ?? undefined }));
+    });
+  }, []);
+
+  const submit = useCallback(async () => {
+    const snapshot = valuesRef.current;
+    const names = Object.keys(fieldRulesRef.current);
+    const results = await Promise.all(
+      names.map((name) =>
+        evaluateRule(composeRule(fieldRulesRef.current[name]), snapshot[name], snapshot),
+      ),
+    );
+    const found: FieldErrors = {};
+    names.forEach((name, index) => {
+      found[name] = results[index] || undefined;
+    });
+    setErrorsState(found);
+    if (Object.values(found).some(Boolean)) {
+      onErrorRef.current?.(found);
+      return;
+    }
+    try {
+      setSubmitting(true);
+      await onSubmitRef.current?.(snapshot, {
+        reset,
+        setError: setFieldError,
+        setValues: applyPatch,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }, [reset, setFieldError, applyPatch]);
+
+  const isValid = useMemo(() => {
+    for (const message of Object.values(errors)) if (message) return false;
+    for (const [fieldName, entry] of Object.entries(fieldRules)) {
+      if (!entry.required && !entry.rule?.required) continue;
+      const candidate = values[fieldName];
+      if (candidate === undefined || candidate === null || candidate === '' || candidate === false) {
+        return false;
+      }
+    }
+    return true;
+  }, [errors, fieldRules, values]);
+
+  const contextValue: FormContextValue = {
+    values,
+    errors,
+    submitting,
+    disabled,
+    isValid,
+    size,
+    setValue,
+    registerField,
+    unregisterField,
+    submit,
+  };
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <View style={[styles.root, ROOT_VARIANT_STYLES[variant], disabled && styles.disabledRoot, style]}>
+        {children}
+      </View>
+    </FormContext.Provider>
+  );
+};
+
+const InternalField = ({
+  name,
+  label,
+  hint,
+  required = false,
+  rules,
+  children,
+  style,
+}: FormFieldProps) => {
+  const { registerField, unregisterField } = useFormContext();
+
+  const fieldContext = useMemo<FieldContextValue>(
+    () => ({ name, label, hint, isRequired: !!required || !!rules?.required }),
+    [name, label, hint, required, rules],
+  );
+
+  useEffect(() => {
+    registerField(name, rules, required);
+    return () => unregisterField(name);
+  }, [name, rules, required, registerField, unregisterField]);
+
+  const content = typeof children === 'function' ? children(fieldContext) : children;
+
+  // Absorbs the layout role of the web Form.Item wrapper.
+  return (
+    <FieldContext.Provider value={fieldContext}>
+      <View style={[styles.fieldGroup, style]}>{content}</View>
+    </FieldContext.Provider>
+  );
+};
+
+const InternalLabel = ({ children, style }: { children?: React.ReactNode; style?: StyleProp<TextStyle> }) => {
+  const { name, isRequired } = useFormField();
+  const { errors, size } = useFormContext();
+
+  return (
+    <Text style={[styles.label, LABEL_SIZE_STYLES[size], errors[name] && styles.labelError, style]}>
+      {children}
+      {isRequired && <Text style={styles.requiredStar}> *</Text>}
+    </Text>
+  );
+};
+
+const InternalControl = ({ label: providedLabel, hint: providedHint, children, style }: FormControlProps) => {
+  const field = useFormField();
+  const a11yLabel = providedLabel ?? field.label;
+  const a11yHint = providedHint ?? field.hint;
+
+  return (
+    <View
+      style={[styles.controlWrap, style]}
+      accessibilityLabel={a11yLabel}
+      accessibilityHint={a11yHint}
+    >
+      {children}
+    </View>
+  );
+};
+
+const InternalMessage = ({ children, style }: FormMessageProps) => {
+  const { name } = useFormField();
+  const { errors } = useFormContext();
+  const body = errors[name] ?? children;
+  if (!body) return null;
+
+  return (
+    <Text style={[styles.message, style]} accessibilityRole="alert">
+      {body}
+    </Text>
+  );
+};
+
+const InternalSubmit = ({
+  label,
+  disableOnInvalid = false,
+  disabled,
+  onPress,
+  children,
+  style,
+  ...props
+}: FormSubmitProps) => {
+  const { submit, submitting, isValid, disabled: formDisabled, size } = useFormContext();
+  const isDisabled = !!disabled || formDisabled || submitting || (disableOnInvalid && !isValid);
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const submitA11yState = { disabled: isDisabled, busy: submitting };
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    if (!isDisabled) void submit();
+  };
+
+  return (
+    <Pressable
+      style={[styles.submit, SUBMIT_SIZE_STYLES[size], isDisabled && styles.submitDisabled, style]}
+      onPress={handlePress}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={submitA11yState}
+      {...props}
+    >
+      <Text style={[styles.submitLabel, LABEL_SIZE_STYLES[size]]}>{children ?? label}</Text>
+    </Pressable>
+  );
+};
+
+export const FormRoot = InternalRoot;
+export const FormField = InternalField;
+export const FormLabel = InternalLabel;
+export const FormControl = InternalControl;
+export const FormMessage = InternalMessage;
+export const FormSubmit = InternalSubmit;
+
+/**
+ * Form — compound API. Compose freely:
+ *   <Form.Root onSubmit={handleSubmit} onError={handleErrors}>
+ *     <Form.Field name="email" label="Email" required rules={emailRules}>
+ *       <Form.Control><TextInput keyboardType="email-address" /></Form.Control>
+ *       <Form.Message />
+ *     </Form.Field>
+ *     <Form.Submit label="Save" />
+ *   </Form.Root>
+ */
+export const Form = Object.assign(FormRoot, {
+  Root: FormRoot,
+  Field: FormField,
+  Label: FormLabel,
+  Control: FormControl,
+  Message: FormMessage,
+  Submit: FormSubmit,
+});
+
+Object.assign(Form, { displayName: 'Form' });
+Object.assign(FormRoot, { displayName: 'Form.Root' });
+Object.assign(FormField, { displayName: 'Form.Field' });
+Object.assign(FormLabel, { displayName: 'Form.Label' });
+Object.assign(FormControl, { displayName: 'Form.Control' });
+Object.assign(FormMessage, { displayName: 'Form.Message' });
+Object.assign(FormSubmit, { displayName: 'Form.Submit' });
+",
+  "README.md": "# Form
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`inline\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`- \`error\`- \`submitting\`
 
 ## Design Tokens
 
@@ -3699,6 +6459,312 @@ export const Switch = React.forwardRef<View, SwitchProps>(
 );
 
 Switch.displayName = 'Switch';
+",
+}
+`;
+
+exports[`React Native snapshots > StyleSystem: stylesheet > Component: Tabs > renders correctly 1`] = `
+{
+  "README.md": "# Tabs
+
+Generated by Crucible v1.2.1 | Theme: minimal | Framework: react-native
+
+## Variants
+- \`default\`- \`underline\`- \`pills\`
+
+## Sizes
+- \`sm\`- \`md\`- \`lg\`
+
+## States
+- \`disabled\`
+
+## Design Tokens
+
+This component reads its tokens from the generated \`theme.ts\` (a plain JS object — see
+\`../../../theme\`). Re-run \`crucible tokens --force\` (or \`crucible add ... --force\`) after
+changing your config to refresh it.
+
+---
+
+_This file is auto-generated. Edit the source template or run \`crucible upgrade\` after updating your config._
+",
+  "Tabs.stories.tsx": "// Crucible preview examples for Tabs (React Native / StyleSheet).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) — these are ready-to-spread prop presets for manual/visual QA
+// (e.g. \`<Tabs.Root {...TabsPreviews.underline}>...</Tabs.Root>\`), not a Storybook CSF file.
+import type { TabsOptions } from './Tabs';
+
+export const TabsPreviews: Record<string, TabsOptions> = {
+  default: { variant: 'default' },
+  underline: { variant: 'underline' },
+  pills: { variant: 'pills' },
+  smSize: { size: 'sm' },
+  mdSize: { size: 'md' },
+  lgSize: { size: 'lg' },
+  controlled: { variant: 'underline', value: 'payments' },
+  vertical: { orientation: 'vertical' },
+};
+",
+  "Tabs.tsx": "import React, { createContext, useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+  type GestureResponderEvent,
+} from 'react-native';
+import { theme } from '../../../theme';
+
+const styles = StyleSheet.create({
+  root: { width: '100%' },
+  listRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
+  listColumn: { flexDirection: 'column', alignItems: 'stretch', flexShrink: 0 },
+  listGap: { gap: 4 },
+  listBordered: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colorBorder,
+  },
+  trigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 6,
+  },
+  triggerText: { fontWeight: '500' },
+  content: { paddingTop: 16 },
+  disabled: { opacity: 0.5 },
+});
+
+// ponytail: active-trigger looks are fixed per variant (tabs style the SELECTED
+// trigger, not the whole component) — tabs.json nativewindDefaults carries the
+// NativeWind equivalents of these maps.
+
+const triggerShapeStyles: Record<string, object> = {
+  default: {},
+  underline: { borderRadius: 0, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  pills: { borderRadius: 999 },
+};
+
+const triggerActiveStyles: Record<string, object> = {
+  default: { backgroundColor: theme.colorSecondary },
+  underline: { borderBottomColor: theme.colorPrimary },
+  pills: { backgroundColor: theme.colorPrimary },
+};
+
+const sizeStyles: Record<string, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 6, minHeight: 32 },
+  md: { paddingHorizontal: 16, paddingVertical: 8, minHeight: 36 },
+  lg: { paddingHorizontal: 20, paddingVertical: 10, minHeight: 44 },
+};
+
+const labelSizeStyles: Record<string, object> = {
+  sm: { fontSize: 12 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 16 },
+};
+
+const BORDERED_VARIANTS: string[] = ['default', 'underline'];
+
+export type TabsVariant = 'default' | 'underline' | 'pills';
+export type TabsSize    = 'sm' | 'md' | 'lg';
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'manual' | 'automatic';
+
+export interface TabsOptions {
+  /** Visual variant of the trigger list */
+  variant?: TabsVariant;
+  /** Trigger sizing */
+  size?: TabsSize;
+  /** Controlled active tab value */
+  value?: string;
+  /** Initial active tab value when uncontrolled */
+  defaultValue?: string;
+  /** Called with the next value whenever a trigger is pressed */
+  onValueChange?: (value: string) => void;
+  /**
+   * 'vertical' stacks the trigger list in a column. Deviation from the web tabs
+   * pattern: the active content still renders BELOW the list, not beside it.
+   */
+  orientation?: TabsOrientation;
+  /**
+   * Accepted for parity with the web tabs pattern but inert on touch — mobile
+   * has no focus-before-activate distinction, so every press selects its tab
+   * immediately ('automatic' behavior).
+   */
+  activationMode?: TabsActivationMode;
+}
+
+interface TabsContextValue {
+  value?: string;
+  setValue: (next: string) => void;
+  variant: TabsVariant;
+  size: TabsSize;
+  orientation: TabsOrientation;
+}
+
+const TabsContext = createContext<TabsContextValue | undefined>(undefined);
+
+const useTabsContext = () => {
+  const context = useContext(TabsContext);
+  if (!context) throw new Error('Tabs sub-components must be used within Tabs.Root');
+  return context;
+};
+
+export interface TabsRootProps extends TabsOptions {
+  children: React.ReactNode;
+  variant?: TabsVariant;
+  size?: TabsSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+interface TabsListProps {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+interface TabsTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  value: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+const InternalRoot = ({
+  children,
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  orientation = 'horizontal',
+  variant = 'default',
+  size = 'md',
+  style,
+  ...props
+}: TabsRootProps) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
+  const value = controlledValue ?? uncontrolledValue;
+
+  const setValue = (next: string) => {
+    if (controlledValue === undefined) {
+      setUncontrolledValue(next);
+    }
+    onValueChange?.(next);
+  };
+
+  const contextValue: TabsContextValue = { value, setValue, variant, size, orientation };
+
+  return (
+    <TabsContext.Provider value={contextValue}>
+      <View style={[styles.root, style]} {...props}>
+        {children}
+      </View>
+    </TabsContext.Provider>
+  );
+};
+
+const InternalList = ({ children, style }: TabsListProps) => {
+  const { variant, orientation } = useTabsContext();
+
+  return (
+    <View
+      style={[
+        orientation === 'vertical' ? styles.listColumn : styles.listRow,
+        styles.listGap,
+        BORDERED_VARIANTS.includes(variant) && styles.listBordered,
+        style,
+      ]}
+      accessibilityRole="tablist"
+    >
+      {children}
+    </View>
+  );
+};
+
+const InternalTrigger = ({
+  value,
+  disabled = false,
+  children,
+  onPress,
+  style,
+  ...props
+}: TabsTriggerProps) => {
+  const { value: activeValue, setValue, variant, size } = useTabsContext();
+  const isActive = activeValue === value;
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    setValue(value);
+  };
+
+  const triggerA11yState = { selected: isActive, disabled: !!disabled };
+
+  let labelColor: string = theme.colorTextMuted;
+  if (isActive) {
+    labelColor = variant === 'pills' ? '#ffffff' : theme.foreground;
+  }
+
+  return (
+    <Pressable
+      style={[
+        styles.trigger,
+        triggerShapeStyles[variant],
+        sizeStyles[size],
+        isActive && triggerActiveStyles[variant],
+        disabled && styles.disabled,
+        style,
+      ]}
+      onPress={handlePress}
+      disabled={disabled}
+      accessibilityRole="tab"
+      accessibilityState={triggerA11yState}
+      {...props}
+    >
+      <Text style={[styles.triggerText, labelSizeStyles[size], { color: labelColor }]}>
+        {children}
+      </Text>
+    </Pressable>
+  );
+};
+
+const InternalContent = ({ value, children, style }: TabsContentProps) => {
+  const { value: activeValue } = useTabsContext();
+
+  if (activeValue !== value) {
+    return null;
+  }
+
+  return (
+    <View style={[styles.content, style]}>
+      {children}
+    </View>
+  );
+};
+
+InternalRoot.displayName = 'Tabs.Root';
+InternalList.displayName = 'Tabs.List';
+InternalTrigger.displayName = 'Tabs.Trigger';
+InternalContent.displayName = 'Tabs.Content';
+
+export const TabsRoot = InternalRoot;
+export const TabsList = InternalList;
+export const TabsTrigger = InternalTrigger;
+export const TabsContent = InternalContent;
+
+export const Tabs = Object.assign(TabsRoot, {
+  List: TabsList,
+  Trigger: TabsTrigger,
+  Content: TabsContent,
+});
+
+Tabs.displayName = 'Tabs';
 ",
 }
 `;

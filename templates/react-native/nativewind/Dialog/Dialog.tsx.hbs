@@ -1,0 +1,287 @@
+import React, { createContext, useContext } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  ScrollView,
+  type PressableProps,
+  type GestureResponderEvent,
+} from 'react-native';
+
+export type DialogVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type DialogSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+const SIZE_MAX_WIDTHS: Record<string, number> = {
+  sm: 320,
+  md: 400,
+  lg: 480,
+};
+
+const CARD_VARIANT_CLASSES: Record<string, string> = {
+  default: 'rounded-lg',
+  // ponytail: confirm dialogs carry a top accent edge, mirroring the web border-t treatment.
+  confirm: 'rounded-lg border-t-4 border-primary',
+};
+
+interface DialogContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  variant: DialogVariant;
+  size: DialogSize;
+}
+
+const DialogContext = createContext<DialogContextValue | undefined>(undefined);
+
+const useDialogContext = () => {
+  const ctx = useContext(DialogContext);
+  if (!ctx) throw new Error('Dialog parts must be used within Dialog');
+  return ctx;
+};
+
+// ponytail: React Native has no native dialog role - the card relies on
+// accessibilityViewIsModal (iOS) plus an explicit accessibilityLabel instead of
+// the web focus-trap/dialog-role pattern. Android hardware back closes via
+// Modal's onRequestClose.
+export interface DialogRootProps {
+  /** Whether the dialog is currently shown */
+  isOpen: boolean;
+  /** Called when the overlay, close control or hardware back requests dismissal */
+  onClose: () => void;
+  /** Visual variant of the dialog card */
+  variant?: DialogVariant;
+  /** Maximum width of the dialog card */
+  size?: DialogSize;
+  children?: React.ReactNode;
+}
+
+export const DialogRoot = ({
+  isOpen,
+  onClose,
+  variant = 'default',
+  size = 'md',
+  children,
+}: DialogRootProps) => {
+  const contextValue = { isOpen, onClose, variant, size };
+
+  return <DialogContext.Provider value={contextValue}>{children}</DialogContext.Provider>;
+};
+
+interface DialogCloseProps extends PressableProps {
+  /** Accessible name for the close control (defaults to "Close") */
+  label?: string;
+}
+
+export const DialogClose = ({ onPress, label = 'Close', ...props }: DialogCloseProps) => {
+  const { onClose } = useDialogContext();
+
+  const handlePress = (event: GestureResponderEvent) => {
+    onPress?.(event);
+    onClose();
+  };
+
+  return (
+    <Pressable onPress={handlePress} accessibilityRole="button" accessibilityLabel={label} {...props}>
+      <Text className="text-base leading-6 text-text-muted">✕</Text>
+    </Pressable>
+  );
+};
+
+export interface DialogContentProps {
+  /** Accessible name for the dialog card - always provide one (RN has no dialog role) */
+  accessibilityLabel?: string;
+  children?: React.ReactNode;
+}
+
+export const DialogContent = ({ accessibilityLabel, children }: DialogContentProps) => {
+  const { isOpen, onClose, variant, size } = useDialogContext();
+
+  const backdropPress = () => {
+    onClose();
+  };
+
+  const cardWidth = { maxWidth: SIZE_MAX_WIDTHS[size] ?? SIZE_MAX_WIDTHS.md };
+  const cardClasses = ['w-full bg-surface', CARD_VARIANT_CLASSES[variant]]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      statusBarTranslucent
+      animationType="fade"
+      onRequestClose={() => {
+        onClose();
+      }}
+    >
+      <View className="flex-1">
+        <Pressable
+          className="absolute inset-0 bg-black/50"
+          onPress={backdropPress}
+          accessibilityLabel="Close dialog"
+        />
+        <View className="flex-1 justify-center items-center px-6">
+          <View
+            className={cardClasses}
+            style={cardWidth}
+            accessibilityViewIsModal
+            accessibilityLabel={accessibilityLabel}
+          >
+            {children}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export const DialogHeader = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <View
+    className={['flex-row items-center justify-between gap-3 px-5 pt-5', className]
+      .filter(Boolean)
+      .join(' ')}
+  >
+    {children}
+  </View>
+);
+
+export const DialogTitle = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <Text
+    className={['flex-shrink text-lg font-semibold text-foreground', className]
+      .filter(Boolean)
+      .join(' ')}
+  >
+    {children}
+  </Text>
+);
+
+export const DialogBody = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => <ScrollView className="px-5 py-4">{children}</ScrollView>;
+
+export const DialogFooter = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <View
+    className={['flex-row justify-end gap-2 px-5 pb-5 pt-2', className].filter(Boolean).join(' ')}
+  >
+    {children}
+  </View>
+);
+
+export const Dialog = Object.assign(DialogRoot, {
+  // ponytail: the web Overlay part is baked into Content here - the Modal's backdrop
+  // layer IS the overlay, so no separate component is exposed.
+  Content: DialogContent,
+  Header: DialogHeader,
+  Title: DialogTitle,
+  Close: DialogClose,
+  Body: DialogBody,
+  Footer: DialogFooter,
+});
+
+Dialog.displayName = 'Dialog';
+DialogRoot.displayName = 'Dialog.Root';
+DialogContent.displayName = 'Dialog.Content';
+DialogHeader.displayName = 'Dialog.Header';
+DialogTitle.displayName = 'Dialog.Title';
+DialogClose.displayName = 'Dialog.Close';
+DialogBody.displayName = 'Dialog.Body';
+DialogFooter.displayName = 'Dialog.Footer';
+
+{{#if features.compoundComponents}}
+{{else}}
+export interface DialogProps {
+  /** Whether the dialog is currently shown */
+  isOpen:    boolean;
+  /** Called when the dialog requests dismissal */
+  onClose:   () => void;
+  /** Heading rendered beside the close control */
+  title:     string;
+  children:  React.ReactNode;
+  variant?:  DialogVariant;
+  size?:     DialogSize;
+  /** Actions rendered along the footer row */
+  footer?:   React.ReactNode;
+  /** Accessible name for the dialog card */
+  accessibilityLabel?: string;
+}
+
+export const Dialog = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  variant = 'default',
+  size = 'md',
+  footer,
+  accessibilityLabel,
+}: DialogProps) => {
+  const backdropPress = () => {
+    onClose();
+  };
+
+  const cardWidth = { maxWidth: SIZE_MAX_WIDTHS[size] ?? SIZE_MAX_WIDTHS.md };
+  const cardClasses = ['w-full bg-surface', CARD_VARIANT_CLASSES[variant]]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      statusBarTranslucent
+      animationType="fade"
+      onRequestClose={() => {
+        onClose();
+      }}
+    >
+      <View className="flex-1">
+        <Pressable
+          className="absolute inset-0 bg-black/50"
+          onPress={backdropPress}
+          accessibilityLabel="Close dialog"
+        />
+        <View className="flex-1 justify-center items-center px-6">
+          <View
+            className={cardClasses}
+            style={cardWidth}
+            accessibilityViewIsModal
+            accessibilityLabel={accessibilityLabel ?? title}
+          >
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogClose label="✕" />
+            </DialogHeader>
+            <DialogBody>{children}</DialogBody>
+            {footer && <DialogFooter>{footer}</DialogFooter>}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+Dialog.displayName = 'Dialog';
+{{/if}}

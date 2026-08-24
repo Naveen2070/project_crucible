@@ -1,0 +1,611 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+  type TextStyle,
+  type GestureResponderEvent,
+} from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+/* ============================================================================
+ * Types
+ * ========================================================================== */
+export type FormValues = Record<string, unknown>;
+
+export type FieldErrors = Record<string, string | undefined>;
+
+type MsgRule<V> = V | { value: V; message?: string };
+
+export interface FieldRule {
+  required?: boolean | string;
+  pattern?: RegExp | { value: RegExp; message?: string };
+  min?: MsgRule<number>;
+  max?: MsgRule<number>;
+  minLength?: MsgRule<number>;
+  maxLength?: MsgRule<number>;
+  validate?: (
+    value: unknown,
+    values: FormValues,
+  ) => string | boolean | null | undefined | Promise<string | boolean | null | undefined>;
+}
+
+export interface FormSubmitHelpers {
+  reset: (next?: Partial<FormValues>) => void;
+  setError: (name: string, message: string) => void;
+  setValues: (patch: Partial<FormValues>) => void;
+}
+
+export interface FormOptions {
+  defaultValues?: Partial<FormValues>;
+  onSubmit?: (values: FormValues, helpers: FormSubmitHelpers) => void | Promise<void>;
+  onError?: (errors: FieldErrors) => void;
+}
+
+interface RegisteredField {
+  rule?: FieldRule;
+  required?: boolean;
+}
+
+export type FormVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type FormSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+/* ============================================================================
+ * Style maps
+ * ========================================================================== */
+const ROOT_VARIANT_STYLES: Record<string, object> = {
+  default: { flexDirection: 'column', gap: 16 },
+  inline: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', gap: 16 },
+};
+
+const LABEL_SIZE_STYLES: Record<string, object> = {
+  sm: { fontSize: 13 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 15 },
+};
+
+const SUBMIT_SIZE_STYLES: Record<string, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 6 },
+  md: { paddingHorizontal: 16, paddingVertical: 8 },
+  lg: { paddingHorizontal: 20, paddingVertical: 10 },
+};
+
+const styles = StyleSheet.create({
+  root: { width: '100%' },
+  disabledRoot: { opacity: 0.6 },
+  fieldGroup: { width: '100%', gap: 8 },
+  controlWrap: { width: '100%' },
+  label: { fontWeight: '500', color: theme.foreground },
+  labelError: { color: theme.colorDestructive },
+  requiredStar: { color: theme.colorDestructive },
+  message: { fontSize: 12, color: theme.colorDestructive },
+  submit: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+    backgroundColor: theme.colorPrimary,
+  },
+  submitDisabled: { opacity: 0.5 },
+  submitLabel: { fontWeight: '500', color: theme.colorPrimaryForeground },
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: theme.colorBorder,
+    backgroundColor: theme.colorSurface,
+    color: theme.foreground,
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+  },
+  inputInvalid: { borderColor: theme.colorDestructive },
+});
+
+/* ============================================================================
+ * Pure helpers (ported verbatim from the web Form template)
+ * ========================================================================== */
+function unwrap<V>(rule: MsgRule<V> | undefined): { value: V; message?: string } | undefined {
+  if (rule === undefined) return undefined;
+  if (typeof rule === 'object' && rule !== null && 'value' in (rule as Record<string, unknown>)) {
+    return rule as { value: V; message?: string };
+  }
+  return { value: rule as V };
+}
+
+async function evaluateRule(
+  rule: FieldRule | undefined,
+  value: unknown,
+  values: FormValues,
+): Promise<string | undefined> {
+  if (!rule) return undefined;
+  const isEmpty = value === undefined || value === null || value === '' || value === false;
+
+  if (rule.required && isEmpty) {
+    return typeof rule.required === 'string' ? rule.required : 'This field is required.';
+  }
+  if (isEmpty) return undefined;
+
+  if (rule.pattern) {
+    const pattern = rule.pattern instanceof RegExp ? { value: rule.pattern } : rule.pattern;
+    if (!pattern.value.test(String(value))) return pattern.message ?? 'Invalid format.';
+  }
+  const min = unwrap(rule.min);
+  if (min && Number(value) < min.value) return min.message ?? `Must be at least ${min.value}.`;
+  const max = unwrap(rule.max);
+  if (max && Number(value) > max.value) return max.message ?? `Must be at most ${max.value}.`;
+  const minLength = unwrap(rule.minLength);
+  if (minLength && String(value).length < minLength.value) {
+    return minLength.message ?? `Must be at least ${minLength.value} characters.`;
+  }
+  const maxLength = unwrap(rule.maxLength);
+  if (maxLength && String(value).length > maxLength.value) {
+    return maxLength.message ?? `Must be at most ${maxLength.value} characters.`;
+  }
+  if (rule.validate) {
+    const result = await rule.validate(value, values);
+    if (result === false) return 'Invalid value.';
+    if (typeof result === 'string') return result;
+  }
+  return undefined;
+}
+
+/** Merges a field-level required flag over its rules, mirroring the web engine. */
+function composeRule(entry: RegisteredField | undefined): FieldRule | undefined {
+  if (!entry) return undefined;
+  if (entry.required && !entry.rule?.required) return { ...entry.rule, required: true };
+  return entry.rule;
+}
+
+/* ============================================================================
+ * Contexts
+ * ========================================================================== */
+interface FormContextValue {
+  values: FormValues;
+  errors: FieldErrors;
+  submitting: boolean;
+  disabled: boolean;
+  isValid: boolean;
+  size: FormSize;
+  setValue: (name: string, value: unknown) => void;
+  registerField: (name: string, rule?: FieldRule, required?: boolean) => void;
+  unregisterField: (name: string) => void;
+  submit: () => Promise<void>;
+}
+
+const FormContext = createContext<FormContextValue | undefined>(undefined);
+
+const useFormContext = () => {
+  const context = useContext(FormContext);
+  if (!context) throw new Error('Form sub-components must be used within Form.Root');
+  return context;
+};
+
+export interface FieldContextValue {
+  name: string;
+  label?: string;
+  hint?: string;
+  isRequired: boolean;
+}
+
+const FieldContext = createContext<FieldContextValue | undefined>(undefined);
+
+const useFormField = () => {
+  const context = useContext(FieldContext);
+  if (!context) throw new Error('Form.Label, Form.Control and Form.Message must be used within Form.Field');
+  return context;
+};
+
+/* ============================================================================
+ * Props
+ * ========================================================================== */
+export interface FormRootProps extends FormOptions {
+  children?: React.ReactNode;
+  variant?: FormVariant;
+  size?: FormSize;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}
+
+export interface FormFieldProps {
+  /** Data key this field binds to in the form values record */
+  name: string;
+  label?: string;
+  hint?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  children: React.ReactNode | ((field: FieldContextValue) => React.ReactNode);
+  style?: StyleProp<ViewStyle>;
+}
+
+export interface FormControlProps {
+  /** Overrides the accessible label announced to assistive tech (defaults to the Field label) */
+  label?: string;
+  /** Overrides the accessible hint announced to assistive tech (defaults to the Field hint) */
+  hint?: string;
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+export interface FormMessageProps {
+  /** Static fallback text shown when the field has no validation error */
+  children?: React.ReactNode;
+  style?: StyleProp<TextStyle>;
+}
+
+export interface FormSubmitProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Button caption when no children are supplied */
+  label?: string;
+  /** Disable the press while validation fails — default false so a press surfaces the errors */
+  disableOnInvalid?: boolean;
+  style?: StyleProp<ViewStyle>;
+}
+
+/* ============================================================================
+ * Internal components
+ * ========================================================================== */
+const InternalRoot = ({
+  children,
+  variant = 'default',
+  size = 'md',
+  disabled = false,
+  defaultValues,
+  onSubmit,
+  onError,
+  style,
+}: FormRootProps) => {
+  const [values, setValuesState] = useState<FormValues>({ ...(defaultValues ?? {}) });
+  const [errors, setErrorsState] = useState<FieldErrors>({});
+  const [fieldRules, setFieldRules] = useState<Record<string, RegisteredField>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  // Mirrors of the latest state so submit()/setValue() can read synchronously.
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+  const errorsRef = useRef(errors);
+  errorsRef.current = errors;
+  const fieldRulesRef = useRef(fieldRules);
+  fieldRulesRef.current = fieldRules;
+  const defaultsRef = useRef(defaultValues);
+  defaultsRef.current = defaultValues;
+  const onSubmitRef = useRef(onSubmit);
+  onSubmitRef.current = onSubmit;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
+  const reset = useCallback((next?: Partial<FormValues>) => {
+    setValuesState({ ...(next ?? defaultsRef.current) });
+    setErrorsState({});
+  }, []);
+
+  const setFieldError = useCallback((name: string, message: string) => {
+    setErrorsState((prev) => ({ ...prev, [name]: message || undefined }));
+  }, []);
+
+  const applyPatch = useCallback((patch: Partial<FormValues>) => {
+    setValuesState((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const registerField = useCallback((name: string, rule?: FieldRule, required?: boolean) => {
+    setFieldRules((prev) => ({ ...prev, [name]: { rule, required } }));
+  }, []);
+
+  const unregisterField = useCallback((name: string) => {
+    setFieldRules((prev) => {
+      if (!(name in prev)) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }, []);
+
+  // Re-validates a field that already shows an error (the RN counterpart of the
+  // web engine's reValidateMode: 'onChange').
+  const setValue = useCallback((name: string, value: unknown) => {
+    setValuesState((prev) => ({ ...prev, [name]: value }));
+    const composed = composeRule(fieldRulesRef.current[name]);
+    if (!composed || errorsRef.current[name] === undefined) return;
+    const candidate = { ...valuesRef.current, [name]: value };
+    void evaluateRule(composed, value, candidate).then((message) => {
+      setErrorsState((prev) => ({ ...prev, [name]: message ?? undefined }));
+    });
+  }, []);
+
+  const submit = useCallback(async () => {
+    const snapshot = valuesRef.current;
+    const names = Object.keys(fieldRulesRef.current);
+    const results = await Promise.all(
+      names.map((name) =>
+        evaluateRule(composeRule(fieldRulesRef.current[name]), snapshot[name], snapshot),
+      ),
+    );
+    const found: FieldErrors = {};
+    names.forEach((name, index) => {
+      found[name] = results[index] || undefined;
+    });
+    setErrorsState(found);
+    if (Object.values(found).some(Boolean)) {
+      onErrorRef.current?.(found);
+      return;
+    }
+    try {
+      setSubmitting(true);
+      await onSubmitRef.current?.(snapshot, {
+        reset,
+        setError: setFieldError,
+        setValues: applyPatch,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }, [reset, setFieldError, applyPatch]);
+
+  const isValid = useMemo(() => {
+    for (const message of Object.values(errors)) if (message) return false;
+    for (const [fieldName, entry] of Object.entries(fieldRules)) {
+      if (!entry.required && !entry.rule?.required) continue;
+      const candidate = values[fieldName];
+      if (candidate === undefined || candidate === null || candidate === '' || candidate === false) {
+        return false;
+      }
+    }
+    return true;
+  }, [errors, fieldRules, values]);
+
+  const contextValue: FormContextValue = {
+    values,
+    errors,
+    submitting,
+    disabled,
+    isValid,
+    size,
+    setValue,
+    registerField,
+    unregisterField,
+    submit,
+  };
+
+  return (
+    <FormContext.Provider value={contextValue}>
+      <View style={[styles.root, ROOT_VARIANT_STYLES[variant], disabled && styles.disabledRoot, style]}>
+        {children}
+      </View>
+    </FormContext.Provider>
+  );
+};
+
+const InternalField = ({
+  name,
+  label,
+  hint,
+  required = false,
+  rules,
+  children,
+  style,
+}: FormFieldProps) => {
+  const { registerField, unregisterField } = useFormContext();
+
+  const fieldContext = useMemo<FieldContextValue>(
+    () => ({ name, label, hint, isRequired: !!required || !!rules?.required }),
+    [name, label, hint, required, rules],
+  );
+
+  useEffect(() => {
+    registerField(name, rules, required);
+    return () => unregisterField(name);
+  }, [name, rules, required, registerField, unregisterField]);
+
+  const content = typeof children === 'function' ? children(fieldContext) : children;
+
+  // Absorbs the layout role of the web Form.Item wrapper.
+  return (
+    <FieldContext.Provider value={fieldContext}>
+      <View style={[styles.fieldGroup, style]}>{content}</View>
+    </FieldContext.Provider>
+  );
+};
+
+const InternalLabel = ({ children, style }: { children?: React.ReactNode; style?: StyleProp<TextStyle> }) => {
+  const { name, isRequired } = useFormField();
+  const { errors, size } = useFormContext();
+
+  return (
+    <Text style={[styles.label, LABEL_SIZE_STYLES[size], errors[name] && styles.labelError, style]}>
+      {children}
+      {isRequired && <Text style={styles.requiredStar}> *</Text>}
+    </Text>
+  );
+};
+
+const InternalControl = ({ label: providedLabel, hint: providedHint, children, style }: FormControlProps) => {
+  const field = useFormField();
+  const a11yLabel = providedLabel ?? field.label;
+  const a11yHint = providedHint ?? field.hint;
+
+  return (
+    <View
+      style={[styles.controlWrap, style]}
+      accessibilityLabel={a11yLabel}
+      accessibilityHint={a11yHint}
+    >
+      {children}
+    </View>
+  );
+};
+
+const InternalMessage = ({ children, style }: FormMessageProps) => {
+  const { name } = useFormField();
+  const { errors } = useFormContext();
+  const body = errors[name] ?? children;
+  if (!body) return null;
+
+  return (
+    <Text style={[styles.message, style]} accessibilityRole="alert">
+      {body}
+    </Text>
+  );
+};
+
+const InternalSubmit = ({
+  label,
+  disableOnInvalid = false,
+  disabled,
+  onPress,
+  children,
+  style,
+  ...props
+}: FormSubmitProps) => {
+  const { submit, submitting, isValid, disabled: formDisabled, size } = useFormContext();
+  const isDisabled = !!disabled || formDisabled || submitting || (disableOnInvalid && !isValid);
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const submitA11yState = { disabled: isDisabled, busy: submitting };
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    if (!isDisabled) void submit();
+  };
+
+  return (
+    <Pressable
+      style={[styles.submit, SUBMIT_SIZE_STYLES[size], isDisabled && styles.submitDisabled, style]}
+      onPress={handlePress}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={submitA11yState}
+      {...props}
+    >
+      <Text style={[styles.submitLabel, LABEL_SIZE_STYLES[size]]}>{children ?? label}</Text>
+    </Pressable>
+  );
+};
+
+{{#if features.compoundComponents}}
+export const FormRoot = InternalRoot;
+export const FormField = InternalField;
+export const FormLabel = InternalLabel;
+export const FormControl = InternalControl;
+export const FormMessage = InternalMessage;
+export const FormSubmit = InternalSubmit;
+
+/**
+ * Form — compound API. Compose freely:
+ *   <Form.Root onSubmit={handleSubmit} onError={handleErrors}>
+ *     <Form.Field name="email" label="Email" required rules={emailRules}>
+ *       <Form.Control><TextInput keyboardType="email-address" /></Form.Control>
+ *       <Form.Message />
+ *     </Form.Field>
+ *     <Form.Submit label="Save" />
+ *   </Form.Root>
+ */
+export const Form = Object.assign(FormRoot, {
+  Root: FormRoot,
+  Field: FormField,
+  Label: FormLabel,
+  Control: FormControl,
+  Message: FormMessage,
+  Submit: FormSubmit,
+});
+
+Object.assign(Form, { displayName: 'Form' });
+Object.assign(FormRoot, { displayName: 'Form.Root' });
+Object.assign(FormField, { displayName: 'Form.Field' });
+Object.assign(FormLabel, { displayName: 'Form.Label' });
+Object.assign(FormControl, { displayName: 'Form.Control' });
+Object.assign(FormMessage, { displayName: 'Form.Message' });
+Object.assign(FormSubmit, { displayName: 'Form.Submit' });
+{{else}}
+export interface FormSchemaField {
+  name: string;
+  label?: string;
+  placeholder?: string;
+  hint?: string;
+  required?: boolean;
+  rules?: FieldRule;
+  secureTextEntry?: boolean;
+  multiline?: boolean;
+}
+
+export interface FormProps extends FormOptions {
+  /** Schema-driven text fields rendered automatically (monolithic mode) */
+  fields?: FormSchemaField[];
+  variant?: FormVariant;
+  size?: FormSize;
+  disabled?: boolean;
+  submitLabel?: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+const SchemaInput = ({ field }: { field: FormSchemaField }) => {
+  const { values, errors, setValue } = useFormContext();
+  const { name } = useFormField();
+  const raw = values[name];
+  const textValue = typeof raw === 'string' || typeof raw === 'number' ? String(raw) : '';
+  const invalid = !!errors[name];
+
+  return (
+    <TextInput
+      style={[styles.input, invalid && styles.inputInvalid]}
+      value={textValue}
+      placeholder={field.placeholder}
+      placeholderTextColor={theme.colorTextMuted}
+      secureTextEntry={field.secureTextEntry}
+      multiline={field.multiline}
+      onChangeText={(next) => setValue(name, next)}
+      accessibilityLabel={field.label}
+      accessibilityHint={field.hint}
+    />
+  );
+};
+
+/**
+ * Form — schema-driven monolithic wrapper (no compound API). Renders labeled
+ * text inputs from a config array plus a submit button, sharing one engine.
+ *   <Form fields={[{ name: 'email', label: 'Email', required: true }]} onSubmit={...} />
+ */
+export const Form = ({
+  fields = [],
+  submitLabel = 'Submit',
+  variant = 'default',
+  size = 'md',
+  style,
+  ...options
+}: FormProps) => (
+  <InternalRoot variant={variant} size={size} style={style} {...options}>
+    {fields.map((field) => (
+      <InternalField
+        key={field.name}
+        name={field.name}
+        label={field.label}
+        hint={field.hint}
+        required={field.required}
+        rules={field.rules}
+      >
+        {field.label ? <InternalLabel>{field.label}</InternalLabel> : null}
+        <InternalControl>
+          <SchemaInput field={field} />
+        </InternalControl>
+        <InternalMessage />
+      </InternalField>
+    ))}
+    <InternalSubmit label={submitLabel} />
+  </InternalRoot>
+);
+
+Object.assign(Form, { displayName: 'Form' });
+{{/if}}

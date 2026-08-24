@@ -2,8 +2,8 @@
   "id": "Form",
   "name": "Form",
   "description": "Composable form system with built-in validation and an optional react-hook-form adapter",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "inline"],
   "sizes": ["sm", "md", "lg"],
   "states": ["disabled", "error", "submitting"],
@@ -19,5 +19,9 @@
   "tailwindDefaults": {
     "default": "flex flex-col gap-[var(--form-group-gap)]",
     "inline": "flex flex-row flex-wrap items-end gap-[var(--form-group-gap)]"
+  },
+  "nativewindDefaults": {
+    "default": "flex flex-col gap-4",
+    "inline": "flex flex-row flex-wrap items-end gap-4"
   }
 }
