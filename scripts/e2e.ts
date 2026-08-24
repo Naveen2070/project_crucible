@@ -205,6 +205,10 @@ async function runE2E() {
     'RadioGroup',
     'Textarea',
     'Checkbox',
+    'Accordion',
+    'Tabs',
+    'Dialog',
+    'Form',
   ];
   const RN_STYLES = ['nativewind', 'stylesheet'] as const;
   // `OUT` is 'src/components' (2 segments); a component lives one level deeper, so the default

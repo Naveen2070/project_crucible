@@ -1,0 +1,277 @@
+import React, { createContext, useContext, useState } from 'react';
+import { View, Text, Pressable, type PressableProps , type GestureResponderEvent } from 'react-native';
+
+// ponytail: active-trigger looks are fixed here rather than driven by the manifest
+// nativewindVariants map because tabs style the SELECTED trigger per variant, not
+// the whole component — tabs.json carries equivalent per-variant hints instead.
+
+const TRIGGER_SHAPE: Record<string, string> = {
+  default: 'rounded-md',
+  underline: 'rounded-none border-b-2 border-transparent',
+  pills: 'rounded-full',
+};
+
+const TRIGGER_ACTIVE: Record<string, string> = {
+  default: 'bg-secondary',
+  underline: 'border-primary',
+  pills: 'bg-primary',
+};
+
+const TRIGGER_SIZE: Record<string, string> = {
+  sm: 'px-3 h-8',
+  md: 'px-4 h-9',
+  lg: 'px-5 h-11',
+};
+
+const LABEL_SIZE: Record<string, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+const LIST_BORDERED: Record<string, string> = {
+  default: 'border-b border-border',
+  underline: 'border-b border-border',
+  pills: '',
+};
+
+export type TabsVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TabsSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'manual' | 'automatic';
+
+export interface TabsOptions {
+  /** Visual variant of the trigger list */
+  variant?: TabsVariant;
+  /** Trigger sizing */
+  size?: TabsSize;
+  /** Controlled active tab value */
+  value?: string;
+  /** Initial active tab value when uncontrolled */
+  defaultValue?: string;
+  /** Called with the next value whenever a trigger is pressed */
+  onValueChange?: (value: string) => void;
+  /**
+   * 'vertical' stacks the trigger list in a column. Deviation from the web tabs
+   * pattern: the active content still renders BELOW the list, not beside it.
+   */
+  orientation?: TabsOrientation;
+  /**
+   * Accepted for parity with the web tabs pattern but inert on touch — mobile
+   * has no focus-before-activate distinction, so every press selects its tab
+   * immediately ('automatic' behavior).
+   */
+  activationMode?: TabsActivationMode;
+}
+
+interface TabsContextValue {
+  value?: string;
+  setValue: (next: string) => void;
+  variant: TabsVariant;
+  size: TabsSize;
+  orientation: TabsOrientation;
+}
+
+const TabsContext = createContext<TabsContextValue | undefined>(undefined);
+
+const useTabsContext = () => {
+  const context = useContext(TabsContext);
+  if (!context) throw new Error('Tabs sub-components must be used within Tabs.Root');
+  return context;
+};
+
+export interface TabsRootProps extends TabsOptions {
+  children: React.ReactNode;
+  variant?: TabsVariant;
+  size?: TabsSize;
+  className?: string;
+}
+
+interface TabsListProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface TabsTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  value: string;
+  className?: string;
+}
+
+interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const InternalRoot = ({
+  children,
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  orientation = 'horizontal',
+  variant = 'default',
+  size = 'md',
+  className,
+  ...props
+}: TabsRootProps) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
+  const value = controlledValue ?? uncontrolledValue;
+
+  const setValue = (next: string) => {
+    if (controlledValue === undefined) {
+      setUncontrolledValue(next);
+    }
+    onValueChange?.(next);
+  };
+
+  const contextValue: TabsContextValue = { value, setValue, variant, size, orientation };
+
+  return (
+    <TabsContext.Provider value={contextValue}>
+      <View className={['w-full', className].filter(Boolean).join(' ')} {...props}>
+        {children}
+      </View>
+    </TabsContext.Provider>
+  );
+};
+
+const InternalList = ({ children, className }: TabsListProps) => {
+  const { variant, orientation } = useTabsContext();
+
+  const listCls = [
+    'shrink-0',
+    orientation === 'vertical' ? 'flex-col items-stretch' : 'flex-row items-center',
+    LIST_BORDERED[variant],
+    className,
+  ].filter(Boolean).join(' ');
+
+  return (
+    <View className={listCls} accessibilityRole="tablist">
+      {children}
+    </View>
+  );
+};
+
+const InternalTrigger = ({
+  value,
+  disabled = false,
+  className,
+  children,
+  onPress,
+  ...props
+}: TabsTriggerProps) => {
+  const { value: activeValue, setValue, variant, size } = useTabsContext();
+  const isActive = activeValue === value;
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    setValue(value);
+  };
+
+  const triggerA11yState = { selected: isActive, disabled: !!disabled };
+
+  const frameCls = [
+    'flex-row items-center justify-center',
+    TRIGGER_SHAPE[variant],
+    TRIGGER_SIZE[size],
+    isActive && TRIGGER_ACTIVE[variant],
+    disabled && 'opacity-50',
+    className,
+  ].filter(Boolean).join(' ');
+
+  const labelCls = [
+    'font-medium',
+    LABEL_SIZE[size],
+    isActive ? (variant === 'pills' ? 'text-white' : 'text-foreground') : 'text-text-muted',
+  ].filter(Boolean).join(' ');
+
+  return (
+    <Pressable
+      className={frameCls}
+      onPress={handlePress}
+      disabled={disabled}
+      accessibilityRole="tab"
+      accessibilityState={triggerA11yState}
+      {...props}
+    >
+      <Text className={labelCls}>{children}</Text>
+    </Pressable>
+  );
+};
+
+const InternalContent = ({ value, children, className }: TabsContentProps) => {
+  const { value: activeValue } = useTabsContext();
+
+  if (activeValue !== value) {
+    return null;
+  }
+
+  return (
+    <View className={['py-4', className].filter(Boolean).join(' ')}>
+      {children}
+    </View>
+  );
+};
+
+InternalRoot.displayName = 'Tabs.Root';
+InternalList.displayName = 'Tabs.List';
+InternalTrigger.displayName = 'Tabs.Trigger';
+InternalContent.displayName = 'Tabs.Content';
+
+{{#if features.compoundComponents}}
+export const TabsRoot = InternalRoot;
+export const TabsList = InternalList;
+export const TabsTrigger = InternalTrigger;
+export const TabsContent = InternalContent;
+
+export const Tabs = Object.assign(TabsRoot, {
+  List: TabsList,
+  Trigger: TabsTrigger,
+  Content: TabsContent,
+});
+
+Tabs.displayName = 'Tabs';
+{{else}}
+export interface TabsItem {
+  value: string;
+  label: React.ReactNode;
+  content: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface TabsProps extends TabsOptions {
+  items: TabsItem[];
+  variant?: TabsVariant;
+  size?: TabsSize;
+  className?: string;
+}
+
+export const Tabs = ({
+  items,
+  variant = 'default',
+  size = 'md',
+  className,
+  ...options
+}: TabsProps) => {
+  return (
+    <InternalRoot variant={variant} size={size} className={className} {...options}>
+      <InternalList>
+        {items.map((item) => (
+          <InternalTrigger key={item.value} value={item.value} disabled={item.disabled}>
+            {item.label}
+          </InternalTrigger>
+        ))}
+      </InternalList>
+      {items.map((item) => (
+        <InternalContent key={item.value} value={item.value}>
+          {item.content}
+        </InternalContent>
+      ))}
+    </InternalRoot>
+  );
+};
+
+Tabs.displayName = 'Tabs';
+{{/if}}

@@ -1,0 +1,303 @@
+import React, { createContext, useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+  type GestureResponderEvent,
+} from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+const styles = StyleSheet.create({
+  root: { width: '100%' },
+  listRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
+  listColumn: { flexDirection: 'column', alignItems: 'stretch', flexShrink: 0 },
+  listGap: { gap: 4 },
+  listBordered: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colorBorder,
+  },
+  trigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 6,
+  },
+  triggerText: { fontWeight: '500' },
+  content: { paddingTop: 16 },
+  disabled: { opacity: 0.5 },
+});
+
+// ponytail: active-trigger looks are fixed per variant (tabs style the SELECTED
+// trigger, not the whole component) — tabs.json nativewindDefaults carries the
+// NativeWind equivalents of these maps.
+
+const triggerShapeStyles: Record<string, object> = {
+  default: {},
+  underline: { borderRadius: 0, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  pills: { borderRadius: 999 },
+};
+
+const triggerActiveStyles: Record<string, object> = {
+  default: { backgroundColor: theme.colorSecondary },
+  underline: { borderBottomColor: theme.colorPrimary },
+  pills: { backgroundColor: theme.colorPrimary },
+};
+
+const sizeStyles: Record<string, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 6, minHeight: 32 },
+  md: { paddingHorizontal: 16, paddingVertical: 8, minHeight: 36 },
+  lg: { paddingHorizontal: 20, paddingVertical: 10, minHeight: 44 },
+};
+
+const labelSizeStyles: Record<string, object> = {
+  sm: { fontSize: 12 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 16 },
+};
+
+const BORDERED_VARIANTS: string[] = ['default', 'underline'];
+
+export type TabsVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TabsSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'manual' | 'automatic';
+
+export interface TabsOptions {
+  /** Visual variant of the trigger list */
+  variant?: TabsVariant;
+  /** Trigger sizing */
+  size?: TabsSize;
+  /** Controlled active tab value */
+  value?: string;
+  /** Initial active tab value when uncontrolled */
+  defaultValue?: string;
+  /** Called with the next value whenever a trigger is pressed */
+  onValueChange?: (value: string) => void;
+  /**
+   * 'vertical' stacks the trigger list in a column. Deviation from the web tabs
+   * pattern: the active content still renders BELOW the list, not beside it.
+   */
+  orientation?: TabsOrientation;
+  /**
+   * Accepted for parity with the web tabs pattern but inert on touch — mobile
+   * has no focus-before-activate distinction, so every press selects its tab
+   * immediately ('automatic' behavior).
+   */
+  activationMode?: TabsActivationMode;
+}
+
+interface TabsContextValue {
+  value?: string;
+  setValue: (next: string) => void;
+  variant: TabsVariant;
+  size: TabsSize;
+  orientation: TabsOrientation;
+}
+
+const TabsContext = createContext<TabsContextValue | undefined>(undefined);
+
+const useTabsContext = () => {
+  const context = useContext(TabsContext);
+  if (!context) throw new Error('Tabs sub-components must be used within Tabs.Root');
+  return context;
+};
+
+export interface TabsRootProps extends TabsOptions {
+  children: React.ReactNode;
+  variant?: TabsVariant;
+  size?: TabsSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+interface TabsListProps {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+interface TabsTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  value: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+const InternalRoot = ({
+  children,
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  orientation = 'horizontal',
+  variant = 'default',
+  size = 'md',
+  style,
+  ...props
+}: TabsRootProps) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | undefined>(defaultValue);
+  const value = controlledValue ?? uncontrolledValue;
+
+  const setValue = (next: string) => {
+    if (controlledValue === undefined) {
+      setUncontrolledValue(next);
+    }
+    onValueChange?.(next);
+  };
+
+  const contextValue: TabsContextValue = { value, setValue, variant, size, orientation };
+
+  return (
+    <TabsContext.Provider value={contextValue}>
+      <View style={[styles.root, style]} {...props}>
+        {children}
+      </View>
+    </TabsContext.Provider>
+  );
+};
+
+const InternalList = ({ children, style }: TabsListProps) => {
+  const { variant, orientation } = useTabsContext();
+
+  return (
+    <View
+      style={[
+        orientation === 'vertical' ? styles.listColumn : styles.listRow,
+        styles.listGap,
+        BORDERED_VARIANTS.includes(variant) && styles.listBordered,
+        style,
+      ]}
+      accessibilityRole="tablist"
+    >
+      {children}
+    </View>
+  );
+};
+
+const InternalTrigger = ({
+  value,
+  disabled = false,
+  children,
+  onPress,
+  style,
+  ...props
+}: TabsTriggerProps) => {
+  const { value: activeValue, setValue, variant, size } = useTabsContext();
+  const isActive = activeValue === value;
+
+  const handlePress = () => {
+    onPress?.({} as GestureResponderEvent);
+    setValue(value);
+  };
+
+  const triggerA11yState = { selected: isActive, disabled: !!disabled };
+
+  let labelColor: string = theme.colorTextMuted;
+  if (isActive) {
+    labelColor = variant === 'pills' ? '#ffffff' : theme.foreground;
+  }
+
+  return (
+    <Pressable
+      style={[
+        styles.trigger,
+        triggerShapeStyles[variant],
+        sizeStyles[size],
+        isActive && triggerActiveStyles[variant],
+        disabled && styles.disabled,
+        style,
+      ]}
+      onPress={handlePress}
+      disabled={disabled}
+      accessibilityRole="tab"
+      accessibilityState={triggerA11yState}
+      {...props}
+    >
+      <Text style={[styles.triggerText, labelSizeStyles[size], { color: labelColor }]}>
+        {children}
+      </Text>
+    </Pressable>
+  );
+};
+
+const InternalContent = ({ value, children, style }: TabsContentProps) => {
+  const { value: activeValue } = useTabsContext();
+
+  if (activeValue !== value) {
+    return null;
+  }
+
+  return (
+    <View style={[styles.content, style]}>
+      {children}
+    </View>
+  );
+};
+
+InternalRoot.displayName = 'Tabs.Root';
+InternalList.displayName = 'Tabs.List';
+InternalTrigger.displayName = 'Tabs.Trigger';
+InternalContent.displayName = 'Tabs.Content';
+
+{{#if features.compoundComponents}}
+export const TabsRoot = InternalRoot;
+export const TabsList = InternalList;
+export const TabsTrigger = InternalTrigger;
+export const TabsContent = InternalContent;
+
+export const Tabs = Object.assign(TabsRoot, {
+  List: TabsList,
+  Trigger: TabsTrigger,
+  Content: TabsContent,
+});
+
+Tabs.displayName = 'Tabs';
+{{else}}
+export interface TabsItem {
+  value: string;
+  label: React.ReactNode;
+  content: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface TabsProps extends TabsOptions {
+  items: TabsItem[];
+  variant?: TabsVariant;
+  size?: TabsSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const Tabs = ({
+  items,
+  variant = 'default',
+  size = 'md',
+  style,
+  ...options
+}: TabsProps) => {
+  return (
+    <InternalRoot variant={variant} size={size} style={style} {...options}>
+      <InternalList>
+        {items.map((item) => (
+          <InternalTrigger key={item.value} value={item.value} disabled={item.disabled}>
+            {item.label}
+          </InternalTrigger>
+        ))}
+      </InternalList>
+      {items.map((item) => (
+        <InternalContent key={item.value} value={item.value}>
+          {item.content}
+        </InternalContent>
+      ))}
+    </InternalRoot>
+  );
+};
+
+Tabs.displayName = 'Tabs';
+{{/if}}
