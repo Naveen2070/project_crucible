@@ -1,0 +1,101 @@
+import React, { useState } from 'react';
+import { View, Text, Pressable, type PressableProps } from 'react-native';
+
+export type SwitchSize = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+const TRACK_CLASSES: Record<string, string> = {
+  sm: 'w-9 h-5',
+  md: 'w-11 h-[26px]',
+  lg: 'w-14 h-8',
+};
+
+const THUMB_CLASSES: Record<string, string> = {
+  sm: 'w-4 h-4',
+  md: 'w-5 h-5',
+  lg: 'w-6 h-6',
+};
+
+// ponytail: thumb slides right by (trackWidth − thumbWidth − 2×padding) when checked.
+// Static translate-x classes keep NativeWind's compile-time extraction happy and avoid
+// Animated/reanimated dependencies in generated code.
+const THUMB_TRANSLATE: Record<string, string> = {
+  sm: 'translate-x-4',
+  md: 'translate-x-5',
+  lg: 'translate-x-7',
+};
+
+export interface SwitchProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  /** Controlled checked state */
+  checked?: boolean;
+  /** Initial checked state when uncontrolled */
+  defaultChecked?: boolean;
+  /** Called with the next checked value on toggle */
+  onCheckedChange?: (checked: boolean) => void;
+  /** Text shown next to the track; also becomes the accessibility label */
+  label?: string;
+  size?: SwitchSize;
+}
+
+export const Switch = React.forwardRef<View, SwitchProps>(
+  (
+    {
+      checked: controlled,
+      defaultChecked = false,
+      onCheckedChange,
+      label,
+      size = 'md',
+      disabled,
+      children,
+      className,
+      accessibilityLabel,
+      ...props
+    },
+    ref
+  ) => {
+    const [uncontrolled, setUncontrolled] = useState(defaultChecked);
+    const checked = controlled ?? uncontrolled;
+
+    const toggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (controlled === undefined) setUncontrolled(next);
+      onCheckedChange?.(next);
+    };
+
+    const a11yState = { checked, disabled: !!disabled };
+  const trackCls = [
+      'flex-row items-center rounded-full p-0.5',
+      checked ? 'bg-primary' : 'bg-secondary',
+      TRACK_CLASSES[size],
+    ].filter(Boolean).join(' ');
+
+    const thumbCls = [
+      'rounded-full bg-white shadow',
+      THUMB_CLASSES[size],
+      checked ? THUMB_TRANSLATE[size] : 'translate-x-0',
+    ].join(' ');
+
+    return (
+      <Pressable
+        ref={ref}
+        className={['flex-row items-center gap-2 self-start active:opacity-80', disabled && 'opacity-50', className].filter(Boolean).join(' ')}
+        disabled={disabled}
+        onPress={toggle}
+        accessibilityRole="switch"
+        accessibilityState={a11yState}
+        accessibilityLabel={accessibilityLabel ?? label ?? (typeof children === 'string' ? children : undefined)}
+        {...props}
+      >
+        <View className={trackCls}>
+          <View className={thumbCls} />
+        </View>
+        {label && <Text className="text-sm text-foreground">{label}</Text>}
+        {children}
+      </Pressable>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';

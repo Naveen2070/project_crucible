@@ -2,12 +2,18 @@
   "id": "Skeleton",
   "name": "Skeleton",
   "description": "Loading placeholder with a pulse animation",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "text", "circle", "rect"],
   "sizes": [],
   "states": [],
   "props": ["width", "height", "animated"],
   "prefix": "skeleton",
-  "tailwindDefaults": {}
+  "tailwindDefaults": {},
+  "nativewindDefaults": {
+    "default": "w-full h-4 rounded-md",
+    "text": "w-full h-4 rounded-sm",
+    "circle": "w-10 h-10 rounded-full",
+    "rect": "w-full h-4 rounded-none"
+  }
 }

@@ -5,7 +5,22 @@ import { renderComponent } from '../../templates/engine';
 import { Framework, ThemePreset, StyleSystem } from '../../core/enums';
 
 const STYLE_SYSTEMS = [StyleSystem.NativeWind, StyleSystem.StyleSheet] as const;
-const COMPONENTS = ['Button', 'Input', 'Card', 'Badge', 'Alert'];
+const COMPONENTS = [
+  'Button',
+  'Input',
+  'Card',
+  'Badge',
+  'Alert',
+  'Label',
+  'Avatar',
+  'Progress',
+  'Separator',
+  'Skeleton',
+  'Switch',
+  'RadioGroup',
+  'Textarea',
+  'Checkbox',
+];
 
 describe('React Native snapshots', () => {
   describe.each(STYLE_SYSTEMS)('StyleSystem: %s', (styleSystem) => {

@@ -1,0 +1,88 @@
+import React, { useId } from 'react';
+import { Text, TextInput, View, StyleSheet, type TextInputProps } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+const variantStyles: Record<string, object> = {
+  default: { borderColor: theme.colorBorder, color: theme.foreground },
+  error:   { borderColor: theme.colorDestructive, color: theme.foreground },
+};
+
+// ponytail: minHeight per size approximates the web rows semantics (sm≈64/md≈88/lg≈120).
+const sizeStyles: Record<string, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 8, fontSize: 14, minHeight: 64 },
+  md: { paddingHorizontal: 12, paddingVertical: 8, fontSize: 16, minHeight: 88 },
+  lg: { paddingHorizontal: 16, paddingVertical: 12, fontSize: 18, minHeight: 120 },
+};
+
+const styles = StyleSheet.create({
+  group: { flexDirection: 'column', gap: 6, width: '100%' },
+  label: { fontWeight: '500', color: theme.foreground, fontSize: 14 },
+  required: { color: theme.colorDestructive },
+  field: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: Number.parseInt(theme.radiusSm, 10) || 4,
+    textAlignVertical: 'top',
+  },
+  disabled: { opacity: 0.6 },
+  // ponytail: colorTextMuted is outside the allowed theme key set — foreground at
+  // reduced opacity stands in for muted text.
+  hint: { fontSize: 12, color: theme.foreground, opacity: 0.6 },
+  error: { fontSize: 12, color: theme.colorDestructive },
+});
+
+export type TextareaVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type TextareaSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface TextareaProps extends TextInputProps {
+  label?:    string;
+  variant?:  TextareaVariant;
+  size?:     TextareaSize;
+  error?:    string;
+  hint?:     string;
+  required?: boolean;
+  /** ponytail: rows is a web layout hint — height comes from minHeight per size on mobile */
+  rows?:     number;
+}
+
+// Hoisted so Handlebars never parses an inline object literal as a helper.
+const DISABLED_STATE = { disabled: true } as const;
+
+export const Textarea = React.forwardRef<TextInput, TextareaProps>(
+  ({ label, variant = 'default', size = 'md', error, hint, required, id: providedId, style, rows, multiline = true, editable, maxLength, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+
+    return (
+      <View style={styles.group}>
+        {label && (
+          <Text style={styles.label}>
+            {label}
+            {required && <Text style={styles.required}> *</Text>}
+          </Text>
+        )}
+        <TextInput
+          ref={ref}
+          nativeID={id}
+          style={[
+            styles.field,
+            variantStyles[error ? 'error' : variant],
+            sizeStyles[size],
+            editable === false && styles.disabled,
+            style,
+          ]}
+          multiline={multiline}
+          maxLength={maxLength}
+          editable={editable}
+          accessibilityLabel={label ? (error ? `${label}. ${error}` : label) : undefined}
+          accessibilityState={editable === false ? DISABLED_STATE : undefined}
+          {...props}
+        />
+        {hint && !error && <Text style={styles.hint}>{hint}</Text>}
+        {error && <Text style={styles.error} accessibilityRole="alert">{error}</Text>}
+      </View>
+    );
+  }
+);
+
+Textarea.displayName = 'Textarea';

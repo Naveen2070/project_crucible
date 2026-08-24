@@ -2,8 +2,8 @@
   "id": "Textarea",
   "name": "Textarea",
   "description": "Multi-line text input with label, hint, and error states",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "error"],
   "sizes": ["sm", "md", "lg"],
   "states": ["disabled", "error"],
@@ -13,5 +13,9 @@
   "tailwindDefaults": {
     "default": "border-[var(--color-border)] focus:border-[var(--color-primary)]",
     "error": "border-[var(--color-destructive)] focus:border-[var(--color-destructive)]"
+  },
+  "nativewindDefaults": {
+    "default": "border-border text-foreground",
+    "error": "border-destructive text-foreground"
   }
 }

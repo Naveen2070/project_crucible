@@ -1,0 +1,11 @@
+// Crucible preview examples for {{name}} (React Native / NativeWind).
+// ponytail: Storybook for React Native isn't wired up in this release (needs Expo +
+// @storybook/react-native) - these are ready-to-spread prop presets for manual/visual QA
+// (e.g. `<Label {...{{name}}Previews.required}>Email</Label>`), not a Storybook CSF file.
+import type { LabelProps } from './{{name}}';
+
+export const {{name}}Previews: Record<string, Omit<LabelProps, 'children'>> = {
+{{#each sizes}}  {{this}}: { size: '{{this}}' },
+{{/each}}  required: { required: true },
+  disabled: { disabled: true },
+};

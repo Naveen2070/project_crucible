@@ -2,8 +2,8 @@
   "id": "RadioGroup",
   "name": "RadioGroup",
   "description": "Accessible radio group with roving tabindex (WAI-ARIA radiogroup pattern)",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": [],
   "sizes": ["sm", "md", "lg"],
   "states": ["disabled"],
@@ -11,5 +11,6 @@
   "prefix": "radio",
   "utils": ["roving-focus"],
   "a11y": { "role": "radiogroup", "keyboardNav": true },
-  "tailwindDefaults": {}
+  "tailwindDefaults": {},
+  "nativewindDefaults": {}
 }

@@ -19,7 +19,22 @@ const CLI_PATH = path.join(ROOT_DIR, 'dist', 'cli', 'index.js');
 const PG_DIR = path.join(ROOT_DIR, 'playground', 'rn-expo');
 
 /** Grows with every completed wave of planning/v1.2.2-rn-completion-and-playground.md */
-const RN_COMPONENTS = ['Button', 'Input', 'Card', 'Badge', 'Alert'];
+const RN_COMPONENTS = [
+  'Button',
+  'Input',
+  'Card',
+  'Badge',
+  'Alert',
+  'Label',
+  'Avatar',
+  'Progress',
+  'Separator',
+  'Skeleton',
+  'Switch',
+  'RadioGroup',
+  'Textarea',
+  'Checkbox',
+];
 const RN_STYLES = ['nativewind', 'stylesheet'] as const;
 
 const writeJson = (p: string, data: unknown) =>

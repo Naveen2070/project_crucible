@@ -190,7 +190,22 @@ async function runE2E() {
     { spaces: 2 },
   );
 
-  const RN_COMPONENTS = ['Button', 'Input', 'Card', 'Badge', 'Alert'];
+  const RN_COMPONENTS = [
+    'Button',
+    'Input',
+    'Card',
+    'Badge',
+    'Alert',
+    'Label',
+    'Avatar',
+    'Progress',
+    'Separator',
+    'Skeleton',
+    'Switch',
+    'RadioGroup',
+    'Textarea',
+    'Checkbox',
+  ];
   const RN_STYLES = ['nativewind', 'stylesheet'] as const;
   // `OUT` is 'src/components' (2 segments); a component lives one level deeper, so the default
   // layout's relative import back up to the project-root `theme.ts` is 3 levels: `../../../theme`.
@@ -229,8 +244,8 @@ async function runE2E() {
         for (const forbidden of ['<div', '<span', '<button', '<input ', 'aria-']) {
           if (src.includes(forbidden)) throw new Error(`RN output must not contain "${forbidden}"`);
         }
-        // Badge is a passive label (no interactive role, matching web Badge having no ARIA role).
-        if (comp !== 'Badge' && !src.includes('accessibilityRole') && !src.includes('accessibilityState')) {
+        // Passive text components (no interactive role, matching their web counterparts).
+        if (!['Badge', 'Label'].includes(comp) && !src.includes('accessibilityRole') && !src.includes('accessibilityState')) {
           throw new Error('missing accessibilityRole/accessibilityState');
         }
 

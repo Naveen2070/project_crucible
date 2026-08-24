@@ -1,0 +1,67 @@
+import React from 'react';
+import { View, StyleSheet, type ViewProps } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type ProgressVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type ProgressSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface ProgressProps extends ViewProps {
+  /** Current value (0..max); rendered as a percentage of the track */
+  value?:     number;
+  /** Maximum value */
+  max?:       number;
+  /** Linear bar or circular ring — see ponytail note below */
+  variant?:   ProgressVariant;
+  /** Track thickness */
+  size?:      ProgressSize;
+  /** Accessible label */
+  label?:     string;
+  /** Show a fixed-width bar instead of a percentage fill */
+  indeterminate?: boolean;
+}
+
+const variantStyles: Record<ProgressVariant, object> = {
+  linear:   { backgroundColor: theme.colorSecondary },
+  circular: { backgroundColor: theme.colorSecondary },
+};
+
+const sizeStyles: Record<ProgressSize, object> = {
+  sm: { height: 4 },
+  md: { height: 8 },
+  lg: { height: 12 },
+};
+
+const styles = StyleSheet.create({
+  track: { width: '100%', overflow: 'hidden', borderRadius: 9999 },
+  fill: {
+    height: '100%',
+    borderRadius: 9999,
+    backgroundColor: theme.colorPrimary,
+  },
+});
+
+// ponytail: 'circular' needs an SVG ring and RN has no SVG primitive without adding a
+// dependency, so BOTH variants render as the linear bar here; `variant` stays in the API so
+// upstream code doesn't need a framework-specific branch. Indeterminate stays a static
+// fixed-width bar — looping it would need an Animated driver (and reduce-motion handling).
+export const Progress = React.forwardRef<View, ProgressProps>(
+  ({ value = 0, max = 100, variant = 'linear', size = 'md', label, indeterminate = false, style }, ref) => {
+    const clamped = Math.min(Math.max(value, 0), max);
+    const pct = max > 0 ? (clamped / max) * 100 : 0;
+  const a11yValue = { min: 0, max, now: value };
+
+    return (
+      <View
+        ref={ref}
+        style={[styles.track, variantStyles[variant], sizeStyles[size], style]}
+        accessibilityRole="progressbar"
+        accessibilityLabel={label}
+        accessibilityValue={a11yValue}
+      >
+        <View style={[styles.fill, indeterminate ? { width: '40%' } : { width: `${pct}%` }]} />
+      </View>
+    );
+  }
+);
+
+Progress.displayName = 'Progress';

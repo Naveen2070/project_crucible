@@ -1,0 +1,51 @@
+import React from 'react';
+import { Text, StyleSheet, type TextProps } from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type LabelSize = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+export interface LabelProps extends TextProps {
+  /** Visual size of the label text */
+  size?:     LabelSize;
+  /** Render a required (*) marker after the label text */
+  required?: boolean;
+  /** Visually mark the label as disabled (pair with a disabled control) */
+  disabled?: boolean;
+}
+
+const sizeStyles: Record<LabelSize, object> = {
+  sm: { fontSize: 12 },
+  md: { fontSize: 14 },
+  lg: { fontSize: 16 },
+};
+
+const styles = StyleSheet.create({
+  base: { fontWeight: '500', color: theme.foreground },
+  requiredMarker: { color: theme.colorDestructive },
+  disabled: { opacity: 0.6 },
+});
+
+// ponytail: React Native has no <label>/htmlFor association — pair this label with a control
+// by nesting the control inside it (pressables inherit the press) or by setting
+// accessibilityLabel on the control directly.
+export const Label = React.forwardRef<Text, LabelProps>(
+  ({ size = 'md', required = false, disabled = false, style, children, ...props }, ref) => {
+    const { accessibilityLabel: fromProps } = props;
+    const label =
+      fromProps ?? (required && typeof children === 'string' ? `${children} (required)` : undefined);
+
+    return (
+      <Text
+        ref={ref}
+        style={[styles.base, sizeStyles[size], disabled && styles.disabled, style]}
+        accessibilityLabel={label}
+        {...props}
+      >
+        {children}
+        {required && <Text style={styles.requiredMarker}> *</Text>}
+      </Text>
+    );
+  }
+);
+
+Label.displayName = 'Label';
