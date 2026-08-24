@@ -1,0 +1,423 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Animated,
+  StyleSheet,
+  type PressableProps,
+  type GestureResponderEvent,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type AccordionVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type AccordionSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type AccordionType = 'single' | 'multiple';
+
+export interface AccordionOptions {
+  /** Whether one ("single") or many ("multiple") items can be open at once */
+  type?: AccordionType;
+  /** Controlled open item value(s) */
+  value?: string | string[];
+  /** Initial open item value(s) when uncontrolled */
+  defaultValue?: string | string[];
+  /** Called with the next open value(s) */
+  onValueChange?: (value: string | string[]) => void;
+  /** In "single" mode, whether the open item can be collapsed again */
+  collapsible?: boolean;
+}
+
+const ROOT_VARIANT_STYLES: Record<AccordionVariant, object> = {
+  default: {},
+  bordered: {
+    borderWidth: 1,
+    borderColor: theme.colorBorder,
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+  },
+  separated: { gap: 8 },
+};
+
+const ITEM_VARIANT_STYLES: Record<AccordionVariant, object> = {
+  default: { borderBottomWidth: 1, borderBottomColor: theme.colorBorder },
+  bordered: { borderBottomWidth: 1, borderBottomColor: theme.colorBorder },
+  separated: {
+    borderWidth: 1,
+    borderColor: theme.colorBorder,
+    borderRadius: Number.parseInt(theme.radiusMd, 10) || 8,
+    overflow: 'hidden',
+  },
+};
+
+const TRIGGER_SIZE_STYLES: Record<AccordionSize, object> = {
+  sm: { paddingHorizontal: 12, paddingVertical: 8 },
+  md: { paddingHorizontal: 16, paddingVertical: 12 },
+  lg: { paddingHorizontal: 20, paddingVertical: 16 },
+};
+
+const LABEL_SIZE_STYLES: Record<AccordionSize, object> = {
+  sm: { fontSize: 14 },
+  md: { fontSize: 16 },
+  lg: { fontSize: 18 },
+};
+
+/** Generous cap for the height-reveal animation — content taller than this gets clipped. */
+const MAX_CONTENT_HEIGHT = 500;
+
+// ponytail: a11y.reduceMotion from the crucible config collapses the reveal/rotate durations
+// to 0ms so open/close snaps instantly — the RN counterpart of the web build honoring the
+// OS reduced-motion preference. Same mechanics, zero motion.
+const MOTION_DURATION_MS = {{#if a11y.reduceMotion}}0{{else}}200{{/if}};
+
+const styles = StyleSheet.create({
+  root: { width: '100%' },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  headerLabel: { flexShrink: 1, fontWeight: '500', color: theme.foreground },
+  chevron: { color: theme.colorTextMuted, fontSize: 18 },
+  clipper: { overflow: 'hidden' },
+  contentInner: { paddingHorizontal: 16, paddingBottom: 16 },
+  disabled: { opacity: 0.5 },
+});
+
+const toOpenList = (value: string | string[] | undefined): string[] => {
+  if (value == null || value === '') return [];
+  return Array.isArray(value) ? value : [value];
+};
+
+const useAccordionState = ({
+  type = 'single',
+  value: controlledValue,
+  defaultValue,
+  onValueChange,
+  collapsible = true,
+}: AccordionOptions = {}) => {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string | string[] | undefined>(
+    defaultValue
+  );
+  const value = controlledValue ?? uncontrolledValue;
+  const openSet = useMemo(() => new Set(toOpenList(value)), [value]);
+
+  const commit = useCallback(
+    (next: string | string[]) => {
+      if (controlledValue === undefined) setUncontrolledValue(next);
+      onValueChange?.(next);
+    },
+    [controlledValue, onValueChange]
+  );
+
+  const toggle = useCallback(
+    (itemValue: string) => {
+      if (type === 'multiple') {
+        const next = new Set(openSet);
+        if (next.has(itemValue)) next.delete(itemValue);
+        else next.add(itemValue);
+        commit(Array.from(next));
+        return;
+      }
+      const wasOpen = openSet.has(itemValue);
+      if (wasOpen) commit(collapsible ? '' : itemValue);
+      else commit(itemValue);
+    },
+    [type, openSet, collapsible, commit]
+  );
+
+  const isOpen = useCallback((itemValue: string) => openSet.has(itemValue), [openSet]);
+
+  return { isOpen, toggle };
+};
+
+interface TriggerBaseProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  label: React.ReactNode;
+  size: AccordionSize;
+  open: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+// ponytail: RN has no accordion role — the trigger is a button whose expanded state rides on
+// its accessibility state. Roving focus / arrow-key plumbing from the web build is omitted;
+// navigation is touch/screen-reader driven on mobile.
+const TriggerBase = ({ label, size, open, disabled, onToggle, style, ...props }: TriggerBaseProps) => {
+  const rotate = useRef(new Animated.Value(open ? 1 : 0)).current;
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const triggerState = { disabled, expanded: open };
+  const chevronStyle = {
+    transform: [
+      { rotate: rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) },
+    ],
+  };
+
+  useEffect(() => {
+    Animated.timing(rotate, {
+      toValue: open ? 1 : 0,
+      duration: MOTION_DURATION_MS,
+      useNativeDriver: true,
+    }).start();
+  }, [open, rotate]);
+
+  const handlePress = (event: GestureResponderEvent) => {
+    props.onPress?.(event);
+    if (!disabled) onToggle();
+  };
+
+  return (
+    <Pressable
+      {...props}
+      style={[styles.headerRow, TRIGGER_SIZE_STYLES[size], disabled && styles.disabled, style]}
+      disabled={disabled}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityState={triggerState}
+    >
+      <Text style={[styles.headerLabel, LABEL_SIZE_STYLES[size]]}>{label}</Text>
+      <Animated.Text style={[styles.chevron, chevronStyle]}>›</Animated.Text>
+    </Pressable>
+  );
+};
+
+interface ContentBaseProps {
+  children?: React.ReactNode;
+  open: boolean;
+  style?: StyleProp<ViewStyle>;
+}
+
+// ponytail: height reveal via an interpolated maxHeight cap (layout prop → JS driver). The
+// body stays mounted so closing animates too; when closed it is clipped to zero height,
+// faded out, and pointer-events are cut off.
+const ContentBase = ({ children, open, style }: ContentBaseProps) => {
+  const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
+  const bodyStyle = {
+    maxHeight: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, MAX_CONTENT_HEIGHT],
+    }),
+    opacity: progress,
+  };
+  const pointerRule = open ? 'auto' : 'none';
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: open ? 1 : 0,
+      duration: MOTION_DURATION_MS,
+      useNativeDriver: false,
+    }).start();
+  }, [open, progress]);
+
+  return (
+    <Animated.View style={[styles.clipper, bodyStyle, style]} pointerEvents={pointerRule}>
+      <View style={styles.contentInner}>{children}</View>
+    </Animated.View>
+  );
+};
+
+{{#if features.compoundComponents}}
+interface AccordionContextValue {
+  isOpen: (value: string) => boolean;
+  toggle: (value: string) => void;
+}
+
+const AccordionContext = createContext<AccordionContextValue | undefined>(undefined);
+
+const useAccordionContext = () => {
+  const context = useContext(AccordionContext);
+  if (!context) throw new Error('Accordion sub-components must be used within Accordion.Root');
+  return context;
+};
+
+interface AccordionItemContextValue {
+  value: string;
+  disabled: boolean;
+}
+
+const ItemContext = createContext<AccordionItemContextValue | undefined>(undefined);
+
+const useItemContext = () => {
+  const context = useContext(ItemContext);
+  if (!context) throw new Error('Accordion.Trigger / Accordion.Content must be used within Accordion.Item');
+  return context;
+};
+
+export interface AccordionRootProps extends AccordionOptions {
+  children?: React.ReactNode;
+  variant?: AccordionVariant;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionRoot = ({
+  children,
+  variant = 'default',
+  style,
+  ...options
+}: AccordionRootProps) => {
+  const accordion = useAccordionState(options);
+
+  return (
+    <AccordionContext.Provider value={accordion}>
+      <View style={[styles.root, ROOT_VARIANT_STYLES[variant], style]}>{children}</View>
+    </AccordionContext.Provider>
+  );
+};
+
+export interface AccordionItemProps {
+  /** Unique id this item toggles — referenced by Accordion's value/defaultValue */
+  value: string;
+  disabled?: boolean;
+  variant?: AccordionVariant;
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionItem = ({
+  value,
+  disabled = false,
+  variant = 'default',
+  style,
+  children,
+}: AccordionItemProps) => {
+  const { isOpen } = useAccordionContext();
+  const open = isOpen(value);
+  // Hoisted so Handlebars never parses an inline object literal as a helper.
+  const itemContextValue = { value, disabled };
+
+  return (
+    <ItemContext.Provider value={itemContextValue}>
+      <View style={[ITEM_VARIANT_STYLES[variant], disabled && styles.disabled, style]}>
+        {children}
+      </View>
+    </ItemContext.Provider>
+  );
+};
+
+export interface AccordionTriggerProps extends PressableProps {
+  /** Node children (render-prop form of Pressable children is not supported) */
+  children?: React.ReactNode;
+  size?: AccordionSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionTrigger = ({
+  size = 'md',
+  onPress,
+  disabled,
+  style,
+  children,
+  ...props
+}: AccordionTriggerProps) => {
+  const { isOpen, toggle } = useAccordionContext();
+  const { value, disabled: itemDisabled } = useItemContext();
+  const open = isOpen(value);
+  const isDisabled = disabled ?? itemDisabled;
+
+  return (
+    <TriggerBase
+      {...props}
+      label={children}
+      size={size}
+      open={open}
+      disabled={!!isDisabled}
+      onToggle={() => toggle(value)}
+      onPress={onPress}
+      style={style}
+    />
+  );
+};
+
+export interface AccordionContentProps {
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const AccordionContent = ({ children, style }: AccordionContentProps) => {
+  const { isOpen } = useAccordionContext();
+  const { value } = useItemContext();
+  const open = isOpen(value);
+
+  return (
+    <ContentBase open={open} style={style}>
+      {children}
+    </ContentBase>
+  );
+};
+
+export const Accordion = Object.assign(AccordionRoot, {
+  Root: AccordionRoot,
+  Item: AccordionItem,
+  Trigger: AccordionTrigger,
+  Content: AccordionContent,
+});
+
+Accordion.displayName = 'Accordion';
+AccordionRoot.displayName = 'Accordion.Root';
+AccordionItem.displayName = 'Accordion.Item';
+AccordionTrigger.displayName = 'Accordion.Trigger';
+AccordionContent.displayName = 'Accordion.Content';
+{{else}}
+export interface AccordionItemData {
+  value: string;
+  label: React.ReactNode;
+  content: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface AccordionProps extends AccordionOptions {
+  variant?: AccordionVariant;
+  size?: AccordionSize;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const Accordion = ({
+  items,
+  variant = 'default',
+  size = 'md',
+  style,
+  ...options
+}: AccordionProps & {
+  items: AccordionItemData[];
+}) => {
+  const { isOpen, toggle } = useAccordionState(options);
+
+  return (
+    <View style={[styles.root, ROOT_VARIANT_STYLES[variant], style]}>
+      {items.map((item) => {
+        const open = isOpen(item.value);
+        const isDisabled = !!item.disabled;
+
+        return (
+          <View
+            key={item.value}
+            style={[ITEM_VARIANT_STYLES[variant], isDisabled && styles.disabled]}
+          >
+            <TriggerBase
+              label={item.label}
+              size={size}
+              open={open}
+              disabled={isDisabled}
+              onToggle={() => toggle(item.value)}
+            />
+            <ContentBase open={open}>{item.content}</ContentBase>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+Accordion.displayName = 'Accordion';
+{{/if}}

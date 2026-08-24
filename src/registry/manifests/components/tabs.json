@@ -2,8 +2,8 @@
   "id": "Tabs",
   "name": "Tabs",
   "description": "Tabbed content navigation with full WAI-ARIA tabs pattern (roving tabindex + keyboard nav)",
-  "frameworks": ["react", "vue", "angular"],
-  "styleSystems": ["css", "tailwind", "scss"],
+  "frameworks": ["react", "vue", "angular", "react-native"],
+  "styleSystems": ["css", "tailwind", "scss", "nativewind", "stylesheet"],
   "variants": ["default", "underline", "pills"],
   "sizes": ["sm", "md", "lg"],
   "states": ["disabled"],
@@ -21,5 +21,10 @@
     "default": "border-b border-[var(--color-border)]",
     "underline": "border-b border-[var(--color-border)]",
     "pills": "gap-[var(--tabs-list-gap)]"
+  },
+  "nativewindDefaults": {
+    "default": "rounded-md bg-secondary text-foreground",
+    "underline": "rounded-none border-b-2 border-primary",
+    "pills": "rounded-full bg-primary text-white"
   }
 }

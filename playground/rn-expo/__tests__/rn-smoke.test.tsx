@@ -29,16 +29,16 @@ const PROPS: Record<string, Record<string, unknown>> = {
 
 /** Compound components take no render props on their root — compose through their parts. */
 function elementFor(name: string, Comp: any) {
-  if (name === 'Input' && typeof Comp === 'object' && Comp !== null && 'Field' in Comp) {
-    const Field = (Comp as any).Field;
+  if (name === 'Input' && Comp?.Field) {
+    const Field = Comp.Field;
     return (
       <Comp>
         <Field placeholder="Email" />
       </Comp>
     );
   }
-  if (name === 'RadioGroup' && typeof Comp === 'object' && Comp !== null && 'Item' in Comp) {
-    const Item = (Comp as any).Item;
+  if (name === 'RadioGroup' && Comp?.Item) {
+    const Item = Comp.Item;
     return (
       <Comp defaultValue="a">
         <Item value="a" label="One" />
@@ -57,6 +57,115 @@ function elementFor(name: string, Comp: any) {
       />
     );
   }
+  if (name === 'Accordion' && Comp?.Item) {
+    const Item = Comp.Item;
+    const Trigger = Comp.Trigger;
+    const Content = Comp.Content;
+    return (
+      <Comp type="single" collapsible defaultValue="a">
+        <Item value="a">
+          <Trigger>
+            <Text>Section one</Text>
+          </Trigger>
+          <Content>
+            <Text>Body one</Text>
+          </Content>
+        </Item>
+        <Item value="b">
+          <Trigger>
+            <Text>Section two</Text>
+          </Trigger>
+          <Content>
+            <Text>Body two</Text>
+          </Content>
+        </Item>
+      </Comp>
+    );
+  }
+  if (name === 'Accordion') {
+    // Flat (non-compound) mode renders from an items array.
+    return (
+      <Comp
+        items={[
+          { value: 'a', label: 'Section one', content: 'Body one' },
+          { value: 'b', label: 'Section two', content: 'Body two' },
+        ]}
+      />
+    );
+  }
+  if (name === 'Tabs' && Comp?.List) {
+    const List = Comp.List;
+    const Trigger = Comp.Trigger;
+    const Content = Comp.Content;
+    return (
+      <Comp defaultValue="one">
+        <List>
+          <Trigger value="one">
+            <Text>One</Text>
+          </Trigger>
+          <Trigger value="two">
+            <Text>Two</Text>
+          </Trigger>
+        </List>
+        <Content value="one">
+          <Text>One body</Text>
+        </Content>
+        <Content value="two">
+          <Text>Two body</Text>
+        </Content>
+      </Comp>
+    );
+  }
+  if (name === 'Tabs') {
+    // Flat (non-compound) mode renders from an items array.
+    return (
+      <Comp
+        items={[
+          { value: 'one', label: 'One', content: 'One body' },
+          { value: 'two', label: 'Two', content: 'Two body' },
+        ]}
+      />
+    );
+  }
+  if (name === 'Dialog' && Comp?.Content) {
+    const Content = Comp.Content;
+    const Header = Comp.Header;
+    const Title = Comp.Title;
+    const Close = Comp.Close;
+    const Body = Comp.Body;
+    return (
+      <Comp isOpen onClose={() => {}}>
+        <Content accessibilityLabel="Example dialog">
+          <Header>
+            <Title>
+              <Text>Example dialog</Text>
+            </Title>
+            <Close />
+          </Header>
+          <Body>
+            <Text>Dialog body content.</Text>
+          </Body>
+        </Content>
+      </Comp>
+    );
+  }
+  if (name === 'Form' && Comp?.Field) {
+    const Field = Comp.Field;
+    const Label = Comp.Label;
+    const Control = Comp.Control;
+    const Message = Comp.Message;
+    return (
+      <Comp onSubmit={() => {}}>
+        <Field name="workspace" label="Workspace" required>
+          <Label>Workspace</Label>
+          <Control>
+            <Text>value slot</Text>
+          </Control>
+          <Message>This field is required.</Message>
+        </Field>
+      </Comp>
+    );
+  }
   return <Comp {...(PROPS[name] ?? {})} />;
 }
 
@@ -67,6 +176,7 @@ const EXPECTED_ROLES: Record<string, string | undefined> = {
   Progress: 'progressbar',
   Switch: 'switch',
   Checkbox: 'checkbox',
+  Tabs: 'tab',
 };
 
 function discover(): string[] {

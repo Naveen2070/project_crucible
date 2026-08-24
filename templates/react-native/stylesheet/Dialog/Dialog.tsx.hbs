@@ -1,0 +1,266 @@
+import React, { createContext, useContext } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+  type GestureResponderEvent,
+} from 'react-native';
+import { theme } from '{{themeImportPath}}';
+
+export type DialogVariant = {{#each variants}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+export type DialogSize    = {{#each sizes}}'{{this}}'{{#unless @last}} | {{/unless}}{{/each}};
+
+const SIZE_MAX_WIDTHS: Record<string, number> = {
+  sm: 320,
+  md: 400,
+  lg: 480,
+};
+
+interface DialogContextValue {
+  isOpen: boolean;
+  onClose: () => void;
+  variant: DialogVariant;
+  size: DialogSize;
+}
+
+const DialogContext = createContext<DialogContextValue | undefined>(undefined);
+
+const useDialogContext = () => {
+  const ctx = useContext(DialogContext);
+  if (!ctx) throw new Error('Dialog parts must be used within Dialog');
+  return ctx;
+};
+
+// ponytail: React Native has no native dialog role - the card relies on
+// accessibilityViewIsModal (iOS) plus an explicit accessibilityLabel instead of
+// the web focus-trap/dialog-role pattern. Android hardware back closes via
+// Modal's onRequestClose.
+export interface DialogRootProps {
+  /** Whether the dialog is currently shown */
+  isOpen: boolean;
+  /** Called when the overlay, close control or hardware back requests dismissal */
+  onClose: () => void;
+  /** Visual variant of the dialog card */
+  variant?: DialogVariant;
+  /** Maximum width of the dialog card */
+  size?: DialogSize;
+  children?: React.ReactNode;
+}
+
+export const DialogRoot = ({
+  isOpen,
+  onClose,
+  variant = 'default',
+  size = 'md',
+  children,
+}: DialogRootProps) => {
+  const contextValue = { isOpen, onClose, variant, size };
+
+  return <DialogContext.Provider value={contextValue}>{children}</DialogContext.Provider>;
+};
+
+interface DialogCloseProps extends Omit<PressableProps, 'style'> {
+  /** Accessible name for the close control (defaults to "Close") */
+  label?: string;
+  /** Plain style prop (Pressable's render-fn form unsupported) */
+  style?: StyleProp<ViewStyle>;
+}
+
+export const DialogClose = ({ onPress, label = 'Close', style, ...props }: DialogCloseProps) => {
+  const { onClose } = useDialogContext();
+
+  const handlePress = (event: GestureResponderEvent) => {
+    onPress?.(event);
+    onClose();
+  };
+
+  return (
+    <Pressable onPress={handlePress} style={[styles.close, style]} accessibilityRole="button" accessibilityLabel={label} {...props}>
+      <Text style={styles.closeGlyph}>✕</Text>
+    </Pressable>
+  );
+};
+
+export interface DialogContentProps {
+  /** Accessible name for the dialog card - always provide one (RN has no dialog role) */
+  accessibilityLabel?: string;
+  children?: React.ReactNode;
+}
+
+const styles = StyleSheet.create({
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.5)' },
+  wrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  cardBase: { width: '100%', backgroundColor: theme.colorSurface, borderRadius: Number.parseInt(theme.radiusMd, 10) || 8 },
+  cardConfirm: { borderTopWidth: 4, borderTopColor: theme.colorPrimary },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 20, paddingTop: 20 },
+  title: { flexShrink: 1, fontSize: 17, fontWeight: '600', color: theme.foreground },
+  close: { padding: 4 },
+  closeGlyph: { fontSize: 16, lineHeight: 22, color: theme.colorTextMuted },
+  body: { paddingHorizontal: 20, paddingVertical: 16 },
+  footer: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 8 },
+});
+
+export const DialogContent = ({ accessibilityLabel, children }: DialogContentProps) => {
+  const { isOpen, onClose, variant, size } = useDialogContext();
+
+  const backdropPress = () => {
+    onClose();
+  };
+
+  const cardWidth = { maxWidth: SIZE_MAX_WIDTHS[size] ?? SIZE_MAX_WIDTHS.md };
+  const cardClasses =
+    variant === 'confirm' ? [styles.cardBase, styles.cardConfirm] : styles.cardBase;
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      statusBarTranslucent
+      animationType="fade"
+      onRequestClose={() => {
+        onClose();
+      }}
+    >
+      <View style={styles.wrapper}>
+        <View style={StyleSheet.absoluteFill}>
+          <Pressable style={styles.backdrop} onPress={backdropPress} accessibilityLabel="Close dialog" />
+        </View>
+        <View
+          style={[cardClasses, cardWidth]}
+          accessibilityViewIsModal
+          accessibilityLabel={accessibilityLabel}
+        >
+          {children}
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export const DialogHeader = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <View style={[styles.header, style]}>{children}</View>;
+
+export const DialogTitle = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <Text style={[styles.title, style]}>{children}</Text>;
+
+export const DialogBody = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <ScrollView style={styles.body}>{children}</ScrollView>;
+
+export const DialogFooter = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) => <View style={[styles.footer, style]}>{children}</View>;
+
+export const Dialog = Object.assign(DialogRoot, {
+  // ponytail: the web Overlay part is baked into Content here - the Modal's backdrop
+  // layer IS the overlay, so no separate component is exposed.
+  Content: DialogContent,
+  Header: DialogHeader,
+  Title: DialogTitle,
+  Close: DialogClose,
+  Body: DialogBody,
+  Footer: DialogFooter,
+});
+
+Dialog.displayName = 'Dialog';
+DialogRoot.displayName = 'Dialog.Root';
+DialogContent.displayName = 'Dialog.Content';
+DialogHeader.displayName = 'Dialog.Header';
+DialogTitle.displayName = 'Dialog.Title';
+DialogClose.displayName = 'Dialog.Close';
+DialogBody.displayName = 'Dialog.Body';
+DialogFooter.displayName = 'Dialog.Footer';
+
+{{#if features.compoundComponents}}
+{{else}}
+export interface DialogProps {
+  /** Whether the dialog is currently shown */
+  isOpen:    boolean;
+  /** Called when the dialog requests dismissal */
+  onClose:   () => void;
+  /** Heading rendered beside the close control */
+  title:     string;
+  children:  React.ReactNode;
+  variant?:  DialogVariant;
+  size?:     DialogSize;
+  /** Actions rendered along the footer row */
+  footer?:   React.ReactNode;
+  /** Accessible name for the dialog card */
+  accessibilityLabel?: string;
+}
+
+export const Dialog = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  variant = 'default',
+  size = 'md',
+  footer,
+  accessibilityLabel,
+}: DialogProps) => {
+  const backdropPress = () => {
+    onClose();
+  };
+
+  const cardWidth = { maxWidth: SIZE_MAX_WIDTHS[size] ?? SIZE_MAX_WIDTHS.md };
+  const cardClasses =
+    variant === 'confirm' ? [styles.cardBase, styles.cardConfirm] : styles.cardBase;
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      statusBarTranslucent
+      animationType="fade"
+      onRequestClose={() => {
+        onClose();
+      }}
+    >
+      <View style={styles.wrapper}>
+        <View style={StyleSheet.absoluteFill}>
+          <Pressable style={styles.backdrop} onPress={backdropPress} accessibilityLabel="Close dialog" />
+        </View>
+        <View
+          style={[cardClasses, cardWidth]}
+          accessibilityViewIsModal
+          accessibilityLabel={accessibilityLabel ?? title}
+        >
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogClose label="✕" />
+          </DialogHeader>
+          <DialogBody>{children}</DialogBody>
+          {footer && <DialogFooter>{footer}</DialogFooter>}
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+Dialog.displayName = 'Dialog';
+{{/if}}
