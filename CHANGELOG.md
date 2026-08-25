@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-08-29
+
+### Added
+
+- **React Native kit completed (Beta → full curated set)**. The mobile target now ships **all 18
+  curated cross-platform components** in both style systems (`nativewind` + `stylesheet`), up from
+  the initial 5:
+  - **Wave additions**: Label, Separator, Skeleton, Avatar, Progress, Textarea, Checkbox, Switch,
+    RadioGroup, Accordion, Tabs, Dialog, Form.
+  - **Accordion**: Animated height reveal with rotating chevron, single/multiple modes, collapsible
+    guard, reduce-motion aware.
+  - **Tabs**: `tablist`/`tab` accessibility roles with selected/disabled state; default, underline
+    and pills variants.
+  - **Dialog**: Modal-based compound Root/Content/Header/Title/Close/Body/Footer mirroring the web
+    API; backdrop dismiss, Android hardware-back close, and an `accessibilityViewIsModal` +
+    explicit-label fallback (RN has no native dialog role).
+  - **Form**: RN redesign of web form semantics — context Root with a values/errors/rules engine
+    ported from the web template (`required`, `pattern`, `min`/`max`, length rules), Field/Label/
+    Control/Message parts wiring labels and errors into accessibility props, explicit onPress submit.
+  - **Switch**: custom track/thumb Pressable implementation (the native Switch ignores className);
+    Checkbox indeterminate maps to `accessibilityState { selected: true }`.
+  - **Skeleton**: pulse animation gated behind reduce-motion; **Progress** exposes
+    `accessibilityValue`; **Avatar** falls back to initials; **Label** auto-suffixes
+    "(required)" for string children.
+
+- **Expo playground (`playground/rn-expo`)**: runnable Expo app with a NativeWind/StyleSheet tab
+  shell, dark-mode toggle, SafeArea layout and per-component demo screens.
+  - `npm run pg:rn` generates all 18 components into the app (both style trees + theme.ts /
+    tailwind.preset.js); `npm run test:rn` runs the jest-expo suite.
+  - jest-expo harness covers render smoke, accessibility roles and style parity for every
+    generated component; `tsc --noEmit` clean.
+
+- **CI**: new path-gated `rn-test.yml` workflow running the Expo playground suite when React Native
+  templates, tokens or the harness change.
+
+### Fixed
+
+- **RN Input templates**: invalid `accessibilityState { pressed }` replaced with `{ selected }`.
+- **Template hardening** (caught by the new render harness): inline object literals hoisted out of
+  Handlebars-ambiguous JSX attributes, `Text` className arrays joined to strings, Pressable
+  children/style narrowed to plain types, `DimensionValue` sizing, and no "aria-" literals in
+  emitted output.
+- **E2E**: passive-text allowlist (Badge, Label) for the accessibility-role assertion.
+
+### Changed
+
+- Test suite now **604 unit tests**, **282 E2E phases**, **49 playground tests** across
+  **18 RN components × 2 style systems**.
+
 ## [1.2.1] - 2026-07-30
 
 ### Fixed

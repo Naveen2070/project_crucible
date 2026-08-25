@@ -4,7 +4,7 @@
 >
 > **shadcn for multi-framework teams + automation**
 
-**Current Version:** 1.2.1 | **Last Updated:** 30-07-2026
+**Current Version:** 1.2.2 | **Last Updated:** 29-08-2026
 
 ---
 
@@ -258,6 +258,24 @@ runtime; **no engine code changes are needed to add a component** — just a man
 
 ---
 
+## v1.2.2 — React Native Kit Completion ✅ Shipped
+
+> Released as **v1.2.2** (29-08-2026). Completes the v1.2 mobile story: the curated cross-platform
+> set grows from 5 to **all 18 components**, each in **both** RN style systems, verified by a new
+> runnable Expo playground.
+
+| Feature                                                              | Status |
+| -------------------------------------------------------------------- | ------ |
+| 13 new RN components — Label, Separator, Skeleton, Avatar, Progress, Textarea, Checkbox, Switch, RadioGroup, Accordion, Tabs, Dialog, Form | ✅ |
+| Compound RN parts (RadioGroup, Tabs, Accordion, Dialog, Form) via React context | ✅ |
+| A11y contracts — roles, states, reduce-motion, labels wired per RN idioms | ✅ |
+| Expo playground (`playground/rn-expo`) — NativeWind/StyleSheet tabs, dark shell, SafeArea | ✅ |
+| jest-expo harness — render smoke + accessibility roles + style parity (49 tests) | ✅ |
+| Path-gated RN CI workflow (`rn-test.yml`)                            | ✅ |
+| Template hardening from render testing (a11yState fix, Handlebars-safe output) | ✅ |
+
+---
+
 ## v1.3 — Migration Engine 🚧 In Progress
 
 ### The Problem
@@ -348,6 +366,7 @@ Additional components beyond the current roadmap timeline. Priority re-evaluated
 | 1.1.0   | Plugin-ready architecture + app-building kit (25 components) | ✅ June 2026  |
 | 1.2.0   | CLI lifecycle, interactive console & DX                      | ✅ 23-07-2026  |
 | 1.2.1   | Template engine performance fix and dependency updates       | ✅ 30-07-2026  |
+| 1.2.2   | React Native kit completion (18 components) + Expo playground | ✅ 29-08-2026  |
 | 1.3.0   | Migration engine                                             | Q4 2026       |
 | 1.4.0   | Studio                                                       | Q2 2027       |
 | 1.5.0   | Ecosystem & examples                                         | Q3 2027       |
