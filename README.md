@@ -6,8 +6,9 @@
 
 **Generated once. Yours forever.**
 
-A code generation engine that scaffolds production-ready, style system/spec-based components into
-your project. No wrappers, no black-box libraries. You own every file generated.
+A code generation engine that scaffolds production-ready, style system/spec-based components for React,
+Vue, Angular, and React Native into your project. Styled with CSS Modules, SCSS, Tailwind CSS,
+NativeWind, or StyleSheet. No wrappers, no black-box libraries. You own every file generated.
 
 **Crucible is not a component library** — it's a code generation engine. It produces source files
 that live in your project, not a package that sits in `node_modules`.
@@ -20,7 +21,7 @@ that live in your project, not a package that sits in `node_modules`.
 [![CI](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml/badge.svg)](https://github.com/Naveen2070/project_crucible/actions/workflows/test.yml)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange.svg)](CHANGELOG.md)
 [![Local-first](https://img.shields.io/badge/local--first-zero%20runtime%20deps-success.svg)](#why-crucible)
-[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.1)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.1)
+[![Socket Badge](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.2)](https://badge.socket.dev/npm/package/@cruciblelab/crucible/1.2.2)
 
 [![GitHub Stars](https://img.shields.io/github/stars/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Naveen2070/project_crucible.svg?style=social)](https://github.com/Naveen2070/project_crucible/network/members)
@@ -404,7 +405,7 @@ the way — **zero runtime footprint** in your shipped bundle.
 
 | Mobile Framework | NativeWind | StyleSheet |
 | ---------------- | :--------: | :--------: |
-| React Native     |     🚧     |     🚧     |
+| React Native     |     ✅     |     ✅     |
 
 Generated Vue components use the native `useId()` composable (**Vue 3.5+**) for stable element IDs;
 on older Vue the CLI emits a deprecated fallback and warns you to upgrade.
@@ -478,6 +479,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befo
 
 | Version | Status    | Description                                                                                    |
 | ------- | --------- | ---------------------------------------------------------------------------------------------- |
+| v1.2.2  | ✅ Stable | React Native kit completion - 18 mobile components × NativeWind + StyleSheet, Expo playground |
 | v1.2.1  | ✅ Stable | Template engine performance fix and dependency updates                                         |
 | v1.2.0  | ✅ Stable | CLI interactive UI wizard, component lifecycle commands, strict plugin mode, and optimizations   |
 | v1.1.0  | ✅ Stable | Plugin-ready architecture + 14 new components (25 total) · 448 tests / 238 E2E / 453 templates |

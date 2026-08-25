@@ -16,7 +16,7 @@ Crucible is ideal for contributors interested in:
 - Component libraries and design systems
 - CLI tooling development
 - Template engines (Handlebars)
-- Multi-framework development (React, Vue, Angular)
+- Multi-framework development (React, Vue, Angular, React Native)
 
 **If you're new to the codebase, start with:**
 
