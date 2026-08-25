@@ -1,7 +1,7 @@
 {
   "name": "@cruciblelab/crucible",
-  "version": "1.2.1",
-  "description": "Crucible — Code Generation Engine that generates style system/spec-based components for React, Vue, and Angular. No runtime dependencies. You own every file generated.",
+  "version": "1.2.2",
+  "description": "Crucible — Code Generation Engine that generates style system/spec-based components for React, Vue, Angular, and React Native. No runtime dependencies. You own every file generated.",
   "docs": "https://crucible-docs.naveenr.in",
   "main": "dist/cli/index.js",
   "types": "dist/cli/index.d.ts",
