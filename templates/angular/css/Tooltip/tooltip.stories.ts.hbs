@@ -42,12 +42,7 @@ const meta: Meta<TooltipComponent> = {
     showArrow: true,
     closeOnEscape: true,
   },
-  decorators: [
-    componentWrapperDecorator(
-      (story) =>
-        `<div style="height: 320px; display: flex; align-items: center; justify-content: center;">${story}</div>`,
-    ),
-  ],
+
 };
 
 export default meta;
@@ -75,12 +70,7 @@ export const Default: Story = {
 
 export const AllPlacements: Story = {
   parameters: { layout: 'centered' },
-  decorators: [
-    componentWrapperDecorator(
-      (story) =>
-        `<div style="min-height: 440px; display: flex; align-items: center; justify-content: center; padding: 80px;">${story}</div>`,
-    ),
-  ],
+
   render: (args) => {
     const sides = ['top', 'bottom', 'left', 'right'] as const;
     const alignments = ['start', 'center', 'end'] as const;
