@@ -45,13 +45,7 @@ const meta: Meta<PopoverComponent> = {
     closeOnClickOutside: true,
     closeOnEscape: true,
   },
-  decorators: [
-    moduleMetadata({ imports: [ButtonComponent] }),
-    componentWrapperDecorator(
-      (story) =>
-        `<div style="height: 360px; display: flex; align-items: center; justify-content: center;">${story}</div>`,
-    ),
-  ],
+
 };
 
 export default meta;
@@ -59,6 +53,7 @@ type Story = StoryObj<PopoverComponent>;
 
 export const Default: Story = {
   render: (args) => ({
+    moduleMetadata: { imports: [ButtonComponent] },
     props: args,
     template: `
       <app-popover
@@ -94,12 +89,7 @@ export const Default: Story = {
 
 export const AllPlacements: Story = {
   parameters: { layout: 'centered' },
-  decorators: [
-    componentWrapperDecorator(
-      (story) =>
-        `<div style="min-height: 480px; display: flex; align-items: center; justify-content: center; padding: 80px;">${story}</div>`,
-    ),
-  ],
+
   render: (args) => {
     const sides = ['top', 'bottom', 'left', 'right'] as const;
     const alignments = ['start', 'center', 'end'] as const;
@@ -174,6 +164,7 @@ export const VariantsAndSizes: Story = {
 
 export const Controlled: Story = {
   render: (args) => ({
+    moduleMetadata: { imports: [ButtonComponent] },
     props: {
       ...args,
       controlledOpen: false,
@@ -213,6 +204,7 @@ export const Controlled: Story = {
 
 export const Uncontrolled: Story = {
   render: (args) => ({
+    moduleMetadata: { imports: [ButtonComponent] },
     props: args,
     template: `
       <app-popover
@@ -240,6 +232,7 @@ export const Uncontrolled: Story = {
 export const HoverTrigger: Story = {
   args: { trigger: 'hover' },
   render: (args) => ({
+    moduleMetadata: { imports: [ButtonComponent] },
     props: args,
     template: `
       <app-popover
@@ -262,6 +255,7 @@ export const HoverTrigger: Story = {
 export const Modal: Story = {
   args: { modal: true, ariaLabel: 'Confirm action' },
   render: (args) => ({
+    moduleMetadata: { imports: [ButtonComponent] },
     props: args,
     template: `
       <app-popover
