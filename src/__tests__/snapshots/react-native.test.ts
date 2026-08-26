@@ -20,6 +20,10 @@ const COMPONENTS = [
   'RadioGroup',
   'Textarea',
   'Checkbox',
+  'Accordion',
+  'Tabs',
+  'Dialog',
+  'Form',
 ];
 
 describe('React Native snapshots', () => {
