@@ -11,6 +11,63 @@ import {
 import { spawn } from 'child_process';
 import path from 'path';
 
+const RN_PLAYGROUND = path.join(process.cwd(), 'playground', 'rn-expo');
+const RN_GENERATED = path.join(RN_PLAYGROUND, 'components');
+
+/**
+ * Ensure the RN playground has generated components, running `pg:rn` (which needs a built
+ * CLI in dist/) when the components tree is missing.
+ */
+function ensureRnGenerated(): boolean {
+  if (require('fs').existsSync(RN_GENERATED)) return true;
+  if (!require('fs').existsSync(path.join(process.cwd(), 'dist', 'cli', 'index.js'))) {
+    console.log(ansis.yellow('\n⚠  dist/cli/index.js missing - run `npm run build` first.'));
+    return false;
+  }
+  console.log(ansis.gray('\n  No RN components yet - generating via pg:rn...'));
+  try {
+    execSync('npm run pg:rn', { cwd: process.cwd(), stdio: 'inherit' });
+    return true;
+  } catch {
+    console.error(ansis.red('\n✗ Component generation failed.'));
+    return false;
+  }
+}
+
+/**
+ * Start the Expo dev server for the RN playground. Prints the QR code for Expo Go.
+ * `tunnel` routes through ngrok for devices not on the same network.
+ */
+function startExpo(tunnel: boolean): Promise<void> {
+  if (!ensureRnGenerated()) return Promise.resolve();
+
+  console.log(
+    ansis.cyan(
+      tunnel
+        ? '\n📱 Starting Expo (tunnel mode - scan the QR in Expo Go, any network)...'
+        : '\n📱 Starting Expo - scan the QR with the Expo Go app (same Wi-Fi)...',
+    ),
+  );
+
+  return new Promise((resolve, reject) => {
+    const args = tunnel ? ['expo', 'start', '--tunnel'] : ['expo', 'start'];
+    const child = spawn('npx', args, {
+      cwd: RN_PLAYGROUND,
+      stdio: 'inherit',
+      shell: true,
+    });
+    child.on('error', (err) => {
+      console.error(ansis.red(`\n✗ Failed to start Expo: ${err.message}`));
+      reject(err);
+    });
+    child.on('exit', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`Expo exited with code ${code}`));
+    });
+  });
+}
+
+
 async function selectFramework(): Promise<Framework> {
   const choices = FRAMEWORKS.map((fw) => ({
     name: `${fw.charAt(0).toUpperCase() + fw.slice(1)} (port ${getStorybookPort(fw)})`,
@@ -125,11 +182,18 @@ if (isMain) {
   const args = process.argv.slice(2);
   const command = args[0] || 'open';
   const framework = args[1] as Framework | undefined;
-  if (framework !== undefined) assertFramework(framework);
 
-  if (command === 'dev') {
-    devPlayground(framework).catch(console.error);
+  // RN playground: `open rn` / `dev rn` (dev = tunnel mode for off-network devices).
+  if (framework === 'rn' || framework === 'expo') {
+    const tunnel = command === 'dev';
+    startExpo(tunnel).catch(console.error);
   } else {
-    openPlayground(framework).catch(console.error);
+    if (framework !== undefined) assertFramework(framework);
+
+    if (command === 'dev') {
+      devPlayground(framework).catch(console.error);
+    } else {
+      openPlayground(framework).catch(console.error);
+    }
   }
 }
