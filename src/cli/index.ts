@@ -10,7 +10,9 @@ import { runList } from './commands/list';
 import { runInfo } from './commands/info';
 import { runStatus } from './commands/status';
 import { runDiff } from './commands/diff';
+import { runAudit } from './commands/audit';
 import { runUpdate } from './commands/update';
+import { runUpgrade } from './commands/upgrade';
 import { runRemove } from './commands/remove';
 import { runUi } from './commands/ui';
 import { runClean, runPgClean } from './commands/clean';
@@ -237,6 +239,18 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
     );
 
   program
+    .command('audit [component...]')
+    .description('Report drift using the merge-aware classifier (clean/upstream-updated/user-edited/diverged)')
+    .option('--framework <fw>', 'Target framework')
+    .option('-s, --style <system>', 'Override style system (css|tailwind|scss)')
+    .option('--stories', 'Include story files in the audit')
+    .option('--json', 'Output the audit report as JSON')
+    .option('--strict', 'Also fail (exit 1) on upstream-updated or orphaned, not just diverged')
+    .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .action((components: string[], opts: any) => runCommand('audit', () => runAudit(components, opts)));
+
+  program
     .command('diff [component...]')
     .description('Show what would change if components were regenerated (defaults to all tracked)')
     .option('--framework <fw>', 'Target framework')
@@ -269,6 +283,21 @@ For more details, visit: https://github.com/Naveen2070/project_crucible
         return runUpdate(components, opts);
       }),
     );
+
+  program
+    .command('upgrade [component...]')
+    .description('3-way merge template updates into edited files (D2: clean/upstream-updated/user-edited/diverged)')
+    .option('--framework <fw>', 'Target framework')
+    .option('-s, --style <system>', 'Override style system (css|tailwind|scss)')
+    .option('--stories', 'Include story files in the upgrade')
+    .option('--strategy <mode>', 'Conflict strategy for diverged files: ours|theirs|merge', 'merge')
+    .option('-y, --yes', 'Non-interactive: auto-write merges, leaving <<<<<<< markers on conflict')
+    .option('--dry-run', 'Show what would change without writing files')
+    .option('--no-backup', 'Skip pre-write backups under .crucible/backups/')
+    .option('--config <path>', 'Path to config file', 'crucible.config.json')
+    .option('--cwd <path>', 'Current working directory', '.')
+    .option('--quiet', 'Disable all logging except errors')
+    .action((components: string[], opts: any) => runCommand('upgrade', () => runUpgrade(components, opts)));
 
   program
     .command('remove <component...>')

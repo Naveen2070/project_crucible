@@ -1,12 +1,10 @@
-import { readFile } from 'node:fs/promises';
 import path from 'path';
 import ansis from 'ansis';
 import { readConfig } from '../../config/reader';
-import { loadHashes, formatFile } from '../../scaffold/writer';
-import { generate } from '../../api/generate';
+import { loadHashes } from '../../scaffold/writer';
 import { resolveOutputDir, trackedComponents } from '../utils/output-dir';
+import { classifyTree, ReportFileState } from '../../migrate/report';
 import { lineDiff, hasChanges } from '../utils/line-diff';
-import { pathExists } from '../../utils/fs';
 import { Framework, StyleSystem } from '../../core/enums';
 
 export interface DiffOptions {
@@ -53,30 +51,32 @@ export async function runDiff(components: string[], opts: DiffOptions = {}) {
     return;
   }
 
-  const result = await generate({ components: target, cwd, outDir, config, framework, generateStories });
+  const report = await classifyTree({
+    cwd,
+    outDir,
+    config,
+    framework,
+    generateStories,
+    manifest,
+    components: target,
+  });
 
-  const changed: { file: string; status: 'modified' | 'new' }[] = [];
+  const changed: { file: string; status: 'modified' | 'new'; state: ReportFileState }[] = [];
 
-  for (const comp of result.components) {
-    for (const [filename, raw] of Object.entries(comp.files)) {
-      const rel = path.join(comp.name, filename).split(path.sep).join('/');
-      const onDiskPath = path.join(outDir, comp.name, filename);
-      const generated = await formatFile(raw, onDiskPath, cwd);
+  for (const f of report.files) {
+    // Orphaned entries have no template to render against; clean ones have nothing to show.
+    if (f.state === 'clean' || f.state === 'orphaned') continue;
 
-      if (!(await pathExists(onDiskPath))) {
-        changed.push({ file: rel, status: 'new' });
-        if (!opts.json) {
-          console.log(ansis.bold(`\n● ${rel}`) + ansis.gray(` (new — ${generated.split('\n').length} lines)`));
-        }
-        continue;
-      }
+    const status = f.state === 'new' ? 'new' : 'modified';
+    changed.push({ file: f.hashKey, status, state: f.state });
 
-      const current = await readFile(onDiskPath, 'utf-8');
-      const d = lineDiff(current, generated);
-      if (hasChanges(d)) {
-        changed.push({ file: rel, status: 'modified' });
-        if (!opts.json) printDiff(rel, d);
-      }
+    if (opts.json) continue;
+    if (status === 'new') {
+      const lines = (f.theirs ?? '').split('\n').length;
+      console.log(ansis.bold(`\n● ${f.hashKey}`) + ansis.gray(` (new — ${lines} lines)`));
+    } else {
+      const d = lineDiff(f.ours ?? '', f.theirs ?? '');
+      if (hasChanges(d)) printDiff(f.hashKey, d);
     }
   }
 

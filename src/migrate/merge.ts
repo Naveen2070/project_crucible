@@ -6,7 +6,8 @@ export interface MergeResult {
   clean: boolean;
 }
 
-function toLF(s: string): string {
+/** Normalize CRLF to LF. Windows checkouts (autocrlf) make this a real, not hypothetical, case. */
+export function toLF(s: string): string {
   return s.replace(/\r\n/g, '\n');
 }
 

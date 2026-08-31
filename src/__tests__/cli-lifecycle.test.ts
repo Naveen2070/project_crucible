@@ -231,6 +231,34 @@ describe('CLI lifecycle commands', () => {
       const out = mockLog.mock.calls.map((c) => c[0]).join('\n');
       expect(out).toContain('No generated components tracked');
     });
+
+    it('adds merge-aware counts (diverged) alongside the ok/modified/missing summary', async () => {
+      await writeConfig();
+      await add(['Button']);
+      const key = 'Button/Button.tsx';
+      const manifest = await readJson(manifestPath());
+      manifest.files[key].baseContent = '// stale\n' + manifest.files[key].baseContent;
+      await writeJson(manifestPath(), manifest);
+      await writeFile(buttonMain(), '// edit\n' + (await readFile(buttonMain(), 'utf-8')));
+
+      await runStatus({ cwd: TEST_DIR, json: true });
+      const report = JSON.parse(mockLog.mock.calls.at(-1)![0]);
+      expect(report.merge.diverged).toBeGreaterThanOrEqual(1);
+    });
+
+    it('omits merge counts rather than throwing when config is unreadable', async () => {
+      // No writeConfig() call — status must stay usable on a half-set-up project.
+      await ensureDir(path.join(TEST_DIR, '.crucible'));
+      await writeJson(path.join(TEST_DIR, '.crucible', 'manifest.json'), {
+        engineVersion: '1.0.0',
+        configHash: '',
+        generatedAt: 'now',
+        files: { 'Button/Button.tsx': { contentHash: 'x', generatedAt: 'now' } },
+      });
+      await runStatus({ cwd: TEST_DIR, json: true });
+      const report = JSON.parse(mockLog.mock.calls.at(-1)![0]);
+      expect(report.merge).toBeUndefined();
+    });
   });
 
   // ----------------------------------------------------------------- diff
