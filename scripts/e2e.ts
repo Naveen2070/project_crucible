@@ -715,6 +715,209 @@ async function runE2E() {
     await remove(path.join(TEST_DIR, '.crucible'));
   });
 
+  // ==================== MIGRATION ENGINE (audit/diff/upgrade) ====================
+  console.log(ansis.cyan('\n🔀 Migration engine (audit/diff/upgrade)'));
+
+  await infra('audit --json exit codes (0 clean, 1 diverged)', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), { name: 'cmd-suite', dependencies: {} });
+    await cmdConfig();
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+
+    let cleanFailed = false;
+    try {
+      runCLI(`audit --cwd ${CMD} --json`);
+    } catch {
+      cleanFailed = true;
+    }
+    if (cleanFailed) throw new Error('audit should exit 0 on a clean tree');
+
+    // Doctor a stale BASE + a disk edit on top of it: both disk and render now differ from
+    // BASE → diverged.
+    const manifestPath = path.join(CMD_DIR, '.crucible/manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf-8'));
+    const key = 'Button/Button.tsx';
+    const real = manifest.files[key].baseContent;
+    const staleBase = real.replace('export const Button', 'export const StaleButton');
+    manifest.files[key].baseContent = staleBase;
+    await writeJson(manifestPath, manifest);
+    await writeFile(path.join(CMD_DIR, OUT, 'Button/Button.tsx'), staleBase + '\n// user edit\n');
+
+    let divergedFailed = false;
+    try {
+      runCLI(`audit --cwd ${CMD} --json`);
+    } catch {
+      divergedFailed = true;
+    }
+    if (!divergedFailed) throw new Error('audit should exit 1 when a file has diverged');
+
+    await remove(CMD_DIR);
+  });
+
+  await infra('legacy (v1) manifest upgrade degrades safely — never merges blind', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), { name: 'cmd-suite', dependencies: {} });
+    await cmdConfig();
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+
+    // Simulate a manifest written by a pre-M0 Crucible: strip the v2 fields (baseContent/source).
+    const manifestPath = path.join(CMD_DIR, '.crucible/manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf-8'));
+    for (const meta of Object.values(manifest.files) as any[]) {
+      delete meta.baseContent;
+      delete meta.source;
+    }
+    delete manifest.version;
+    await writeJson(manifestPath, manifest);
+
+    const main = path.join(CMD_DIR, OUT, 'Button/Button.tsx');
+    const original = await readFile(main, 'utf-8');
+    await writeFile(main, original + '\n// legacy user edit\n');
+
+    runCLI(`upgrade Button --cwd ${CMD} -y --quiet`);
+
+    const after = await readFile(main, 'utf-8');
+    if (!after.includes('// legacy user edit')) {
+      throw new Error('legacy user-edited file must be preserved, never merged blind');
+    }
+    if (after.includes('<<<<<<<')) {
+      throw new Error('a legacy (no BASE) entry must never produce conflict markers');
+    }
+
+    await remove(CMD_DIR);
+  });
+
+  await infra('upgrade --yes with a real conflict writes markers and exits non-zero', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), { name: 'cmd-suite', dependencies: {} });
+    await cmdConfig();
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+
+    const manifestPath = path.join(CMD_DIR, '.crucible/manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf-8'));
+    const key = 'Button/Button.tsx';
+    const real = manifest.files[key].baseContent;
+    // BASE and OURS both diverge from THEIRS at the same spot, with different edits → conflict.
+    manifest.files[key].baseContent = real.replace('export const Button', 'export const StaleButton');
+    await writeJson(manifestPath, manifest);
+    const main = path.join(CMD_DIR, OUT, 'Button/Button.tsx');
+    await writeFile(main, real.replace('export const Button', 'export const MyButton'));
+
+    let threw = false;
+    try {
+      runCLI(`upgrade Button --cwd ${CMD} -y --quiet`);
+    } catch {
+      threw = true;
+    }
+    if (!threw) throw new Error('upgrade should exit non-zero when it writes unresolved conflict markers');
+
+    const written = await readFile(main, 'utf-8');
+    for (const marker of ['<<<<<<<', '|||||||', '=======', '>>>>>>>']) {
+      if (!written.includes(marker)) throw new Error(`expected conflict marker "${marker}" in the written file`);
+    }
+
+    await remove(CMD_DIR);
+  });
+
+  await infra('plugin-shadow upgrade: a real upstream template change merges with a user edit', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), { name: 'cmd-suite', dependencies: {} });
+    await cmdConfig();
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+
+    const main = path.join(CMD_DIR, OUT, 'Button/Button.tsx');
+    const cssModule = path.join(CMD_DIR, OUT, 'Button/Button.module.css');
+    const originalTsx = await readFile(main, 'utf-8');
+    const originalCss = await readFile(cssModule, 'utf-8');
+
+    // User edits the file before any upstream change exists.
+    await writeFile(main, originalTsx + '\n// user edit marker\n');
+
+    // Simulate a real upstream template improvement via the shadowing mechanism confirmed in the
+    // M4 spike: a local plugin declaring the same component id ("Button") fully overrides core's
+    // template. One line inserted near the top, far from the user's edit at the end, so a 3-way
+    // merge has an anchor and can combine both changes cleanly.
+    const pluginRoot = path.join(CMD_DIR, '.crucible/plugins/e2e-shadow-upgrade');
+    await ensureDir(path.join(pluginRoot, 'components'));
+    await ensureDir(path.join(pluginRoot, 'templates/react/css/Button'));
+    await writeJson(path.join(pluginRoot, 'plugin.json'), {
+      id: 'e2e-shadow-upgrade',
+      name: 'Shadow Upgrade Plugin',
+      version: '1.0.0',
+      engineVersion: '>=1.0.0',
+      components: ['components/button.json'],
+      templatesDir: './templates',
+    });
+    await writeJson(path.join(pluginRoot, 'components/button.json'), {
+      id: 'Button',
+      name: 'Button',
+      description: 'Shadow-upgraded Button',
+      frameworks: ['react'],
+      styleSystems: ['css'],
+      variants: ['default'],
+      sizes: [],
+      states: [],
+      props: [],
+      prefix: 'button',
+      tailwindDefaults: {},
+    });
+    const tsxLines = originalTsx.split('\n');
+    const upgradedTsx = [tsxLines[0], '// UPGRADED_UPSTREAM', ...tsxLines.slice(1)].join('\n');
+    await writeFile(path.join(pluginRoot, 'templates/react/css/Button/Button.tsx.hbs'), upgradedTsx);
+    await writeFile(path.join(pluginRoot, 'templates/react/css/Button/Button.module.css.hbs'), originalCss);
+
+    runCLI(`upgrade Button --cwd ${CMD} -y --quiet`);
+
+    const merged = await readFile(main, 'utf-8');
+    if (!merged.includes('// user edit marker')) {
+      throw new Error('upgrade must never silently drop a user edit, merged or in conflict markers');
+    }
+    if (!merged.includes('UPGRADED_UPSTREAM')) {
+      throw new Error('upgrade should bring in the real upstream template change');
+    }
+
+    await remove(pluginRoot);
+    await remove(CMD_DIR);
+  });
+
+  await infra('RN component: upgrade behaves identically to a web component (no RN special-casing)', async () => {
+    await remove(CMD_DIR);
+    await ensureDir(CMD_DIR);
+    await writeJson(path.join(CMD_DIR, 'package.json'), {
+      name: 'cmd-suite',
+      dependencies: { 'react-native': '0.76.0', nativewind: '4.0.0', tailwindcss: '3.4.0' },
+    });
+    await writeJson(path.join(CMD_DIR, 'crucible.config.json'), {
+      version: '1.0.0',
+      framework: 'react-native',
+      styleSystem: 'stylesheet',
+      theme: 'minimal',
+      features: { hover: true, focusRing: true, motionSafe: true, compoundComponents: true },
+      a11y,
+      flags: { outputDir: OUT, stories: false },
+    });
+    runCLI(`add Button --cwd ${CMD} -y --quiet`);
+
+    const main = path.join(CMD_DIR, OUT, 'Button/Button.tsx');
+    await writeFile(main, (await readFile(main, 'utf-8')) + '\n// RN user edit\n');
+
+    const auditReport = JSON.parse(runCLI(`audit --cwd ${CMD} --json`));
+    if ((auditReport.counts['user-edited'] ?? 0) < 1) {
+      throw new Error('an RN user edit should classify as user-edited, same as any other framework');
+    }
+
+    runCLI(`upgrade Button --cwd ${CMD} -y --quiet`);
+    if (!(await readFile(main, 'utf-8')).includes('// RN user edit')) {
+      throw new Error('an RN user-edited file must be preserved by upgrade, same as any other framework');
+    }
+
+    await remove(CMD_DIR);
+  });
+
   console.log(ansis.gray('\n🧹 Cleaning up...'));
   await remove(TEST_DIR);
 

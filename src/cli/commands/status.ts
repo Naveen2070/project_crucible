@@ -5,10 +5,14 @@ import { loadHashes, hashContent } from '../../scaffold/writer';
 import { getEngineVersion } from '../../components/model';
 import { pathExists } from '../../utils/fs';
 import { resolveOutputDir } from '../utils/output-dir';
+import { readConfig } from '../../config/reader';
+import { classifyTree } from '../../migrate/report';
+import { Framework } from '../../core/enums';
 
 export interface StatusOptions {
   json?: boolean;
   cwd?: string;
+  config?: string;
 }
 
 type FileState = 'ok' | 'modified' | 'missing';
@@ -21,6 +25,8 @@ interface StatusReport {
   configStale: boolean;
   files: { file: string; state: FileState }[];
   summary: { ok: number; modified: number; missing: number };
+  /** Merge-aware counts (D2 taxonomy) — omitted if the config couldn't be read/rendered. */
+  merge?: { diverged: number; upstreamUpdated: number; orphaned: number };
 }
 
 export async function runStatus(opts: StatusOptions = {}) {
@@ -56,6 +62,35 @@ export async function runStatus(opts: StatusOptions = {}) {
     missing: files.filter((f) => f.state === 'missing').length,
   };
 
+  // Best-effort merge-aware counts. Requires rendering every tracked component (heavier than the
+  // hash-only check above), so failures here (missing/invalid config, unresolvable component)
+  // must never break the cheap ok/modified/missing report status already provides.
+  let merge: StatusReport['merge'];
+  if (Object.keys(manifest.files).length > 0) {
+    try {
+      const configRel = path.relative(
+        process.cwd(),
+        path.join(cwd, opts.config || 'crucible.config.json'),
+      );
+      const config = await readConfig(configRel);
+      const classification = await classifyTree({
+        cwd,
+        outDir,
+        config,
+        framework: config.framework as Framework,
+        generateStories: config.flags?.stories ?? false,
+        manifest,
+      });
+      merge = {
+        diverged: classification.counts.diverged ?? 0,
+        upstreamUpdated: classification.counts['upstream-updated'] ?? 0,
+        orphaned: classification.counts.orphaned ?? 0,
+      };
+    } catch {
+      // Half-set-up project (no config yet, etc.) — status stays usable without merge counts.
+    }
+  }
+
   const report: StatusReport = {
     outputDir,
     engineVersion,
@@ -64,6 +99,7 @@ export async function runStatus(opts: StatusOptions = {}) {
     configStale,
     files,
     summary,
+    merge,
   };
 
   // Stale config/engine or missing files are actionable failures; user edits are informational.
@@ -105,6 +141,13 @@ export async function runStatus(opts: StatusOptions = {}) {
   console.log(
     `\n  ${ansis.green(`${summary.ok} ok`)}, ${ansis.yellow(`${summary.modified} modified`)}, ${ansis.red(`${summary.missing} missing`)}`,
   );
+  if (merge && (merge.diverged > 0 || merge.upstreamUpdated > 0 || merge.orphaned > 0)) {
+    console.log(
+      ansis.gray(
+        `  (${merge.diverged} diverged, ${merge.upstreamUpdated} upstream-updated, ${merge.orphaned} orphaned — run \`crucible audit\` for details)`,
+      ),
+    );
+  }
   if (summary.modified > 0) {
     console.log(ansis.gray('  Modified files are user-edited; `crucible add <C> --force` overwrites them.'));
   }
