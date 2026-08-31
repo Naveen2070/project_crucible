@@ -261,12 +261,15 @@ export async function runAdd(components: string[], opts: any) {
       result.components.map(async ({ name: comp, files, usedUtils }) => {
         if (opts.verbose) console.log(ansis.blue(`Generating ${comp}...`));
 
+        const pluginId = pluginRegistry.getComponentPluginId(comp) || 'core';
+
         const writeResult = await writeFiles(files, outDir, comp, {
           force: opts.force,
           dryRun: opts.dryRun,
           quiet: opts.quiet,
           cwd,
           hashes,
+          source: { root: pluginId },
         });
 
         if (usedUtils.length > 0) {
@@ -275,7 +278,6 @@ export async function runAdd(components: string[], opts: any) {
 
         const storiesNote = generateStories ? ' + story' : '';
         const dryRunNote = opts.dryRun ? ansis.yellow(' (dry-run)') : '';
-        const pluginId = pluginRegistry.getComponentPluginId(comp) || 'core';
 
         if (!opts.quiet) {
           console.log(

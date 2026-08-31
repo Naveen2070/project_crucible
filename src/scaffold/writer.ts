@@ -17,9 +17,14 @@ const prettierConfigCache = new Map<string, prettier.Config | null>();
 export interface FileHashMeta {
   contentHash: string;
   generatedAt: string;
+  /** Formatted content exactly as written at generation time. Undefined = v1 entry, never merged. */
+  baseContent?: string;
+  source?: { root: string; templatePath: string };
 }
 
 export interface Manifest {
+  /** undefined/1 = legacy (no baseContent/source); 2 = v2 fields present. */
+  version?: number;
   engineVersion: string;
   configHash: string;
   generatedAt: string;
@@ -112,6 +117,7 @@ export async function writeFiles(
     quiet?: boolean;
     cwd?: string;
     hashes?: Manifest;
+    source?: { root: string };
   } = {},
 ): Promise<WriteResult> {
   const cwd = opts.cwd || process.cwd();
@@ -212,7 +218,12 @@ export async function writeFiles(
       manifest.files[hashKey] = {
         contentHash: newHash,
         generatedAt: now,
+        baseContent: formattedContent,
+        source: opts.source
+          ? { root: opts.source.root, templatePath: hashKey }
+          : manifest.files[hashKey]?.source,
       };
+      manifest.version = 2;
       if (!opts.quiet) console.log(ansis.green(`✓  ${hashKey}`));
       written.push(hashKey);
     }),

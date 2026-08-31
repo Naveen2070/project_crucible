@@ -61,6 +61,21 @@ describe('loadHashes', () => {
     const result = await loadHashes(TEST_DIR);
     expect(result.files['Button/Button.tsx'].contentHash).toBe('legacyHash123');
   });
+
+  it('leaves v1 entries without baseContent/version untouched', async () => {
+    const manifestPath = path.join(TEST_DIR, HASH_FILE);
+    await ensureDir(path.dirname(manifestPath));
+    await writeJson(manifestPath, {
+      engineVersion: '1.0.0',
+      configHash: 'abc',
+      generatedAt: '2023-01-01',
+      files: { 'Button/Button.tsx': { contentHash: 'hash123', generatedAt: '2023-01-01' } },
+    });
+
+    const result = await loadHashes(TEST_DIR);
+    expect(result.version).toBeUndefined();
+    expect(result.files['Button/Button.tsx'].baseContent).toBeUndefined();
+  });
 });
 
 describe('saveHashes', () => {
@@ -238,6 +253,21 @@ describe('writeFiles', () => {
 
     const content = await readFile(path.join(outputDir, componentName, 'Button.tsx'), 'utf-8');
     expect(content).toContain('// new content');
+  });
+
+  it('records baseContent + source and bumps version to 2', async () => {
+    const files = { 'Button.tsx': 'export const Button = () => {};' };
+    await writeFiles(files, outputDir, componentName, {
+      cwd: TEST_DIR,
+      quiet: true,
+      source: { root: 'core' },
+    });
+
+    const manifest = await loadHashes(TEST_DIR);
+    expect(manifest.version).toBe(2);
+    const meta = manifest.files['Button/Button.tsx'];
+    expect(meta.baseContent).toContain('export const Button');
+    expect(meta.source).toEqual({ root: 'core', templatePath: 'Button/Button.tsx' });
   });
 
   it('5.11: throws on read-only file write', async () => {
